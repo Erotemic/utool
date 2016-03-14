@@ -519,7 +519,16 @@ class ProgressIter(object):
         if force_newlines:
             PROGRESS_WRITE('\n')
 
-        PROGRESS_FLUSH()
+        try:
+            PROGRESS_FLUSH()
+        except IOError as ex:
+            # There is some weird error when doing progress in IPython notebook
+            print('IOError flushing %s' % (ex,))
+            #print('PROGRESS_FLUSH = %r' % (PROGRESS_FLUSH,))
+            #import utool as ut
+            #ut.debug_logging_iostreams()
+            #ut.printex(ex)
+            #raise
         if self.prog_hook is not None:
             self.prog_hook(self.count, nTotal)
 
@@ -608,7 +617,10 @@ class ProgressIter(object):
                 PROGRESS_WRITE(msg)
                 if force_newlines:
                     PROGRESS_WRITE('\n')
-                PROGRESS_FLUSH()
+                try:
+                    PROGRESS_FLUSH()
+                except IOError as ex:
+                    print('IOError flushing %s' % (ex,))
                 if self.prog_hook is not None:
                     self.prog_hook(self.count, nTotal)
         if (self.count) % freq != 0:
@@ -631,7 +643,10 @@ class ProgressIter(object):
             )
             PROGRESS_WRITE(msg)
             PROGRESS_WRITE('\n')
-            PROGRESS_FLUSH()
+            try:
+                PROGRESS_FLUSH()
+            except IOError as ex:
+                print('IOError flushing %s' % (ex,))
         #cumrate = 1E-9
         #self.nTotal = len(self.iterable)
         # for:
@@ -701,7 +716,8 @@ progiter = ProgressIter
 class ProgIter(ProgressIter):
     # Thin wrapper with better arg positions
     def __init__(self, iterable, lbl='Prog', adjust=True, freq=1, **kwargs):
-        super(ProgIter, self).__init__(iterable, lbl=lbl, adjust=adjust, freq=freq, **kwargs)
+        import utool as ut
+        super(ut.ProgIter, self).__init__(iterable, lbl=lbl, adjust=adjust, freq=freq, **kwargs)
 
 
 def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
@@ -745,62 +761,10 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
                  pad_stdout=False, wfreq=None, ffreq=None, freq=None, total=None,
                  num=None, with_totaltime=None):
     """
+    DEPRICATE
     FIXME: depricate for ProgressIter.
-    Still used in smk funcs
-
-    Returns two functions (mark_progress, end_progress) which will handle
-    logging progress in a for loop.
-
-    flush frequency must be a multiple of write frequency
-
-    Args:
-        lbl (str):  progress label
-        nTotal (int):
-        flushfreq (int):
-        startafter (int):
-        start (bool):
-        repl (bool):
-        approx (bool):
-        disable (bool):
-        writefreq (int):
-        with_totaltime (bool):
-        backspace (bool):
-        pad_stdout (bool):
-        wfreq (None): alias for write_freq
-        ffreq (None): alias for flush_freq
-        freq (None):  alias for flush_freq and write_freq (prefered)
-        total (None): alias for nTotal
-        num (None):   alias for nTotal
-
-    Example:
-        >>> import utool, time
-        >>> from six.moves import range
-        >>> # Define a dummy task
-        >>> spam = 42.0
-        >>> nTotal = 1000
-        >>> iter_ = (num for num in range(0, nTotal * 2, 2))
-        >>> # Create progress functions
-        ... mark_, end_ = utool.log_progress('prog ', nTotal, flushfreq=17)
-        \b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bprog    0/1000
-        >>> for count, item in enumerate(iter_):  #doctest: +ELLIPSIS
-        ...     # Call with enumerate to keep track of a count variable
-        ...     time.sleep(.001)
-        ...     spam += item + count
-        ...     mark_(count)
-        \b...prog 1000/1000
-        >>> # Mark completion
-        >>> end_()
-        <BLANKLINE>
+    still used in util_dev
     """
-    # utool.auto_docstr('utool.util_progress', 'log_progress')
-    # python -c "import utool; utool.print_auto_docstr('utool.util_progress', 'log_progress')"
-    #
-    # In reference to above docstr:
-    #    I don't completely understand why some of the >>> and ... had to be where
-    #    they are, but doctest gets very angry if its not in this format
-
-    # TODO: Option to display rate of progress
-    # TODO: Option to display estimated time remaining
     global AGGROFLUSH
     # Alias kwargs with simpler names
     if num is not None:
@@ -887,100 +851,6 @@ def simple_progres_func(verbosity, msg, progchar='.'):
     elif verbosity == 2:
         mark_progress = mark_progress2
     return mark_progress
-
-
-#def prog_func(*args, **kwargs):
-#    return progress_func(*args, **kwargs)
-
-
-## TODO: Return start_prog, make_prog, end_prog
-#def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
-#                  flush_after=4, spacing=0, line_len=80,
-#                  progress_type='fmtstr', mark_start=False, repl=False,
-#                  approx=False, override_quiet=False):
-#    """ DEPRICATE
-
-#    Returns:
-#        a function that marks progress taking the iteration count as a
-#        parameter. Prints if max_val > mark_at. Prints dots if max_val not
-#        specified or simple=True
-#    """
-#    write_fn = PROGRESS_WRITE
-#    #write_fn = print_
-#    #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
-
-#    # Tell the user we are about to make progress
-#    if SILENT or (QUIET and not override_quiet) or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
-#        return lambda count: None, lambda: None
-#    # none: nothing
-#    if progress_type == 'none':
-#        def mark_progress_None(count):
-#            return None
-#        mark_progress = mark_progress_None
-#    # simple: one dot per progress. no flush.
-#    if progress_type == 'simple':
-#        def mark_progress_simple(count):
-#            write_fn('.')
-#        mark_progress = mark_progress_simple
-#    # dots: spaced dots
-#    if progress_type == 'dots':
-#        indent_ = '    '
-#        write_fn(indent_)
-
-#        if spacing > 0:
-#            # With spacing
-#            newline_len = spacing * line_len // spacing
-
-#            def mark_progress_sdot(count):
-#                write_fn('.')
-#                count_ = count + 1
-#                if (count_) % newline_len == 0:
-#                    write_fn('\n' + indent_)
-#                    PROGRESS_FLUSH()
-#                elif (count_) % spacing == 0:
-#                    write_fn(' ')
-#                    PROGRESS_FLUSH()
-#                elif (count_) % flush_after == 0:
-#                    PROGRESS_FLUSH()
-#            mark_progress = mark_progress_sdot
-#        else:
-#            # No spacing
-#            newline_len = line_len
-
-#            def mark_progress_dot(count):
-#                write_fn('.')
-#                count_ = count + 1
-#                if (count_) % newline_len == 0:
-#                    write_fn('\n' + indent_)
-#                    PROGRESS_FLUSH()
-#                elif (count_) % flush_after == 0:
-#                    PROGRESS_FLUSH()
-#            mark_progress = mark_progress_dot
-#    # fmtstr: formated string progress
-#    if progress_type == 'fmtstr':
-#        fmt_str = progress_str(max_val, lbl=lbl, repl=repl, approx=approx)
-
-#        def mark_progress_fmtstr(count):
-#            count_ = count + 1
-#            write_fn(fmt_str % (count_))
-#            if (count_) % flush_after == 0:
-#                PROGRESS_FLUSH()
-#        mark_progress = mark_progress_fmtstr
-#    # FIXME idk why argparse2.ARGS_ is none here.
-#    if '--aggroflush' in sys.argv:
-#        def mark_progress_agressive(count):
-#            mark_progress(count)
-#            PROGRESS_FLUSH()
-#        return mark_progress_agressive
-
-#    def end_progress():
-#        write_fn('\n')
-#        PROGRESS_FLUSH()
-#    #mark_progress(0)
-#    if mark_start:
-#        mark_progress(-1)
-#    return mark_progress, end_progress
-#    raise Exception('unkown progress type = %r' % progress_type)
 
 
 if __name__ == '__main__':

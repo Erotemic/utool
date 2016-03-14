@@ -1513,7 +1513,8 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
             try:
                 #print(func)
                 sourcecode = inspect.getsource(func)
-                break
+                if not isinstance(sourcecode, six.text_type):
+                    sourcecode = sourcecode.decode('utf-8')
                 #print(sourcecode)
             except (IndexError, OSError, SyntaxError) as ex:
                 ut.printex(ex, 'Error getting source',
@@ -1547,7 +1548,8 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
         #nodef_source = ut.regex_replace('def [^:]*\\):\n', '', sourcecode)
         regex_decor = '^@.' + ut.REGEX_NONGREEDY
         regex_defline = '^def [^:]*\\):\n'
-        nodef_source = ut.regex_replace('(' + regex_decor + ')?' + regex_defline, '', sourcecode)
+        patern = '(' + regex_decor + ')?' + regex_defline
+        nodef_source = ut.regex_replace(patern, '', sourcecode)
         sourcecode = ut.unindent(nodef_source)
         #print(sourcecode)
         pass

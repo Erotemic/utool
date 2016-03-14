@@ -58,6 +58,24 @@ __STR__ = six.text_type
 logdir_cacheid = 'log_dpath'
 
 
+def debug_logging_iostreams():
+    print(' --- <DEBUG IOSTREAMS> --')
+    print('__STR__ = %r' % (__STR__,))
+    print('__IN_MAIN_PROCESS__ = %r' % (__IN_MAIN_PROCESS__,))
+    print('__UTOOL_ROOT_LOGGER__ = %r' % (__UTOOL_ROOT_LOGGER__,))
+    print('__CURRENT_LOG_FPATH__ = %r' % (__CURRENT_LOG_FPATH__,))
+    print('__PYTHON_STDOUT__ = %r' % (__PYTHON_STDOUT__,))
+    print('__PYTHON_PRINT__ = %r' % (__PYTHON_PRINT__,))
+    print('__PYTHON_WRITE__ = %r' % (__PYTHON_WRITE__,))
+    print('__PYTHON_FLUSH__ = %r' % (__PYTHON_FLUSH__,))
+    print('__UTOOL_STDOUT__ = %r' % (__UTOOL_STDOUT__,))
+    print('__UTOOL_PRINT__ = %r' % (__UTOOL_PRINT__,))
+    print('__UTOOL_PRINTDBG__ = %r' % (__UTOOL_PRINTDBG__,))
+    print('__UTOOL_FLUSH__ = %r' % (__UTOOL_FLUSH__,))
+    print('__UTOOL_WRITE__ = %r' % (__UTOOL_WRITE__,))
+    print(' --- </DEBUG IOSTREAMS> --')
+
+
 def get_logging_dir(appname='default'):
     """
     The default log dir is in the system resource directory
