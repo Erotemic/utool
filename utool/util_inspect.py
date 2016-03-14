@@ -921,6 +921,7 @@ def get_kwdefaults(func, parse_source=False):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
         >>> func = dummy_func
         >>> parse_source = True
         >>> kwdefaults = get_kwdefaults(func, parse_source)
@@ -2000,6 +2001,47 @@ def get_instance_attrnames(obj, default=True, **kwargs):
         if kwargs.get('with_methods', default) and isinstance(unbound_attr, types.MethodType):
             out.append(a)
     return out
+
+
+def argparse_funckw(func, defaults={}, **kwargs):
+    """
+    allows kwargs to be specified on the commandline from testfuncs
+
+    Args:
+        func (function):
+
+    Kwargs:
+        lbl, verbose, only_specified, force_keys, type_hint, alias_dict
+
+    Returns:
+        dict: funckw
+
+    CommandLine:
+        python -m utool.util_inspect --exec-argparse_funckw
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> func = get_instance_attrnames
+        >>> funckw = argparse_funckw(func)
+        >>> result = ('funckw = %s' % (ut.repr3(funckw),))
+        >>> print(result)
+        funckw = {
+            'default': True,
+            'with_methods': 'default',
+            'with_properties': 'default',
+        }
+    """
+    import utool as ut
+    recursive = True
+    if recursive:
+        funckw_ = dict(ut.recursive_parse_kwargs(func))
+    else:
+        funckw_ = ut.get_func_kwargs(func)
+    funckw_.update(defaults)
+    funckw = ut.argparse_dict(funckw_, **kwargs)
+    return funckw
 
 
 def infer_function_info(func):
