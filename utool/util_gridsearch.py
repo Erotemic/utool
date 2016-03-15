@@ -125,7 +125,7 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
     return cfg_list
 
 
-def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
+def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname', checkname=False):
     r"""
     Args:
         cfg_list (list):
@@ -154,9 +154,14 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
         cfgname_list = [cfg[mainkey] for cfg in cfg_list]
     except KeyError:
         cfgname_list = [''] * len(cfg_list)
+    import utool as ut
     varied_cfg_list = partition_varied_cfg_list(cfg_list, default_cfg)[1]
+    if checkname and ut.allsame(cfgname_list):
+        cfgname_list = [None] * len(cfgname_list)
     cfglbl_list = [get_cfg_lbl(cfg, name)
                    for cfg, name in zip(varied_cfg_list, cfgname_list)]
+    if checkname:
+        cfglbl_list = [x.lstrip(':') for x in cfglbl_list]
     return cfglbl_list
 
 

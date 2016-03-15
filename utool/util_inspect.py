@@ -45,6 +45,7 @@ def check_module_usage(modpath_partterns):
         python -m utool.util_inspect --exec-check_module_usage --pat="preproc_detectimg.py"
         python -m utool.util_inspect --exec-check_module_usage --pat="neighbor_index.py"
         python -m utool.util_inspect --exec-check_module_usage --pat="manual_chip_funcs.py"
+        python -m utool.util_inspect --exec-check_module_usage --pat="preproc_probchip.py"
 
     Ignore:
 

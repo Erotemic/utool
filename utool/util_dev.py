@@ -950,8 +950,23 @@ class InteractiveIter(object):
         msg = ut.indentjoin(msg_list, '\n | * ')
         msg = ''.join([' +-----------', msg, '\n L-----------\n'])
         # TODO: timeout, help message
-        ans = input(msg).strip()
+        print(msg)
+        ans = iiter.wait_for_input()
         return ans
+
+    def wait_for_input(iiter):
+        try:
+            import time
+            from guitool.__PYQT__ import QtGui
+        except Exception:
+            ans = input().strip()
+            return ans
+        else:
+            iiter._is_waiting = True
+            while iiter._is_waiting:
+                QtGui.qApp.processEvents()
+                time.sleep(0.05)
+            return ans
 
     def __call__(iiter, iterable=None):
         iiter.iterable = iterable
@@ -2428,62 +2443,6 @@ class ClassAttrDictProxy(DictLike_old):
         setattr(self.obj, self.key2_attrs[key], val)
 
 
-class AlignedListDictProxy(DictLike_old):
-    """
-    simulates a dict when using parallel lists the point of this class is that
-    when there are many instances of this class, then key2_idx can be shared between
-    them. Ideally this class wont be used and will disappear when the parallel
-    lists are being used properly.
-    """
-    def __init__(self, key2_idx, key_list, val_list):
-        self.key_list = key_list
-        self.val_list = val_list
-        self.key2_idx = key2_idx
-
-    def __eq__(self, key):
-        raise NotImplementedError()
-
-    def pop(self, key):
-        raise NotImplementedError()
-
-    def __getitem__(self, key):
-        try:
-            return self.val_list[self.key2_idx[key]]
-        except (KeyError, IndexError):
-            # behave like a default dict here
-            self[key] = []
-            return self[key]
-        #return ut.take(self.val_list, ut.dict_take(self.key2_idx, key))
-
-    def __setitem__(self, key, val):
-        try:
-            idx = self.key2_idx[key]
-        except KeyError:
-            idx = len(self.key_list)
-            self.key_list.append(key)
-            self.key2_idx[key] = idx
-        try:
-            self.val_list[idx] = val
-        except IndexError:
-            if idx == len(self.val_list):
-                self.val_list.append(val)
-            else:
-                raise
-            #else:
-            #    offset = idx - len(self.val_list)
-            #    self.val_list.extend(([None] * offset) + [val])
-
-    def iteritems(self):
-        for key, val in zip(self.key_list, self.val_list):
-            yield key, val
-
-    def iterkeys(self):
-        return iter(self.key_list)
-
-    def itervalues(self):
-        return iter(self.val_list)
-
-
 class NiceRepr(object):
     """
     base class that defines a nice representation and string func
@@ -2522,6 +2481,10 @@ def execstr_funckw(func):
     return ut.execstr_dict(ut.get_func_kwargs(func), explicit=True)
 
 
+def exec_funckw(func, globals_):
+    exec(execstr_funckw(func), globals_)
+
+
 def ifnone(default, value):
     """
     shorthand for inline if / else statements
@@ -2558,6 +2521,45 @@ def ipcopydev():
     # .magic('history')
     # histfile = os.path.join(os.environ['HOME'], '.pythonhistory')
     pass
+
+
+class InstanceList(object):
+    """ executes methods and attribute calls on a list of
+    objects of the same type
+
+    CommandLine:
+        python -m utool.util_dev --exec-InstanceList --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> obj_list = ['hi', 'bye', 'foo']
+        >>> self =  InstanceList(obj_list)
+        >>> print(self.upper())
+        >>> print(self.isalpha())
+    """
+    def __init__(self, obj_list):
+        if len(obj_list) > 0:
+            import utool as ut
+            shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
+            self._shared_public_attrs = [a for a in shared_attrs if not a.startswith('_')]
+            self._obj_list = obj_list
+            for attrame in self._shared_public_attrs:
+                func = self._define_func(attrame)
+                ut.inject_func_as_method(self, func, attrame)
+
+    def _define_func(self, attrame):
+        import utool as ut
+        def _wrapper(self, *args, **kwargs):
+            return self._map_method(attrame, *args, **kwargs)
+        ut.set_funcname(_wrapper, attrame)
+        return _wrapper
+
+    def _map_method(self, attrname, *args, **kwargs):
+        mapped_vals = [getattr(obj, attrname)(*args, **kwargs) for obj in self._obj_list]
+        return mapped_vals
+
 
 if __name__ == '__main__':
     """

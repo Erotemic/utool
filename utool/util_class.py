@@ -15,6 +15,7 @@ import six
 import types
 import functools
 import collections
+import operator as op
 from collections import defaultdict
 from utool import util_inject
 from utool import util_set
@@ -787,6 +788,13 @@ def reload_class_methods(self, class_, verbose=True):
                                   verbose=verbose)
 
 
+def compare_instance(op, self, other):
+    if other.__hash__ is None:
+        return op(self.__hash__(), other)
+    else:
+        return op(self.__hash__(), hash(other))
+
+
 def get_comparison_methods():
     """ makes methods for >, <, =, etc... """
     method_list = []
@@ -797,27 +805,27 @@ def get_comparison_methods():
     # Comparison operators for sorting and uniqueness
     @_register
     def __lt__(self, other):
-        return self.__hash__() < (other.__hash__())
+        return compare_instance(op.lt, self, other)
 
     @_register
     def __le__(self, other):
-        return self.__hash__() <= (other.__hash__())
+        return compare_instance(op.le, self, other)
 
     @_register
     def __eq__(self, other):
-        return self.__hash__() == (other.__hash__())
+        return compare_instance(op.eq, self, other)
 
     @_register
     def __ne__(self, other):
-        return self.__hash__() != (other.__hash__())
+        return compare_instance(op.ne, self, other)
 
     @_register
     def __gt__(self, other):
-        return self.__hash__() > (other.__hash__())
+        return compare_instance(op.gt, self, other)
 
     @_register
     def __ge__(self, other):
-        return self.__hash__() >= (other.__hash__())
+        return compare_instance(op.ge, self, other)
 
     return method_list
 
