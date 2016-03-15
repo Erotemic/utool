@@ -101,6 +101,31 @@ def get_logging_dir(appname='default'):
     return log_dir_realpath
 
 
+def get_shelves_dir(appname='default'):
+    """
+    The default shelf dir is in the system resource directory
+    But the utool global cache allows for the user to override
+    where the shelf for a specific app should be stored.
+
+    Returns:
+        log_dir_realpath (str): real path to shelves directory
+    """
+    from utool._internal import meta_util_cache
+    from utool._internal import meta_util_cplat
+    from utool import util_cache
+    if appname is None or  appname == 'default':
+        appname = util_cache.get_default_appname()
+    resource_dpath = meta_util_cplat.get_resource_dir()
+    default = join(resource_dpath, appname, 'shelves')
+    # Check global cache for a custom logging dir otherwise
+    # use the default.
+    log_dir = meta_util_cache.global_cache_read(logdir_cacheid,
+                                                appname=appname,
+                                                default=default)
+    log_dir_realpath = realpath(log_dir)
+    return log_dir_realpath
+
+
 def get_current_log_fpath():
     global __CURRENT_LOG_FPATH__
     return __CURRENT_LOG_FPATH__
