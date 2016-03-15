@@ -955,18 +955,27 @@ class InteractiveIter(object):
         return ans
 
     def wait_for_input(iiter):
-        try:
-            import time
-            from guitool.__PYQT__ import QtGui
-        except Exception:
-            ans = input().strip()
-            return ans
-        else:
-            iiter._is_waiting = True
-            while iiter._is_waiting:
-                QtGui.qApp.processEvents()
-                time.sleep(0.05)
-            return ans
+        #try:
+        #    import time
+        #    import guitool
+        #    #from guitool.__PYQT__ import QtGui
+        #except Exception:
+        ans = input().strip()
+        return ans
+        #else:
+        #    iiter._is_waiting = True
+        #    qapp = guitool.ensure_qtapp()[0]
+        #    qapp.start_keylog()
+        #    guitool.qtapp_loop()
+        #    print('wait for input')
+        #    import utool
+        #    utool.embed()
+        #    while iiter._is_waiting:
+        #        print('waiting')
+        #        #QtGui.qApp.processEvents()
+        #        qapp.processEvents()
+        #        time.sleep(.05)
+        #    return ans
 
     def __call__(iiter, iterable=None):
         iiter.iterable = iterable
