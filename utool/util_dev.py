@@ -738,6 +738,9 @@ def report_memsize(obj, name=None, verbose=True):
         print('L____')
 
 
+LIVE_INTERACTIVE_ITER = None
+
+
 class InteractiveIter(object):
     """
     Choose next value interactively
@@ -822,6 +825,8 @@ class InteractiveIter(object):
         return iiter
 
     def __iter__(iiter):
+        global LIVE_INTERACTIVE_ITER
+        LIVE_INTERACTIVE_ITER = iiter
         import utool as ut
         if not iiter.enabled:
             for item in ut.ProgressIter(iiter.iterable, lbl='nointeract: ', freq=1, adjust=False):
@@ -880,6 +885,7 @@ class InteractiveIter(object):
                 ut.embed(N=1)
         end_()
         print('Ended interactive iteration')
+        LIVE_INTERACTIVE_ITER = None
 
     def handle_ans(iiter, ans_):
         ans = ans_.strip(' ')
