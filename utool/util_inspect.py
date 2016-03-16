@@ -39,13 +39,13 @@ def check_module_usage(modpath_partterns):
         modpath_partterns (list):
 
     CommandLine:
-        python -m utool.util_inspect --exec-check_module_usage --show
-        utprof.py -m utool.util_inspect --exec-check_module_usage --show
-        python -m utool.util_inspect --exec-check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
-        python -m utool.util_inspect --exec-check_module_usage --pat="preproc_detectimg.py"
-        python -m utool.util_inspect --exec-check_module_usage --pat="neighbor_index.py"
-        python -m utool.util_inspect --exec-check_module_usage --pat="manual_chip_funcs.py"
-        python -m utool.util_inspect --exec-check_module_usage --pat="preproc_probchip.py"
+        python -m utool.util_inspect check_module_usage --show
+        utprof.py -m utool.util_inspect check_module_usage --show
+        python -m utool.util_inspect check_module_usage --pat="['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']"
+        python -m utool.util_inspect check_module_usage --pat="preproc_detectimg.py"
+        python -m utool.util_inspect check_module_usage --pat="neighbor_index.py"
+        python -m utool.util_inspect check_module_usage --pat="manual_chip_funcs.py"
+        python -m utool.util_inspect check_module_usage --pat="preproc_probchip.py"
 
     Ignore:
 
@@ -237,7 +237,7 @@ def help_members(obj, use_other=False):
         obj (class or module):
 
     CommandLine:
-        python -m utool.util_inspect --exec-help_members
+        python -m utool.util_inspect help_members
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -767,7 +767,7 @@ def is_bateries_included(item):
         http://stackoverflow.com/questions/23149218/check-if-a-python-function-is-builtin
 
     CommandLine:
-        python -m utool._internal.meta_util_six --exec-is_builtin
+        python -m utool._internal.meta_util_six is_builtin
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -917,7 +917,7 @@ def get_kwdefaults(func, parse_source=False):
         dict:
 
     CommandLine:
-        python -m utool.util_inspect --exec-get_kwdefaults
+        python -m utool.util_inspect get_kwdefaults
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1013,7 +1013,7 @@ def prettyprint_parsetree(pt):
 def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
     r"""
     CommandLine:
-        python3 -m utool.util_inspect --exec-find_child_kwarg_funcs
+        python3 -m utool.util_inspect find_child_kwarg_funcs
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1140,7 +1140,7 @@ def parse_return_type(sourcecode):
         automated_helpers query_vsone_verified
 
     CommandLine:
-        python -m utool.util_inspect --exec-parse_return_type
+        python -m utool.util_inspect parse_return_type
         python -m utool.util_inspect --test-parse_return_type
 
 
@@ -1746,13 +1746,13 @@ def recursive_parse_kwargs(root_func, path_=None):
         list:
 
     CommandLine:
-        python -m utool.util_inspect --exec-recursive_parse_kwargs:0
-        python -m utool.util_inspect --exec-recursive_parse_kwargs:1
-        python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod plottool --func draw_histogram
+        python -m utool.util_inspect recursive_parse_kwargs:0
+        python -m utool.util_inspect recursive_parse_kwargs:1
+        python -m utool.util_inspect recursive_parse_kwargs:2 --mod plottool --func draw_histogram
 
-        python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod vtool --func ScoreNormalizer.visualize
+        python -m utool.util_inspect recursive_parse_kwargs:2 --mod vtool --func ScoreNormalizer.visualize
 
-        python -m utool.util_inspect --exec-recursive_parse_kwargs:2 --mod ibeis.viz.viz_matches --func show_name_matches --verbinspect
+        python -m utool.util_inspect recursive_parse_kwargs:2 --mod ibeis.viz.viz_matches --func show_name_matches --verbinspect
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1930,7 +1930,7 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
         list: kwarg_keys
 
     CommandLine:
-        python -m utool.util_inspect --exec-parse_kwarg_keys
+        python -m utool.util_inspect parse_kwarg_keys
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -2020,7 +2020,7 @@ def argparse_funckw(func, defaults={}, **kwargs):
         dict: funckw
 
     CommandLine:
-        python -m utool.util_inspect --exec-argparse_funckw
+        python -m utool.util_inspect argparse_funckw
 
     Example:
         >>> # ENABLE_DOCTEST

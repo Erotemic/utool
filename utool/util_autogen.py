@@ -71,7 +71,7 @@ def makeinit(mod_dpath, exclude_modnames=[], use_star=False):
         str: init_codeblock
 
     CommandLine:
-        python -m utool.util_autogen --exec-makeinit --modname=ibeis.algo
+        python -m utool.util_autogen makeinit --modname=ibeis.algo
 
     Example:
         >>> # SCRIPT
@@ -221,7 +221,7 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
         moddir (None): (default = None)
 
     CommandLine:
-        python -m utool.util_autogen --exec-load_func_from_module
+        python -m utool.util_autogen load_func_from_module
 
     Example:
         >>> # UNSTABLE_DOCTEST
@@ -363,7 +363,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
         str: docstr
 
     CommandLine:
-        python -m utool.util_autogen --exec-auto_docstr
+        python -m utool.util_autogen auto_docstr
         python -m utool --tf auto_docstr
 
     Example:
@@ -677,9 +677,9 @@ def make_cmdline_docstr(funcname, modname):
         # TODO: infer this
         is_show_func = True
         if is_show_func:
-            cmdline_fmtstr = 'python -m {modname} --exec-{funcname} --show'
+            cmdline_fmtstr = 'python -m {modname} {funcname} --show'
         else:
-            cmdline_fmtstr = 'python -m {modname} --exec-{funcname}'  # --enableall'
+            cmdline_fmtstr = 'python -m {modname} {funcname}'  # --enableall'
         return cmdline_fmtstr.format(**locals())
 
 # </INVIDIAL DOCSTR COMPONENTS>

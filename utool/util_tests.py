@@ -1228,7 +1228,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
-    cmdline_varargs = ut.get_position_varargs()
+    cmdline_varargs = ut.get_cmdline_varargs()
     force_enable_testnames = cmdline_varargs
     valid_prefix_list = ['--test-', '--exec-', '--dump-']
     for arg in sys.argv:
@@ -1422,6 +1422,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
 def doctest_was_requested():
     """ lets a  __main__ codeblock know that util_test should do its thing """
+    # FIXME; does not handle positinal doctest requests
     valid_prefix_list = ['--exec-', '--test-']
     return '--tf' in sys.argv or any([any([arg.startswith(prefix) for prefix in
                                            valid_prefix_list])
@@ -1548,6 +1549,10 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         ('--test-func', '--tfunc', '--tf', '--testfunc'),
         type_=str, default=test_funcname,
         help_='specify a function to doctest')
+    if test_funcname is None:
+        cmdline_varags = ut.get_cmdline_varargs()
+        if len(cmdline_varags) > 0:
+            test_funcname = cmdline_varags[0]
     print('test_funcname = %r' % (test_funcname,))
 
     if test_funcname in func_to_module_dict:
