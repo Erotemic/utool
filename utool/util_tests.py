@@ -1146,6 +1146,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     if module is None:
         frame_fpath = '???'
         try:
+            # This is a bit finky. Need to be exactly N frames under the main
+            # module
             frame = ut.get_caller_stack_frame(N=N)
             main_modname = '__main__'
             frame_name  = frame.f_globals['__name__']
@@ -1172,10 +1174,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     #+------------------------
     # GET_MODULE_DOCTEST_TUP Step 2:
     # --- PARSE TESTABLE FUNCTIONS ---
-    # FIXME:
-    # BUG: We need to verify that this function actually belongs to this
-    # module. In util_type ndarray is imported and we try to parse it
-
     # Get testable functions
     if parse_testables:
         try:
@@ -1185,8 +1183,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
             _testableiter = ut.iter_module_doctestable(module,
                                                        include_inherited=False)
-            if __debug__:
-                _testableiter = list(_testableiter)
             for key, val in _testableiter:
                 if isinstance(val, staticmethod):
                     docstr = inspect.getdoc(val.__func__)
@@ -1229,13 +1225,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         test_sentinals.append('SLOW_DOCTEST')
     if testslow or ut.get_argflag(('--testall', '--testunstable')):
         test_sentinals.append('UNSTABLE_DOCTEST')
-    #conditional_sentinals = [  # TODO
-        #'ENABLE_IF'
-    #]
 
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
-    force_enable_testnames = []
+    cmdline_varargs = ut.get_position_varargs()
+    force_enable_testnames = cmdline_varargs
     valid_prefix_list = ['--test-', '--exec-', '--dump-']
     for arg in sys.argv:
         for prefix in valid_prefix_list:
@@ -1265,7 +1259,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         print('Vars:')
         print(' * needs_enable = %r' % (needs_enable,))
         print(' * force_enable_testnames = %r' % (force_enable_testnames,))
-        indenter = ut.Indenter('[CHECK_EX]')
+        indenter = ut.Indenter('[FIND_AVAIL]')
         print('len(sorted_testable) = %r' % (len(sorted_testable),))
         indenter.start()
     # PARSE OUT THE AVAILABLE TESTS FOR EACH REQUEST
@@ -1321,44 +1315,81 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # Get enabled (requested) examples
     if VERBOSE_TEST:
         print('\n-----\n')
-        indenter = ut.Indenter('[CHECK_ENABLED]')
+        indenter = ut.Indenter('[IS_ENABLED]')
         indenter.start()
-        print('Need to find which examples are enabled')
+        print('Finished parsing available doctests.')
+        print('Now we need to find which examples are enabled')
         print('len(local_testtup_list) = %r' % (len(local_testtup_list),))
         print('local_testtup_list.T[0:2].T = %s' %
               ut.list_str(ut.get_list_column(local_testtup_list, [0, 1])))
+        print('sys.argv = %r' % (sys.argv,))
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
     subx = ut.get_argval('--subx', type_=int, default=None,
                          help_='Only tests the subxth example')
 
-    def make_valid_test_argflags(prefix, name, num, total):
+    def make_valid_testnames(name, num, total):
         return [
-            prefix + name + ':' + str(num),
-            prefix + name,
-            prefix + name + ':' + str(num - total),  # allow negative indexing
+            name + ':' + str(num),
+            name,
+            name + ':' + str(num - total),  # allow negative indices
             # prefix + name.replace('_', '-') + ':' + str(num),
             # prefix + name.replace('_', '-')
         ]
 
-    for local_testtup in local_testtup_list:
-        (nametup, num, src, want, shortname, test_namespace, total) = local_testtup
+    def make_valid_test_argflags(prefix, name, num, total):
+        valid_testnames = make_valid_testnames(name, num, total)
+        return [prefix + testname for testname in valid_testnames]
+
+    def check_if_test_requested(nametup, num, total, valid_prefix_list):
+        #cmdline_varargs
+        if VERBOSE_TEST:
+            print('Checking cmdline for %r %r' % (nametup, num))
         valid_argflags = []
         mode = None
-        for prefix, name in reversed(list(ut.iprod(valid_prefix_list, nametup))):
-            valid_argflags = make_valid_test_argflags(prefix, name, num, total)
-            flag1 = valid_argflags[0]
-            if VERBOSE_TEST:
-                print('Checking for flags*: %r' % (valid_argflags[0],))
-            testflag = ut.get_argflag(valid_argflags)
-            mode = prefix.replace('-', '')
-            if testflag:
+        veryverb = False
+        # First check positional args
+        testflag = None
+        for name in nametup:
+            valid_testnames = make_valid_test_argflags('', name, num, total)
+            if veryverb:
+                print('Checking if positional* %r' % (valid_testnames[0:1],))
+                print('cmdline_varargs = %r' % (cmdline_varargs,))
+                print('name = %r' % (name,))
+            if any([x in cmdline_varargs for x in valid_testnames]):
+                # hack
+                mode = 'exec'
+                testflag = name
+                flag1 = '--exec-' + name + ':' + str(num)
+            if testflag is not None:
+                if veryverb:
+                    print('FOUND POSARG')
                 break
-        else:
-            # print('WARNING NO TEST IS ENABLED %r ' % (nametup,))
-            pass
+        # Then check keyword-ish args
+        if mode is None:
+            for prefix, name in reversed(list(ut.iprod(valid_prefix_list, nametup))):
+                valid_argflags = make_valid_test_argflags(prefix, name, num, total)
+                if veryverb:
+                    print('Checking for flags*: %r' % (valid_argflags[0],))
+                flag1 = valid_argflags[0]
+                testflag = ut.get_argflag(valid_argflags)
+                mode = prefix.replace('-', '')
+                if testflag:
+                    if veryverb:
+                        print("FOUND VARARG")
+                    break
+            else:
+                # print('WARNING NO TEST IS ENABLED %r ' % (nametup,))
+                pass
+        checktup = flag1, mode, name, testflag
+        return checktup
 
+    for local_testtup in local_testtup_list:
+        (nametup, num, src, want, shortname, test_namespace, total) = local_testtup
+        checktup = check_if_test_requested(nametup, num, total,
+                                           valid_prefix_list)
+        flag1, mode, name, testflag = checktup
         testenabled = TEST_ALL_EXAMPLES  or not check_flags or testflag
         if subx is not None and subx != num:
             continue
@@ -1374,7 +1405,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             enabled_testtup_list.append(testtup)
         else:
             if VERBOSE_TEST:
-                print('... disableing test')
+                print('... disabling test')
             distabled_testflags.append(flag1)
     if VERBOSE_TEST:
         indenter.stop()

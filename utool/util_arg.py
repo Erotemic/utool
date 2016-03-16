@@ -1066,6 +1066,27 @@ def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
     return argv_tail
 
 
+def get_position_varargs(argv=sys.argv):
+    """
+    Returns positional args specified directly after the scriptname on the
+    commandline.
+    """
+    scriptname = argv[0]
+    if scriptname == '':
+        # python invoked by iteself
+        pos_start = 0
+        pos_end = 0
+    else:
+        pos_start = 1
+        pos_end = pos_start
+        for idx in range(pos_start, len(argv)):
+            if argv[idx].startswith('-'):
+                pos_end = idx
+                break
+    cmdline_varargs = argv[pos_start:pos_end]
+    return cmdline_varargs
+
+
 # alias
 parse_dict_from_argv = argparse_dict
 get_dict_vals_from_commandline = argparse_dict
