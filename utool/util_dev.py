@@ -355,7 +355,7 @@ def extract_timeit_setup(func, doctest_number, sentinal):
 
 
 def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
-                   strict=False):
+                   strict=False, assertsame=True):
     """
     Compares several statments by timing them and also
     checks that they have the same return value
@@ -420,7 +420,10 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         sys.stdout.flush()
         #print('+     L________________')
 
-    result_list = [ut.testit(stmt, setup) for stmt in stmt_list]
+    if assertsame:
+        result_list = [ut.testit(stmt, setup) for stmt in stmt_list]
+    else:
+        result_list = None
     time_list   = [timeit.timeit(stmt, setup=setup, number=iterations)
                    for stmt in stmt_list]
 
@@ -437,16 +440,19 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         print('sum_list = %r' % (sum_list,))
         print('passed_list = %r' % (passed_list,))
 
-    if ut.list_type(result_list) is np.ndarray:
-        passed_list = [np.allclose(*tup) for tup in ut.itertwo(result_list)]
-        passed = all(passed_list)
-        is_numpy = True
+    if assertsame:
+        if ut.list_type(result_list) is np.ndarray:
+            passed_list = [np.allclose(*tup) for tup in ut.itertwo(result_list)]
+            passed = all(passed_list)
+            is_numpy = True
+        else:
+            passed = ut.allsame(result_list, strict=False)
+            is_numpy = False
     else:
-        passed = ut.allsame(result_list, strict=False)
-        is_numpy = False
+        passed = True
     if verbose:
         print('| Output:')
-        if not passed:
+        if not passed and assertsame:
             print('|    * FAILED: results differ between some statements')
             if is_numpy:
                 numpy_diff_tests(result_list)
@@ -460,7 +466,10 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
             if strict:
                 raise AssertionError('Results are not valid')
         else:
-            print('|    * PASSED: each statement produced the same result')
+            if assertsame:
+                print('|    * PASSED: each statement produced the same result')
+            else:
+                print('|    * PASSED: each statement did not error')
             passed = True
         #print('|    +-----------------------------------')
         print('|    | num | total time | per loop | stmt')

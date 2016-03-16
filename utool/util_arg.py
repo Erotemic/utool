@@ -966,8 +966,10 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
     num_specified = 0
     for key, default in six.iteritems(default_dict_):
         val, was_specified = get_dictkey_cmdline_val(key, default, type_hint)
-        for alias_key in alias_dict.get(key, []):
-            val, was_specified = get_dictkey_cmdline_val(alias_key, default, type_hint)
+        alias_keys = meta_util_iter.ensure_iterable(alias_dict.get(key, []))
+        for alias_key in alias_keys:
+            val, was_specified = get_dictkey_cmdline_val(alias_key, default,
+                                                         type_hint)
             if was_specified:
                 break
         if VERBOSE_ARGPARSE:
