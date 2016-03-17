@@ -46,7 +46,8 @@ def __execute_fromimport(module, modname, IMPORT_TUPLES, verbose=False):
 
 def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
                               ignore_startswith=[], ignore_endswith=[],
-                              verbose=False, veryverbose=False):
+                              check_not_imported=True, verbose=False,
+                              veryverbose=False):
     """ Effectively import * statements
 
     The dynamic_import must happen before any * imports otherwise it wont catch
@@ -57,7 +58,7 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
     FROM_IMPORTS = []
     # Explicitly ignore these special functions (usually stdlib functions)
     ignoreset = set(['print', 'print_', 'printDBG', 'rrr', 'profile',
-                     'print_function', 'absoulte_import', 'division', 'zip',
+                     'print_function', 'absolute_import', 'division', 'zip',
                      'map', 'range', 'list', 'zip_longest', 'filter', 'filterfalse',
                      'dirname', 'realpath', 'join', 'exists', 'normpath',
                      'splitext', 'expanduser', 'relpath', 'isabs',
@@ -66,10 +67,20 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
                      #'product',
                      ] + ignore_list)
                      #'isdir', 'isfile', '
+
+    #def is_defined_by_module2(item, module):
+    #    belongs = False
+    #    if hasattr(item, '__module__'):
+    #        belongs = item.__module__ == module.__name__
+    #    elif hasattr(item, 'func_globals'):
+    #        belongs = item.func_globals['__name__'] == module.__name__
+    #    return belongs
+
     for name, fromlist in IMPORT_TUPLES:
         #absname = modname + '.' + name
         child_module = sys.modules[modname + '.' + name]
-        varset = set(vars(module))
+        # Check if the variable already belongs to the module
+        varset = set(vars(module)) if check_not_imported else set()
         fromset = set(fromlist) if fromlist is not None else set()
         def valid_attrname(attrname):
             """
@@ -84,6 +95,7 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
             is_ignore3 = any([attrname.endswith(suffix) for suffix in ignore_endswith])
             is_ignore  = any((is_ignore1, is_ignore2, is_ignore3))
             is_valid = not any((is_ignore, is_private, is_conflit, is_module))
+            #is_valid = is_valid and is_defined_by_module2(getattr(child_module, attrname), child_module)
             return (is_forced or is_valid)
         allattrs = dir(child_module)
         fromlist_ = [attrname for attrname in allattrs if valid_attrname(attrname)]
@@ -284,8 +296,7 @@ def _inject_execstr(modname, IMPORT_TUPLES):
 
 def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
                    dump=False, ignore_startswith=[], ignore_endswith=[],
-                   ignore_list=[],
-                   verbose=False):
+                   ignore_list=[], check_not_imported=True, verbose=False):
     """
     MAIN ENTRY POINT
 
@@ -310,6 +321,7 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
                                                  ignore_list=ignore_list,
                                                  ignore_startswith=ignore_startswith,
                                                  ignore_endswith=ignore_endswith,
+                                                 check_not_imported=check_not_imported,
                                                  verbose=verbose)
     else:
         FROM_IMPORTS = __execute_fromimport(module, modname, IMPORT_TUPLES, verbose=verbose)

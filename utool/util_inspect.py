@@ -533,6 +533,7 @@ def get_module_owned_functions(module):
     import utool as ut
     list_ = []
     for key, val in ut.iter_module_doctestable(module):
+        belongs = False
         if hasattr(val, '__module__'):
             belongs = val.__module__ == module.__name__
         elif hasattr(val, 'func_globals'):
@@ -697,6 +698,15 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                 print('[util_inspect] WARNING in module %r:' % (module,))
                 print(' * Unknown if testable val=%r' % (val))
                 print(' * Unknown if testable type(val)=%r' % type(val))
+
+
+def is_defined_by_module2(item, module):
+    belongs = False
+    if hasattr(item, '__module__'):
+        belongs = item.__module__ == module.__name__
+    elif hasattr(item, 'func_globals'):
+        belongs = item.func_globals['__name__'] == module.__name__
+    return belongs
 
 
 def is_defined_by_module(item, module):

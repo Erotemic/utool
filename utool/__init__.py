@@ -228,13 +228,13 @@ if DOELSE:
                                 argv_flag_dec, argv_flag_dec_true, 
                                 autogen_argparse2, autogen_argparse_block, 
                                 get_arg, get_arg_dict, get_argflag, 
-                                get_argv_tail, get_argval, 
+                                get_argv_tail, get_argval, get_cmdline_varargs, 
                                 get_dict_vals_from_commandline, get_flag, 
                                 get_fpath_args, get_module_verbosity_flags, 
-                                get_cmdline_varargs, get_verbflag, 
-                                make_argparse2, parse_arglist_hack, 
-                                parse_cfgstr_list, parse_dict_from_argv, 
-                                reset_argrecord, switch_sanataize,) 
+                                get_verbflag, make_argparse2, 
+                                parse_arglist_hack, parse_cfgstr_list, 
+                                parse_dict_from_argv, reset_argrecord, 
+                                switch_sanataize,) 
     from utool.util_assert import (assert_all_eq, assert_all_in, 
                                    assert_all_not_None, assert_almost_eq, 
                                    assert_eq, assert_eq_len, assert_inbounds, 
@@ -320,7 +320,8 @@ if DOELSE:
                                   remove_private_obfuscation, 
                                   test_reloading_metaclass,) 
     from utool.util_const import (ClassNoParam, NoParam,) 
-    from utool.util_csv import (make_csv_table, numpy_to_csv, read_csv,) 
+    from utool.util_csv import (make_csv_table, make_standard_csv, 
+                                numpy_to_csv, read_csv,) 
     from utool.util_config import (get_default_global_config, 
                                    get_default_repo_config, read_repo_config, 
                                    write_default_repo_config,) 
@@ -609,7 +610,7 @@ if DOELSE:
                                  invertible_total_flatten, is_subset, 
                                  is_subset_of_any, is_superset, isdisjoint, 
                                  isect, isetdiff_flags, issorted, issubset, 
-                                 issuperset, isunique, list_all_eq_to, 
+                                 issuperset, isunique, listT, list_all_eq_to, 
                                  list_argmax, list_argmaxima, list_argsort, 
                                  list_compress, list_compresstake, list_cover, 
                                  list_deep_types, list_depth, list_getattr, 
@@ -761,10 +762,10 @@ if DOELSE:
                                 packtext, padded_str_range, parse_bytes, 
                                 percent_str, pluralize, quantity_str, 
                                 regex_reconstruct_split, remove_chars, 
-                                remove_doublspaces, remove_vowels, 
-                                replace_between_tags, replace_nonquoted_text, 
-                                repr2, repr3, reprfunc, scalar_str, 
-                                seconds_str, singular_string, str2, 
+                                remove_doublenewlines, remove_doublspaces, 
+                                remove_vowels, replace_between_tags, 
+                                replace_nonquoted_text, repr2, repr3, reprfunc, 
+                                scalar_str, seconds_str, singular_string, str2, 
                                 str_between, strip_ansi, testdata_text, 
                                 textblock, theta_str, to_camel_case, 
                                 to_title_caps, to_underscore_case, trunc_repr, 
