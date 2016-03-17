@@ -2531,6 +2531,9 @@ def list_transpose(list_):
     return list(zip(*list_))
 
 
+listT = list_transpose
+
+
 def delete_items_by_index(list_, index_list):
     """
     Args:

@@ -303,6 +303,12 @@ def remove_doublspaces(text):
     return new_text
 
 
+def remove_doublenewlines(text):
+    new_text = text
+    new_text = re.sub('\n(\n| )*', '\n', new_text)
+    return new_text
+
+
 def textblock(multiline_text):
     r"""
     Args:

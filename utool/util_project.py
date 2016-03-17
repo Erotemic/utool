@@ -348,14 +348,14 @@ def ibeis_user_profile():
     import utool as ut
     import sys
     addpath = True
-    module_fpath = ut.truepath('~/local/init/__REPOS1__.py')
+    module_fpath = ut.truepath('~/local/init/REPOS1.py')
     if addpath:
         module_dpath = dirname(module_fpath)
         sys.path.append(module_dpath)
-    __REPOS1__ = ut.import_module_from_fpath(module_fpath)
+    REPOS1 = ut.import_module_from_fpath(module_fpath)
     self = UserProfile()
-    #self.project_dpaths = __REPOS1__.PROJECT_REPOS
-    self.project_dpaths = __REPOS1__.IBEIS_REPOS
+    #self.project_dpaths = REPOS1.PROJECT_REPOS
+    self.project_dpaths = REPOS1.IBEIS_REPOS
     self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
     self.project_include_patterns = [
         '*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
@@ -724,7 +724,7 @@ if False:
 
         python ~/local/init/ensure_vim_plugins.py
         '~/local/init/ensure_vim_plugins.py'
-        '~/local/init/__REPOS1__.py'
+        '~/local/init/REPOS1.py'
 
         """
         # TODO

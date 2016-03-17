@@ -27,9 +27,31 @@ def read_csv(fpath):
     return row_list
 
 
+def make_standard_csv(column_list, column_lbls=None):
+    from six.moves import cStringIO as StringIO
+    import utool as ut
+    import csv
+    stream = StringIO()
+    row_list = ut.listT(column_list)
+    if six.PY2:
+        row_list = [[ut.ensure_unicode(c).encode('utf-8')
+                     for c in r]
+                    for r in row_list]
+        if column_lbls is not None:
+            column_lbls = [ut.ensure_unicode(c).encode('utf-8')
+                           for c in column_lbls]
+    writer = csv.writer(stream, dialect=csv.excel)
+    if column_lbls is not None:
+        writer.writerow(column_lbls)
+    writer.writerows(row_list)
+    csv_str = stream.getvalue()
+    return csv_str
+
+
 def make_csv_table(column_list=[], column_lbls=None, header='',
                    column_type=None, row_lbls=None, transpose=False,
-                   precision=2, use_lbl_width=True, comma_repl='<comma>', raw=False):
+                   precision=2, use_lbl_width=True, comma_repl='<comma>',
+                   raw=False, new=False):
     """
     Creates a csv table with aligned columns
 
@@ -71,10 +93,6 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
     if transpose:
         column_lbls, row_lbls = row_lbls, column_lbls
         column_list = list(map(list, zip(*column_list)))
-        #import utool as ut
-        #ut.embed()
-        #column_lbls = row_lbls[0]
-        #row_list =
     if row_lbls is not None:
         if isinstance(column_list, np.ndarray):
             column_list = column_list.tolist()
@@ -103,7 +121,9 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         #column_type = [type(col[0]) for col in column_list]
 
     csv_rows = []
-    if not raw:
+    if new:
+        csv_rows.append(header)
+    elif not raw:
         csv_rows.append(header)
         csv_rows.append('# num_rows=%r' % num_data)
 
@@ -169,7 +189,9 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         return  ''.join(['%', six.text_type(maxlen + 2), 's'])
     fmtstr = ','.join([_fmtfn(maxlen) for maxlen in column_maxlen])
     try:
-        if not raw:
+        if new:
+            csv_rows.append('# ' + fmtstr % tuple(column_lbls))
+        elif not raw:
             csv_rows.append('# ' + fmtstr % tuple(column_lbls))
             #csv_rows.append('# ' + fmtstr % column_lbls)
     except Exception as ex:
