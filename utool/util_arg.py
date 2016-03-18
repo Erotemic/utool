@@ -29,6 +29,8 @@ VERYVERBOSE  = meta_util_arg.VERYVERBOSE
 NOT_QUIET    = meta_util_arg.NOT_QUIET
 QUIET        = meta_util_arg.QUIET
 
+DEBUG = 0
+
 
 #(switch, type, default, help)
 # TODO: make a static help file available via printing
@@ -125,6 +127,7 @@ def autogen_argparse_block(extra_args=[]):
 #@profile
 def get_argflag(argstr_, default=False, help_='', return_specified=None,
                 need_prefix=True, return_was_specified=False, argv=sys.argv,
+                debug=None,
                 **kwargs):
     """
     Checks if the commandline has a flag or a corresponding noflag
@@ -167,7 +170,9 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
     _register_arg(argstr_list, bool, default, help_)
     parsed_val = default
     was_specified = False
-    debug = False
+
+    if debug is None:
+        debug = DEBUG
 
     # Check environment variables for default as well as argv
     import os
@@ -185,6 +190,8 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
             if val.upper() in ['TRUE', 'ON']:
                 pass
             elif val.upper() in ['FALSE', 'OFF']:
+                continue
+            else:
                 continue
                 #flag += '=False'
             new_argv = [flag]
@@ -340,6 +347,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         # verbose = VERYVERBOSE
 
     if debug is None:
+        debug = DEBUG
         # debug = VERYVERBOSE
         pass
 
@@ -403,8 +411,11 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
             key = key.upper()
             sentinal = 'UTOOL_'
             if key.startswith(sentinal):
-                key = '--' + key[len(sentinal):]
+                key = '--' + key[len(sentinal):].lower()
                 new_argv = [key, val]
+                if val.upper() in ['TRUE', 'FALSE', 'ON', 'OFF']:
+                    # handled by argflag
+                    continue
                 argv = argv[:] + new_argv
                 if debug:
                     print('argv.extend(new_argv=%r)' % (new_argv,))
