@@ -1120,16 +1120,24 @@ def num_images_in_dir(path):
     num_imgs = 0
     for root, dirs, files in os.walk(path):
         for fname in files:
-            if matches_image(fname):
+            if fpath_has_imgext(fname):
                 num_imgs += 1
     return num_imgs
 
 
-def matches_image(fname):
+def fpath_has_imgext(fname):
     """ returns true if a filename matches an image pattern """
-    fname_ = fname.lower()
-    img_pats = ['*' + ext for ext in IMG_EXTENSIONS]
-    return any([fnmatch.fnmatch(fname_, pat) for pat in img_pats])
+    return fpath_has_ext(fname, IMG_EXTENSIONS)
+
+
+def fpath_has_ext(fname, exts, case_sensitive=False):
+    """ returns true if the filename has any of the given extensions """
+    fname_ = fname.lower() if not case_sensitive else fname
+    if case_sensitive:
+        ext_pats = ['*' + ext for ext in exts]
+    else:
+        ext_pats = ['*' + ext.lower() for ext in exts]
+    return any([fnmatch.fnmatch(fname_, pat) for pat in ext_pats])
 
 
 def dirsplit(path):
@@ -1525,7 +1533,7 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
             gname = join(rel_dpath, fname).replace('\\', '/')
             if gname.startswith('./'):
                 gname = gname[2:]
-            if matches_image(gname):
+            if fpath_has_imgext(gname):
                 # Ignore Files
                 if gname in ignore_set:
                     continue
@@ -1536,9 +1544,6 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
                     gname_list_.append(gname)
         if not recursive:
             break
-    # Filter out non images or ignorables
-    #gname_list = [gname_ for gname_ in iter(gname_list_)
-    #              if gname_ not in ignore_set and matches_image(gname_)]
     if sort:
         gname_list = sorted(gname_list_)
     return gname_list

@@ -2285,6 +2285,8 @@ def pluralize(wordtext, num, plural_suffix='s'):
 def quantity_str(typestr, num, plural_suffix='s'):
     return six.text_type(num) + ' ' + pluralize(typestr, num, plural_suffix)
 
+quantstr = quantity_str
+
 
 def remove_vowels(str_):
     """ strips all vowels from a string """

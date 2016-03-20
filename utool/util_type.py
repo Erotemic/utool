@@ -21,9 +21,11 @@ if six.PY2:
         str_ = str_.replace('<type \'', '').replace('\'>', '')
         str_ = str_.replace('<class \'', '').replace('\'>', '')
         return str_
+    VALID_STRING_TYPES = (str, unicode, basestring)
 else:
     def type_str(type_):
         return str(type_).replace('<class \'', '').replace('\'>', '')
+    VALID_STRING_TYPES = (str,)
 
 
 # Very odd that I have to put in dtypes in two different ways.
@@ -57,6 +59,7 @@ try:
     LISTLIKE_TYPES = (tuple, list, NP_NDARRAY)
     NUMPY_TYPE_TUPLE = (
         tuple([NP_NDARRAY] + list(set(np.typeDict.values()))))
+
 except (ImportError, AttributeError):
     # TODO remove numpy
     HAVE_NUMPY = False
@@ -68,9 +71,24 @@ except (ImportError, AttributeError):
     NUMPY_TYPE_TUPLE = tuple()
 
 
+COMPARABLE_TYPES = {
+    type_: type_list
+    for type_list in [
+        VALID_INT_TYPES,
+        VALID_FLOAT_TYPES,
+        VALID_BOOL_TYPES,
+        VALID_STRING_TYPES,
+    ]
+    for type_ in type_list
+}
+
 PRIMATIVE_TYPES = (
     tuple(six.string_types) + (bytes, list, dict, int, float, bool, type(None))
 )
+
+
+def is_comparable_type(var, type_):
+    return isinstance(var, COMPARABLE_TYPES[type_])
 
 
 def is_valid_floattype(type_):

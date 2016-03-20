@@ -494,7 +494,6 @@ class Pref(PrefNode):
 
     def qt_is_editable(self):
         uneditable_hack = ['feat_type']
-        self._intern.depeq
         if self._intern.name in uneditable_hack:
             return False
         if self._intern.depeq is not None:

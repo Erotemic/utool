@@ -881,6 +881,11 @@ class ParamInfo(util_dev.NiceRepr):
         # for gridsearch
         pi.varyvals = varyvals
         pi.varyslice = varyslice
+        if valid_values is not None:
+            if default not in valid_values:
+                # hack
+                valid_values.append(default)
+            assert default in valid_values
         pi.valid_values = valid_values
         pi.hideif_list = []
         if hideif is not util_dev.NoParam:
@@ -888,6 +893,18 @@ class ParamInfo(util_dev.NiceRepr):
 
     def __nice__(pi):
         return '(' + pi.make_varstr(pi.default) + ')'
+
+    def error_if_invalid_value(pi, value):
+        """ Checks if a value for this param is valid """
+        from utool import util_type
+        if pi.valid_values is not None:
+            if value not in pi.valid_values:
+                raise ValueError('pi=%r, value=%r not in valid_values=%r' %
+                                 (pi, value, pi.valid_values,))
+        if not util_type.is_comparable_type(value, pi.type_):
+            raise TypeError(
+                'pi=%r, value=%r with type_=%r is not the expected type_=%r' %
+                (pi, value, type(value), pi.type_))
 
     def append_hideif(pi, hideif):
         pi.hideif_list.append(hideif)
@@ -900,6 +917,18 @@ class ParamInfo(util_dev.NiceRepr):
                 hide = getattr(cfg,  pi.varname) == hideif
             if hide:
                 return True
+
+    def is_enabled(pi, cfg):
+        """ alternative to is_hidden. a bit hacky. only returns false if
+            another config hides you. self hiding is ok """
+        enabled = True
+        for hideif in pi.hideif_list:
+            if hasattr(hideif, '__call__'):
+                # FIXME: just because it is a function doesnt mean it isn't self-hidden
+                enabled = not hideif(cfg)
+            if not enabled:
+                break
+        return enabled
 
     def make_varstr(pi, varval):
         varstr = six.text_type(varval)
