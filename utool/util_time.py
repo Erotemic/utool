@@ -175,7 +175,7 @@ def determine_timestamp_format(datetime_str):
         python -m utool.util_time --exec-determine_timestamp_format
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> import utool as ut
         >>> datetime_str_list = [
@@ -183,6 +183,7 @@ def determine_timestamp_format(datetime_str):
         >>>     '    :  :     :  :  ',
         >>>     '2015:04:01 00:00:00',
         >>>     '2080/04/01 00:00:00',
+        >>>     '2009:10:01 11:52: 1',
         >>> ]
         >>> result = ut.list_str([determine_timestamp_format(datetime_str)
         >>>            for datetime_str in datetime_str_list])
@@ -197,10 +198,13 @@ def determine_timestamp_format(datetime_str):
 
     time_regex = r'[0-6]?[0-9]:[0-6]?[0-9]:[0-6]?[0-9]'
 
+    odd_time_regex = r'[0-6]?[0-9]:[0-6]?[0-9]:[0-6 ]?[0-9]'
+
     date_regex1 = '/'.join([year_regex, month_regex, day_regex])
     date_regex2 = ':'.join([year_regex, month_regex, day_regex])
     datetime_regex1 = date_regex1 + ' ' + time_regex
     datetime_regex2 = date_regex2 + ' ' + time_regex
+    datetime_regex3 = date_regex2 + ' ' + odd_time_regex
 
     timefmt = None
 
@@ -208,6 +212,8 @@ def determine_timestamp_format(datetime_str):
         timefmt = '%Y/%m/%d %H:%M:%S'
     elif re.match(datetime_regex2, clean_datetime_str):
         timefmt = '%Y:%m:%d %H:%M:%S'
+    elif re.match(datetime_regex3, clean_datetime_str):
+        timefmt = '%Y:%m:%d %H:%M: %S'
     else:
         if isinstance(clean_datetime_str, six.string_types):
             if len(clean_datetime_str.strip()) == 0:
@@ -237,9 +243,9 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         int: unixtime seconds from 1970 (currently not UTC; this will change)
 
     CommandLine:
-        python -m utool.util_time --test-exiftime_to_unixtime
+        python -m utool.util_time --test-exiftime_to_unixtime:2
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> datetime_str = '0000:00:00 00:00:00'
@@ -248,7 +254,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         >>> print(result)
         -1
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> datetime_str = '2015:04:01 00:00:00'
@@ -260,9 +266,10 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
-        >>> datetime_str = six.text_type('2010:10:07 19:37:03')
+        >>> datetime_str = six.text_type('2010:10:07 19:07: 3')
         >>> timestamp_format = None
         >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
+        >>> print(unixtime_to_datetimestr(result))
         >>> print(result)
         1286480223
     """
