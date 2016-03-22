@@ -470,6 +470,10 @@ def regex_replace_lines(lines, regexpat, replpat):
     return newlines
 
 
+def nongreedy_kleene_star(vim=False):
+    return '\{-}' if vim else '*?'
+
+
 RE_FLAGS = re.MULTILINE | re.DOTALL
 RE_KWARGS = {'flags': RE_FLAGS}
 
