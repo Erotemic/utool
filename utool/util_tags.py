@@ -10,8 +10,8 @@ print, rrr, profile = util_inject.inject2(__name__, '[util_tags]')
 def filterflags_general_tags(tags_list, has_any=None, has_all=None,
                              has_none=None, min_num=None, max_num=None,
                              any_startswith=None, any_endswith=None,
-                             any_match=None, none_match=None, logic='and',
-                             ignore_case=True):
+                             in_any=None, any_match=None, none_match=None,
+                             logic='and', ignore_case=True):
     r"""
     maybe integrate into utool? Seems pretty general
 
@@ -21,6 +21,11 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         has_all (None): (default = None)
         min_num (None): (default = None)
         max_num (None): (default = None)
+
+    Notes:
+        in_any should probably be ni_any
+
+    TODO: make this function more natural
 
     CommandLine:
         python -m utool.util_tags --exec-filterflags_general_tags
@@ -145,6 +150,10 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
     flags = execute_filter(
         flags, tags_list, any_startswith,
         operator.gt, six.text_type.startswith)
+
+    flags = execute_filter(
+        flags, tags_list, in_any,
+        operator.gt, operator.contains)
 
     flags = execute_filter(
         flags, tags_list, any_endswith,
