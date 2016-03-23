@@ -1958,7 +1958,10 @@ def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, re
     """
     import utool as ut
     argspec = ut.get_func_argspec(func)
-    header_kw = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+    if argspec.defaults is None:
+        header_kw = {}
+    else:
+        header_kw = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
     # TODO
     if argspec.keywords is not None:
         # parse our keywords from func body if possible

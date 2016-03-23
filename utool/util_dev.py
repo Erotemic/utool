@@ -2496,7 +2496,8 @@ def execstr_funckw(func):
         ut.exec_func_src
     """
     import utool as ut
-    return ut.execstr_dict(ut.get_func_kwargs(func), explicit=True)
+    funckw = ut.get_func_kwargs(func)
+    return ut.execstr_dict(funckw, explicit=True)
 
 
 def exec_funckw(func, globals_):
