@@ -1477,6 +1477,47 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
         return var_list
 
 
+def execstr_func_doctest(func, num=0, start_sentinal=None, end_sentinal=None):
+    """
+    execs a func doctest and returns requested local vars.
+
+    func = encoder.learn_threshold2
+    num = 0
+    start_sentinal = 'import plottool as pt'
+    end_sentinal = 'pnum_ = pt.make_pnum_nextgen'
+    """
+    import utool as ut
+    docsrc = ut.get_doctest_examples(func)[num][0]
+    lines = docsrc.split('\n')
+    linex1 = ut.where([x.startswith(start_sentinal) for x in lines])[0]
+    linex2 = ut.where([x.startswith(end_sentinal) for x in lines])[0]
+    docsrc_part = '\n'.join(lines[linex1:linex2])
+    return docsrc_part
+
+
+def exec_func_doctest(func, start_sentinal=None, end_sentinal=None, num=0, globals_=None, locals_=None):
+    """
+    execs a func doctest and returns requested local vars.
+
+    func = encoder.learn_threshold2
+    num = 0
+    start_sentinal = 'import plottool as pt'
+    end_sentinal = 'pnum_ = pt.make_pnum_nextgen'
+    """
+    import utool as ut
+    docsrc_part = execstr_func_doctest(func, num, start_sentinal, end_sentinal)
+    if globals_ is None:
+        globals_ = ut.get_parent_globals()
+    if locals_ is None:
+        locals_ = ut.get_parent_locals()
+    globals_new = globals_.copy()
+    if locals_ is not None:
+        globals_new.update(locals_)
+    print("EXEC PART")
+    print(ut.highlight_code(docsrc_part))
+    six.exec_(docsrc_part, globals_new)
+
+
 def get_func_sourcecode(func, stripdef=False, stripret=False,
                         strip_docstr=False, strip_comments=False,
                         remove_linenums=None):
