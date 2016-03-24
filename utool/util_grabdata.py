@@ -386,12 +386,12 @@ def experiment_download_multiple_urls(url_list):
     Example:
         >>> # UNSTABLE_DOCTEST
         >>> url_list = [
-        >>>     'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe',   # NOQA
-        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://www.dropbox.com/s/v1ivnmny6tlc364/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://lev.cs.rpi.edu/public/installers/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe',   # NOQA
+        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
+        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
         >>>     ]
         >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/L10/L10_R1/S1_L10_R1_PICT0070.JPG'
         >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0001.JPG',
@@ -445,11 +445,11 @@ def clean_dropbox_link(dropbox_url):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
-        >>> dropbox_url = 'www.dropbox.com/foobar.zip?dl=0'
+        >>> dropbox_url = 'www.dropbox.com/s/123456789abcdef/foobar.zip?dl=0'
         >>> cleaned_url = clean_dropbox_link(dropbox_url)
         >>> result = str(cleaned_url)
         >>> print(result)
-        dl.dropbox.com/foobar.zip
+        dl.dropbox.com/s/123456789abcdef/foobar.zip
     """
     cleaned_url = dropbox_url.replace('www.dropbox', 'dl.dropbox')
     postfix_list = [
@@ -731,7 +731,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
 
     Examples:
         >>> from utool.util_grabdata import *  # NOQA
-        >>> zipped_url = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
+        >>> zipped_url = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
         >>> zipped_url = 'http://www.spam.com/eggs/data.zip'
 
     """
