@@ -955,20 +955,20 @@ def search_env_paths(fname, key_list=None, verbose=None):
     Searches your PATH to see if fname exists
 
     Args:
-        fname (str): file name to search for
+        fname (str): file name to search for (can be glob pattern)
 
     CommandLine:
-        python -m utool.util_cplat --test-search_env_paths
+        python -m utool search_env_paths --fname msvcr*.dll
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
-        >>> # build test data
+        >>> import utool as ut
         >>> fname = 'opencv2/highgui/libopencv_highgui.so'
-        >>> # execute function
-        >>> result = search_env_paths(fname)
-        >>> # verify results
-        >>> print(result)
+        >>> fname = ut.get_argval('--fname', default='*')
+        >>> key_list = ['PATH']
+        >>> found = search_env_paths(fname, key_list)
+        >>> print(ut.dict_str(found, nl=True, strvals=True))
 
     Ignore:
         OpenCV_DIR:PATH={share_opencv}
@@ -980,18 +980,49 @@ def search_env_paths(fname, key_list=None, verbose=None):
     if key_list is None:
         key_list = [key for key in os.environ if key.find('PATH') > -1]
 
-    found = []
+    found = ut.ddict(list)
 
     for key in key_list:
         dpath_list = os.environ[key].split(os.pathsep)
         for dpath in dpath_list:
+            #if verbose:
+            #    print('dpath = %r' % (dpath,))
             testname = join(dpath, fname)
-            if ut.checkpath(testname, verbose=False):
-                if verbose:
-                    print('Found in key=%r' % (key,))
-                    ut.checkpath(testname, verbose=True, info=True)
-                found += [testname]
-    return found
+            matches = ut.glob(dpath, fname)
+            found[key].extend(matches)
+            #import fnmatch
+            #import utool
+            #utool.embed()
+            #if ut.checkpath(testname, verbose=False):
+            #    if verbose:
+            #        print('Found in key=%r' % (key,))
+            #        ut.checkpath(testname, verbose=True, info=True)
+            #    found += [testname]
+    return dict(found)
+
+
+def __debug_win_msvcr():
+    import utool as ut
+    fname = 'msvcr*.dll'
+    key_list = ['PATH']
+    found = ut.search_env_paths(fname, key_list)
+    fpaths = ut.unique(ut.flatten(found.values()))
+    fpaths = ut.lmap(ut.ensure_unixslash, fpaths)
+    from os.path import basename
+    dllnames = [basename(x) for x in fpaths]
+    grouped = dict(ut.group_items(fpaths, dllnames))
+    print(ut.dict_str(grouped, nl=4))
+
+    keytoid = {
+    }
+
+    for key, vals in grouped.items():
+        infos = ut.lmap(ut.get_file_nBytes, vals)
+        #infos = ut.lmap(ut.get_file_uuid, vals)
+        #uuids = [ut.get_file_uuid(val) for val in vals]
+        keytoid[key] = list(zip(infos, vals))
+    ut.print_dict(keytoid, nl=2)
+
 
 
 def change_term_title(title):
@@ -1010,11 +1041,8 @@ def change_term_title(title):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
-        >>> # build test data
         >>> title = 'change title test'
-        >>> # execute function
         >>> result = change_term_title(title)
-        >>> # verify results
         >>> print(result)
     """
     if not WIN32:
@@ -1038,11 +1066,8 @@ def send_keyboard_input(text=None, key_list=None):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
-        >>> # build test data
         >>> text = '%paste'
-        >>> # execute function
         >>> result = send_keyboard_input('%paste')
-        >>> # verify results
         >>> print(result)
     """
     #key_mapping = {

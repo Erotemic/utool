@@ -53,7 +53,13 @@ def dump_autogen_code(fpath, autogen_text, codetype='python', fullprint=None):
             prev_text = ut.read_from(fpath)
             textdiff = ut.get_textdiff(prev_text, autogen_text,
                                        num_context_lines=num_context_lines)
-            ut.print_difftext(textdiff)
+            try:
+                ut.print_difftext(textdiff)
+            except UnicodeDecodeError as ex:
+                import unicodedata
+                textdiff = unicodedata.normalize('NFKD', textdiff).encode('ascii','ignore')
+                ut.print_difftext(textdiff)
+
         if dowrite:
             print('WARNING: Not writing. Remove --diff from command line')
     elif dowrite:

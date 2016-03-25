@@ -280,7 +280,7 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         def utool_write(*args):
             """ writes to current utool logs and to sys.stdout.write """
             global __UTOOL_WRITE_BUFFER__
-            msg = ', '.join(map(__STR__, args))
+            msg = ', '.join(map(six.text_type, args))
             __UTOOL_WRITE_BUFFER__.append(msg)
             if msg.endswith('\n'):
                 # Flush on newline
@@ -294,21 +294,19 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
                 utool_flush()
                 __UTOOL_ROOT_LOGGER__.info('\n\n----------')
                 __UTOOL_ROOT_LOGGER__.info(ut.get_caller_name(range(0, 20)))
-                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(__STR__, args)))
+                return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(six.text_type, args)))
         else:
             def utool_print(*args):
                 """ standard utool print function """
-                #import utool as ut
-                #with ut.embed_on_exception_context:
                 try:
-                    return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(__STR__, args)))
+                    return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(six.text_type, args)))
                 except UnicodeDecodeError:
                     new_msg = ', '.join(map(meta_util_six.ensure_unicode, args))
                     #print(new_msg)
                     return  __UTOOL_ROOT_LOGGER__.info(new_msg)
         def utool_printdbg(*args):
             """ standard utool print debug function """
-            return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(__STR__, args)))
+            return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(six.text_type, args)))
         # overwrite the utool printers
         __UTOOL_WRITE__    = utool_write
         __UTOOL_FLUSH__    = utool_flush

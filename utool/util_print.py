@@ -268,7 +268,13 @@ def print_difftext(text, other=None):
     if other is not None:
         # hack
         text = util_str.difftext(text, other)
-    print(util_str.get_colored_diff(text))
+    colortext = util_str.get_colored_diff(text)
+    try:
+        print(colortext)
+    except UnicodeEncodeError as ex:
+        import unicodedata
+        colortext = unicodedata.normalize('NFKD', colortext).encode('ascii','ignore')
+        print(colortext)
 
 
 def colorprint(text, color=None):
