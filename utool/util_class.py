@@ -500,6 +500,12 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
     setattr(self, method_name, new_method)
 
 
+def inject_func_as_property(self, func, method_name=None, class_=None,
+                            allow_override=False, allow_main=False,
+                            verbose=True):
+    pass
+
+
 def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object):
     """
     makes a metaclass that overrides __getattr__ and __setattr__ to forward some

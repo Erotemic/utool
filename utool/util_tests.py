@@ -192,6 +192,7 @@ def get_package_testables(module=None, **tagkw):
 
     CommandLine:
         python -m utool.util_tests --exec-get_package_testables --show --mod ibeis
+        python -m utool.util_tests --exec-get_package_testables --show --mod plottool
         python -m utool.util_tests --exec-get_package_testables --show --mod utool --tags SCRIPT
         python -m utool.util_tests --exec-get_package_testables --show --mod utool --tags ENABLE
 
@@ -1545,6 +1546,22 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
     import utool as ut
     ut.colorprint('[utool] main_function_tester', 'yellow')
 
+    if ut.get_argflag('--list-testfuncs'):
+        print('Listing testfuncs')
+        test_tuples = ut.get_package_testables(module)
+        result = ut.repr3(test_tuples)
+        print(result)
+
+    if ut.get_argflag('--make-bashcomplete'):
+        # http://stackoverflow.com/questions/427472/line-completion-with-custom-commands
+        print('Listing testfuncs')
+        test_tuples = ut.get_package_testables(module)
+        testnames = ut.make_instancelist(test_tuples).name
+        modname = module if isinstance(module, six.string_types) else module.__name__
+        line = 'complete -W "%s" "%s"' % (' '.join(testnames), modname)
+        print('add the following line to your bashrc')
+        print(line)
+
     test_funcname = ut.get_argval(
         ('--test-func', '--tfunc', '--tf', '--testfunc'),
         type_=str, default=test_funcname,
@@ -1575,7 +1592,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             if ut.get_argflag(('--cmd', '--embed')):
                 testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
             doctest_src = ut.indent(testsrc, '>>> ')
-            doctest_src = '\n'.join(['%3d %s' % (count, line) for count, line in enumerate(doctest_src.splitlines(), start=1)])
+            doctest_src = '\n'.join(['%3d %s' % (count, line_) for count, line_ in enumerate(doctest_src.splitlines(), start=1)])
             colored_src = ut.highlight_code(doctest_src)
             print('testsrc = \n%s' % (colored_src,))
             try:

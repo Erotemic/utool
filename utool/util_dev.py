@@ -2542,42 +2542,64 @@ def ipcopydev():
     pass
 
 
-class InstanceList(object):
-    """ executes methods and attribute calls on a list of
-    objects of the same type
+def make_instancelist(obj_list):
+    class InstanceList_(object):
+        """ executes methods and attribute calls on a list of
+        objects of the same type
 
-    CommandLine:
-        python -m utool.util_dev --exec-InstanceList --show
+        CommandLine:
+            python -m utool.util_dev --exec-InstanceList --show
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_dev import *  # NOQA
-        >>> import utool as ut
-        >>> obj_list = ['hi', 'bye', 'foo']
-        >>> self =  InstanceList(obj_list)
-        >>> print(self.upper())
-        >>> print(self.isalpha())
-    """
-    def __init__(self, obj_list):
-        if len(obj_list) > 0:
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from utool.util_dev import *  # NOQA
+            >>> import utool as ut
+            >>> obj_list = ['hi', 'bye', 'foo']
+            >>> self =  InstanceList(obj_list)
+            >>> print(self.upper())
+            >>> print(self.isalpha())
+        """
+        def __init__(self, obj_list):
+            if len(obj_list) > 0:
+                import utool as ut
+                shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
+                self._shared_public_attrs = [a for a in shared_attrs if not a.startswith('_')]
+                self._obj_list = obj_list
+                example_obj = obj_list[0]
+                example_type = type(example_obj)
+
+                for attrname in self._shared_public_attrs:
+                    attrtype = getattr(example_type, attrname, None)
+                    if attrtype is not None:
+                        if isinstance(attrtype, property):
+                            # need to do this as metaclass
+                            setattr(InstanceList_, attrname, property(self._define_prop(attrname)))
+                    else:
+                        func = self._define_func(attrname)
+                        ut.inject_func_as_method(self, func, attrname)
+
+        def _define_func(self, attrname):
             import utool as ut
-            shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
-            self._shared_public_attrs = [a for a in shared_attrs if not a.startswith('_')]
-            self._obj_list = obj_list
-            for attrame in self._shared_public_attrs:
-                func = self._define_func(attrame)
-                ut.inject_func_as_method(self, func, attrame)
+            def _wrapper(self, *args, **kwargs):
+                return self._map_method(attrname, *args, **kwargs)
+            ut.set_funcname(_wrapper, attrname)
+            return _wrapper
 
-    def _define_func(self, attrame):
-        import utool as ut
-        def _wrapper(self, *args, **kwargs):
-            return self._map_method(attrame, *args, **kwargs)
-        ut.set_funcname(_wrapper, attrame)
-        return _wrapper
+        def _map_method(self, attrname, *args, **kwargs):
+            mapped_vals = [getattr(obj, attrname)(*args, **kwargs) for obj in self._obj_list]
+            return mapped_vals
 
-    def _map_method(self, attrname, *args, **kwargs):
-        mapped_vals = [getattr(obj, attrname)(*args, **kwargs) for obj in self._obj_list]
-        return mapped_vals
+        def _define_prop(self, attrname):
+            import utool as ut
+            def _getter(self):
+                return self._map_property(attrname)
+            ut.set_funcname(_getter, 'get_' + attrname)
+            return _getter
+
+        def _map_property(self, attrname):
+            mapped_vals = [getattr(obj, attrname) for obj in self._obj_list]
+            return mapped_vals
+    return InstanceList_(obj_list)
 
 
 if __name__ == '__main__':

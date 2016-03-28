@@ -1639,7 +1639,7 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
 
 
 def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
-        fpath_list=None, verbose=None):
+        fpath_list=None, verbose=None, include_patterns=None):
     """
     Python implementation of sed. NOT FINISHED
 
@@ -1653,7 +1653,8 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
         dpath_list (list): directories to search (defaults to cwd)
     """
     #_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)
-    include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.html']
+    if include_patterns is None:
+        include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.html', '*.tex']
     if dpath_list is None:
         dpath_list = [os.getcwd()]
     if verbose is None:
@@ -1671,6 +1672,7 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
         print('sed-ing %r' % (dpath_list,))
         print(' * regular expression : %r' % (regexpr,))
         print(' * replacement        : %r' % (repl,))
+        print(' * include_patterns   : %r' % (include_patterns,))
         print(' * recursive: %r' % (recursive,))
         print(' * force: %r' % (force,))
         from utool import util_str
@@ -1684,13 +1686,16 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
 
     # Walk through each directory recursively
     num_changed = 0
+    num_files_checked = 0
     fpaths_changed = []
     for fpath in fpath_generator:
+        num_files_checked += 1
         changed_lines = sedfile(fpath, regexpr, repl, force, verbose=verbose)
         if changed_lines is not None:
             fpaths_changed.append(fpath)
             num_changed += len(changed_lines)
     import utool as ut
+    print('num_files_checked = %r' % (num_files_checked,))
     print('fpaths_changed = %s' % (ut.repr3(sorted(fpaths_changed)),))
     print('total lines changed = %r' % (num_changed,))
 

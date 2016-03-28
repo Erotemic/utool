@@ -1089,7 +1089,10 @@ def bzip(*args):
 def set_default_node_attributes(graph, key, val):
     import networkx as nx
     unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
-    values = {n: val for n in unset_nodes}
+    if isinstance(val, dict):
+        values = {n: val[n] for n in unset_nodes if n in val}
+    else:
+        values = {n: val for n in unset_nodes}
     nx.set_node_attributes(graph, key, values)
 
 
