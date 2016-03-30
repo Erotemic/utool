@@ -788,6 +788,7 @@ def get_caller_name(N=0, allow_genexpr=True):
         return '[' + ']['.join(name_list) + ']'
     parent_frame = get_parent_frame(N=N + 1)
     caller_name = parent_frame.f_code.co_name
+    co_filename = parent_frame.f_code.co_filename
 
     if not allow_genexpr:
         count = 0
@@ -806,11 +807,10 @@ def get_caller_name(N=0, allow_genexpr=True):
     #    pass
     if caller_name == '<module>':
         # Make the caller name the filename
-        co_filename = parent_frame.f_code.co_filename
         caller_name = splitext(split(co_filename)[1])[0]
-        if caller_name == '__init__':
-            # Make the caller name the filename
-            caller_name = basename(dirname(co_filename)) + '.' + caller_name
+    if caller_name == '__init__':
+        # Make the caller name the filename
+        caller_name = basename(dirname(co_filename)) + '.' + caller_name
     return caller_name
 
 
