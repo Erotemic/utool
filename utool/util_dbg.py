@@ -757,9 +757,26 @@ def get_caller_name(N=0, allow_genexpr=True):
 
     Args:
         N (int): (defaults to 0) number of levels up in the stack
+        allow_genexpr (bool): (default = True)
 
     Returns:
         str: a function name
+
+    CommandLine:
+        python -m utool.util_dbg get_caller_name
+        python -m utool get_caller_name
+        python ~/code/utool/utool/__main__.py get_caller_name
+        python ~/code/utool/utool/__init__.py get_caller_name
+        python ~/code/utool/utool/util_dbg.py get_caller_name
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dbg import *  # NOQA
+        >>> import utool as ut
+        >>> N = list(range(0, 13))
+        >>> allow_genexpr = True
+        >>> caller_name = get_caller_name(N, allow_genexpr)
+        >>> print(caller_name)
     """
     if isinstance(N, (list, tuple, range)):
         name_list = []
@@ -791,9 +808,9 @@ def get_caller_name(N=0, allow_genexpr=True):
         # Make the caller name the filename
         co_filename = parent_frame.f_code.co_filename
         caller_name = splitext(split(co_filename)[1])[0]
-    if caller_name == '__init__':
-        # Make the caller name the filename
-        caller_name = basename(dirname(co_filename)) + '.' + caller_name
+        if caller_name == '__init__':
+            # Make the caller name the filename
+            caller_name = basename(dirname(co_filename)) + '.' + caller_name
     return caller_name
 
 
