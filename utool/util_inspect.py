@@ -910,7 +910,8 @@ def dummy_func(arg1, arg2, arg3=None, arg4=[1, 2, 3], arg5={}, **kwargs):
     """
     foo = kwargs.get('foo', None)
     bar = kwargs.pop('bar', 4)
-    foobar = str(foo) + str(bar)
+    foo2 = kwargs['foo2']
+    foobar = str(foo) + str(bar) + str(foo2)
     return foobar
 
 
@@ -930,7 +931,7 @@ def get_kwdefaults(func, parse_source=False):
         python -m utool.util_inspect get_kwdefaults
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> func = dummy_func
@@ -1987,42 +1988,59 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
         python -m utool.util_inspect parse_kwarg_keys
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
-        >>> source = "\n  kwargs.get('foo', None)\n  kwargs.pop('bar', 3)\n kwargs.pop('str', '3fd')\n kwargs.pop('str', '3f\'d')\n  \"kwargs.get('baz', None)\""
+        >>> import utool as ut
+        >>> source = ("\n kwargs.get('foo', None)\n kwargs.pop('bar', 3)"
+        >>>           "\n kwargs.pop('str', '3fd')\n kwargs.pop('str', '3f\'d')"
+        >>>           "\n \"kwargs.get('baz', None)\"\n kwargs['foo2']")
         >>> print(source)
-        >>> kwarg_keys = parse_kwarg_keys(source, with_vals=True)
-        >>> result = ('kwarg_keys = %s' % (str(kwarg_keys),))
+        >>> ut.exec_funckw(parse_kwarg_keys, globals())
+        >>> with_vals = True
+        >>> kwarg_keys = parse_kwarg_keys(source, with_vals=with_vals)
+        >>> result = ('kwarg_keys = %s' % (ut.repr2(kwarg_keys, nl=1),))
+        >>> assert 'baz' not in ut.take_column(kwarg_keys, 0)
+        >>> assert 'foo' in ut.take_column(kwarg_keys, 0)
         >>> print(result)
-
+        kwarg_keys = [
+            ('foo', None),
+            ('bar', 3),
+            ('str', "'3fd'"),
+            ('str', "'3f'd'"),
+            ('foo2', None),
+        ]
     """
-    #source = ut.get_func_sourcecode(func, strip_docstr=True, strip_comments=True)
     import re
     import utool as ut
     keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
     esc = re.escape
-    #default = ut.named_field('default', '[\'\"A-Za-z_][A-Za-z0-9_\'\"]*')
-    itemgetter = ut.regex_or(['get', 'pop'])
-    pattern = esc(keywords + '.') + itemgetter + esc("('") + keyname + esc("',")
+    # TODO: both kinds of quotes
+    getfuncnames = ut.regex_or(['get', 'pop'])
+    getfunc_pattern = esc(keywords + '.') + getfuncnames + esc("('") + keyname + esc("',")
+    getitem_pattern = esc(keywords + "[\'") + keyname + esc("\']")
     if with_vals:
         WS = ut.REGEX_WHITESPACE
         valname = WS + ut.named_field('valname', ut.REGEX_RVAL) + WS + esc(')')
-        pattern += valname
-    #not_quotes = '^' + ut.positive_lookbehind(r'[^\'\"]*')
-    #not_quotes = ut.regex_or(['^', r'\n']) + r'[^\'\"]*'
-    #not_quotes = r'[^\'\"]*'
+        getfunc_pattern += valname
     not_quotes = r'^[^\'\"]*'
-    pattern = not_quotes + pattern
-    regex = re.compile(pattern, flags=re.MULTILINE)
-    #print('pattern = %s' % (pattern,))
-    #print(pattern)
-    groupdict_list = [match.groupdict() for match in regex.finditer(source)]
-    kwarg_keys = [groupdict_['keyname'] for groupdict_ in groupdict_list]
+    getfunc_pattern_ = not_quotes + getfunc_pattern
+    getitem_pattern_ = not_quotes + getitem_pattern
+    # Parse get/pop kwargs
+    regex1 = re.compile(getfunc_pattern_, flags=re.MULTILINE)
+    groupdict_list1 = [match.groupdict() for match in regex1.finditer(source)]
+    kwarg_keys1 = [groupdict_['keyname'] for groupdict_ in groupdict_list1]
+    # Parse __getitem__ kwargs
+    regex2 = re.compile(getitem_pattern_, flags=re.MULTILINE)
+    groupdict_list2 = [match.groupdict() for match in regex2.finditer(source)]
+    kwarg_keys2 = [groupdict_['keyname'] for groupdict_ in groupdict_list2]
     if with_vals:
-        kwarg_vals = [ut.smart_cast2(groupdict_['valname']) for groupdict_ in groupdict_list]
-        return list(zip(kwarg_keys, kwarg_vals))
+        kwarg_vals = [ut.smart_cast2(groupdict_['valname'])
+                      for groupdict_ in groupdict_list1]
+        parsed_list1 = list(zip(kwarg_keys1, kwarg_vals))
+        parsed_list2 = [(key, None) for key in kwarg_keys2]
+        return parsed_list1 + parsed_list2
     else:
-        return kwarg_keys
+        return kwarg_keys1 + kwarg_keys2
 
 
 class KWReg(object):

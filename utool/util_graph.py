@@ -838,38 +838,6 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
     return G_sub
 
 
-def nx_delete_node_attr(graph, key):
-    removed = 0
-    for node in graph.nodes():
-        try:
-            del graph.node[node][key]
-            removed += 1
-        except KeyError:
-            pass
-    return removed
-
-
-def nx_delete_edge_attr(graph, key):
-    removed = 0
-    if graph.is_multigraph():
-        for edge in graph.edges(keys=graph.is_multi()):
-            u, v, k = edge
-            try:
-                del graph[u][v][k][key]
-                removed += 1
-            except KeyError:
-                pass
-    else:
-        for edge in graph.edges():
-            u, v = edge
-            try:
-                del graph[u][v][key]
-                removed += 1
-            except KeyError:
-                pass
-    return removed
-
-
 def all_simple_source_paths(graph, target):
     r"""
     Returns all paths to this table from the source node
@@ -1086,7 +1054,45 @@ def bzip(*args):
     return bc
 
 
-def set_default_node_attributes(graph, key, val):
+def nx_delete_node_attr(graph, key, nodes=None):
+    removed = 0
+    if nodes is None:
+        nodes = graph.nodes()
+    for node in nodes:
+        try:
+            del graph.node[node][key]
+            removed += 1
+        except KeyError:
+            pass
+    return removed
+
+
+def nx_delete_edge_attr(graph, key, edges=None):
+    removed = 0
+    if graph.is_multigraph():
+        if edges is None:
+            edges = graph.edges(keys=graph.is_multi())
+        for edge in edges:
+            u, v, k = edge
+            try:
+                del graph[u][v][k][key]
+                removed += 1
+            except KeyError:
+                pass
+    else:
+        if edges is None:
+            edges = graph.edges()
+        for edge in graph.edges():
+            u, v = edge
+            try:
+                del graph[u][v][key]
+                removed += 1
+            except KeyError:
+                pass
+    return removed
+
+
+def nx_set_default_node_attributes(graph, key, val):
     import networkx as nx
     unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
     if isinstance(val, dict):
@@ -1094,6 +1100,16 @@ def set_default_node_attributes(graph, key, val):
     else:
         values = {n: val for n in unset_nodes}
     nx.set_node_attributes(graph, key, values)
+
+
+def nx_get_default_node_attributes(graph, key, default=None):
+    import networkx as nx
+    import utool as ut
+    node_list = graph.nodes()
+    partial_attr_dict = nx.get_node_attributes(graph, key)
+    attr_list = ut.dict_take(partial_attr_dict, node_list, default)
+    attr_dict = dict(zip(node_list, attr_list))
+    return attr_dict
 
 
 if __name__ == '__main__':
