@@ -799,7 +799,6 @@ def get_caller_name(N=0, allow_genexpr=True):
                 caller_name = parent_frame.f_code.co_name
             else:
                 break
-
     #try:
     #    if 'func' in  parent_frame.f_locals:
     #        caller_name += '(' + meta_util_six.get_funcname(parent_frame.f_locals['func']) + ')'
@@ -808,7 +807,7 @@ def get_caller_name(N=0, allow_genexpr=True):
     if caller_name == '<module>':
         # Make the caller name the filename
         caller_name = splitext(split(co_filename)[1])[0]
-    if caller_name == '__init__':
+    if caller_name in {'__init__', '__main__'}:
         # Make the caller name the filename
         caller_name = basename(dirname(co_filename)) + '.' + caller_name
     return caller_name
