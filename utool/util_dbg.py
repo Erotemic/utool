@@ -770,7 +770,7 @@ def get_caller_name(N=0, allow_genexpr=True):
         python ~/code/utool/utool/util_dbg.py get_caller_name
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
         >>> import utool as ut
         >>> N = list(range(0, 13))
