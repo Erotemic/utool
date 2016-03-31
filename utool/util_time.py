@@ -186,6 +186,8 @@ def determine_timestamp_format(datetime_str):
         >>>     '    :  :     :  :  ',
         >>>     '2015:04:01 00:00:00',
         >>>     '2080/04/01 00:00:00',
+        >>>     '2005-10-27T14:35:20+02:00',
+        >>>     '6:35:01\x002006:03:19 1',
         >>> ]
         >>> result = ut.list_str([determine_timestamp_format(datetime_str)
         >>>            for datetime_str in datetime_str_list])
@@ -193,7 +195,13 @@ def determine_timestamp_format(datetime_str):
     """
     import re
     # try to determine the format
-    clean_datetime_str = datetime_str.strip(';').strip()
+    clean_datetime_str = datetime_str.replace('\x00', ' ').strip(';').strip()
+    if len(clean_datetime_str) == 25 and 'T' in clean_datetime_str:
+        # Delete last colon from ISO 8601 format
+        # clean_datetime_str = clean_datetime_str[:-3] + clean_datetime_str[-2:]
+        print('WARNING: Python 2.7 does not support %z directive in strptime, ignoring timezone in parsing: ' + clean_datetime_str)
+        clean_datetime_str = clean_datetime_str[:-6]
+
     year_regex  = '(\d\d)?\d\d'
     month_regex = '[0-1]?[0-9]'
     day_regex   = '[0-3]?[0-9]'
@@ -204,9 +212,11 @@ def determine_timestamp_format(datetime_str):
 
     date_regex1 = '/'.join([year_regex, month_regex, day_regex])
     date_regex2 = ':'.join([year_regex, month_regex, day_regex])
+    date_regex3 = '-'.join([year_regex, month_regex, day_regex])
     datetime_regex1 = date_regex1 + ' ' + time_regex
     datetime_regex2 = date_regex2 + ' ' + time_regex
-    #datetime_regex3 = date_regex2 + ' ' + odd_time_regex
+    datetime_regex3 = date_regex3 + 'T' + time_regex  # + r'\+[0-2]?[0-9]?[0-6]?[0-9]'
+    datetime_regex4 = time_regex + ' ' + date_regex2 + ' 1'
 
     timefmt = None
 
@@ -214,6 +224,12 @@ def determine_timestamp_format(datetime_str):
         timefmt = '%Y/%m/%d %H:%M:%S'
     elif re.match(datetime_regex2, clean_datetime_str):
         timefmt = '%Y:%m:%d %H:%M:%S'
+    elif re.match(datetime_regex3, clean_datetime_str):
+        # timefmt = '%Y-%m-%dT%H:%M:%S%z'
+        timefmt = '%Y-%m-%dT%H:%M:%S'
+    elif re.match(datetime_regex4, clean_datetime_str):
+        # timefmt = '%Y-%m-%dT%H:%M:%S%z'
+        timefmt = '%H:%M:%S %Y:%m:%d 1'
     # Just dont accept this bad format
     #elif re.match(datetime_regex3, clean_datetime_str):
     #    timefmt = '%Y:%m:%d %H:%M: %S'
@@ -229,13 +245,17 @@ def determine_timestamp_format(datetime_str):
                 return None
             elif clean_datetime_str == '0000:00:00 00:00:00':
                 return None
+            elif [ ord(_) >= 128 for _ in clean_datetime_str ].count(True) > 1:
+                return None
         #return -1
+        import utool as ut
+        ut.embed()
         raise NotImplementedError('Unknown format: datetime_str=%r' % (datetime_str,))
     return timefmt
 
 
 def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
-    """
+    r"""
     converts a datetime string to posixtime (unixtime)
 
     Args:
@@ -265,6 +285,24 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
         >>> print(result)
         1427846400
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> datetime_str = '2005-10-27T14:35:20+02:00'
+        >>> timestamp_format = None
+        >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
+        >>> print(result)
+        1130423720
+
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> datetime_str = '6:35:01\x002006:03:19 1'
+        >>> timestamp_format = None
+        >>> result = exiftime_to_unixtime(datetime_str, timestamp_format)
+        >>> print(result)
+        1142750101
     """
     if isinstance(datetime_str, int):
         if datetime_str == -1:
@@ -287,7 +325,9 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         timefmt = timestamp_format
         #raise AssertionError('unknown timestamp_format=%r' % (timestamp_format,))
     try:
-        if len(datetime_str) > 19:
+        if len(datetime_str) == 20 and '\x00' in datetime_str:
+            datetime_str_ = datetime_str.replace('\x00', ' ').strip(';').strip()
+        elif len(datetime_str) > 19:
             datetime_str_ = datetime_str[:19].strip(';').strip()
         else:
             datetime_str_ = datetime_str
