@@ -1112,6 +1112,69 @@ def nx_get_default_node_attributes(graph, key, default=None):
     return attr_dict
 
 
+def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
+    if nodes is None:
+        nodes = list(range(len(weight_matrix)))
+    import networkx as nx
+    import utool as ut
+    import numpy as np
+    weight_list = weight_matrix.ravel()
+    flat_idxs = np.arange(weight_matrix.size)
+    multi_idxs = np.unravel_index(flat_idxs, weight_matrix.shape)
+    edge_list = list(zip(*multi_idxs))
+
+    if remove_self:
+        flags = [e1 != e2 for e1, e2 in edge_list]
+        edge_list = ut.compress(edge_list, flags)
+        weight_list = ut.compress(weight_list, flags)
+
+    graph = nx.Graph()
+    graph.add_nodes_from(nodes)
+    graph.add_edges_from(edge_list)
+    nx.set_edge_attributes(graph, 'weight', dict(zip(edge_list,
+                                                     weight_list)))
+    return graph
+
+
+def color_nodes(graph, labelattr='label'):
+    """ Colors edges and nodes by nid """
+    import plottool as pt
+    import utool as ut
+    import networkx as nx
+    node_to_lbl = nx.get_node_attributes(graph, labelattr)
+    unique_lbls = ut.unique(node_to_lbl.values())
+    ncolors = len(unique_lbls)
+    if (ncolors) == 1:
+        unique_colors = [pt.NEUTRAL_BLUE]
+    else:
+        unique_colors = pt.distinct_colors(ncolors)
+    # Find edges and aids strictly between two nids
+    lbl_to_color = dict(zip(unique_lbls, unique_colors))
+    node_to_color = {node:  lbl_to_color[lbl] for node, lbl in node_to_lbl.items()}
+    nx.set_node_attributes(graph, 'color', node_to_color)
+    from plottool import color_funcs
+    import six
+
+    def _fix_agraph_color(data):
+        try:
+            orig_color = data.get('color', None)
+            color = orig_color
+            if color is not None and not isinstance(color, six.string_types):
+                #if isinstance(color, np.ndarray):
+                #    color = color.tolist()
+                color = tuple(color_funcs.ensure_base255(color))
+                if len(color) == 3:
+                    data['color'] = '#%02x%02x%02x' % color
+                else:
+                    data['color'] = '#%02x%02x%02x%02x' % color
+        except Exception as ex:
+            ut.printex(ex, keys=['color', 'orig_color', 'data'])
+            raise
+
+    for node, node_data in graph.nodes(data=True):
+        _fix_agraph_color(node_data)
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

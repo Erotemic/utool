@@ -1291,7 +1291,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
                 valstr = util_str.truncate_str(util_str.repr2(val), maxlen=200)
                 strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
-            strlist_.append(prefix + ' ' + str(ex))
+            strlist_.append(prefix + ' ' + str(ex) + ' (this likely due to a misformatted printex and is not related to the exception)')
     return strlist_
 
 
