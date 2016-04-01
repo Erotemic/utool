@@ -1175,6 +1175,12 @@ def color_nodes(graph, labelattr='label'):
         _fix_agraph_color(node_data)
 
 
+def nx_makenode(graph, name, **attrkw):
+    if 'size' in attrkw:
+        attrkw['width'], attrkw['height'] = attrkw.pop('size')
+    graph.add_node(name, **attrkw)
+    return name
+
 if __name__ == '__main__':
     r"""
     CommandLine:
