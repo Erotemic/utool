@@ -1152,11 +1152,11 @@ def color_nodes(graph, labelattr='label'):
     lbl_to_color = dict(zip(unique_lbls, unique_colors))
     node_to_color = {node:  lbl_to_color[lbl] for node, lbl in node_to_lbl.items()}
     nx.set_node_attributes(graph, 'color', node_to_color)
-
     nx_ensure_agraph_color(graph)
 
 
 def nx_ensure_agraph_color(graph):
+    """ changes colors to hex strings on graph attrs """
     from plottool import color_funcs
     import six
     def _fix_agraph_color(data):
