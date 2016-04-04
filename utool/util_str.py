@@ -1336,8 +1336,8 @@ def repr3(obj_, **kwargs):
     return repr2(obj_, **_kw)
 
 
-def trunc_repr(obj):
-    return truncate_str(repr2(obj), 50, truncmsg='~//~')
+def trunc_repr(obj, maxlen=50):
+    return truncate_str(repr2(obj), maxlen, truncmsg='~//~')
 
 
 def repr2(obj_, **kwargs):

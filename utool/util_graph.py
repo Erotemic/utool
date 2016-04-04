@@ -1152,9 +1152,13 @@ def color_nodes(graph, labelattr='label'):
     lbl_to_color = dict(zip(unique_lbls, unique_colors))
     node_to_color = {node:  lbl_to_color[lbl] for node, lbl in node_to_lbl.items()}
     nx.set_node_attributes(graph, 'color', node_to_color)
+
+    nx_ensure_agraph_color(graph)
+
+
+def nx_ensure_agraph_color(graph):
     from plottool import color_funcs
     import six
-
     def _fix_agraph_color(data):
         try:
             orig_color = data.get('color', None)
@@ -1173,6 +1177,9 @@ def color_nodes(graph, labelattr='label'):
 
     for node, node_data in graph.nodes(data=True):
         _fix_agraph_color(node_data)
+
+    for u, v, edge_data in graph.edges(data=True):
+        _fix_agraph_color(edge_data)
 
 
 def nx_makenode(graph, name, **attrkw):
