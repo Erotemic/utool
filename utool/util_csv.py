@@ -8,7 +8,119 @@ from six.moves import zip, map
 import six
 from utool import util_type
 from utool import util_inject
+from utool import util_dev
 print, rrr, profile = util_inject.inject2(__name__, '[csv]')
+
+
+class CSV(util_dev.NiceRepr):
+
+    def __init__(self, row_data):
+        self.row_data = row_data
+        self.header = row_data[0]
+        self.header_tags = [[x] for x in self.header]
+        self.short_header = None
+
+    def __nice__(self):
+        import utool as ut
+        if self.short_header is None:
+            header_str =  ', '.join([ut.truncate_str(h, maxlen=15, truncmsg='~//~')
+                                     for h in self.header])
+        else:
+            header_str =  ', '.join(self.short_header)
+        return '(shape=%s: cols=%s)' % (self.shape, header_str,)
+
+    @classmethod
+    def from_fpath(cls, fpath):
+        self = cls(read_csv(fpath))
+        return self
+
+    @property
+    def shape(self):
+        return len(self.row_data), len(self.header)
+
+    def __str__(self):
+        return self.nice_table()
+
+    def _strip_self(self):
+        self.row_data = [[c.strip(' ') for c in r] for r in self.row_data]
+        self.header = self.row_data[0]
+        self.header_tags = [[x] for x in self.header]
+
+    def nice_table(self):
+        import utool as ut
+        return ut.make_csv_table(ut.listT(self.row_data), raw=True)
+
+    def raw_table(self):
+        return '\n'.join([','.join([y for y in x]) for x in self.row_data])
+
+    def fuzzy_filter_columns(self, fuzzy_headers):
+        import utool as ut
+        col_flags = ut.filterflags_general_tags(
+            self.header_tags, logic='or',
+            in_any=fuzzy_headers)
+        self.header = ut.compress(self.header, col_flags)
+        self.header_tags = ut.compress(self.header_tags, col_flags)
+        self.row_data = ut.listT(ut.compress(ut.listT(self.row_data), col_flags))
+        if self.short_header is not None:
+            self.short_header = ut.compress(self.short_header, col_flags)
+
+    def __getitem__(self, pat):
+        colx = self.fuzzy_find_colx(pat)
+        return self.take_column(colx)
+
+    def fuzzy_reorder_columns(self, fuzzy_headers, inplace=True):
+        import utool as ut
+        specified_xs = [self.fuzzy_find_colx(pat) for pat in fuzzy_headers]
+        otherxs = ut.index_complement(specified_xs, len(self.header_tags))
+        new_order = specified_xs + otherxs
+        return self.permute_columns(new_order)
+
+    def permute_columns(self, new_order, inplace=True):
+        import utool as ut
+        self.header = ut.take(self.header, new_order)
+        self.header_tags = ut.take(self.header_tags, new_order)
+        self.row_data = ut.listT(ut.take(ut.listT(self.row_data), new_order))
+        if self.short_header is not None:
+            self.short_header = ut.take(self.short_header, new_order)
+        return self
+
+    def fuzzy_find_colxs(self, pat):
+        import utool as ut
+        colxs = ut.where(ut.filterflags_general_tags(self.header_tags, in_any=[pat]))
+        return colxs
+
+    def fuzzy_find_colx(self, pat):
+        colxs = self.fuzzy_find_colxs(pat)
+        assert len(colxs) == 1
+        return colxs[0]
+
+    def take_fuzzy_column(self, pat):
+        import utool as ut
+        colx = self.fuzzy_find_colx(pat)
+        self.take_column(colx)
+        return ut.take_column(self.row_data, colx)
+
+    def take_column(self, colx, with_header=True):
+        import utool as ut
+        if with_header:
+            return ut.take_column(self.row_data, colx)
+        else:
+            return ut.take_column(self.row_data[1:], colx)
+
+    def compress_rows(self, flags, with_header=True, inplace=True):
+        if not inplace:
+            import copy
+            self = copy.deepcopy(self)
+        import utool as ut
+        if with_header:
+            assert flags[0] is True
+            self.row_data = ut.compress(self.row_data, flags)
+        else:
+            self.row_data = self.row_data[0:1] + ut.compress(self.row_data[1:], flags)
+        return self
+
+    def compress_cols(self, flags):
+        pass
 
 
 def numpy_to_csv(arr, col_lbls=None, header='', col_type=None):

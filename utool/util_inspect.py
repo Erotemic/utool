@@ -1560,7 +1560,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
         #else:
         func2 = func._utinfo['orig_func']
         sourcecode = get_func_sourcecode(func2)
-    elif sourcefile is not None and sourcefile != '<string>':
+    elif sourcefile is not None and (sourcefile != '<string>'):
         try_limit = 2
         for num_tries in range(try_limit):
             try:
