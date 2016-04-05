@@ -85,7 +85,7 @@ def makeinit(mod_dpath, exclude_modnames=[], use_star=False):
         >>> import utool as ut
         >>> modname = ut.get_argval('--modname', str, default=None)
         >>> mod_dpath = (os.getcwd() if modname is None else
-        >>>              ut.get_modpath_from_modname(modname, prefer_pkg=True))
+        >>>              ut.get_modpath(modname, prefer_pkg=True))
         >>> mod_dpath = ut.unixpath(mod_dpath)
         >>> mod_fpath = join(mod_dpath, '__init__.py')
         >>> exclude_modnames = ut.get_argval(('--exclude', '-x'), list, default=[])
@@ -962,7 +962,7 @@ def find_modname_in_pythonpath(modname):
             break
     return in_pythonpath, module_type, path
 
-    #ut.get_modpath_from_modname(modname)
+    #ut.get_modpath(modname)
     #import imp
     #tup = imp.find_module(modname)
     #(file, filename, (suffix, mode, type))

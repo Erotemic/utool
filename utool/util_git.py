@@ -49,6 +49,26 @@ def repocmd(repo, command, sudo=False, dryrun=DRY_RUN):
     """
     TODO change name to repo command
     runs a command on a repo
+
+    Args:
+        repo (?):
+        command (?):
+        sudo (bool): (default = False)
+        dryrun (bool): (default = False)
+
+    CommandLine:
+        python -m utool.util_git --exec-repocmd
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_git import *  # NOQA
+        >>> import utool as ut
+        >>> repo = dirname(ut.get_modpath(ut, prefer_pkg=True))
+        >>> command = 'git status'
+        >>> sudo = False
+        >>> dryrun = False
+        >>> result = repocmd(repo, command, sudo, dryrun)
+        >>> print(result)
     """
     import utool as ut
     if ut.WIN32:
@@ -60,7 +80,8 @@ def repocmd(repo, command, sudo=False, dryrun=DRY_RUN):
     cmdstr = '\n        '.join([cmd_ for cmd_ in command_list])
     print('+--- *** repocmd(%s) *** ' % (cmdstr,))
     print('repo=%s' % ut.color_text(repo, 'yellow'))
-    os.chdir(repo)
+    if repo != '':
+        os.chdir(repo)
     #if command.find('git') != 0:
     #    command = 'git ' + command
     ret = None
@@ -69,8 +90,12 @@ def repocmd(repo, command, sudo=False, dryrun=DRY_RUN):
             #assert cmd.startswith('git '), 'invalid git command'
             if not sudo or sys.platform.startswith('win32'):
                 ret = os.system(cmd)
+                # out, err, ret = ut.cmd(cmd, quiet=True, shell=True)
+                # out, err, ret = ut.cmd(cmd, verbose=True, shell=False)
             else:
-                ret = os.system('sudo ' + cmd)
+                # ret = os.system('sudo ' + cmd)
+                out, err, ret = ut.cmd(cmd, sudo=True)
+                # ret = os.system('sudo ' + cmd)
             verbose = True
             if verbose > 1:
                 print('ret(%d) = %r' % (count, ret,))

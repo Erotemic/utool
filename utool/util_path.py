@@ -1196,16 +1196,18 @@ def fnames_to_fpaths(fname_list, path):
     return fpath_list
 
 
-def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
+def get_modpath(modname, prefer_pkg=False, prefer_main=False):
     r"""
+    Returns path to module
+
     Args:
-        modname (str):
+        modname (str or module): module name or actual module
 
     Returns:
         str: module_dir
 
     CommandLine:
-        python -m utool.util_path --test-get_modpath_from_modname
+        python -m utool.util_path --test-get_modpath
 
     Setup:
         >>> from utool.util_path import *  # NOQA
@@ -1215,7 +1217,7 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> modname = 'utool.util_path'
-        >>> module_dir = get_modpath_from_modname(modname)
+        >>> module_dir = get_modpath(modname)
         >>> result = ut.truepath_relative(module_dir, utool_dir)
         >>> result = ut.ensure_unixslash(result)
         >>> print(result)
@@ -1224,16 +1226,16 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> modname = 'utool._internal'
-        >>> module_dir = get_modpath_from_modname(modname, prefer_pkg=True)
-        >>> result = ut.truepath_relative(module_dir, utool_dir)
-        >>> result = ut.ensure_unixslash(result)
+        >>> module_dir = get_modpath(modname, prefer_pkg=True)
+        >>> result = ut.ensure_unixslash(module_dir)
         >>> print(result)
+        >>> assert result.endswith('utool/_internal')
         utool/_internal
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> modname = 'utool'
-        >>> module_dir = get_modpath_from_modname(modname)
+        >>> module_dir = get_modpath(modname)
         >>> result = ut.truepath_relative(module_dir, utool_dir)
         >>> result = ut.ensure_unixslash(result)
         >>> print(result)
@@ -1249,7 +1251,8 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
     mainname = '__main__.py'
     if prefer_pkg:
         if modpath.endswith(initname) or modpath.endswith(mainname):
-            modpath = modpath[:-len(initname)]
+            modpath = dirname(modpath)
+            # modpath = modpath[:-len(initname)]
     if prefer_main:
         if modpath.endswith(initname):
             main_modpath = modpath[:-len(initname)] + mainname
@@ -1722,7 +1725,7 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
-        >>> fpath = ut.get_modpath_from_modname(ut.util_path)
+        >>> fpath = ut.get_modpath(ut.util_path)
         >>> regexpr = 'sedfile'
         >>> repl = 'saidfile'
         >>> force = False
@@ -1806,7 +1809,7 @@ def grepfile(fpath, regexpr_list, reflags=0, cache=None):
         >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
-        >>> fpath = ut.get_modpath_from_modname(ut.util_path)
+        >>> fpath = ut.get_modpath(ut.util_path)
         >>> regexpr_list = ['foundthisline', '__future__']
         >>> cache = None
         >>> reflags = 0

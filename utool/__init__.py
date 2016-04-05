@@ -664,7 +664,7 @@ if DOELSE:
                                  fnames_to_fpaths, fpaths_to_fnames, 
                                  get_basename_noext_list, get_basepath_list, 
                                  get_ext_list, get_modname_from_modpath, 
-                                 get_modpath_from_modname, get_module_dir, 
+                                 get_modpath, get_module_dir, 
                                  get_module_subdir_list, get_path_type, 
                                  get_relative_modpath, 
                                  get_standard_exclude_dnames, 

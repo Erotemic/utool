@@ -649,6 +649,8 @@ def __parse_cmd_args(args, sudo, shell):
 def run_realtime_process(exe, shell=False):
     proc = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=shell)
     while(True):
+        # WARNING: this can cause deadlocks apparently if the OS pipe buffers
+        # fill up.
         retcode = proc.poll()  # returns None while subprocess is running
         line = proc.stdout.readline()
         yield line
@@ -781,7 +783,9 @@ def cmd(*args, **kwargs):
             return None, None, None
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, shell=shell,
-                                universal_newlines=True)
+                                universal_newlines=True
+                                # universal_newlines=False
+                               )
         hack_use_stdout = True
         if detatch:
             if not quiet:
@@ -808,7 +812,7 @@ def cmd(*args, **kwargs):
                         logged_out.append(line)
                 try:
                     from utool import util_str
-                    logged_out = util_str.ensure_unicode_strlist(logged_out)
+                    # logged_out = util_str.ensure_unicode_strlist(logged_out)
                     out = '\n'.join(logged_out)
                 except UnicodeDecodeError:
                     print('logged_out = %r' % (logged_out,))
@@ -976,7 +980,7 @@ def search_env_paths(fname, key_list=None, verbose=None):
 
     """
     import utool as ut
-    from os.path import join
+    # from os.path import join
     if key_list is None:
         key_list = [key for key in os.environ if key.find('PATH') > -1]
 
@@ -987,7 +991,7 @@ def search_env_paths(fname, key_list=None, verbose=None):
         for dpath in dpath_list:
             #if verbose:
             #    print('dpath = %r' % (dpath,))
-            testname = join(dpath, fname)
+            # testname = join(dpath, fname)
             matches = ut.glob(dpath, fname)
             found[key].extend(matches)
             #import fnmatch
@@ -1022,7 +1026,6 @@ def __debug_win_msvcr():
         #uuids = [ut.get_file_uuid(val) for val in vals]
         keytoid[key] = list(zip(infos, vals))
     ut.print_dict(keytoid, nl=2)
-
 
 
 def change_term_title(title):

@@ -1044,7 +1044,6 @@ def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
         >>> print(result)
         ['utool/util_arg.py', '--test-get_argv_tail']
 
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
@@ -1064,7 +1063,7 @@ def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
     modname = ut.get_argval('-m', help_='specify module name to profile', argv=argv)
     if modname is not None:
         # hack to account for -m scripts
-        modpath = ut.get_modpath_from_modname(modname, prefer_main=prefer_main)
+        modpath = ut.get_modpath(modname, prefer_main=prefer_main)
         argvx = argv.index(modname) + 1
         argv_tail = [modpath] + argv[argvx:]
     else:
