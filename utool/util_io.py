@@ -162,13 +162,15 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='r
                 if six.PY2:
                     text = [line.decode('utf8', errors=errors) for line in file_.readlines()]
                 else:
-                    text = file_.readlines()
+                    text = [line.decode('utf8', errors=errors) for line in file_.readlines()]
+                    #text = file_.readlines()
             else:
                 # text = file_.read()
                 if six.PY2:
                     text = file_.read().decode('utf8', errors=errors)
                 else:
-                    text = file_.read()
+                    #text = file_.read()
+                    text = file_.read().decode('utf8', errors=errors)
         return text
     except IOError as ex:
         from utool import util_dbg

@@ -306,9 +306,10 @@ def invert_dict(dict_, unique_vals=True):
         >>> import utool as ut
         >>> dict_ = {'a': 1, 'b': 0, 'c': 0, 'd': 0, 'e': 0, 'f': 2}
         >>> inverted_dict = invert_dict(dict_, unique_vals=False)
+        >>> inverted_dict = ut.map_dict_vals(sorted, inverted_dict)
         >>> result = ut.dict_str(inverted_dict, nl=False)
         >>> print(result)
-        {0: ['c', 'b', 'e', 'd'], 1: ['a'], 2: ['f']}
+        {0: ['b', 'c', 'd', 'e'], 1: ['a'], 2: ['f']}
     """
     if unique_vals:
         inverted_items = [(val, key) for key, val in six.iteritems(dict_)]

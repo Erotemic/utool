@@ -389,7 +389,7 @@ def parse_cfgstr3(string):
         return ret
 
     # Current Best Grammar
-    STRING = (pp.quotedString.copy()).setResultsName('string')
+    STRING = (pp.quotedString.copy()).setResultsName('quotedstring')
     NUM    = pp.Word(pp.nums).setResultsName('num')
     NAME   = pp.Regex('[a-zA-Z_][a-zA-Z_0-9]*')
     key    = pp.Word(pp.alphanums).setResultsName('key')  # identifier
@@ -415,16 +415,17 @@ def parse_cfgstr3(string):
     # Assignments only allowed at outer level
     assign_body = item + pp.ZeroOrMore(pp.Suppress(',') + item)
 
-    debug_ = 0
+    debug_ = ut.VERBOSE
 
     if len(string) > 0:
         tokens = assign_body.parseString(string)
         if debug_:
-            print(ut.repr3(tokens.asList()))
-            print(tokens.asXML())
+            print('string = %r' % (string,))
+            print('tokens List: ' + ut.repr3(tokens.asList()))
+            print('tokens XML: ' + tokens.asXML())
         parsed_blocks = as_tagged(tokens)[1]
         if debug_:
-            print(ut.repr3(parsed_blocks, nl=1))
+            print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
     else:
         parsed_blocks = []
 
@@ -443,10 +444,18 @@ def parse_cfgstr3(string):
             key = item[1]
             val = True
         else:
-            pass
-        cfgdict[key] = val
+            key = None
+            val = None
+        if key is not None:
+            cfgdict[key] = val
     if debug_:
-        print(ut.repr3(cfgdict, nl=1))
+        print('[TOKENS] CFGDICT ' + ut.repr3(cfgdict, nl=1))
+        #x = list(map(type, cfgdict.keys()))
+        #print(x)
+        #print(list(cfgdict.keys()))
+        #if len(x) > 0 and str(x[0]).find('Word') > -1:
+        #    import utool
+        #    utool.embed()
     return cfgdict
 
 
