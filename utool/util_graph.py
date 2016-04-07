@@ -8,15 +8,42 @@ from utool import util_inject
 def nx_transitive_reduction(G):
     """
     References:
-    https://en.wikipedia.org/wiki/Transitive_reduction#Computing_the_reduction_using_the_closure
+        https://en.wikipedia.org/wiki/Transitive_reduction#Computing_the_reduction_using_the_closure
+        http://dept-info.labri.fr/~thibault/tmp/0201008.pdf
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> import networkx as nx
+        >>> G = nx.DiGraph([('a', 'b'), ('a', 'c'), ('a', 'e'),
+        >>>                 ('a', 'd'), ('b', 'd'), ('c', 'e'),
+        >>>                 ('d', 'e'), ('c', 'e'), ('c', 'd')])
+        >>> G = testdata_graph()[1]
+        >>> G_tr = nx_transitive_reduction(G)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> G_ = nx.dag.transitive_closure(G)
+        >>> pt.show_nx(G    , pnum=(1, 4, 1), fnum=1)
+        >>> pt.show_nx(G_tr , pnum=(1, 4, 2), fnum=1)
+        >>> pt.show_nx(G_   , pnum=(1, 4, 3), fnum=1)
+        >>> pt.show_nx(nx.dag.transitive_closure(G_tr), pnum=(1, 4, 4), fnum=1)
+        >>> ut.show_if_requested()
     """
+
     import utool as ut
     import networkx as nx
-    nodes = G.nodes()
+    has_cycles = not nx.is_directed_acyclic_graph(G)
+    if has_cycles:
+        # FIXME: this does not work for cycle graphs. Need to do algorithm on SCCs
+        G_orig = G
+        G = nx.condensation(G_orig)
+
+    nodes = list(G.nodes())
     node2_idx = ut.make_index_lookup(nodes)
 
     def make_adj_matrix(G):
-        edges = G.edges()
+        edges = list(G.edges())
         edge2_idx = ut.partial(ut.dict_take, node2_idx)
         uv_list = ut.lmap(edge2_idx, edges)
         A = np.zeros((len(nodes), len(nodes)))
@@ -33,7 +60,8 @@ def nx_transitive_reduction(G):
     AB = A.dot(B)
     #AB = A.dot(B.T)
 
-    tr_uvs = np.where(np.logical_and(A, np.logical_not(AB)))
+    A_and_notAB = np.logical_and(A, np.logical_not(AB))
+    tr_uvs = np.where(A_and_notAB)
 
     #nodes = G.nodes()
     edges = list(zip(*ut.unflat_take(nodes, tr_uvs)))
@@ -41,6 +69,23 @@ def nx_transitive_reduction(G):
     G_tr = G.__class__()
     G_tr.add_nodes_from(nodes)
     G_tr.add_edges_from(edges)
+
+    if has_cycles:
+        # Uncondense graph
+        uncondensed_G_tr = G.__class__()
+        mapping = G.graph['mapping']
+        uncondensed_G_tr.add_nodes_from(mapping.keys())
+        inv_mapping = ut.invert_dict(mapping, unique_vals=False)
+        for u, v in G_tr.edges():
+            u_ = inv_mapping[u][0]
+            v_ = inv_mapping[v][0]
+            uncondensed_G_tr.add_edge(u_, v_)
+
+        for key, path in inv_mapping.items():
+            if len(path) > 1:
+                directed_cycle = list(ut.itertwo(path, wrap=True))
+                uncondensed_G_tr.add_edges_from(directed_cycle)
+        G_tr = uncondensed_G_tr
     return G_tr
 
 
@@ -648,22 +693,18 @@ def shortest_levels(levels_):
     return new_levels
 
 
-def find_source_nodes(graph):
-    import utool as ut
+def nx_source_nodes(graph):
     import networkx as nx
-    topsort = nx.dag.topological_sort(graph)
-    is_source = [graph.in_degree(t) == 0 for t in topsort]
-    sources = ut.compress(topsort, is_source)
-    return sources
+    topsort_iter = nx.dag.topological_sort(graph)
+    source_iter = (node for node in topsort_iter if graph.in_degree(node) == 0)
+    return source_iter
 
 
-def find_sink_nodes(graph):
-    import utool as ut
+def nx_sink_nodes(graph):
     import networkx as nx
-    topsort = nx.dag.topological_sort(graph)
-    is_source = [graph.out_degree(t) == 0 for t in topsort]
-    sources = ut.compress(topsort, is_source)
-    return sources
+    topsort_iter = nx.dag.topological_sort(graph)
+    sink_iter = (node for node in topsort_iter if graph.out_degree(node) == 0)
+    return sink_iter
 
 
 def dag_longest_path(graph, source, target):
@@ -685,9 +726,11 @@ def nx_dag_node_rank(graph, nodes=None):
     """
     Returns rank of nodes that define the "level" each node is on in a
     topological sort. This is the same as the Graphviz dot rank.
+
+    >>> from utool.util_graph import *  # NOQA
     """
     import utool as ut
-    source = ut.find_source_nodes(graph)[0]
+    source = list(ut.nx_source_nodes(graph))[0]
     longest_paths = dict([(target, dag_longest_path(graph, source, target))
                           for target in graph.nodes()])
     node_to_rank = ut.map_dict_vals(len, longest_paths)
@@ -701,7 +744,7 @@ def nx_dag_node_rank(graph, nodes=None):
 def level_order(graph):
     import utool as ut
     node_to_level = ut.nx_dag_node_rank(graph)
-    #source = ut.find_source_nodes(graph)[0]
+    #source = ut.nx_source_nodes(graph)[0]
     #longest_paths = dict([(target, dag_longest_path(graph, source, target))
     #                      for target in graph.nodes()])
     #node_to_level = ut.map_dict_vals(len, longest_paths)
@@ -891,7 +934,7 @@ def all_simple_source_paths(graph, target):
     """
     import utool as ut
     import networkx as nx
-    sources = ut.find_source_nodes(graph)
+    sources = list(ut.nx_source_nodes(graph))
     path_iters = [nx.all_simple_paths(graph, source, target)
                   for source in sources]
     path_list = ut.flatten(path_iters)
@@ -903,12 +946,12 @@ def all_nodes_between(graph, source, target, data=False):
     import networkx as nx
     if source is None:
         # assume there is a single source
-        sources = ut.find_source_nodes(graph)
+        sources = list(ut.nx_source_nodes(graph))
         assert len(sources) == 1
         source = sources[0]
     if target is None:
         # assume there is a single source
-        sinks = ut.find_sink_nodes(graph)
+        sinks = list(ut.nx_sink_nodes(graph))
         assert len(sinks) == 1
         target = sinks[0]
     all_simple_paths = list(nx.all_simple_paths(graph, source, target))
@@ -1074,7 +1117,7 @@ def bzip(*args):
 def nx_delete_node_attr(graph, key, nodes=None):
     removed = 0
     if nodes is None:
-        nodes = graph.nodes()
+        nodes = list(graph.nodes())
     for node in nodes:
         try:
             del graph.node[node][key]
@@ -1088,7 +1131,7 @@ def nx_delete_edge_attr(graph, key, edges=None):
     removed = 0
     if graph.is_multigraph():
         if edges is None:
-            edges = graph.edges(keys=graph.is_multi())
+            edges = list(graph.edges(keys=graph.is_multi()))
         for edge in edges:
             u, v, k = edge
             try:
@@ -1098,7 +1141,7 @@ def nx_delete_edge_attr(graph, key, edges=None):
                 pass
     else:
         if edges is None:
-            edges = graph.edges()
+            edges = list(graph.edges())
         for edge in graph.edges():
             u, v = edge
             try:
@@ -1122,7 +1165,7 @@ def nx_set_default_node_attributes(graph, key, val):
 def nx_get_default_node_attributes(graph, key, default=None):
     import networkx as nx
     import utool as ut
-    node_list = graph.nodes()
+    node_list = list(graph.nodes())
     partial_attr_dict = nx.get_node_attributes(graph, key)
     attr_list = ut.dict_take(partial_attr_dict, node_list, default)
     attr_dict = dict(zip(node_list, attr_list))

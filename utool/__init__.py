@@ -498,7 +498,7 @@ if DOELSE:
                                   bfs_multi_edges, bzip, dag_longest_path, 
                                   dfs_template, dict_depth, 
                                   edges_to_adjacency_list, find_odd_cycle, 
-                                  find_sink_nodes, find_source_nodes, 
+                                  nx_sink_nodes, nx_source_nodes, 
                                   get_allkeys, get_ancestor_levels, 
                                   get_descendant_levels, get_levels, 
                                   level_order, longest_levels, 

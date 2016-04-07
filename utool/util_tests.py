@@ -1230,16 +1230,16 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
     cmdline_varargs = ut.get_cmdline_varargs()
-    force_enable_testnames = cmdline_varargs
+    force_enable_testnames = cmdline_varargs[:]
     valid_prefix_list = ['--test-', '--exec-', '--dump-']
     #if False:
-    #for arg in sys.argv:
-    #    for prefix in valid_prefix_list:
-    #        if arg.startswith(prefix):
-    #            testname = arg[len(prefix):].split(':')[0].replace('-', '_')
-    #            force_enable_testnames.append(testname)
-    #            # TODO: parse out requested number up here
-    #            break
+    for arg in sys.argv:
+        for prefix in valid_prefix_list:
+            if arg.startswith(prefix):
+                testname = arg[len(prefix):].split(':')[0].replace('-', '_')
+                force_enable_testnames.append(testname)
+                # TODO: parse out requested number up here
+                break
     def _get_testable_name(testable):
         import utool as ut
         if isinstance(testable, staticmethod):

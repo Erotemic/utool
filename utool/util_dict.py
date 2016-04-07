@@ -265,12 +265,14 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     return stacked_dict
 
 
-def invert_dict(dict_):
+def invert_dict(dict_, unique_vals=True):
     """
-    invert_dict
+    Reverses the keys and values in a dictionary. Set unique_vals to False if
+    the values in the dict are not unique.
 
     Args:
-        dict_ (dict_):
+        dict_ (dict_): dictionary
+        unique_vals (bool): if False, inverted keys are returned in a list.
 
     Returns:
         dict: inverted_dict
@@ -298,9 +300,21 @@ def invert_dict(dict_):
         >>> print(result)
         {'good': 2, 'ok': 1, 'junk': 0, 'UNKNOWN': None}
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_ = {'a': 1, 'b': 0, 'c': 0, 'd': 0, 'e': 0, 'f': 2}
+        >>> inverted_dict = invert_dict(dict_, unique_vals=False)
+        >>> result = ut.dict_str(inverted_dict, nl=False)
+        >>> print(result)
+        {0: ['c', 'b', 'e', 'd'], 1: ['a'], 2: ['f']}
     """
-    inverted_items = [(val, key) for key, val in six.iteritems(dict_)]
-    inverted_dict = type(dict_)(inverted_items)
+    if unique_vals:
+        inverted_items = [(val, key) for key, val in six.iteritems(dict_)]
+        inverted_dict = type(dict_)(inverted_items)
+    else:
+        inverted_dict = group_items(dict_.keys(), dict_.values())
     return inverted_dict
 
 

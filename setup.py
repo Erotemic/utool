@@ -47,6 +47,7 @@ def utool_setup():
         'parse >= 1.6.6',
         #'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
         'numpy',  # 1.10 has hard time in comparison
+        'pyparsing',
         #'decorator',
     ]
     import platform
