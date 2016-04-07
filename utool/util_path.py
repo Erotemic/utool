@@ -1230,7 +1230,6 @@ def get_modpath(modname, prefer_pkg=False, prefer_main=False):
         >>> result = ut.ensure_unixslash(module_dir)
         >>> print(result)
         >>> assert result.endswith('utool/_internal')
-        utool/_internal
 
     Example:
         >>> # ENABLE_DOCTEST

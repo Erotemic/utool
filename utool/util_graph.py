@@ -681,14 +681,31 @@ def dag_longest_path(graph, source, target):
     return longest(allpaths)
 
 
-def level_order(graph):
+def nx_dag_node_rank(graph, nodes=None):
+    """
+    Returns rank of nodes that define the "level" each node is on in a
+    topological sort. This is the same as the Graphviz dot rank.
+    """
     import utool as ut
     source = ut.find_source_nodes(graph)[0]
     longest_paths = dict([(target, dag_longest_path(graph, source, target))
                           for target in graph.nodes()])
-    level_to_node = ut.map_dict_vals(len, longest_paths)
+    node_to_rank = ut.map_dict_vals(len, longest_paths)
+    if nodes is None:
+        return node_to_rank
+    else:
+        ranks = ut.dict_take(node_to_rank, nodes)
+        return ranks
 
-    grouped = ut.group_items(level_to_node.keys(), level_to_node.values())
+
+def level_order(graph):
+    import utool as ut
+    node_to_level = ut.nx_dag_node_rank(graph)
+    #source = ut.find_source_nodes(graph)[0]
+    #longest_paths = dict([(target, dag_longest_path(graph, source, target))
+    #                      for target in graph.nodes()])
+    #node_to_level = ut.map_dict_vals(len, longest_paths)
+    grouped = ut.group_items(node_to_level.keys(), node_to_level.values())
     levels = ut.take(grouped, range(1, len(grouped) + 1))
     return levels
 

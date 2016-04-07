@@ -1257,7 +1257,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
             " bar.lower.__name__ = 'lower'",
             ' eggs = 4',
             ' num = 5',
-            ' other = NameError',
+            ' other = NameError (this likely due to a misformatted printex and is not related to the exception)',
         ]
     """
     from utool import util_str

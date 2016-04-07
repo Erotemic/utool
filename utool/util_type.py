@@ -155,6 +155,7 @@ def smart_cast(var, type_):
             args = [None if len(arg) == 0 else int(arg) for arg in var.split(':')]
             return slice(*args)
         elif type_ is list:
+            # need more intelligent parsing here
             subvar_list = var.split(',')
             return [smart_cast2(subvar) for subvar in subvar_list]
         elif isinstance(type_, six.string_types):

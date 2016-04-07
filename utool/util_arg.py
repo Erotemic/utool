@@ -501,6 +501,8 @@ def parse_cfgstr_list(cfgstr_list, smartcast=True, oldmode=True):
     ['var1:val1', 'var2:val2', 'var3:val3']
     the '=' character can be used instead of the ':' character if desired
 
+    TODO: see ut.parse_cfgstr3
+
     Args:
         cfgstr_list (list):
 

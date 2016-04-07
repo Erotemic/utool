@@ -1232,13 +1232,14 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     cmdline_varargs = ut.get_cmdline_varargs()
     force_enable_testnames = cmdline_varargs
     valid_prefix_list = ['--test-', '--exec-', '--dump-']
-    for arg in sys.argv:
-        for prefix in valid_prefix_list:
-            if arg.startswith(prefix):
-                testname = arg[len(prefix):].split(':')[0].replace('-', '_')
-                force_enable_testnames.append(testname)
-                # TODO: parse out requested number up here
-                break
+    #if False:
+    #for arg in sys.argv:
+    #    for prefix in valid_prefix_list:
+    #        if arg.startswith(prefix):
+    #            testname = arg[len(prefix):].split(':')[0].replace('-', '_')
+    #            force_enable_testnames.append(testname)
+    #            # TODO: parse out requested number up here
+    #            break
     def _get_testable_name(testable):
         import utool as ut
         if isinstance(testable, staticmethod):
@@ -1260,8 +1261,9 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         print('Vars:')
         print(' * needs_enable = %r' % (needs_enable,))
         print(' * force_enable_testnames = %r' % (force_enable_testnames,))
+        print(' * len(sorted_testable) = %r' % (len(sorted_testable),))
+        print(' * cmdline_varargs = %r' % (cmdline_varargs,))
         indenter = ut.Indenter('[FIND_AVAIL]')
-        print('len(sorted_testable) = %r' % (len(sorted_testable),))
         indenter.start()
     # PARSE OUT THE AVAILABLE TESTS FOR EACH REQUEST
     local_testtup_list = []
@@ -1349,14 +1351,13 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             print('Checking cmdline for %r %r' % (nametup, num))
         valid_argflags = []
         mode = None
-        veryverb = False
+        veryverb = 0
         # First check positional args
         testflag = None
         for name in nametup:
             valid_testnames = make_valid_test_argflags('', name, num, total)
             if veryverb:
                 print('Checking if positional* %r' % (valid_testnames[0:1],))
-                print('cmdline_varargs = %r' % (cmdline_varargs,))
                 print('name = %r' % (name,))
             if any([x in cmdline_varargs for x in valid_testnames]):
                 # hack
@@ -1366,6 +1367,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             if testflag is not None:
                 if veryverb:
                     print('FOUND POSARG')
+                    print(' * testflag = %r' % (testflag,))
+                    print(' * num = %r' % (num,))
                 break
         # Then check keyword-ish args
         if mode is None:
@@ -1403,6 +1406,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                                 total=total, nametup=nametup,
                                 shortname=shortname,
                                 test_namespace=test_namespace)
+            if VERBOSE_TEST:
+                print('... ' + str(testtup))
             enabled_testtup_list.append(testtup)
         else:
             if VERBOSE_TEST:
