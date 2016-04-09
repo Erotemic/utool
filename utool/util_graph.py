@@ -898,50 +898,7 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
     return G_sub
 
 
-def all_simple_source_paths(graph, target):
-    r"""
-    Returns all paths to this table from the source node
-
-    CommandLine:
-        python -m dtool.depcache_table --exec-all_simple_source_paths
-
-    Example:
-        >>> from dtool.depcache_control import *  # NOQA
-        >>> from dtool.example_depcache import testdata_depc
-        >>> depc = testdata_depc()
-        >>> path_list1 = depc['notchpair'].all_simple_source_paths
-        >>> path_list2 = depc['spam'].all_simple_source_paths
-        >>> path_list3 = depc['neighbs'].all_simple_source_paths
-        >>> result1 = ('path_list1 = %s' % ut.repr3(path_list1, nl=1))
-        >>> result2 = ('path_list2 = %s' % ut.repr3(path_list2, nl=1))
-        >>> result3 = ('path_list3 = %s' % ut.repr3(path_list3, nl=1))
-        >>> result = '\n'.join([result1, result2, result3])
-        >>> print(result)
-        path_list1 = [
-            ['dummy_annot', 'notch', 'notchpair'],
-            ['dummy_annot', 'notch', 'notchpair'],
-        ]
-        path_list2 = [
-            ['dummy_annot', 'chip', 'keypoint', 'fgweight', 'spam'],
-            ['dummy_annot', 'chip', 'keypoint', 'spam'],
-            ['dummy_annot', 'chip', 'spam'],
-            ['dummy_annot', 'probchip', 'fgweight', 'spam'],
-        ]
-        path_list3 = [
-            ['dummy_annot', 'chip', 'keypoint', 'nnindexer', 'neighbs'],
-            ['dummy_annot', 'neighbs'],
-        ]
-    """
-    import utool as ut
-    import networkx as nx
-    sources = list(ut.nx_source_nodes(graph))
-    path_iters = [nx.all_simple_paths(graph, source, target)
-                  for source in sources]
-    path_list = ut.flatten(path_iters)
-    return path_list
-
-
-def all_nodes_between(graph, source, target, data=False):
+def nx_all_nodes_between(graph, source, target, data=False):
     import utool as ut
     import networkx as nx
     if source is None:
@@ -964,12 +921,20 @@ def all_multi_paths(graph, source, target, data=False):
     Returns specific paths along multi-edges from the source to this table.
     Multipaths are identified by edge keys.
 
+    Returns all paths from source to target. This function treats multi-edges
+    as distinct and returns the key value in each edge tuple that defines a
+    path.
+
     Example:
         >>> from dtool.depcache_control import *  # NOQA
+        >>> from utool.util_graph import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
         >>> depc = testdata_depc()
-        >>> path_list1 = depc['notchpair'].all_multi_source_paths()
-        >>> path_list2 = depc['spam'].all_multi_source_paths()
+        >>> graph = depc.graph
+        >>> source = depc.root
+        >>> target = 'notchpair'
+        >>> path_list1 = ut.all_multi_paths(graph, depc.root, 'notchpair')
+        >>> path_list2 = ut.all_multi_paths(graph, depc.root, 'spam')
         >>> result1 = ('path_list1 = %s' % ut.repr3(path_list1, nl=1))
         >>> result2 = ('path_list2 = %s' % ut.repr3(path_list2, nl=2))
         >>> result = '\n'.join([result1, result2])
@@ -1001,44 +966,92 @@ def all_multi_paths(graph, source, target, data=False):
             ],
         ]
     """
-    import copy
-    import utool as ut
-    import networkx as nx
-    all_simple_paths = list(nx.all_simple_paths(graph, source, target))
-    paths_from_source2 = ut.unique(ut.lmap(tuple, all_simple_paths))
-    path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
-
-    # expand paths with multi edge indexes
-    # hacky implementation
-    expanded_paths = []
-    for path in path_edges2:
-        all_paths = [[]]
-        for u, v in path:
-            mutli_edge_data = graph.edge[u][v]
-            items = list(mutli_edge_data.items())
-            K = len(items)
-            if len(items) == 1:
-                path_iter = [all_paths]
-                pass
-            elif len(items) > 1:
-                path_iter = [[copy.copy(p) for p in all_paths]
-                             for k_ in range(K)]
-            for (k, edge_data), paths in zip(items, path_iter):
-                for p in paths:
-                    p.append((u, v, {k: edge_data}))
-            all_paths = ut.flatten(path_iter)
-        expanded_paths.extend(all_paths)
-
-    if data:
-        path_multiedges = [[(u, v, k, d) for u, v, kd in path for k, d in kd.items()]
-                           for path in expanded_paths]
-    else:
-        path_multiedges = [[(u, v, k) for u, v, kd in path for k in kd.keys()]
-                           for path in expanded_paths]
-    # path_multiedges = [[(u, v, list(kd.keys())[0]) for u, v, kd in path]
-    #                    for path in expanded_paths]
-    # path_multiedges = expanded_paths
+    path_multiedges = list(nx_all_simple_edge_paths(graph, source, target,
+                                                    keys=True, data=data))
     return path_multiedges
+    #import copy
+    #import utool as ut
+    #import networkx as nx
+    #all_simple_paths = list(nx.all_simple_paths(graph, source, target))
+    #paths_from_source2 = ut.unique(ut.lmap(tuple, all_simple_paths))
+    #path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
+
+    ## expand paths with multi edge indexes
+    ## hacky implementation
+    #expanded_paths = []
+    #for path in path_edges2:
+    #    all_paths = [[]]
+    #    for u, v in path:
+    #        mutli_edge_data = graph.edge[u][v]
+    #        items = list(mutli_edge_data.items())
+    #        K = len(items)
+    #        if len(items) == 1:
+    #            path_iter = [all_paths]
+    #            pass
+    #        elif len(items) > 1:
+    #            path_iter = [[copy.copy(p) for p in all_paths]
+    #                         for k_ in range(K)]
+    #        for (k, edge_data), paths in zip(items, path_iter):
+    #            for p in paths:
+    #                p.append((u, v, {k: edge_data}))
+    #        all_paths = ut.flatten(path_iter)
+    #    expanded_paths.extend(all_paths)
+
+    #if data:
+    #    path_multiedges = [[(u, v, k, d) for u, v, kd in path for k, d in kd.items()]
+    #                       for path in expanded_paths]
+    #else:
+    #    path_multiedges = [[(u, v, k) for u, v, kd in path for k in kd.keys()]
+    #                       for path in expanded_paths]
+    ## path_multiedges = [[(u, v, list(kd.keys())[0]) for u, v, kd in path]
+    ##                    for path in expanded_paths]
+    ## path_multiedges = expanded_paths
+    #return path_multiedges
+
+
+def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
+                             data=False):
+    """
+    Returns each path from source to target as a list of edges.
+
+    This function is meant to be used with MultiGraphs or MultiDiGraphs.
+    When ``keys`` is True each edge in the path is returned with its unique key
+    identifier. In this case it is possible to distinguish between different
+    paths along different edges between the same two nodes.
+
+    Derived from simple_paths.py in networkx
+    """
+    if cutoff is None:
+        cutoff = len(G) - 1
+    if cutoff < 1:
+        return
+    visited_nodes = [source]
+    visited_edges = []
+    edge_stack = [G.edges(source, keys=keys, data=data)]
+    while edge_stack:
+        children_edges = edge_stack[-1]
+        child_edge = next(children_edges, None)
+        if child_edge is None:
+            edge_stack.pop()
+            visited_nodes.pop()
+            if len(visited_edges) > 0:
+                visited_edges.pop()
+        elif len(visited_nodes) < cutoff:
+            child_node = child_edge[1]
+            if child_node == target:
+                yield visited_edges + [child_edge]
+            elif child_node not in visited_nodes:
+                visited_nodes.append(child_node)
+                visited_edges.append(child_edge)
+                edge_stack.append(G.edges(child_node, keys=keys, data=data))
+        else:
+            for edge in [child_edge] + list(children_edges):
+                if edge[1] == target:
+                    yield visited_edges + [edge]
+            edge_stack.pop()
+            visited_nodes.pop()
+            if len(visited_edges) > 0:
+                visited_edges.pop()
 
 
 def reverse_path_edges(edge_list):
@@ -1051,7 +1064,6 @@ def accum_path_data(edge_list, srckey, dstkey):
     for edge in edge_list:
         u, v, k, d = edge
         srcval = d[srckey]
-        # if len(id_accum) == 0 or local_input_id != id_accum[-1]:
         accum_dstval.append(srcval)
         dstval = tuple(accum_dstval)
         new_d = d.copy()
