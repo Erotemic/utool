@@ -1057,12 +1057,13 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
         cutoff = len(G) - 1
     if cutoff < 1:
         return
+    import six
     visited_nodes = [source]
     visited_edges = []
     edge_stack = [G.edges(source, keys=keys, data=data)]
     while edge_stack:
-        children_edges = edge_stack[-1]
-        child_edge = next(children_edges, None)
+        children_edges = iter(edge_stack[-1])
+        child_edge = six.next(children_edges, None)
         if child_edge is None:
             edge_stack.pop()
             visited_nodes.pop()
