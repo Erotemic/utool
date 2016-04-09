@@ -874,6 +874,11 @@ def dict_take_column(list_of_dicts_, colkey, default=None):
     return [dict_.get(colkey, default) for dict_ in list_of_dicts_]
 
 
+def dict_set_column(list_of_dicts_, colkey, value_list):
+    for dict_, value in zip(list_of_dicts_, value_list):
+        dict_[colkey] = value
+
+
 def dictinfo(dict_):
     """
     dictinfo

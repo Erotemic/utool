@@ -860,6 +860,38 @@ def merge_level_order(level_orders, topsort):
     return compute_order
 
 
+def convert_multigraph_to_graph(G):
+    """
+    For each duplicate edge make a dummy node.
+    TODO: preserve data, keys, and directedness
+    """
+    import utool as ut
+    edge_list = list(G.edges())
+    node_list = list(G.nodes())
+    dupitem_to_idx = ut.find_duplicate_items(edge_list)
+    node_to_freq = ut.ddict(lambda: 0)
+    remove_idxs = ut.flatten(dupitem_to_idx.values())
+    ut.delete_items_by_index(edge_list, remove_idxs)
+
+    for dup_edge in dupitem_to_idx.keys():
+        freq = len(dupitem_to_idx[dup_edge])
+        u, v = dup_edge[0:2]
+        pair_node = dup_edge
+        pair_nodes = [pair_node + tuple([count]) for count in range(freq)]
+        for pair_node in pair_nodes:
+            node_list.append(pair_node)
+            for node in dup_edge:
+                node_to_freq[node] += freq
+            edge_list.append((u, pair_node))
+            edge_list.append((pair_node, v))
+
+    import networkx as nx
+    G2 = nx.DiGraph()
+    G2.add_edges_from(edge_list)
+    G2.add_nodes_from(node_list)
+    return G2
+
+
 def subgraph_from_edges(G, edge_list, ref_back=True):
     """
     Creates a networkx graph that is a subgraph of G
@@ -904,12 +936,12 @@ def nx_all_nodes_between(graph, source, target, data=False):
     if source is None:
         # assume there is a single source
         sources = list(ut.nx_source_nodes(graph))
-        assert len(sources) == 1
+        assert len(sources) == 1, 'specify source if there is not only one'
         source = sources[0]
     if target is None:
         # assume there is a single source
         sinks = list(ut.nx_sink_nodes(graph))
-        assert len(sinks) == 1
+        assert len(sinks) == 1, 'specify sink if there is not only one'
         target = sinks[0]
     all_simple_paths = list(nx.all_simple_paths(graph, source, target))
     nodes = list(set(ut.flatten(all_simple_paths)))
@@ -1058,21 +1090,6 @@ def reverse_path_edges(edge_list):
     return [(edge[1], edge[0],) + tuple(edge[2:]) for edge in edge_list][::-1]
 
 
-def accum_path_data(edge_list, srckey, dstkey):
-    new_edge_list = []
-    accum_dstval = []
-    for edge in edge_list:
-        u, v, k, d = edge
-        srcval = d[srckey]
-        accum_dstval.append(srcval)
-        dstval = tuple(accum_dstval)
-        new_d = d.copy()
-        new_d[dstkey] = dstval
-        new_edge = (u, v, k, new_d)
-        new_edge_list.append(new_edge)
-    return new_edge_list
-
-
 def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
     """Produce edges in a breadth-first-search starting at source.
     -----
@@ -1141,26 +1158,31 @@ def nx_delete_node_attr(graph, key, nodes=None):
 
 def nx_delete_edge_attr(graph, key, edges=None):
     removed = 0
-    if graph.is_multigraph():
-        if edges is None:
-            edges = list(graph.edges(keys=graph.is_multi()))
-        for edge in edges:
-            u, v, k = edge
-            try:
-                del graph[u][v][k][key]
-                removed += 1
-            except KeyError:
-                pass
+    if not isinstance(key, list):
+        keys = [key]
     else:
-        if edges is None:
-            edges = list(graph.edges())
-        for edge in graph.edges():
-            u, v = edge
-            try:
-                del graph[u][v][key]
-                removed += 1
-            except KeyError:
-                pass
+        keys = key
+    for key in keys:
+        if graph.is_multigraph():
+            if edges is None:
+                edges = list(graph.edges(keys=graph.is_multigraph()))
+            for edge in edges:
+                u, v, k = edge
+                try:
+                    del graph[u][v][k][key]
+                    removed += 1
+                except KeyError:
+                    pass
+        else:
+            if edges is None:
+                edges = list(graph.edges())
+            for edge in graph.edges():
+                u, v = edge
+                try:
+                    del graph[u][v][key]
+                    removed += 1
+                except KeyError:
+                    pass
     return removed
 
 

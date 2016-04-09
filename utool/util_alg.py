@@ -953,13 +953,40 @@ def knapsack_greedy(items, maxweight):
     return total_value, items_subset
 
 
-def cumsum(num_list):
+def cumsum(item_list, initial=0):
     """ python cumsum
+
+    Args:
+        item_list (list): list of numbers or items supporting addition
+        initial (value): initial zero value
+
+    Returns:
+        list: list of accumulated values
 
     References:
         stackoverflow.com/questions/9258602/elegant-pythonic-cumsum
+
+    CommandLine:
+        python -m utool.util_alg cumsum
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> item_list = [1, 2, 3, 4, 5]
+        >>> initial = 0
+        >>> result = cumsum(item_list, initial)
+        >>> assert result == [1, 3, 6, 10, 15]
+        >>> print(result)
+        >>> item_list = zip([1, 2, 3, 4, 5])
+        >>> initial = tuple()
+        >>> result2 = cumsum(item_list, initial)
+        >>> assert result2 == [(1,), (1, 2), (1, 2, 3), (1, 2, 3, 4), (1, 2, 3, 4, 5)]
+        >>> print(result2)
     """
-    return reduce(lambda acc, itm: op.iadd(acc, [acc[-1] + itm]), num_list, [0])[1:]
+    def accum(acc, itm):
+        return op.iadd(acc, [acc[-1] + itm])
+    return reduce(accum, item_list, [initial])[1:]
 
 
 def safe_div(a, b):
