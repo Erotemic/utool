@@ -1186,6 +1186,37 @@ def nx_delete_edge_attr(graph, key, edges=None):
     return removed
 
 
+def nx_delete_None_edge_attr(graph, edges=None):
+    removed = 0
+    if graph.is_multigraph():
+        if edges is None:
+            edges = list(graph.edges(keys=graph.is_multigraph()))
+        for edge in edges:
+            u, v, k = edge
+            data = graph[u][v][k]
+            for key in data.keys():
+                try:
+                    if data[key] is None:
+                        del data[key]
+                        removed += 1
+                except KeyError:
+                    pass
+    else:
+        if edges is None:
+            edges = list(graph.edges())
+        for edge in graph.edges():
+            u, v = edge
+            data = graph[u][v]
+            for key in data.keys():
+                try:
+                    if data[key] is None:
+                        del data[key]
+                        removed += 1
+                except KeyError:
+                    pass
+    return removed
+
+
 def nx_set_default_node_attributes(graph, key, val):
     import networkx as nx
     unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
@@ -1281,6 +1312,17 @@ def nx_makenode(graph, name, **attrkw):
         attrkw['width'], attrkw['height'] = attrkw.pop('size')
     graph.add_node(name, **attrkw)
     return name
+
+
+def nx_edges(graph, keys=False, data=False):
+    if graph.is_multigraph():
+        edges = graph.edges(keys=keys, data=data)
+    else:
+        edges = graph.edges(data=data)
+        #if keys:
+        #    edges = [e[0:2] + (0,) + e[:2] for e in edges]
+    return edges
+
 
 if __name__ == '__main__':
     r"""

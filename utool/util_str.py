@@ -2948,10 +2948,11 @@ def testdata_text(num=1):
         difficult.
         % TALK ABOUT APPEARANCE HERE
         Similar to issues seen in (1) instance and (2) face recognition,
-        images of animals taken ``in the wild'' contain many challenges such as
-        occlusion, distractors and variations in viewpoint, pose, illumination,
-        quality, and camera parameters.  We start the discussion of the problem
-        addressed in this thesis by considering examples of these challenges.
+        images of animals taken ``in the wild'' contain many challenges
+        such as occlusion, distractors and variations in viewpoint,
+        pose, illumination, quality, and camera parameters.  We start
+        the discussion of the problem addressed in this thesis by
+        considering examples of these challenges.
 
         \distractorexample
 
@@ -3150,8 +3151,8 @@ format_multi_paragraphs = format_multiple_paragraph_sentences
 def format_single_paragraph_sentences(text, debug=False, myprefix=True,
                                       sentence_break=True):
     r"""
-    helps me separatate sentences grouped in paragraphs that I have a difficult
-    time reading due to dyslexia
+    helps me separatate sentences grouped in paragraphs that I have a
+    difficult time reading due to dyslexia
 
     Args:
         text (str):
@@ -3250,7 +3251,8 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
             # TODO: make actualy docstring reformater
             sentence_prefix = '...     '
 
-        width = 80 - min_indent - len(sentence_prefix)
+        max_width = 73  # 79  # 80
+        width = max_width - min_indent - len(sentence_prefix)
         wrapkw = dict(width=width, break_on_hyphens=False, break_long_words=False)
         #wrapped_lines_list = [textwrap.wrap(sentence_prefix + line, **wrapkw)
         #                      for line in sentence_list]
@@ -3373,8 +3375,8 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
 
 def find_block_end(row, line_list, sentinal, direction=1):
     """
-    Searches up and down until it finds the endpoints of a block
-    Rectify with find_paragraph_end in pyvim_funcs
+    Searches up and down until it finds the endpoints of a block Rectify
+    with find_paragraph_end in pyvim_funcs
     """
     import re
     row_ = row
