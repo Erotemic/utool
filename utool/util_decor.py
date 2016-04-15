@@ -352,7 +352,6 @@ def debug_function_exceptions(func):
 #        pass
 
 
-
 def _indent_decor(lbl):
     """
     does the actual work of indent_func
@@ -699,6 +698,7 @@ def memoize(func):
             cache[key] = func(*args, **kwargs)
         return cache[key]
     memoizer = preserve_sig(memoizer, func)
+    memoizer.cache = cache
     return memoizer
 
 
