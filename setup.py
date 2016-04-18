@@ -62,6 +62,7 @@ def utool_setup():
         'astor',
         'pyperclip >= 1.5.7',
         'pyfiglet >= 0.7.2',
+        'boto'
     ]
 
     #REQUIRES_LINKS = [

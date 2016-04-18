@@ -5,11 +5,15 @@ from utool import util_inject
 (print, rrr, profile) = util_inject.inject2(__name__, '[depgraph_helpers]')
 
 
-def nx_transitive_reduction(G):
+def nx_transitive_reduction(G, mode=1):
     """
     References:
         https://en.wikipedia.org/wiki/Transitive_reduction#Computing_the_reduction_using_the_closure
         http://dept-info.labri.fr/~thibault/tmp/0201008.pdf
+        http://stackoverflow.com/questions/17078696/im-trying-to-perform-the-transitive-reduction-of-directed-graph-in-python
+
+    CommandLine:
+        python -m utool.util_graph nx_transitive_reduction --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -20,14 +24,16 @@ def nx_transitive_reduction(G):
         >>>                 ('a', 'd'), ('b', 'd'), ('c', 'e'),
         >>>                 ('d', 'e'), ('c', 'e'), ('c', 'd')])
         >>> G = testdata_graph()[1]
-        >>> G_tr = nx_transitive_reduction(G)
+        >>> G_tr = nx_transitive_reduction(G, mode=1)
+        >>> G_tr2 = nx_transitive_reduction(G, mode=1)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> G_ = nx.dag.transitive_closure(G)
-        >>> pt.show_nx(G    , pnum=(1, 4, 1), fnum=1)
-        >>> pt.show_nx(G_tr , pnum=(1, 4, 2), fnum=1)
-        >>> pt.show_nx(G_   , pnum=(1, 4, 3), fnum=1)
-        >>> pt.show_nx(nx.dag.transitive_closure(G_tr), pnum=(1, 4, 4), fnum=1)
+        >>> pt.show_nx(G    , pnum=(1, 5, 1), fnum=1)
+        >>> pt.show_nx(G_tr , pnum=(1, 5, 2), fnum=1)
+        >>> pt.show_nx(G_tr2 , pnum=(1, 5, 3), fnum=1)
+        >>> pt.show_nx(G_   , pnum=(1, 5, 4), fnum=1)
+        >>> pt.show_nx(nx.dag.transitive_closure(G_tr), pnum=(1, 5, 5), fnum=1)
         >>> ut.show_if_requested()
     """
 
@@ -42,50 +48,88 @@ def nx_transitive_reduction(G):
     nodes = list(G.nodes())
     node2_idx = ut.make_index_lookup(nodes)
 
-    def make_adj_matrix(G):
-        edges = list(G.edges())
-        edge2_idx = ut.partial(ut.dict_take, node2_idx)
-        uv_list = ut.lmap(edge2_idx, edges)
-        A = np.zeros((len(nodes), len(nodes)))
-        A[tuple(np.array(uv_list).T)] = 1
-        return A
+    # For each node u, perform DFS consider its set of (non-self) children C.
+    # For each descendant v, of a node in C, remove any edge from u to v.
 
-    G_ = nx.dag.transitive_closure(G)
+    if mode == 1:
+        G_tr = G.copy()
 
-    A = make_adj_matrix(G)
-    B = make_adj_matrix(G_)
+        for parent in G_tr.nodes():
+            # Remove self loops
+            if G_tr.has_edge(parent, parent):
+                G_tr.remove_edge(parent, parent)
+            # For each child of the parent
+            for child in list(G_tr.successors(parent)):
+                # Preorder nodes includes its argument (no added complexity)
+                for gchild in list(G_tr.successors(child)):
+                    # Remove all edges from parent to non-child descendants
+                    for descendant in nx.dfs_preorder_nodes(G_tr, gchild):
+                        if G_tr.has_edge(parent, descendant):
+                            G_tr.remove_edge(parent, descendant)
 
-    #AB = A * B
-    #AB = A.T.dot(B)
-    AB = A.dot(B)
-    #AB = A.dot(B.T)
+        if has_cycles:
+            # Uncondense graph
+            uncondensed_G_tr = G.__class__()
+            mapping = G.graph['mapping']
+            uncondensed_G_tr.add_nodes_from(mapping.keys())
+            inv_mapping = ut.invert_dict(mapping, unique_vals=False)
+            for u, v in G_tr.edges():
+                u_ = inv_mapping[u][0]
+                v_ = inv_mapping[v][0]
+                uncondensed_G_tr.add_edge(u_, v_)
 
-    A_and_notAB = np.logical_and(A, np.logical_not(AB))
-    tr_uvs = np.where(A_and_notAB)
+            for key, path in inv_mapping.items():
+                if len(path) > 1:
+                    directed_cycle = list(ut.itertwo(path, wrap=True))
+                    uncondensed_G_tr.add_edges_from(directed_cycle)
+            G_tr = uncondensed_G_tr
 
-    #nodes = G.nodes()
-    edges = list(zip(*ut.unflat_take(nodes, tr_uvs)))
+    else:
 
-    G_tr = G.__class__()
-    G_tr.add_nodes_from(nodes)
-    G_tr.add_edges_from(edges)
+        def make_adj_matrix(G):
+            edges = list(G.edges())
+            edge2_idx = ut.partial(ut.dict_take, node2_idx)
+            uv_list = ut.lmap(edge2_idx, edges)
+            A = np.zeros((len(nodes), len(nodes)))
+            A[tuple(np.array(uv_list).T)] = 1
+            return A
 
-    if has_cycles:
-        # Uncondense graph
-        uncondensed_G_tr = G.__class__()
-        mapping = G.graph['mapping']
-        uncondensed_G_tr.add_nodes_from(mapping.keys())
-        inv_mapping = ut.invert_dict(mapping, unique_vals=False)
-        for u, v in G_tr.edges():
-            u_ = inv_mapping[u][0]
-            v_ = inv_mapping[v][0]
-            uncondensed_G_tr.add_edge(u_, v_)
+        G_ = nx.dag.transitive_closure(G)
 
-        for key, path in inv_mapping.items():
-            if len(path) > 1:
-                directed_cycle = list(ut.itertwo(path, wrap=True))
-                uncondensed_G_tr.add_edges_from(directed_cycle)
-        G_tr = uncondensed_G_tr
+        A = make_adj_matrix(G)
+        B = make_adj_matrix(G_)
+
+        #AB = A * B
+        #AB = A.T.dot(B)
+        AB = A.dot(B)
+        #AB = A.dot(B.T)
+
+        A_and_notAB = np.logical_and(A, np.logical_not(AB))
+        tr_uvs = np.where(A_and_notAB)
+
+        #nodes = G.nodes()
+        edges = list(zip(*ut.unflat_take(nodes, tr_uvs)))
+
+        G_tr = G.__class__()
+        G_tr.add_nodes_from(nodes)
+        G_tr.add_edges_from(edges)
+
+        if has_cycles:
+            # Uncondense graph
+            uncondensed_G_tr = G.__class__()
+            mapping = G.graph['mapping']
+            uncondensed_G_tr.add_nodes_from(mapping.keys())
+            inv_mapping = ut.invert_dict(mapping, unique_vals=False)
+            for u, v in G_tr.edges():
+                u_ = inv_mapping[u][0]
+                v_ = inv_mapping[v][0]
+                uncondensed_G_tr.add_edge(u_, v_)
+
+            for key, path in inv_mapping.items():
+                if len(path) > 1:
+                    directed_cycle = list(ut.itertwo(path, wrap=True))
+                    uncondensed_G_tr.add_edges_from(directed_cycle)
+            G_tr = uncondensed_G_tr
     return G_tr
 
 
