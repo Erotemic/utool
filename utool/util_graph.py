@@ -1289,9 +1289,14 @@ def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
     import utool as ut
     import numpy as np
     weight_list = weight_matrix.ravel()
-    flat_idxs = np.arange(weight_matrix.size)
-    multi_idxs = np.unravel_index(flat_idxs, weight_matrix.shape)
-    edge_list = list(zip(*multi_idxs))
+    flat_idxs_ = np.arange(weight_matrix.size)
+    multi_idxs_ = np.unravel_index(flat_idxs_, weight_matrix.shape)
+
+    # Remove 0 weight edges
+    flags = np.logical_not(np.isclose(weight_list, 0))
+    weight_list = ut.compress(weight_list, flags)
+    multi_idxs = ut.compress(list(zip(*multi_idxs_)), flags)
+    edge_list = ut.lmap(tuple, ut.unflat_take(nodes, multi_idxs))
 
     if remove_self:
         flags = [e1 != e2 for e1, e2 in edge_list]
@@ -1301,8 +1306,11 @@ def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
     graph = nx.Graph()
     graph.add_nodes_from(nodes)
     graph.add_edges_from(edge_list)
+    label_list = ['%.2f' % w for w in weight_list]
     nx.set_edge_attributes(graph, 'weight', dict(zip(edge_list,
                                                      weight_list)))
+    nx.set_edge_attributes(graph, 'label', dict(zip(edge_list,
+                                                     label_list)))
     return graph
 
 
