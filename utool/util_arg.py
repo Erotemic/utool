@@ -849,10 +849,14 @@ def __argv_flag_dec(func, default=False, quiet=QUIET, indent=False):
     Logic for controlling if a function gets called based on command line
     """
     from utool import util_decor
-    flag = meta_util_six.get_funcname(func)
-    if flag.find('no') == 0:
-        flag = flag[2:]
-    flag = '--' + flag.replace('_', '-')
+    flagname = meta_util_six.get_funcname(func)
+    if flagname.find('no') == 0:
+        flagname = flagname[2:]
+
+    flags = (
+        '--' + flagname.replace('_', '-'),
+        '--' + flagname,
+    )
 
     @util_decor.ignores_exc_tb(outer_wrapper=False)
     def GaurdWrapper(*args, **kwargs):
@@ -860,11 +864,11 @@ def __argv_flag_dec(func, default=False, quiet=QUIET, indent=False):
         # FIXME: the --print-all is a hack
         default_ = kwargs.pop('default', default)
         alias_flags = kwargs.pop('alias_flags', [])
-        is_flagged = (get_argflag(flag, default_) or
+        is_flagged = (get_argflag(flags, default_) or
                       get_argflag('--print-all') or
                       any([get_argflag(_) for _ in alias_flags]))
         if is_flagged:
-            func_label = flag.replace('--', '').replace('print-', '')
+            func_label = flags[0].replace('--', '').replace('print-', '')
             print('')
             print('\n+ --- ' + func_label + ' ___')
             use_indent = indent is not False
@@ -881,7 +885,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET, indent=False):
                 '--noinform', help_='does not print disabled flag decorators')
             if not quiet and PRINT_DISABLED_FLAGDEC:
                 #print('\n~~~ %s ~~~' % flag)
-                print('~~~ %s ~~~' % flag)
+                print('~~~ %s ~~~' % flags[0])
     meta_util_six.set_funcname(GaurdWrapper, meta_util_six.get_funcname(func))
     return GaurdWrapper
 
