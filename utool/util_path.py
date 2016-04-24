@@ -1877,6 +1877,48 @@ def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     return found_lines, found_lxs
 
 
+def greplines(lines, regexpr_list, reflags=0):
+    """
+    grepfile - greps a specific file
+
+    TODO: move to util_str, rework to be core of grepfile
+    """
+    found_lines = []
+    found_lxs = []
+    # Ensure a list
+    islist = isinstance(regexpr_list, (list, tuple))
+    islist2 = isinstance(reflags, (list, tuple))
+    regexpr_list_ = regexpr_list if islist else [regexpr_list]
+    reflags_list = reflags if islist2 else [reflags] * len(regexpr_list_)
+    re_list = [re.compile(pat, flags=_flags)
+               for pat, _flags in  zip(regexpr_list_, reflags_list)]
+    #print('regexpr_list_ = %r' % (regexpr_list_,))
+    #print('re_list = %r' % (re_list,))
+
+    import numpy as np
+    #import utool as ut
+    #cumsum = ut.cumsum(map(len, lines))
+    cumsum = np.cumsum(list(map(len, lines)))
+    text = ''.join(lines)
+
+    # Search each line for each pattern
+    for re_ in re_list:
+        # FIXME: multiline mode doesnt work
+        for match_object in re_.finditer(text):
+            lxs = np.where(match_object.start() < cumsum)[0][0:1]
+            if len(lxs) == 1:
+                lx = lxs[0]
+                if lx > 0:
+                    line_start = cumsum[lx - 1]
+                else:
+                    line_start = 0
+                line_end = cumsum[lx]
+                line = text[line_start:line_end]
+                found_lines.append(line)
+                found_lxs.append(lx)
+    return found_lines, found_lxs
+
+
 def testgrep():
     """
     utprof.py -m utool.util_path --exec-testgrep

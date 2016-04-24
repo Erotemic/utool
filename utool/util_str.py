@@ -3148,6 +3148,74 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
 format_multi_paragraphs = format_multiple_paragraph_sentences
 
 
+def split_sentences2(text, debug=0):
+    import utool as ut
+    raw_sep_chars = ['.', '?', '!', ':']
+    USE_REGEX_SPLIT = True
+
+    text_ = ut.remove_doublspaces(text)
+    # TODO: more intelligent sentence parsing
+    text_ = ut.flatten_textlines(text)
+
+    if not USE_REGEX_SPLIT:
+        # Old way that just handled periods
+        sentence_list = text_.split('. ')
+    else:
+        # ******* #
+        # SPLITS line endings based on regular expressions.
+        esc = re.escape
+        # Define separation patterns
+        regex_sep_chars = list(map(re.escape, raw_sep_chars))
+        regex_sep_prefix = [esc('(') + r'\d' + esc(')')]
+        regex_sep_list = regex_sep_chars + regex_sep_prefix
+        # Combine into a full regex
+        sep_pattern = ut.regex_or(regex_sep_list)
+        full_pattern = '(' + sep_pattern + r'+\s)'
+        full_regex = re.compile(full_pattern)
+        # Make the splits
+        num_groups = full_regex.groups  # num groups in the regex
+        split_list = re.split(full_pattern, text_)
+        if len(split_list) > 0:
+            num_bins = num_groups + 1
+            sentence_list = split_list[0::num_bins]
+            sep_list_group1 = split_list[1::num_bins]
+            sep_list = sep_list_group1
+        if debug:
+            print('<SPLIT DBG>')
+            print('num_groups = %r' % (num_groups,))
+            print('len(split_list) = %r' % (len(split_list)))
+            print('len(split_list) / len(sentence_list) = %r' % (
+                len(split_list) / len(sentence_list)))
+            print('len(sentence_list) = %r' % (len(sentence_list),))
+            print('len(sep_list_group1) = %r' % (len(sep_list_group1),))
+            #print('len(sep_list_group2) = %r' % (len(sep_list_group2),))
+            print('full_pattern = %s' % (full_pattern,))
+            #print('split_list = %r' % (split_list,))
+            print('sentence_list = %s' % (ut.list_str(sentence_list),))
+            print('sep_list = %s' % ((sep_list),))
+            print('</SPLIT DBG>')
+        # ******* #
+        # FIXME: Place the separators either before or after a sentence
+        from six.moves import zip_longest
+        sentence_list2 = ['']
+        _iter = zip_longest(sentence_list, sep_list)
+        for count, (sentence, sep) in enumerate(_iter):
+            if sep is None:
+                sentence_list2[-1] += sentence
+                continue
+            sepchars = sep.strip()
+            if len(sepchars) > 0 and sepchars[0] in raw_sep_chars:
+                sentence_list2[-1] += sentence + (sep.strip())
+                sentence_list2.append('')
+            else:
+                # Place before next
+                sentence_list2[-1] += sentence
+                sentence_list2.append(sep)
+
+        sentence_list2 = [x.strip() for x in sentence_list2 if len(x.strip()) > 0]
+        return sentence_list2
+
+
 def format_single_paragraph_sentences(text, debug=False, myprefix=True,
                                       sentence_break=True):
     r"""
