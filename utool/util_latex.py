@@ -710,7 +710,7 @@ def make_score_tabular(
             caption = escape_latex(caption)
         caption = '\n% ---\n' + caption + '\n% ---\n'
         #tabular_head = r'\end{centering}' + '\n' + tabular_head
-        tabular_tail = tabular_tail + '\n\caption{%s}\n\label{tbl:%s}\n\end{table}' % (caption, lblstr)
+        tabular_tail = tabular_tail + '\n\caption[%s]{%s}\n\label{tbl:%s}\n\end{table}' % (lblstr, caption, lblstr)
 
     tabular_str = rowvalsep.join([tabular_head, tabular_body, tabular_tail])
     topsep = '\\hline\n' if True else '\\toprule\n'
