@@ -800,7 +800,8 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
             """
             CHRLBLS = True
             if CHRLBLS:
-                subchar = chr(97 + count)
+                #subchar = chr(97 + count)
+                subchar = chr(65 + count)
             else:
                 subchar = str(count)
             subfigure_str = ''

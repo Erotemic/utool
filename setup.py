@@ -63,6 +63,7 @@ def utool_setup():
         'pyperclip >= 1.5.7',
         'pyfiglet >= 0.7.2',
         'boto'
+        #pip install pygments-markdown-lexer
     ]
 
     #REQUIRES_LINKS = [
