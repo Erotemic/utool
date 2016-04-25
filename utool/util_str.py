@@ -3080,6 +3080,9 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
         '\n? *\\\\subsubsection{[^~]*}\\~?\\\\label{[^}]*}\n',
         '\n? *\\\\subsubsection{[^}]*}\n',
 
+        '\n----*\n',
+        '##* .*\n',
+
         '\n? *\\\\newcommand{[^}]*}.*\n',
         # generic multiline commands with text inside (like devcomment)
         '\n? *\\\\[a-zA-Z]+{ *\n',
