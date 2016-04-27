@@ -716,39 +716,45 @@ def knapsack_ipl(items, maxweight, verbose=False):
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> # Solve https://xkcd.com/287/
-        >>> weights = [2.15, 2.75, 3.35, 3.55, 4.2, 5.8] * 2
-        >>> items = [(w, w, i) for i, w in enumerate(weights)]
+        >>> weights = [2.15, 2.75, 3.35, 3.55, 4.2, 5.8, 6.55]
+        >>> values  = [2.15, 2.75, 3.35, 3.55, 4.2, 5.8, 6.55]
+        >>> indices = ['mixed fruit', 'french fries', 'side salad',
+        >>>            'hot wings', 'mozzarella sticks', 'sampler plate',
+        >>>            'barbecue']
+        >>> #values  += [3.95]
+        >>> #weights += [3.95]
+        >>> #indices += ['mystery plate']
+        >>> items = [(v, w, i) for v, w, i in zip(values, weights, indices)]
         >>> maxweight = 15.05
         >>> verbose = True
         >>> total_value, items_subset = knapsack_ipl(items, maxweight, verbose)
+        >>> print('items_subset = %s' % (ut.repr3(items_subset, nl=1),))
     """
     import pulp
     # Given Input
-    num_items = len(items)
     values  = [t[0] for t in items]
     weights = [t[1] for t in items]
-    # Solution variables
-    x = pulp.LpVariable.dicts(name='x', indexs=range(num_items),
-                              lowBound=0, upBound=1, cat=pulp.LpInteger)
-    # maximize objective function
-    objective = sum(values[i] * x[i] for i in range(num_items))
-    # subject to
-    constraint = sum(weights[i] * x[i] for i in range(num_items)) <= maxweight
+    indices = [t[2] for t in items]
     # Formulate integer program
     prob = pulp.LpProblem("Knapsack", pulp.LpMaximize)
-    prob.objective = objective
-    prob.add(constraint)
+    # Solution variables
+    x = pulp.LpVariable.dicts(name='x', indexs=indices,
+                              lowBound=0, upBound=1, cat=pulp.LpInteger)
+    # maximize objective function
+    prob.objective = sum(v * x[i] for v, i in zip(values, indices))
+    # subject to
+    prob.add(sum(w * x[i] for w, i in zip(weights, indices)) <= maxweight)
     # Solve using with solver like CPLEX, GLPK, or SCIP.
     pulp.CPLEX().solve(prob)
     # Read solution
-    flags = [x[i].varValue for i in range(num_items)]
+    flags = [x[i].varValue for i in indices]
     total_value = sum([val for val, flag in zip(values, flags) if flag])
     items_subset = [item for item, flag in zip(items, flags) if flag]
     # Print summary
     if verbose:
         print(prob)
         print('OPT:')
-        print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in range(num_items)]))
+        print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in indices]))
         print('total_value = %r' % (total_value,))
     return total_value, items_subset
 
