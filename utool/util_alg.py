@@ -721,10 +721,8 @@ def knapsack_ipl(items, maxweight, verbose=False):
         >>> indices = ['mixed fruit', 'french fries', 'side salad',
         >>>            'hot wings', 'mozzarella sticks', 'sampler plate',
         >>>            'barbecue']
-        >>> #values  += [3.95]
-        >>> #weights += [3.95]
-        >>> #indices += ['mystery plate']
         >>> items = [(v, w, i) for v, w, i in zip(values, weights, indices)]
+        >>> #items += [(3.95, 3.95, 'mystery plate')]
         >>> maxweight = 15.05
         >>> verbose = True
         >>> total_value, items_subset = knapsack_ipl(items, maxweight, verbose)
