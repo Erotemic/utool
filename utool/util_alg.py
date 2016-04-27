@@ -745,7 +745,8 @@ def knapsack_ipl(items, maxweight, verbose=False):
     # subject to
     prob.add(sum(w * x[i] for w, i in zip(weights, indices)) <= maxweight)
     # Solve using with solver like CPLEX, GLPK, or SCIP.
-    pulp.CPLEX().solve(prob)
+    #pulp.CPLEX().solve(prob)
+    pulp.PULP_CBC_CMD().solve(prob)
     # Read solution
     flags = [x[i].varValue for i in indices]
     total_value = sum([val for val, flag in zip(values, flags) if flag])
