@@ -396,6 +396,8 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
     import timeit
     import utool as ut
 
+    stmt_list = [s for s in stmt_list if not s.startswith('#')]
+
     for stmtx in range(len(stmt_list)):
         # Hacky way of removing assignment and just getting statement
         # We have to make sure it is ok when using it for kwargs

@@ -636,7 +636,6 @@ def knapsack(items, maxweight, method='recursive'):
         weights = ut.take_column(items, 1)
         indices = ut.take_column(items, 2)
 
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
@@ -677,20 +676,21 @@ def knapsack(items, maxweight, method='recursive'):
         >>> setup = ut.codeblock(
         >>>     '''
                 import utool as ut
-                weights = [215, 275, 335, 355, 42, 58] * 10
+                weights = [215, 275, 335, 355, 42, 58] * 40
                 items = [(w, w, i) for i, w in enumerate(weights)]
                 maxweight = 2505
-                import numba
-                knapsack_numba = numba.autojit(ut.knapsack_iterative)
-                knapsack_numba = numba.autojit(ut.knapsack_iterative_numpy)
+                #import numba
+                #knapsack_numba = numba.autojit(ut.knapsack_iterative)
+                #knapsack_numba = numba.autojit(ut.knapsack_iterative_numpy)
                 ''')
         >>> # Test load time
         >>> stmt_list1 = ut.codeblock(
         >>>     '''
-                ut.knapsack_recursive(items, maxweight)
+                #ut.knapsack_recursive(items, maxweight)
                 ut.knapsack_iterative(items, maxweight)
-                knapsack_numba(items, maxweight)
-                ut.knapsack_iterative_numpy(items, maxweight)
+                ut.knapsack_ipl(items, maxweight)
+                #knapsack_numba(items, maxweight)
+                #ut.knapsack_iterative_numpy(items, maxweight)
                 ''').split('\n')
         >>> ut.util_dev.timeit_compare(stmt_list1, setup, int(5))
     """
@@ -698,9 +698,59 @@ def knapsack(items, maxweight, method='recursive'):
         return knapsack_recursive(items, maxweight)
     elif method == 'iterative':
         return knapsack_iterative(items, maxweight)
+    elif method == 'ilp':
+        return knapsack_ipl(items, maxweight)
     else:
         raise NotImplementedError('[util_alg] knapsack method=%r' % (method,))
         #return knapsack_iterative_numpy(items, maxweight)
+
+
+def knapsack_ipl(items, maxweight, verbose=False):
+    """
+    solves knapsack using an integer linear program
+
+    CommandLine:
+        python -m utool.util_alg knapsack_ipl
+
+    Example:
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> # Solve https://xkcd.com/287/
+        >>> weights = [2.15, 2.75, 3.35, 3.55, 4.2, 5.8] * 2
+        >>> items = [(w, w, i) for i, w in enumerate(weights)]
+        >>> maxweight = 15.05
+        >>> verbose = True
+        >>> total_value, items_subset = knapsack_ipl(items, maxweight, verbose)
+    """
+    import pulp
+    # Given Input
+    num_items = len(items)
+    values  = [t[0] for t in items]
+    weights = [t[1] for t in items]
+    # Solution variables
+    x = pulp.LpVariable.dicts(name='x', indexs=range(num_items),
+                              lowBound=0, upBound=1, cat=pulp.LpInteger)
+    # maximize objective function
+    objective = sum(values[i] * x[i] for i in range(num_items))
+    # subject to
+    constraint = sum(weights[i] * x[i] for i in range(num_items)) <= maxweight
+    # Formulate integer program
+    prob = pulp.LpProblem("Knapsack", pulp.LpMaximize)
+    prob.objective = objective
+    prob.add(constraint)
+    # Solve using with solver like CPLEX, GLPK, or SCIP.
+    pulp.CPLEX().solve(prob)
+    # Read solution
+    flags = [x[i].varValue for i in range(num_items)]
+    total_value = sum([val for val, flag in zip(values, flags) if flag])
+    items_subset = [item for item, flag in zip(items, flags) if flag]
+    # Print summary
+    if verbose:
+        print(prob)
+        print('OPT:')
+        print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in range(num_items)]))
+        print('total_value = %r' % (total_value,))
+    return total_value, items_subset
 
 
 def knapsack_recursive(items, maxweight):
