@@ -873,6 +873,7 @@ def grab_s3_contents(fpath, bucket, key, auth_access_id=None, auth_secret_key=No
         # Use system defaults, located in /etc/boto.cfg
         # Alternatively, use user defaults, located in ~/.boto
         s3 = boto.connect_s3()
+        import utool as ut
         ut.embed()
         bucket = s3.get_bucket(bucket)
     key = bucket.get_key(key)
