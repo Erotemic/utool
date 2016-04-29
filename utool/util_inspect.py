@@ -1940,7 +1940,10 @@ def recursive_parse_kwargs(root_func, path_=None):
         if VERBOSE_INSPECT:
             print('[inspect] Checking subfunc_name_list=%r' % (subfunc_name_list,))
         for subfunc_name in subfunc_name_list:
-            new_subkw = check_subfunc_name(subfunc_name)
+            try:
+                new_subkw = check_subfunc_name(subfunc_name)
+            except TypeError:
+                print('warning: unable to recursivley parse type of : %r' % (subfunc_name,))
             kwargs_list.extend(new_subkw)
     return kwargs_list
 

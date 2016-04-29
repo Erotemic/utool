@@ -141,6 +141,35 @@ def ProgChunks(list_, chunksize, nInput=None, **kwargs):
     """
     Yeilds an iterator in chunks and computes progress
     Progress version of ut.ichunks
+
+    Args:
+        list_ (list):
+        chunksize (?):
+        nInput (None): (default = None)
+
+    Kwargs:
+        nTotal, freq
+
+    Returns:
+        ProgressIter: progiter_
+
+    CommandLine:
+        python -m utool.util_progress ProgChunks --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_progress import *  # NOQA
+        >>> import utool as ut
+        >>> list_ = range(100)
+        >>> chunksize = 10
+        >>> nInput = None
+        >>> progiter_ = ProgChunks(list_, chunksize, nInput)
+        >>> iter_ = iter(progiter_)
+        >>> chunk = six.next(iter_)
+        >>> assert len(chunk) == 10
+        >>> rest = ut.flatten(list(progiter_))
+        >>> assert len(rest) == 90
+        >>> print(result)
     """
     if nInput is None:
         nInput = len(list_)

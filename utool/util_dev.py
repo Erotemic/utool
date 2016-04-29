@@ -2506,13 +2506,6 @@ def exec_funckw(func, globals_):
     exec(execstr_funckw(func), globals_)
 
 
-def ifnone(default, value):
-    """
-    shorthand for inline if / else statements
-    """
-    return default if value is None else value
-
-
 def focusvim():
     import utool.util_ubuntu
     utool.util_ubuntu.xctrl.do(('focus', 'GVIM'),)
