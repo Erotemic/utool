@@ -500,6 +500,8 @@ class ProgressIter(object):
             #'' if backspace else '\n',
             # backslash-r is a carrage return and undoes all previous output on
             # a written line
+            #'\r' if backspace else '\n',
+            #'\r' if backspace else '\n',
             '\r' if backspace else '\n',
             #'' if backspace else '\n',
             #'\n' if backspace else '',
@@ -569,8 +571,8 @@ class ProgressIter(object):
         start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl, backspace=self.backspace))
         start_msg = start_msg_fmt.format(count=self.parent_offset)
         PROGRESS_FLUSH()
-        PROGRESS_WRITE(start_msg)
-        #PROGRESS_WRITE(start_msg + '\n')
+        #PROGRESS_WRITE(start_msg)
+        PROGRESS_WRITE(start_msg + '\n')
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
         #if force_newlines:
         #    PROGRESS_WRITE('\n')
@@ -673,11 +675,11 @@ class ProgressIter(object):
                 PROGRESS_WRITE(msg)
                 #if force_newlines:
                 #    PROGRESS_WRITE('\n')
-                #if not self.backspace:
-                try:
-                    PROGRESS_FLUSH()
-                except IOError as ex:
-                    print('IOError flushing %s' % (ex,))
+                if not self.backspace:
+                    try:
+                        PROGRESS_FLUSH()
+                    except IOError as ex:
+                        print('IOError flushing %s' % (ex,))
                 if self.prog_hook is not None:
                     self.prog_hook(self.count, nTotal)
         # --- end of main loop
@@ -701,12 +703,15 @@ class ProgressIter(object):
                 wall=time.strftime('%H:%M'),
             )
             PROGRESS_WRITE(msg)
+            #if not self.backspace:
             try:
                 PROGRESS_FLUSH()
             except IOError as ex:
                 print('IOError flushing %s' % (ex,))
             #PROGRESS_WRITE('\nComplete(2)\n')
         if not self.backspace:
+            PROGRESS_WRITE('\n')
+        else:
             PROGRESS_WRITE('\n')
             #PROGRESS_WRITE('\nComplete(1)\n')
         #import sys
