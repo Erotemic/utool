@@ -169,7 +169,6 @@ def ProgChunks(list_, chunksize, nInput=None, **kwargs):
         >>> assert len(chunk) == 10
         >>> rest = ut.flatten(list(progiter_))
         >>> assert len(rest) == 90
-        >>> print(result)
     """
     if nInput is None:
         nInput = len(list_)
@@ -293,7 +292,7 @@ class ProgressIter(object):
         >>>                            report_unit='seconds', freq=1,
         >>>                            time_thresh=.1, adjust=True)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
-        >>> print(ut.truncate_str(ut.repr2(results1)))
+        >>> print(ut.truncate_str(ut.repr2(results1), 70))
 
     Example2:
         >>> # SLOW_DOCTEST
@@ -304,7 +303,7 @@ class ProgressIter(object):
         >>>                            report_unit='seconds', freq=1,
         >>>                            time_thresh=3, adjust=True)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
-        >>> print(ut.truncate_str(ut.repr2(results1)))
+        >>> print(ut.truncate_str(ut.repr2(results1), 70))
 
     """
     def __init__(self, iterable=None, *args, **kwargs):
@@ -480,7 +479,8 @@ class ProgressIter(object):
             ' ellapsed={ellapsed},',
             (' wall={wall} ' + tzname if with_wall else ''),
             #'' if backspace else '\n',
-            '\n' if backspace else '',
+            '\n' if not backspace else '\r',
+            #'\n' if backspace else '',
         ]
         msg_fmtstr_time = ''.join((msg_head + msg_tail))
         return msg_fmtstr_time
@@ -507,6 +507,9 @@ class ProgressIter(object):
         # HACK: reaquire logging print funcs in case they have changed
         PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
         PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
+        #import sys
+        #PROGRESS_WRITE = sys.stdout.write
+        #PROGRESS_FLUSH = sys.stdout.flush
 
         nTotal        = self.nTotal * self.parent_nTotal  # hack
         freq          = self.freq
@@ -537,16 +540,16 @@ class ProgressIter(object):
         #est_timeunit_left = -1
 
         # Write initial message
-        force_newlines = not self.backspace
+        #force_newlines = not self.backspace
         print_sep = self.separate
         if print_sep:
             print('---------')
-        PROGRESS_WRITE(
-            ''.join(self.build_msg_fmtstr_head_cols(
-                nTotal, self.lbl)).format(count=self.parent_offset))
+        start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl))
+        start_msg = start_msg_fmt.format(count=self.parent_offset)
+        PROGRESS_WRITE(start_msg)
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
-        if force_newlines:
-            PROGRESS_WRITE('\n')
+        #if force_newlines:
+        #    PROGRESS_WRITE('\n')
 
         try:
             PROGRESS_FLUSH()
@@ -564,6 +567,7 @@ class ProgressIter(object):
         # Prepare for iteration
         msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
                                             self.invert_rate, self.backspace)
+        #msg_fmtstr = len(msg_fmtstr) + msg_fmtstr
         #msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
         #                                   self.invert_rate, self.backspace)
 
@@ -644,14 +648,17 @@ class ProgressIter(object):
                 if print_sep:
                     print('---------')
                 PROGRESS_WRITE(msg)
-                if force_newlines:
-                    PROGRESS_WRITE('\n')
-                try:
-                    PROGRESS_FLUSH()
-                except IOError as ex:
-                    print('IOError flushing %s' % (ex,))
+                #if force_newlines:
+                #    PROGRESS_WRITE('\n')
+                if not self.backspace:
+                    try:
+                        PROGRESS_FLUSH()
+                    except IOError as ex:
+                        print('IOError flushing %s' % (ex,))
                 if self.prog_hook is not None:
                     self.prog_hook(self.count, nTotal)
+        # --- end of main loop
+        # cleanup
         if (self.count) % freq != 0:
             # If the final line of progress was not written in the loop, write it here
             est_seconds_left = 0
@@ -676,6 +683,9 @@ class ProgressIter(object):
                 PROGRESS_FLUSH()
             except IOError as ex:
                 print('IOError flushing %s' % (ex,))
+        else:
+            if self.backspace:
+                PROGRESS_WRITE('\n')
         #cumrate = 1E-9
         #self.nTotal = len(self.iterable)
         # for:

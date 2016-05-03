@@ -51,6 +51,7 @@ def horiz_print(*args):
 def _test_indent_print():
     # Indent test code doesnt work in doctest blocks.
     import utool as ut
+    flag = ut.ensure_logging()
     print('Checking indent. Should have none')
     with ut.Indenter('[INDENT] '):
         print('Checking indent. Should be indented')
@@ -72,6 +73,8 @@ def _test_indent_print():
         print('Error. Last 3 lines')
         print(ut.repr3(last_lines))
         raise
+    if not flag:
+        ut.stop_logging()
 
 
 class Indenter(object):
@@ -271,9 +274,9 @@ def print_difftext(text, other=None):
     colortext = util_str.get_colored_diff(text)
     try:
         print(colortext)
-    except UnicodeEncodeError as ex:
+    except UnicodeEncodeError as ex:  # NOQA
         import unicodedata
-        colortext = unicodedata.normalize('NFKD', colortext).encode('ascii','ignore')
+        colortext = unicodedata.normalize('NFKD', colortext).encode('ascii', 'ignore')
         print(colortext)
 
 

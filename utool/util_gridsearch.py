@@ -384,7 +384,7 @@ def parse_cfgstr3(string):
         #_SUP = pp.Suppress
         opener_ = _SUP(opener)
         closer_ = _SUP(closer)
-        ret <<= pp.Group(opener_ + pp.ZeroOrMore( content ) + closer_)
+        ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
         ret = ret
         return ret
 

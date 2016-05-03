@@ -375,7 +375,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
     """
     import multiprocessing
     import utool as ut  # NOQA
-    ut.start_logging()
+    #ut.start_logging()
     multiprocessing.freeze_support()  # just in case
     if ut.VERBOSE:
         print('[util_test] doctest_funcs')

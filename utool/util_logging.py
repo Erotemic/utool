@@ -58,6 +58,70 @@ __STR__ = six.text_type
 logdir_cacheid = 'log_dpath'
 
 
+def testlogprog():
+    r"""
+    Test to ensure that all progress lines are outputed to the file logger
+    while only a few progress lines are outputed to stdout.
+    (if backspace is specified)
+
+    CommandLine:
+        python -m utool.util_logging testlogprog --show --verb-logging
+        python -m utool.util_logging testlogprog --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_logging import *  # NOQA
+        >>> import utool as ut
+        >>> result = testlogprog()
+        >>> print(result)
+    """
+    import utool as ut
+    print('Starting test log function')
+
+    def test_body(count, logmode, backspace):
+        ut.colorprint('\n---- count = %r -----' % (count,), 'yellow')
+        ut.colorprint('backspace = %r' % (backspace,), 'yellow')
+        ut.colorprint('logmode = %r' % (logmode,), 'yellow')
+        if logmode:
+            ut.delete('test.log')
+            ut.start_logging('test.log')
+        print('Start main loop')
+        import time
+        for count in ut.ProgressIter(range(20), freq=3, backspace=backspace):
+            #__UTOOL_WRITE_BUFFER__
+            #sys.stdout.write('__UTOOL_WRITE_BUFFER__ = %r\n' % (__UTOOL_WRITE_BUFFER__,))
+            time.sleep(.01)
+        print('Done with main loop work')
+        print('Exiting main body')
+        if logmode:
+            ut.stop_logging()
+            #print('-----DONE LOGGING----')
+            testlog_text = ut.readfrom('test.log')
+            print(ut.indent(testlog_text.replace('\r', '\n'), '        '))
+
+    test_body(0, False, True)
+    test_body(1, False, False)
+    test_body(2, True, True)
+    test_body(3, True, False)
+    #test_body(21, True, True)
+    #test_body(31, True, False)
+    #test_body(22, True, True)
+    #test_body(32, True, False)
+
+
+def ensure_logging():
+    flag = is_logging()
+    if not flag:
+        start_logging()
+    return flag
+
+
+def is_logging():
+    global __UTOOL_ROOT_LOGGER__
+    flag = __UTOOL_ROOT_LOGGER__ is not None
+    return flag
+
+
 def debug_logging_iostreams():
     print(' --- <DEBUG IOSTREAMS> --')
     print('__STR__ = %r' % (__STR__,))
@@ -273,6 +337,7 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
             global __UTOOL_WRITE_BUFFER__
             if len(__UTOOL_WRITE_BUFFER__) > 0:
                 msg = ''.join(__UTOOL_WRITE_BUFFER__)
+                #sys.stdout.write('FLUSHING %r\n' % (len(__UTOOL_WRITE_BUFFER__)))
                 __UTOOL_WRITE_BUFFER__ = []
                 return __UTOOL_ROOT_LOGGER__.info(msg)
             #__PYTHON_FLUSH__()
@@ -280,14 +345,27 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         def utool_write(*args):
             """ writes to current utool logs and to sys.stdout.write """
             global __UTOOL_WRITE_BUFFER__
+            #sys.stdout.write('WRITE\n')
             msg = ', '.join(map(six.text_type, args))
             __UTOOL_WRITE_BUFFER__.append(msg)
             if msg.endswith('\n'):
-                # Flush on newline
+                # Flush on newline, and remove newline
                 __UTOOL_WRITE_BUFFER__[-1] = __UTOOL_WRITE_BUFFER__[-1][:-1]
+            elif len(__UTOOL_WRITE_BUFFER__) > 32:
+                # Flush if buffer is too large
                 utool_flush()
 
-        if PRINT_ALL_CALLERS:
+        if not PRINT_ALL_CALLERS:
+            def utool_print(*args):
+                """ standard utool print function """
+                #sys.stdout.write('PRINT\n')
+                try:
+                    return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(six.text_type, args)))
+                except UnicodeDecodeError:
+                    new_msg = ', '.join(map(meta_util_six.ensure_unicode, args))
+                    #print(new_msg)
+                    return  __UTOOL_ROOT_LOGGER__.info(new_msg)
+        else:
             def utool_print(*args):
                 """ debugging utool print function """
                 import utool as ut
@@ -295,17 +373,9 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
                 __UTOOL_ROOT_LOGGER__.info('\n\n----------')
                 __UTOOL_ROOT_LOGGER__.info(ut.get_caller_name(range(0, 20)))
                 return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(six.text_type, args)))
-        else:
-            def utool_print(*args):
-                """ standard utool print function """
-                try:
-                    return  __UTOOL_ROOT_LOGGER__.info(', '.join(map(six.text_type, args)))
-                except UnicodeDecodeError:
-                    new_msg = ', '.join(map(meta_util_six.ensure_unicode, args))
-                    #print(new_msg)
-                    return  __UTOOL_ROOT_LOGGER__.info(new_msg)
+
         def utool_printdbg(*args):
-            """ standard utool print debug function """
+            """ DRPRICATE standard utool print debug function """
             return  __UTOOL_ROOT_LOGGER__.debug(', '.join(map(six.text_type, args)))
         # overwrite the utool printers
         __UTOOL_WRITE__    = utool_write
@@ -316,6 +386,13 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         if VERBOSE or LOGGING_VERBOSE:
             __UTOOL_PRINT__('<__LOG_START__>')
             __UTOOL_PRINT__(startmsg)
+    else:
+        if LOGGING_VERBOSE:
+            print('[utool] start_logging()... FAILED TO START')
+            print('DEBUG INFO')
+            print('__inside_doctest() = %r' % (__inside_doctest(),))
+            print('__IN_MAIN_PROCESS__ = %r' % (__IN_MAIN_PROCESS__,))
+            print('__UTOOL_ROOT_LOGGER__ = %r' % (__UTOOL_ROOT_LOGGER__,))
 
 
 def stop_logging():
@@ -328,10 +405,12 @@ def stop_logging():
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
     if __UTOOL_ROOT_LOGGER__ is not None:
+        # Flush remaining buffer
         if VERBOSE or LOGGING_VERBOSE:
             __UTOOL_PRINT__('<__LOG_STOP__>')
+        __UTOOL_FLUSH__()
         # Remove handlers
-        for h in __UTOOL_ROOT_LOGGER__.handlers:
+        for h in __UTOOL_ROOT_LOGGER__.handlers[:]:
             __UTOOL_ROOT_LOGGER__.removeHandler(h)
         # Reset objects
         __UTOOL_ROOT_LOGGER__ = None
