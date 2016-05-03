@@ -103,6 +103,19 @@ def test_progress():
         #progiter3 = progiter_partials[1](range(0, 3), lbl='sub_prog2', freq=1, adjust=False)
         #for count3 in progiter3:
         #    pass
+    print('Double backspace progress 1')
+    progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False, backspace=False)
+    for count1 in progiter1:
+        progiter2 = ut.ProgressIter(range(0, 10), lbl='prog2', freq=1, adjust=False, backspace=True)
+        for count2 in progiter2:
+            time.sleep(.01)
+
+    print('Double backspace progress 2')
+    progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False, backspace=True)
+    for count1 in progiter1:
+        progiter2 = ut.ProgressIter(range(0, 10), lbl='prog2', freq=1, adjust=False, backspace=True)
+        for count2 in progiter2:
+            time.sleep(.01)
 
 
 def get_nTotalChunks(nTotal, chunksize):
@@ -315,9 +328,11 @@ class ProgressIter(object):
             except Exception:
                 pass
         self.use_rate           = kwargs.pop('use_rate', True)
+        self.use_rate = True  # Force
         self.lbl                = kwargs.get('lbl', 'lbl')
         self.nTotal             = kwargs.get('nTotal', 0)
-        self.backspace          = kwargs.get('backspace', True)
+        #self.backspace          = kwargs.get('backspace', True)
+        self.backspace          = kwargs.get('backspace', False)
         self.freq               = kwargs.get('freq', 1)
         self.invert_rate        = kwargs.get('invert_rate', False)
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
@@ -359,8 +374,8 @@ class ProgressIter(object):
             self.kwargs = kwargs
             self.mark = None
             self.end = None
-        else:
-            self.mark, self.end = log_progress(*args, **kwargs)
+        #else:
+        #    self.mark, self.end = log_progress(*args, **kwargs)
         self.count = 0
 
     def __call__(self, iterable):
@@ -378,11 +393,11 @@ class ProgressIter(object):
             #with ut.Timer(msg):
             return iter(self.iterable)
         else:
-            if self.use_rate:
-                # STANDARD CALL CASE
-                return self.iter_rate()
-            else:
-                return self.iter_without_rate()
+            #if self.use_rate:
+            # STANDARD CALL CASE
+            return self.iter_rate()
+            #else:
+            #    return self.iter_without_rate()
 
     def get_subindexers(prog_iter, num_substeps):
         # FIXME and  make this a method of progiter
@@ -435,9 +450,13 @@ class ProgressIter(object):
     #    return msg_fmtstr
 
     @staticmethod
-    def build_msg_fmtstr_head_cols(nTotal, lbl):
+    def build_msg_fmtstr_head_cols(nTotal, lbl, backspace=True):
         nTotal_ = '?' if nTotal == 0 else six.text_type(nTotal)
-        msg_head_columns = ['\r', lbl, ' {count:4d}/', nTotal_ , '...  ']
+        if backspace:
+            #msg_head_columns = ['\r', lbl, ' {count:4d}/', nTotal_ , '...  ']
+            msg_head_columns = ['', lbl, ' {count:4d}/', nTotal_ , '...  ']
+        else:
+            msg_head_columns = ['', lbl, ' {count:4d}/', nTotal_ , '...  ']
         return msg_head_columns
 
     @staticmethod
@@ -471,7 +490,7 @@ class ProgressIter(object):
         tzname = time.tzname[0]
         if util_cplat.WIN32:
             tzname = tzname.replace('Eastern Standard Time', 'EST')
-        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl)
+        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl, backspace)
         msg_tail = [
             ('rate={rate:3.3f} seconds/iter, '
              if invert_rate else 'rate={rate:4.2f} Hz,'),
@@ -479,7 +498,10 @@ class ProgressIter(object):
             ' ellapsed={ellapsed},',
             (' wall={wall} ' + tzname if with_wall else ''),
             #'' if backspace else '\n',
-            '\n' if not backspace else '\r',
+            # backslash-r is a carrage return and undoes all previous output on
+            # a written line
+            '\r' if backspace else '\n',
+            #'' if backspace else '\n',
             #'\n' if backspace else '',
         ]
         msg_fmtstr_time = ''.join((msg_head + msg_tail))
@@ -544,9 +566,11 @@ class ProgressIter(object):
         print_sep = self.separate
         if print_sep:
             print('---------')
-        start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl))
+        start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl, backspace=self.backspace))
         start_msg = start_msg_fmt.format(count=self.parent_offset)
+        PROGRESS_FLUSH()
         PROGRESS_WRITE(start_msg)
+        #PROGRESS_WRITE(start_msg + '\n')
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
         #if force_newlines:
         #    PROGRESS_WRITE('\n')
@@ -567,7 +591,6 @@ class ProgressIter(object):
         # Prepare for iteration
         msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
                                             self.invert_rate, self.backspace)
-        #msg_fmtstr = len(msg_fmtstr) + msg_fmtstr
         #msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
         #                                   self.invert_rate, self.backspace)
 
@@ -650,11 +673,11 @@ class ProgressIter(object):
                 PROGRESS_WRITE(msg)
                 #if force_newlines:
                 #    PROGRESS_WRITE('\n')
-                if not self.backspace:
-                    try:
-                        PROGRESS_FLUSH()
-                    except IOError as ex:
-                        print('IOError flushing %s' % (ex,))
+                #if not self.backspace:
+                try:
+                    PROGRESS_FLUSH()
+                except IOError as ex:
+                    print('IOError flushing %s' % (ex,))
                 if self.prog_hook is not None:
                     self.prog_hook(self.count, nTotal)
         # --- end of main loop
@@ -678,14 +701,17 @@ class ProgressIter(object):
                 wall=time.strftime('%H:%M'),
             )
             PROGRESS_WRITE(msg)
-            PROGRESS_WRITE('\n')
             try:
                 PROGRESS_FLUSH()
             except IOError as ex:
                 print('IOError flushing %s' % (ex,))
-        else:
-            if self.backspace:
-                PROGRESS_WRITE('\n')
+            #PROGRESS_WRITE('\nComplete(2)\n')
+        if not self.backspace:
+            PROGRESS_WRITE('\n')
+            #PROGRESS_WRITE('\nComplete(1)\n')
+        #import sys
+        #sys.stdout.write('\nCOMPLETE@@@\n')
+        #print('COMPLETE45')
         #cumrate = 1E-9
         #self.nTotal = len(self.iterable)
         # for:
@@ -718,20 +744,20 @@ class ProgressIter(object):
 
     #def make_substep_progiters():
 
-    def iter_without_rate(self):
-        if self.mark is None:
-            # Continuation of hacking
-            self.mark, self.end = log_progress(*self.args, **self.kwargs)
-        mark = self.mark
-        # Wrap the for loop with a generator
-        self.count = -1
-        for self.count, item in enumerate(self.iterable):
-            mark(self.count)
-            yield item
-        self.end(self.count + 1)
+    #def iter_without_rate(self):
+    #    if self.mark is None:
+    #        # Continuation of hacking
+    #        self.mark, self.end = log_progress(*self.args, **self.kwargs)
+    #    mark = self.mark
+    #    # Wrap the for loop with a generator
+    #    self.count = -1
+    #    for self.count, item in enumerate(self.iterable):
+    #        mark(self.count)
+    #        yield item
+    #    self.end(self.count + 1)
 
-    def mark_current(self):
-        self.mark(self.count)
+    #def mark_current(self):
+    #    self.mark(self.count)
 
     def _get_timethresh_heuristics(self):
         """
