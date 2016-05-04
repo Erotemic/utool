@@ -17,6 +17,7 @@ from utool import util_time
 from utool import util_iter
 from utool import util_cplat
 from six.moves import range, zip
+import collections
 import six  # NOQA
 print, rrr, profile = util_inject.inject2(__name__, '[progress]')
 
@@ -280,6 +281,7 @@ class ProgressIter(object):
         python -m utool.util_progress --test-ProgressIter:0
         python -m utool.util_progress --test-ProgressIter:1
         python -m utool.util_progress --test-ProgressIter:2
+        python -m utool.util_progress --test-ProgressIter:3
 
 
     Example:
@@ -317,6 +319,16 @@ class ProgressIter(object):
         >>>                            time_thresh=3, adjust=True)
         >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
         >>> print(ut.truncate_str(ut.repr2(results1), 70))
+
+    Example3:
+        >>> # SLOW_DOCTEST
+        >>> import utool as ut
+        >>> from six.moves import range
+        >>> import time
+        >>> crazy_time_list = [.001, .01, .0001] * 1000
+        >>> crazy_time_iter = (time.sleep(x) for x in crazy_time_list)
+        >>> progiter = ut.ProgressIter(crazy_time_iter, lbl='crazy times', nTotal=len(crazy_time_list), freq=10)
+        >>> list(progiter)
 
     """
     def __init__(self, iterable=None, *args, **kwargs):
@@ -603,6 +615,11 @@ class ProgressIter(object):
 
         start = 1 + self.parent_offset
 
+        USE_RECORD = True
+        # use last 64 times to compute a more stable average rate
+        measure_between_time = collections.deque([], maxlen=64)
+        measure_est_seconds = collections.deque([], maxlen=16)
+
         # Wrap the for loop with a generator
         for self.count, item in enumerate(self.iterable, start=start):
             # GENERATE
@@ -614,13 +631,23 @@ class ProgressIter(object):
                 between_time      = (now_time - last_time)
                 between_count     = self.count - last_count
                 total_seconds     = (now_time - start_time)
-                iters_per_second  = between_count / (float(between_time) + 1E-9)
+                if USE_RECORD:
+                    measure_between_time.append(between_count / (float(between_time) + 1E-9))
+                    iters_per_second = sum(measure_between_time) / len(measure_between_time)
+                else:
+                    iters_per_second = between_count / (float(between_time) + 1E-9)
                 # If the future is known
                 if nTotal is None:
                     est_seconds_left = -1
                 else:
                     iters_left        = nTotal - self.count
-                    est_seconds_left  = iters_left / (iters_per_second + 1E-9)
+                    est_etr  = iters_left / (iters_per_second + 1E-9)
+                    if USE_RECORD:
+                        measure_est_seconds.append(est_etr)
+                        est_seconds_left = sum(measure_est_seconds) / len(measure_est_seconds)
+                    else:
+                        est_seconds_left = est_etr
+
                 # /future
                 last_count        = self.count
                 last_time         = now_time

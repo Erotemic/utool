@@ -70,6 +70,10 @@ elif six.PY3:
         except AttributeError:
             if isinstance(func, functools.partial):
                 return get_funcname(func.func)
+            if isinstance(func, types.BuiltinFunctionType):
+                # for cv2.imread
+                #return str(cv2.imread).replace('>', '').replace('<built-in function', '')
+                return str(func).replace('<built-in function', '<')
             else:
                 raise
     def set_funcname(func, newname):

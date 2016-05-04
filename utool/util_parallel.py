@@ -186,8 +186,9 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
     if nTasks is None:
         nTasks = len(args_list)
     result_list = []
+    lbl = '(serproc) %s: ' % (get_funcname(func),)
     prog_iter = util_progress.ProgressIter(
-        args_list, nTotal=nTasks, lbl=get_funcname(func) + ': ', adjust=True)
+        args_list, nTotal=nTasks, lbl=lbl, adjust=True)
     # Execute each task sequentially
     for args in prog_iter:
         result = func(*args, **args_dict)
@@ -204,8 +205,9 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET, p
     # Define progress observers
     if nTasks is None:
         nTasks = len(args_list)
+    lbl = '(parproc) %s: ' % (get_funcname(func),)
     _prog = util_progress.ProgressIter(
-        range(nTasks), nTotal=nTasks, lbl=get_funcname(func) + ': ',
+        range(nTasks), nTotal=nTasks, lbl=lbl,
         adjust=True)
     _prog_iter = iter(_prog)
     num_tasks_returned_ptr = [0]
@@ -272,10 +274,13 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
 
     # Get iterator with or without progress
     if prog:
+        lbl = '(pargen) %s: ' % (get_funcname(func),)
         result_generator = util_progress.ProgressIter(
-            raw_generator, nTotal=nTasks, lbl=get_funcname(func) + ': ',
+            raw_generator, nTotal=nTasks, lbl=lbl,
             freq=kwargs.get('freq', None),
-            adjust=kwargs.get('adjust', False))
+            backspace=kwargs.get('backspace', True),
+            adjust=kwargs.get('adjust', False)
+        )
 
     else:
         result_generator = raw_generator
@@ -323,9 +328,10 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, **kw
                 (nTasks, get_funcname(func)))
     prog = prog and verbose and nTasks > 1
     # Get iterator with or without progress
+    lbl = '(sergen) %s: ' % (get_funcname(func),)
     args_iter = (
         util_progress.ProgressIter(args_list, nTotal=nTasks,
-                                   lbl=get_funcname(func) + ': ',
+                                   lbl=lbl,
                                    freq=kwargs.get('freq', None),
                                    adjust=kwargs.get('adjust', False))
         if prog else args_list
@@ -540,7 +546,9 @@ def _test_buffered_generator():
         python -m utool.util_parallel --test-_test_buffered_generator
 
     Example:
+        >>> import utool as ut
         >>> from utool.util_parallel import *  # NOQA
+        >>> from utool.util_parallel import _test_buffered_generator  # NOQA
         >>> _test_buffered_generator()
     """
     import utool as ut
@@ -607,23 +615,29 @@ def _test_buffered_generator3():
 
 
 def _test_buffered_generator_general(func, args, sleepfunc,
-                                     target_looptime=1.0):
+                                     target_looptime=1.0,
+                                     serial_cheat=1, argmode=False,
+                                     buffer_size=2):
     """
     # We are going to generate output of func in the background while sleep
     # func is running in the foreground
     # --- Hyperparams
     target_looptime = 1.5  # maximum time to run all loops
     """
-    serial_cheat = 1  # approx division factor to run serial less times
+    import utool as ut
+    #serial_cheat = 1  # approx division factor to run serial less times
     show_serial = True  # target_looptime < 10.  # 3.0
 
-    with ut.Timer('One* call to func') as t_func:
-        [func(arg) for arg in args]
-    functime = t_func.ellapsed / len(args)
+    with ut.Timer('One* call to func') as t_fgfunc:
+        results = [func(arg) for arg in args]
+    functime = t_fgfunc.ellapsed / len(args)
     #sleepfunc = ut.is_prime
-    with ut.Timer('One call to sleep func') as t_sleep:
-        sleepfunc()
-    sleeptime = t_sleep.ellapsed
+    with ut.Timer('One* call to sleep func') as t_sleep:
+        if argmode:
+            [sleepfunc(x) for x in results]
+        else:
+            [sleepfunc() for x in results]
+    sleeptime = t_sleep.ellapsed / len(args)
     # compute amount of loops to run
     _num_loops = round(target_looptime // (functime + sleeptime))
     num_data = int(_num_loops // len(args))
@@ -632,24 +646,36 @@ def _test_buffered_generator_general(func, args, sleepfunc,
     data = ut.flatten([args] * num_data)
     est_tsleep = sleeptime * num_loops
     est_tfunc = functime * num_loops
+    est_needed_buffers =  sleeptime / functime
     print('Estimated stats' + ut.dict_str(ut.dict_subset(locals(), [
         'num_loops',
-        'functime', 'sleeptime', 'est_tsleep', 'est_tfunc', 'serial_cheat'])))
+        'functime', 'sleeptime', 'est_tsleep', 'est_tfunc', 'serial_cheat', 'buffer_size',
+        'est_needed_buffers',
+    ])))
     if show_serial:
         with ut.Timer('serial') as t1:
             # cheat for serial to make it go faster
             for x in map(func, data[:len(data) // serial_cheat]):
-                sleepfunc()
+                if argmode:
+                    sleepfunc(x)
+                else:
+                    sleepfunc()
         t_serial = serial_cheat * t1.ellapsed
         print('...toc(\'adjusted_serial\') = %r' % (t_serial))
     with ut.Timer('ut.buffered_generator') as t2:
-        gen_ = ut.buffered_generator(map(func, data), buffer_size=2)
+        gen_ = ut.buffered_generator(map(func, data), buffer_size=buffer_size)
         for x in gen_:
-            sleepfunc()
+            if argmode:
+                sleepfunc(x)
+            else:
+                sleepfunc()
     with ut.Timer('ut.generate') as t3:
-        gen_ = ut.generate(func, data, chunksize=2, quiet=1, verbose=0)
+        gen_ = ut.generate(func, data, chunksize=buffer_size, quiet=1, verbose=0)
         for x in gen_:
-            sleepfunc()
+            if argmode:
+                sleepfunc(x)
+            else:
+                sleepfunc( )
     # Compare theoretical vs practical efficiency
     print('\n Theoretical Results')
     def parallel_efficiency(ellapsed, est_tsleep, est_tfunc):
@@ -672,8 +698,138 @@ def _test_buffered_generator_general(func, args, sleepfunc,
             parallel_efficiency(t3.ellapsed, est_tsleep, prac_tfunc),))
 
 
-def buffered_generator(source_gen, buffer_size=2):
-    #, use_multiprocessing=False):
+def _test_buffered_generator_general2(bgfunc, bgargs, fgfunc,
+                                      target_looptime=1.0, serial_cheat=1,
+                                      buffer_size=2, show_serial=True):
+    """
+    # We are going to generate output of bgfunc in the background while
+    # fgfunc is running in the foreground. fgfunc takes results of bffunc as
+    # args.
+    # --- Hyperparams
+    target_looptime = 1.5  # maximum time to run all loops
+    """
+    import utool as ut
+    with ut.Timer('One* call to bgfunc') as t_bgfunc:
+        results = [bgfunc(arg) for arg in bgargs]
+    bgfunctime = t_bgfunc.ellapsed / len(bgargs)
+    #fgfunc = ut.is_prime
+    with ut.Timer('One* call to fgfunc') as t_fgfunc:
+        [fgfunc(x) for x in results]
+    fgfunctime = t_fgfunc.ellapsed / len(bgargs)
+    # compute amount of loops to run
+    est_looptime = (bgfunctime + fgfunctime)
+    _num_loops = round(target_looptime // est_looptime)
+    num_data = int(_num_loops // len(bgargs))
+    num_loops =  int(num_data * len(bgargs))
+    serial_cheat = min(serial_cheat, num_data)
+    data = ut.flatten([bgargs] * num_data)
+    est_tfg = fgfunctime * num_loops
+    est_tbg = bgfunctime * num_loops
+    est_needed_buffers =  fgfunctime / bgfunctime
+    print('Estimated stats' + ut.dict_str(ut.dict_subset(locals(), [
+        'num_loops',
+        'bgfunctime', 'fgfunctime', 'est_tfg', 'est_tbg', 'serial_cheat',
+        'buffer_size', 'est_needed_buffers',
+    ])))
+    if show_serial:
+        with ut.Timer('serial') as t1:
+            # cheat for serial to make it go faster
+            for x in map(bgfunc, data[:len(data) // serial_cheat]):
+                fgfunc(x)
+        t_serial = serial_cheat * t1.ellapsed
+        print('...toc(\'adjusted_serial\') = %r' % (t_serial))
+    with ut.Timer('ut.buffered_generator') as t2:
+        gen_ = ut.buffered_generator(map(bgfunc, data), buffer_size=buffer_size)
+        for x in gen_:
+            fgfunc(x)
+    with ut.Timer('ut.generate') as t3:
+        gen_ = ut.generate(bgfunc, data, chunksize=buffer_size, quiet=1, verbose=0)
+        for x in gen_:
+            fgfunc(x)
+    # Compare theoretical vs practical efficiency
+    print('\n Theoretical Results')
+    def parallel_efficiency(ellapsed, est_tfg, est_tbg):
+        return (1 - ((ellapsed - est_tfg) / est_tbg)) * 100
+    if show_serial:
+        print('Theoretical gain (serial) = %.3f%%' % (
+            parallel_efficiency(t_serial, est_tfg, est_tbg),))
+    print('Theoretical gain (ut.buffered_generator) = %.3f%%' % (
+        parallel_efficiency(t2.ellapsed, est_tfg, est_tbg),))
+    print('Theoretical gain (ut.generate) = %.2f%%' % (
+        parallel_efficiency(t3.ellapsed, est_tfg, est_tbg),))
+    if show_serial:
+        prac_tbg = t_serial - est_tfg
+        print('\n Practical Results')
+        print('Practical gain (serial) = %.3f%%' % (
+            parallel_efficiency(t1.ellapsed, est_tfg, prac_tbg),))
+        print('Practical gain (ut.buffered_generator) = %.3f%%' % (
+            parallel_efficiency(t2.ellapsed, est_tfg, prac_tbg),))
+        print('Practical gain (ut.generate) = %.2f%%' % (
+            parallel_efficiency(t3.ellapsed, est_tfg, prac_tbg),))
+
+
+def bgfunc(path):
+    # Test for /_test_buffered_generator_img
+    #import utool as ut
+    import vtool as vt
+    for _ in range(1):
+        img = vt.imread(path)
+    img = img ** 1.1
+    #[ut.is_prime(346373) for _ in range(2)]
+    return img
+
+
+def _test_buffered_generator_img():
+    """
+    Test for buffering image read calls
+
+    CONCLUSIONS:
+        Use buffer  when bgtime is bigger, but comparable to fgtime
+        Use buffer  when fgtime < bgtime and (fgtime + bgtime) is large
+        Use genrate when fgtime > bgtime and (fgtime + bgtime) is large
+        Use serial when fgtime is bigger and all parts are comparitively small
+
+        Buffer size should be roughly bgtime / fgtime
+
+        Buffering also has a much more even and regular cpu demand.
+        Also demands less cpus (I think)
+
+
+    CommandLine:
+        python -m utool.util_parallel --test-_test_buffered_generator_img
+
+    Example:
+        >>> import utool as ut
+        >>> from utool.util_parallel import *  # NOQA
+        >>> from utool.util_parallel import _test_buffered_generator_img  # NOQA
+        >>> from utool.util_parallel import _test_buffered_generator_general2  # NOQA
+        >>> _test_buffered_generator_img()
+    """
+    import utool as ut
+    #import vtool as vt
+    args = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
+    #import cv2
+    #import vtool as vt
+    #func = cv2.imread
+    #bffunc = vt.imread
+    def sleepfunc_bufwin(x, niters=10):
+        #import cv2
+        for z in range(niters):
+            # operate on image in some capacity
+            x.cumsum()
+        for z in range(2):
+            x ** 1.1
+        return x
+    target_looptime = 60.0
+    #target_looptime = 20.0
+    #target_looptime = 10.0
+    #target_looptime = 5.0
+    serial_cheat = 1
+    _test_buffered_generator_general2(bgfunc, args, sleepfunc_bufwin, target_looptime, serial_cheat, buffer_size=4, show_serial=False)
+    #_test_buffered_generator_general2(bgfunc, args, sleepfunc_bufwin, target_looptime, serial_cheat, buffer_size=4, show_serial=True)
+
+
+def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
     r"""
     Generator that runs a slow source generator in a separate process.
 
@@ -730,24 +886,25 @@ def buffered_generator(source_gen, buffer_size=2):
     if buffer_size < 2:
         raise RuntimeError("Minimal buffer_ size is 2!")
 
-    #if use_multiprocessing:
-    #    assert False, 'dont use this buffered multiprocessing'
-    #    if False:
-    #        if USE_GLOBAL_POOL:
-    #            pool = __POOL__
-    #        else:
-    #            pool = new_pool(num_procs=get_default_numprocs(),
-    #                            init_worker=init_worker,
-    #                            maxtasksperchild=None)
-    #        Process = pool.Process
-    #    else:
-    #        Process = multiprocessing.Process
-    #    _Queue = multiprocessing.Queue
-    #    target = _buffered_generation_process
-    #else:
-    _Queue = queue.Queue
-    Process = KillableThread
-    target = _buffered_generation_thread
+    if use_multiprocessing:
+        print('WARNING seems to freeze if passed in a generator')
+        #assert False, 'dont use this buffered multiprocessing'
+        if False:
+            if USE_GLOBAL_POOL:
+                pool = __POOL__
+            else:
+                pool = new_pool(num_procs=get_default_numprocs(),
+                                init_worker=init_worker,
+                                maxtasksperchild=None)
+            Process = pool.Process
+        else:
+            Process = multiprocessing.Process
+        _Queue = multiprocessing.Queue
+        target = _buffered_generation_process
+    else:
+        _Queue = queue.Queue
+        Process = KillableThread
+        target = _buffered_generation_thread
 
     # the effective buffer_ size is one less, because the generation process
     # will generate one extra element and block until there is room in the
@@ -756,8 +913,8 @@ def buffered_generator(source_gen, buffer_size=2):
 
     # previously None was used as a sentinal, which fails when source_gen
     # genrates None need to make object that it will not be generated by the
-    # process
-    sentinal = StopIteration  # mildly hacky use of StopIteration exception
+    # process. A reasonable hack is to use the StopIteration exception instead
+    sentinal = StopIteration
 
     process = Process(
         target=target,
@@ -790,15 +947,15 @@ def _buffered_generation_thread(source_gen, buffer_, sentinal):
     buffer_.put(sentinal)
 
 
-#def _buffered_generation_process(source_gen, buffer_, sentinal):
-#    """ helper for buffered_generator """
-#    for data in source_gen:
-#        buffer_.put(data, block=True)
-#    # sentinel: signal the end of the iterator
-#    buffer_.put(sentinal)
-#    # unfortunately this does not suffice as a signal: if buffer_.get() was
-#    # called and subsequently the buffer_ is closed, it will block forever.
-#    buffer_.close()
+def _buffered_generation_process(source_gen, buffer_, sentinal):
+    """ helper for buffered_generator """
+    for data in source_gen:
+        buffer_.put(data, block=True)
+    # sentinel: signal the end of the iterator
+    buffer_.put(sentinal)
+    # unfortunately this does not suffice as a signal: if buffer_.get() was
+    # called and subsequently the buffer_ is closed, it will block forever.
+    buffer_.close()
 
 
 def process(func, args_list, args_dict={}, force_serial=None,
@@ -1038,5 +1195,5 @@ if __name__ == '__main__':
     """
     #import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import utool  # NOQA
+    utool.doctest_funcs()
