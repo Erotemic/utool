@@ -640,8 +640,8 @@ class ProgressIter(object):
                 if nTotal is None:
                     est_seconds_left = -1
                 else:
-                    iters_left        = nTotal - self.count
-                    est_etr  = iters_left / (iters_per_second + 1E-9)
+                    iters_left = nTotal - self.count
+                    est_etr = iters_left / (iters_per_second + 1E-9)
                     if USE_RECORD:
                         measure_est_seconds.append(est_etr)
                         est_seconds_left = sum(measure_est_seconds) / len(measure_est_seconds)

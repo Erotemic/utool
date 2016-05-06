@@ -72,7 +72,8 @@ except (ImportError, AttributeError):
 
 
 COMPARABLE_TYPES = {
-    type_: type_list
+    # Ensure that type_list can be used by isinstance
+    type_: tuple([other for other in type_list if isinstance(other, type)])
     for type_list in [
         VALID_INT_TYPES,
         VALID_FLOAT_TYPES,
@@ -88,7 +89,10 @@ PRIMATIVE_TYPES = (
 
 
 def is_comparable_type(var, type_):
-    return isinstance(var, COMPARABLE_TYPES[type_])
+    """
+    Check to see if `var` is an instance of known compatible types for `type_`
+    """
+    return isinstance(var, COMPARABLE_TYPES.get(type_, type_))
 
 
 def is_valid_floattype(type_):
