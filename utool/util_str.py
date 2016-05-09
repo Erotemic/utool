@@ -3220,7 +3220,7 @@ def split_sentences2(text, debug=0):
 
 
 def format_single_paragraph_sentences(text, debug=False, myprefix=True,
-                                      sentence_break=True):
+                                      sentence_break=True, max_width=73):
     r"""
     helps me separatate sentences grouped in paragraphs that I have a
     difficult time reading due to dyslexia
@@ -3255,6 +3255,7 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
     import textwrap
     import re
     #ut.rrrr(verbose=False)
+    # max_width = 73  # 79  # 80
     debug = _rectify_countdown_or_bool(debug)
     min_indent = ut.get_minimum_indentation(text)
     min_indent = (min_indent // 4) * 4
@@ -3270,6 +3271,7 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
     USE_REGEX_SPLIT = True
 
     def split_sentences(text_):
+        # TODO: rectify with split_sentences2
         if not USE_REGEX_SPLIT:
             # Old way that just handled periods
             sentence_list = text_.split('. ')
@@ -3310,7 +3312,7 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
             # ******* #
             return sentence_list, sep_list
 
-    def wrap_sentences(sentence_list, min_indent):
+    def wrap_sentences(sentence_list, min_indent, max_width):
         # prefix for continuations of a sentence
         if myprefix:
             # helps me read LaTeX
@@ -3322,19 +3324,22 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
             # TODO: make actualy docstring reformater
             sentence_prefix = '...     '
 
-        max_width = 73  # 79  # 80
-        width = max_width - min_indent - len(sentence_prefix)
-        wrapkw = dict(width=width, break_on_hyphens=False, break_long_words=False)
-        #wrapped_lines_list = [textwrap.wrap(sentence_prefix + line, **wrapkw)
-        #                      for line in sentence_list]
-        wrapped_lines_list = []
-        for count, line in enumerate(sentence_list):
-            wrapped_lines = textwrap.wrap(line, **wrapkw)
-            wrapped_lines = [line_ if count == 0 else sentence_prefix + line_
-                             for count, line_ in enumerate(wrapped_lines)]
-            wrapped_lines_list.append(wrapped_lines)
+        if max_width is not None:
+            width = max_width - min_indent - len(sentence_prefix)
 
-        wrapped_sentences = ['\n'.join(line) for line in wrapped_lines_list]
+            wrapkw = dict(width=width, break_on_hyphens=False, break_long_words=False)
+            #wrapped_lines_list = [textwrap.wrap(sentence_prefix + line, **wrapkw)
+            #                      for line in sentence_list]
+            wrapped_lines_list = []
+            for count, line in enumerate(sentence_list):
+                wrapped_lines = textwrap.wrap(line, **wrapkw)
+                wrapped_lines = [line_ if count == 0 else sentence_prefix + line_
+                                 for count, line_ in enumerate(wrapped_lines)]
+                wrapped_lines_list.append(wrapped_lines)
+
+            wrapped_sentences = ['\n'.join(line) for line in wrapped_lines_list]
+        else:
+            wrapped_sentences = sentence_list[:]
         return wrapped_sentences
 
     def rewrap_sentences2(sentence_list, sep_list):
@@ -3344,9 +3349,7 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
         # supposed to prefix or suffix the sentence.
         from six.moves import zip_longest
         # FIXME: Place the separators either before or after a sentence
-
         sentence_list2 = ['']
-
         _iter = zip_longest(sentence_list, sep_list)
         for count, (sentence, sep) in enumerate(_iter):
             if sep is None:
@@ -3360,85 +3363,32 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
                 # Place before next
                 sentence_list2[-1] += sentence
                 sentence_list2.append(sep)
-
         sentence_list2 = [x.strip() for x in sentence_list2 if len(x.strip()) > 0]
-
         return sentence_list2
 
-    def rejoin_sentences(wrapped_sentences, sep_list):
-        if USE_REGEX_SPLIT:
-            # ******* #
-            # put the newline before or after the sep depending on if it is
-            # supposed to prefix or suffix the sentence.
-            from six.moves import zip_longest
-            newsep_list = [
-                (
-                    sep.strip() + '\n'
-                    if sep.strip()[0] in raw_sep_chars else
-                    '\n' + sep
-                )
-                for sep in sep_list
-            ]
-            if debug:
-                print('')
-            wrapped_sentences2 = []
-            # account for suffix-to-prefix double seperators
-            # helps fix things like enumerated stuff: (1) foo (2) you
-            _iter = zip_longest(wrapped_sentences, newsep_list)
-            for count, (sentence, sep) in enumerate(_iter):
-                if sep is None:
-                    sep = ''
-                if (sentence == '' and
-                        sep.startswith('\n') and
-                        len(wrapped_sentences2) > 0 and
-                        wrapped_sentences2[-1].endswith('\n')):
-                    sep = sep[1:]
-                if debug:
-                    print('--- FixSep Iter %d ---' % (count,))
-                    print('sentence = %r' % (sentence,))
-                    print('sep = %r' % (sep,))
-                wrapped_sentences2.append(sentence + sep)
-
-            if debug:
-                print('\n<RESEP DBG>')
-                print('newsep_list = %r' % (newsep_list,))
-                print('len(newsep_list) = %r' % (len(newsep_list),))
-                print('len(wrapped_sentences) = %r' % (len(wrapped_sentences),))
-                print('</RESEP DBG>')
-            # The wrapped block has a level 0 indentation
-            wrapped_block = ''.join(wrapped_sentences2)
-            # ******* #
-        else:
-            wrapped_block = '.\n'.join(wrapped_sentences)
-        return wrapped_block
-
-    if 0:
-        # Old way
+    # New way
+    #print('last_is_nl = %r' % (last_is_nl,))
+    if sentence_break:
+        # Break at sentences
         sentence_list, sep_list = split_sentences(text_)
-        wrapped_sentences = wrap_sentences(sentence_list, min_indent)
-        wrapped_block = rejoin_sentences(wrapped_sentences, sep_list)
+        # FIXME: probably where nl error is
+        sentence_list2 = rewrap_sentences2(sentence_list, sep_list)
+        wrapped_sentences = wrap_sentences(sentence_list2, min_indent, max_width)
+        wrapped_block = '\n'.join(wrapped_sentences)
     else:
-        # New way
-        #print('last_is_nl = %r' % (last_is_nl,))
-        if sentence_break:
-            sentence_list, sep_list = split_sentences(text_)
-            # FIXME: probably where nl error is
-            sentence_list2 = rewrap_sentences2(sentence_list, sep_list)
-            wrapped_sentences = wrap_sentences(sentence_list2, min_indent)
-            wrapped_block = '\n'.join(wrapped_sentences)
-        else:
-            width = 80 - min_indent
-            wrapkw = dict(width=width, break_on_hyphens=False,
-                          break_long_words=False)
-            wrapped_block = '\n'.join(textwrap.wrap(text_, **wrapkw))
-        # HACK for last nl (seems to only happen if nl follows a seperator)
-        last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
-        first_is_nl = len(text) > 1 and text.startswith('\n') and not wrapped_block.startswith('\n')
-        # if last_is_nl and wrapped_block.strip().endswith('.'):
-        if last_is_nl:
-            wrapped_block += '\n'
-        if first_is_nl:
-            wrapped_block = '\n' + wrapped_block
+        # Break anywhere
+        width = max_width - min_indent
+        wrapkw = dict(width=width, break_on_hyphens=False,
+                      break_long_words=False)
+        wrapped_block = '\n'.join(textwrap.wrap(text_, **wrapkw))
+    # HACK for last nl (seems to only happen if nl follows a seperator)
+    last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
+    first_is_nl = len(text) > 1 and text.startswith('\n') and not wrapped_block.startswith('\n')
+    # if last_is_nl and wrapped_block.strip().endswith('.'):
+    if last_is_nl:
+        wrapped_block += '\n'
+    if first_is_nl:
+        wrapped_block = '\n' + wrapped_block
     # Do the final indentation
     wrapped_text = ut.indent(wrapped_block, ' ' * min_indent)
     return wrapped_text
