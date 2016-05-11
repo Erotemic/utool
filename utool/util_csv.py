@@ -91,7 +91,7 @@ class CSV(util_dev.NiceRepr):
 
     def fuzzy_find_colx(self, pat):
         colxs = self.fuzzy_find_colxs(pat)
-        assert len(colxs) == 1
+        assert len(colxs) == 1, ('cannot find column matching %r' % (pat,))
         return colxs[0]
 
     def take_fuzzy_column(self, pat):

@@ -55,9 +55,9 @@ def dump_autogen_code(fpath, autogen_text, codetype='python', fullprint=None):
                                        num_context_lines=num_context_lines)
             try:
                 ut.print_difftext(textdiff)
-            except UnicodeDecodeError as ex:
+            except UnicodeDecodeError:
                 import unicodedata
-                textdiff = unicodedata.normalize('NFKD', textdiff).encode('ascii','ignore')
+                textdiff = unicodedata.normalize('NFKD', textdiff).encode('ascii', 'ignore')
                 ut.print_difftext(textdiff)
 
         if dowrite:
