@@ -2497,6 +2497,8 @@ def make_index_lookup(list_, dict_factory=dict):
 
 def list_transpose(list_):
     r"""
+    Swaps rows and columns
+
     Args:
         list_ (list):
 
@@ -2534,14 +2536,15 @@ def list_transpose(list_):
 listT = list_transpose
 
 
-def delete_items_by_index(list_, index_list):
+def delete_items_by_index(list_, index_list, copy=False):
     """
+    Remove items from ``list_`` at positions specified in ``index_list``
+    The original ``list_`` is preserved if ``copy`` is True
+
     Args:
         list_ (list):
         index_list (list):
-
-    CommandLine:
-        python -m utool.util_list --exec-delete_items_by_index
+        copy (bool): preserves original list if True
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2552,12 +2555,26 @@ def delete_items_by_index(list_, index_list):
         >>> print(result)
         [8, 1, 1, 6, 6, 3, 4, 4, 5]
     """
+    if copy:
+        list_ = list_[:]
     # Rectify negative indicies
-    index_list_ = [len(list_) + index if index < 0 else index for index in index_list]
+    index_list_ = [(len(list_) + x if x < 0 else x) for x in index_list]
     # Remove largest indicies first
     index_list_ = sorted(index_list_, reverse=True)
     for index in index_list_:
         del list_[index]
+    return list_
+
+
+def delete_list_items(list_, item_list, copy=False):
+    r"""
+    Remove items in ``item_list`` from ``list_``.
+    The original ``list_`` is preserved if ``copy`` is True
+    """
+    if copy:
+        list_ = list_[:]
+    for item in item_list:
+        list_.remove(item)
     return list_
 
 

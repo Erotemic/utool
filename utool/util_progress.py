@@ -344,7 +344,7 @@ class ProgressIter(object):
         self.lbl                = kwargs.get('lbl', 'lbl')
         self.nTotal             = kwargs.get('nTotal', 0)
         #self.backspace          = kwargs.get('backspace', True)
-        self.backspace          = kwargs.get('backspace', False)
+        self.backspace          = kwargs.get('backspace', kwargs.get('bs', False))
         self.freq               = kwargs.get('freq', 1)
         self.invert_rate        = kwargs.get('invert_rate', False)
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
@@ -702,11 +702,11 @@ class ProgressIter(object):
                 PROGRESS_WRITE(msg)
                 #if force_newlines:
                 #    PROGRESS_WRITE('\n')
-                if not self.backspace:
-                    try:
-                        PROGRESS_FLUSH()
-                    except IOError as ex:
-                        print('IOError flushing %s' % (ex,))
+                #if not self.backspace:
+                try:
+                    PROGRESS_FLUSH()
+                except IOError as ex:
+                    print('IOError flushing %s' % (ex,))
                 if self.prog_hook is not None:
                     self.prog_hook(self.count, nTotal)
         # --- end of main loop

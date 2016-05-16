@@ -2537,7 +2537,7 @@ def ipcopydev():
     pass
 
 
-def make_instancelist(obj_list):
+def make_instancelist(obj_list, check=True):
     class InstanceList_(object):
         """ executes methods and attribute calls on a list of
         objects of the same type
@@ -2550,28 +2550,41 @@ def make_instancelist(obj_list):
             >>> from utool.util_dev import *  # NOQA
             >>> import utool as ut
             >>> obj_list = ['hi', 'bye', 'foo']
-            >>> self =  InstanceList(obj_list)
+            >>> self = ut.make_instancelist(obj_list, check=False)
             >>> print(self.upper())
             >>> print(self.isalpha())
         """
         def __init__(self, obj_list):
             if len(obj_list) > 0:
                 import utool as ut
-                shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
-                self._shared_public_attrs = [a for a in shared_attrs if not a.startswith('_')]
+
                 self._obj_list = obj_list
                 example_obj = obj_list[0]
                 example_type = type(example_obj)
 
+                if check:
+                    shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
+                else:
+                    shared_attrs = dir(example_obj)
+
+                #allowed = ['__getitem__']  # TODO, put in metaclass
+                allowed = []
+                self._shared_public_attrs = [a for a in shared_attrs if a in allowed or not a.startswith('_')]
+
                 for attrname in self._shared_public_attrs:
                     attrtype = getattr(example_type, attrname, None)
-                    if attrtype is not None:
-                        if isinstance(attrtype, property):
-                            # need to do this as metaclass
-                            setattr(InstanceList_, attrname, property(self._define_prop(attrname)))
+                    print('attrtype = %r' % (attrtype,))
+                    if attrtype is not None and isinstance(attrtype, property):
+                        # need to do this as metaclass
+                        setattr(InstanceList_, attrname, property(self._define_prop(attrname)))
                     else:
                         func = self._define_func(attrname)
+                        print('func = %r' % (func,))
                         ut.inject_func_as_method(self, func, attrname)
+
+        def __getitem__(self, key):
+            # TODO, put in metaclass
+            return self._map_method('__getitem__', key)
 
         def _define_func(self, attrname):
             import utool as ut
