@@ -1283,11 +1283,11 @@ def nx_get_default_node_attributes(graph, key, default=None):
 
 
 def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
-    if nodes is None:
-        nodes = list(range(len(weight_matrix)))
     import networkx as nx
     import utool as ut
     import numpy as np
+    if nodes is None:
+        nodes = list(range(len(weight_matrix)))
     weight_list = weight_matrix.ravel()
     flat_idxs_ = np.arange(weight_matrix.size)
     multi_idxs_ = np.unravel_index(flat_idxs_, weight_matrix.shape)
