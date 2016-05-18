@@ -2351,11 +2351,11 @@ def get_textdiff(text1, text2, num_context_lines=0, ignore_whitespace=False):
         http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
 
     Args:
-        text1 (?):
-        text2 (?):
+        text1 (str):
+        text2 (str):
 
     Returns:
-        ?:
+        str:
 
     CommandLine:
         python -m utool.util_str --test-get_textdiff:1
