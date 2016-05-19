@@ -1006,7 +1006,8 @@ def intersect_ordered(list1, list2):
     return [item for item in list1 if item in set(list2)]
 
 
-isect = intersect_ordered
+def union_ordered(*lists):
+    return unique_ordered(flatten(lists))
 
 
 def list_intersection(list1, list2):
@@ -1023,6 +1024,13 @@ def list_issuperset(list1, list2):
 
 def list_isdisjoint(list1, list2):
     return set(list1).isdisjoint(set(list2))
+
+
+def list_union(*lists):
+    return set.union(*[set(list_) for list_ in lists])
+
+
+isect = intersect_ordered
 
 is_subset = list_issubset
 is_superset = list_issuperset

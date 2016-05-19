@@ -1586,15 +1586,26 @@ class DictLike(object):
     """
     move to util_dict rectify with util_dev
 
-    Need to specify
+    An inherited class must specify the ``getitem``, ``setitem``, and
+      ``keys`` methods.
 
-    getitem, setitem, keys
+
     """
+
+    def getitem(self, key):
+        raise NotImplementedError('abstract getitem function')
+
+    def setitem(self, key, value):
+        raise NotImplementedError('abstract setitem function')
+
+    def keys(self):
+        raise NotImplementedError('abstract keys function')
+
     def __repr__(self):
-        return repr(self.copy())
+        return repr(self.asdict())
 
     def __str__(self):
-        return str(self.copy())
+        return str(self.asdict())
 
     def __len__(self):
         return len(list(self.keys()))

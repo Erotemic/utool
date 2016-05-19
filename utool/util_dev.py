@@ -2404,7 +2404,8 @@ def ensure_pylab_qt4():
 
 class DictLike_old(object):
     """
-    todo use util_dict.DictLike instead
+    DEPRICATE
+    TODO: use util_dict.DictLike instead
     """
     def __repr__(self):
         return repr(dict(self.items()))
@@ -2444,7 +2445,11 @@ class DictLike_old(object):
         return list(self.iteritems())
 
 
-class ClassAttrDictProxy(DictLike_old):
+#class ClassAttrDictProxy(DictLike_old):
+class ClassAttrDictProxy(util_dict.DictLike):
+    """
+    Allows class attributes to be specified using dictionary syntax
+    """
     def __init__(self, obj, keys, attrs=None):
         if attrs is None:
             attrs = keys
@@ -2453,14 +2458,25 @@ class ClassAttrDictProxy(DictLike_old):
         self._attrs = attrs
         self.key2_attrs = dict(zip(keys, attrs))
 
-    def iterkeys(self):
-        return iter(self._keys)
+    def keys(self):
+        return self._keys
 
-    def __getitem__(self, key):
-        return getattr(self.obj, self.key2_attrs[key])
+    def getitem(self, key):
+        attrname = self.key2_attrs[key]
+        return getattr(self.obj, attrname)
 
-    def __setitem__(self, key, val):
-        setattr(self.obj, self.key2_attrs[key], val)
+    def setitem(self, key, val):
+        attrname = self.key2_attrs[key]
+        setattr(self.obj, attrname, val)
+
+    #def iterkeys(self):
+    #    return iter(self._keys)
+
+    #def __getitem__(self, key):
+    #    return getattr(self.obj, self.key2_attrs[key])
+
+    #def __setitem__(self, key, val):
+    #    setattr(self.obj, self.key2_attrs[key], val)
 
 
 class NiceRepr(object):
