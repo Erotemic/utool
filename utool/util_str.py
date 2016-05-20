@@ -3057,7 +3057,6 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
     #print(text.replace(' ', '_'))
     #ut.util_dbg.COLORED_EXCEPTIONS = False
     # Patterns that define separations between paragraphs in latex
-    #NL = '\n'
     pattern_list = [
         '\n\n\n*',     # newlines
         #'\n\n*$',     # newlines
@@ -3082,6 +3081,9 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
 
         '\n----*\n',
         '##* .*\n',
+
+        '\\.}\n',
+        '\\?}\n',
 
         '\n? *\\\\newcommand{[^}]*}.*\n',
         # generic multiline commands with text inside (like devcomment)
