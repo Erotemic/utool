@@ -1437,6 +1437,19 @@ def argsort(*args, **kwargs):
     return sortedby2(index_list, *args, **kwargs)
 
 
+def argmax(list_):
+    """
+    References:
+        http://stackoverflow.com/questions/16945518/python-argmin-argmax
+
+    list_ = np.random.rand(10000).tolist()
+
+    %timeit list_.index(max(list_))
+    %timeit max(enumerate(list_), key=itemgetter(1))
+    """
+    return list_.index(max(list_))
+
+
 def index_complement(index_list, len_=None):
     """
     Returns the other indicies in a list of length ``len_``

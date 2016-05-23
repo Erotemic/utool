@@ -320,6 +320,167 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
     return covertup
 
 
+def setcover_greedy(candidate_sets_dict, items=None, set_weights=None, item_values=None, max_weight=None):
+    r"""
+    Greedy algorithm for various covering problems.
+    approximation gaurentees depending on specifications  like set_weights and item values
+
+    Set Cover: log(len(items) + 1) approximation algorithm
+    Weighted Maximum Cover: 1 - 1/e == .632 approximation algorithm
+    Generalized maximum coverage is not implemented
+
+    References:
+        https://en.wikipedia.org/wiki/Maximum_coverage_problem
+
+    Example:
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> candidate_sets_dict = {
+        >>>     'a': [1, 2, 3, 8, 9, 0],
+        >>>     'b': [1, 2, 3, 4, 5],
+        >>>     'c': [4, 5, 7],
+        >>>     'd': [5, 6, 7],
+        >>>     'e': [6, 7, 8, 9, 0],
+        >>> }
+        >>> max_weight = None
+        >>> items = None
+        >>> set_weights = None
+        >>> item_values = None
+        >>> greedy_soln = ut.sort_dict(ut.setcover_greedy(candidate_sets_dict))
+        >>> exact_soln = ut.sort_dict(ut.setcover_ilp(candidate_sets_dict))
+        >>> print('greedy_soln = %r' % (greedy_soln,))
+        >>> print('exact_soln = %r' % (exact_soln,))
+    """
+    import utool as ut
+    solution_cover = {}
+    # If candset_weights or item_values not given use the length as defaults
+    if items is None:
+        items = ut.flatten(candidate_sets_dict.values())
+    if set_weights is None:
+        get_weight = len
+    else:
+        def get_weight(solution_cover):
+            sum([set_weights[key] for key in solution_cover.keys()])
+    if item_values is None:
+        get_value = len
+    else:
+        def get_value(vals):
+            sum([item_values[v] for v in vals])
+    if max_weight is None:
+        max_weight = get_weight(candidate_sets_dict)
+    avail_covers = {key: set(val) for key, val in candidate_sets_dict.items()}
+    # While we still need covers
+    while get_weight(solution_cover) < max_weight and len(avail_covers) > 0:
+        # Find candiate set with the most uncovered items
+        avail_covers.values()
+        uncovered_values = list(map(get_value, avail_covers.values()))
+        chosen_idx = ut.argmax(uncovered_values)
+        if uncovered_values[chosen_idx] <= 0:
+            # needlessly adding value-less items
+            break
+        chosen_key = list(avail_covers.keys())[chosen_idx]
+        # Add values in this key to the cover
+        chosen_set = avail_covers[chosen_key]
+        solution_cover[chosen_key] = candidate_sets_dict[chosen_key]
+        # Remove chosen set from available options and covered items
+        # from remaining available sets
+        del avail_covers[chosen_key]
+        for vals in avail_covers.values():
+            vals.difference_update(chosen_set)
+    return solution_cover
+
+
+def setcover_ilp(candidate_sets_dict, items=None, set_weights=None, item_values=None, max_weight=None, verbose=False):
+    """
+    Set cover / Weighted Maximum Cover exact algorithm
+
+    https://en.wikipedia.org/wiki/Maximum_coverage_problem
+    """
+    import utool as ut
+    import pulp
+    if items is None:
+        items = ut.flatten(candidate_sets_dict.values())
+    if set_weights is None:
+        set_weights = {i: 1 for i in candidate_sets_dict.keys()}
+    if item_values is None:
+        item_values = {e: 1 for e in items}
+
+    if max_weight is None:
+        max_weight = sum(ut.take(set_weights, candidate_sets_dict.keys()))
+
+    if False:
+        # This is true set coer
+        # Formulate integer program
+        prob = pulp.LpProblem("Set Cover", pulp.LpMinimize)
+        # Solution variable indicates if set it chosen or not
+        set_indices = candidate_sets_dict.keys()
+        x = pulp.LpVariable.dicts(name='x', indexs=set_indices,
+                                  lowBound=0, upBound=1, cat=pulp.LpInteger)
+        # minimize the number of sets
+        prob.objective = sum(x[i] for i in set_indices)
+        # subject to
+        for e in items:
+            # each element is covered
+            containing_sets = [i for i in set_indices if e in candidate_sets_dict[i]]
+            prob.add(sum(x[i] for i in containing_sets) >= 1)
+        # Solve using with solver like CPLEX, GLPK, or SCIP.
+        #pulp.CPLEX().solve(prob)
+        pulp.PULP_CBC_CMD().solve(prob)
+        # Read solution
+        solution_keys = [i for i in set_indices if x[i].varValue]
+        solution_cover = {i: candidate_sets_dict[i] for i in solution_keys}
+        # Print summary
+        if verbose:
+            print(prob)
+            print('OPT:')
+            print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in set_indices]))
+            print('solution_cover = %r' % (solution_cover,))
+    else:
+        prob = pulp.LpProblem("Maximum Cover", pulp.LpMaximize)
+        # Solution variable indicates if set it chosen or not
+        item_indicies = items
+        set_indices = candidate_sets_dict.keys()
+        x = pulp.LpVariable.dicts(name='x', indexs=set_indices,
+                                  lowBound=0, upBound=1, cat=pulp.LpInteger)
+        y = pulp.LpVariable.dicts(name='y', indexs=item_indicies,
+                                  lowBound=0, upBound=1, cat=pulp.LpInteger)
+        r = pulp.LpVariable.dicts(name='r', indexs=item_indicies)
+        # maximize the value of the covered items
+        primary_objective = sum(item_values[e] * y[e] for e in item_indicies)
+        # minimize the number of sets used (make sure it does not influence the chosen primary objective)
+        # This is only possible when values are non-negative
+        # TODO: minimize redundency
+        min_influence = min(item_values.values())
+        secondary_weight = min_influence / (1.1 * len(set_indices))
+        secondary_objective = (sum(-x[i] for i in set_indices)) * secondary_weight
+        #
+        prob.objective = primary_objective + secondary_objective
+        # subject to
+        # no more than the maximum weight
+        prob.add(sum(x[i] * set_weights[i] for i in set_indices) <= max_weight)
+        # If an item is chosen than at least one set containing it is chosen
+        for e in item_indicies:
+            containing_sets = [i for i in set_indices if e in candidate_sets_dict[i]]
+            if len(containing_sets) > 0:
+                prob.add(sum(x[i] for i in containing_sets) >= y[e])
+                # record number of times each item is covered
+                prob.add(sum(x[i] for i in containing_sets) == r[e])
+        # Solve using with solver like CPLEX, GLPK, or SCIP.
+        #pulp.CPLEX().solve(prob)
+        pulp.PULP_CBC_CMD().solve(prob)
+        # Read solution
+        solution_keys = [i for i in set_indices if x[i].varValue]
+        solution_cover = {i: candidate_sets_dict[i] for i in solution_keys}
+        # Print summary
+        if verbose:
+            print(prob)
+            print('OPT:')
+            print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in set_indices]))
+            print('\n'.join(['    %s = %s' % (y[i].name, y[i].varValue) for i in item_indicies]))
+            print('solution_cover = %r' % (solution_cover,))
+    return solution_cover
+
+
 def bayes_rule(b_given_a, prob_a, prob_b):
     r"""
     bayes_rule
@@ -688,7 +849,7 @@ def knapsack(items, maxweight, method='recursive'):
         >>>     '''
                 #ut.knapsack_recursive(items, maxweight)
                 ut.knapsack_iterative(items, maxweight)
-                ut.knapsack_ipl(items, maxweight)
+                ut.knapsack_ilp(items, maxweight)
                 #knapsack_numba(items, maxweight)
                 #ut.knapsack_iterative_numpy(items, maxweight)
                 ''').split('\n')
@@ -699,18 +860,18 @@ def knapsack(items, maxweight, method='recursive'):
     elif method == 'iterative':
         return knapsack_iterative(items, maxweight)
     elif method == 'ilp':
-        return knapsack_ipl(items, maxweight)
+        return knapsack_ilp(items, maxweight)
     else:
         raise NotImplementedError('[util_alg] knapsack method=%r' % (method,))
         #return knapsack_iterative_numpy(items, maxweight)
 
 
-def knapsack_ipl(items, maxweight, verbose=False):
+def knapsack_ilp(items, maxweight, verbose=False):
     """
     solves knapsack using an integer linear program
 
     CommandLine:
-        python -m utool.util_alg knapsack_ipl
+        python -m utool.util_alg knapsack_ilp
 
     Example:
         >>> from utool.util_alg import *  # NOQA
@@ -725,7 +886,7 @@ def knapsack_ipl(items, maxweight, verbose=False):
         >>> #items += [(3.95, 3.95, 'mystery plate')]
         >>> maxweight = 15.05
         >>> verbose = True
-        >>> total_value, items_subset = knapsack_ipl(items, maxweight, verbose)
+        >>> total_value, items_subset = knapsack_ilp(items, maxweight, verbose)
         >>> print('items_subset = %s' % (ut.repr3(items_subset, nl=1),))
     """
     import pulp

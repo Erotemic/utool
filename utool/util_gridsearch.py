@@ -325,6 +325,111 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
     return cfg_lbl
 
 
+def recombine_nestings(parsed_blocks):
+    import utool as ut  # NOQA
+    if len(parsed_blocks) == 0:
+        return ''
+    values = ut.take_column(parsed_blocks, 1)
+    literals = [recombine_nestings(v) if isinstance(v, list) else v for v in values]
+    recombined = ''.join(literals)
+    return recombined
+
+
+def parse_nestings(string):
+    r"""
+    References:
+        http://stackoverflow.com/questions/4801403/pyparsing-nested-mutiple-opener-clo
+
+    Example:
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> string = r'\chapter{Identification \textbf{foobar} workflow}\label{chap:application}'
+        >>> parsed_blocks = parse_nestings(string)
+        >>> print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+    """
+    import utool as ut  # NOQA
+    import pyparsing as pp
+
+    def as_tagged(parent, doctag=None, namedItemsOnly=False):
+        """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
+        namedItems = dict((v[1], k) for (k, vlist) in parent._ParseResults__tokdict.items()
+                          for v in vlist)
+        # collapse out indents if formatting is not desired
+        parentTag = None
+        if doctag is not None:
+            parentTag = doctag
+        else:
+            if parent._ParseResults__name:
+                parentTag = parent._ParseResults__name
+        if not parentTag:
+            if namedItemsOnly:
+                return ""
+            else:
+                parentTag = "ITEM"
+        out = []
+        for i, res in enumerate(parent._ParseResults__toklist):
+            if isinstance(res, pp.ParseResults):
+                if i in namedItems:
+                    child = as_tagged(
+                        res, namedItems[i], namedItemsOnly and doctag is None)
+                else:
+                    child = as_tagged(
+                        res, None, namedItemsOnly and doctag is None)
+                out.append(child)
+            else:
+                # individual token, see if there is a name for it
+                resTag = None
+                if i in namedItems:
+                    resTag = namedItems[i]
+                if not resTag:
+                    if namedItemsOnly:
+                        continue
+                    else:
+                        resTag = "ITEM"
+                child = (resTag, pp._ustr(res))
+                out += [child]
+        return (parentTag, out)
+
+    def combine_nested(opener, closer, content):
+        """
+        opener, closer, content = '(', ')', nest_body
+        """
+        import utool as ut  # NOQA
+        ret = pp.Forward()
+        _SUP = ut.identity
+        #_SUP = pp.Suppress
+        opener_ = _SUP(opener)
+        closer_ = _SUP(closer)
+        # ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        ret = ret << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        ret = ret
+        return ret
+
+    # Current Best Grammar
+    nest_body = pp.Forward()
+    nestedParens   = combine_nested('(', ')', content=nest_body).setResultsName('paren')
+    nestedBrackets = combine_nested('[', ']', content=nest_body).setResultsName('brak')
+    nestedCurlies  = combine_nested('{', '}', content=nest_body).setResultsName('curl')
+
+    nonBracePrintables = ''.join(c for c in pp.printables if c not in '(){}[]') + ' '
+    nonNested = pp.Word(nonBracePrintables).setResultsName('nonNested')
+    nest_body << (nonNested | nestedParens | nestedBrackets | nestedCurlies)
+    parser = pp.ZeroOrMore(nest_body)
+    debug_ = ut.VERBOSE
+
+    if len(string) > 0:
+        tokens = parser.parseString(string)
+        if debug_:
+            print('string = %r' % (string,))
+            print('tokens List: ' + ut.repr3(tokens.asList()))
+            print('tokens XML: ' + tokens.asXML())
+        parsed_blocks = as_tagged(tokens)[1]
+        if debug_:
+            print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+    else:
+        parsed_blocks = []
+    return parsed_blocks
+
+
 def parse_cfgstr3(string):
     """
     http://stackoverflow.com/questions/4801403/how-can-i-use-pyparsing-to-parse-nested-expressions-that-have-mutiple-opener-clo
@@ -378,13 +483,17 @@ def parse_cfgstr3(string):
         return (parentTag, out)
 
     def combine_nested(opener, closer, content):
+        """
+        opener, closer, content = '(', ')', nest_body
+        """
         import utool as ut  # NOQA
         ret = pp.Forward()
         _SUP = ut.identity
         #_SUP = pp.Suppress
         opener_ = _SUP(opener)
         closer_ = _SUP(closer)
-        ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        # ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        ret = ret << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
         ret = ret
         return ret
 

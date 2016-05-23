@@ -785,7 +785,7 @@ def cmd(*args, **kwargs):
                                 stderr=subprocess.STDOUT, shell=shell,
                                 universal_newlines=True
                                 # universal_newlines=False
-                               )
+                                )
         hack_use_stdout = True
         if detatch:
             if not quiet:
@@ -811,17 +811,26 @@ def cmd(*args, **kwargs):
                                 print_(line_)
                         logged_out.append(line)
                 try:
-                    from utool import util_str
+                    from utool import util_str  # NOQA
                     # logged_out = util_str.ensure_unicode_strlist(logged_out)
                     out = '\n'.join(logged_out)
                 except UnicodeDecodeError:
-                    print('logged_out = %r' % (logged_out,))
-                    raise
+                    from utool import util_str  # NOQA
+                    logged_out = util_str.ensure_unicode_strlist(logged_out)
+                    out = '\n'.join(logged_out)
+                    # print('logged_out = %r' % (logged_out,))
+                    # raise
                 (out_, err) = proc.communicate()
                 #print('[ut.cmd] out: %s' % (out,))
                 if not quiet:
-                    print('[ut.cmd] stdout: %s' % (out_,))
-                    print('[ut.cmd] stderr: %s' % (err,))
+                    try:
+                        print('[ut.cmd] stdout: %s' % (out_,))
+                        print('[ut.cmd] stderr: %s' % (err,))
+                    except UnicodeDecodeError:
+                        from utool import util_str  # NOQA
+                        print('[ut.cmd] stdout: %s' % (util_str.ensure_unicode(out_),))
+                        print('[ut.cmd] stderr: %s' % (util_str.ensure_unicode(err),))
+
             else:
                 # Surpress output
                 #print('[ut.cmd] RUNNING WITH SUPRESSED OUTPUT')
