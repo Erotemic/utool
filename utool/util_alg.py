@@ -247,6 +247,10 @@ def product_nonsame(list1, list2):
             yield (item1, item2)
 
 
+def product_nonsame_self(list_):
+    return product_nonsame(list_, list_)
+
+
 def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
     """
     greedy algorithm for maximum independent set cover
