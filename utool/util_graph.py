@@ -5,6 +5,22 @@ from utool import util_inject
 (print, rrr, profile) = util_inject.inject2(__name__, '[depgraph_helpers]')
 
 
+def nx_common_descendants(graph, node1, node2):
+    import networkx as nx
+    descendants1 = nx.descendants(graph, node1)
+    descendants2 = nx.descendants(graph, node2)
+    common_descendants = set.intersection(descendants1, descendants2)
+    return common_descendants
+
+
+def nx_common_ancestors(graph, node1, node2):
+    import networkx as nx
+    ancestors1 = nx.ancestors(graph, node1)
+    ancestors2 = nx.ancestors(graph, node2)
+    common_ancestors = set.intersection(ancestors1, ancestors2)
+    return common_ancestors
+
+
 def nx_transitive_reduction(G, mode=1):
     """
     References:
