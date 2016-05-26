@@ -589,6 +589,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
    Debug:
        # fix profile with doctest
        utprof.py -m utool --tf iter_module_doctestable --modname=utool.util_inspect --debugkey=zzz_profiled_is_yes
+       utprof.py -m utool --tf iter_module_doctestable --modname=ibeis.algo.hots.chip_match --debugkey=to_json
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -673,7 +674,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
                     # </DEBUG>
                     # Unbound methods are still typed as functions
                     if isinstance(subval, valid_func_types):
-                        if not include_inherited and not is_defined_by_module(subval, module):
+                        if not include_inherited and not is_defined_by_module(subval, module, parent=val):
                             continue
                         if isinstance(subval, (staticmethod)):
                             subval.__func__.__ut_parent_class__ = class_
@@ -709,7 +710,7 @@ def is_defined_by_module2(item, module):
     return belongs
 
 
-def is_defined_by_module(item, module):
+def is_defined_by_module(item, module, parent=None):
     """
     Check if item is directly defined by a module.
     This check may be prone to errors.
@@ -730,7 +731,7 @@ def is_defined_by_module(item, module):
     elif hasattr(item, '_utinfo'):
         # Capture case where there is a utool wrapper
         orig_func = item._utinfo['orig_func']
-        flag = is_defined_by_module(orig_func, module)
+        flag = is_defined_by_module(orig_func, module, parent)
     else:
         if isinstance(item, staticmethod):
             # static methods are a wrapper around a function
@@ -739,8 +740,14 @@ def is_defined_by_module(item, module):
             func_globals = meta_util_six.get_funcglobals(item)
             func_module_name = func_globals['__name__']
             if func_module_name == 'line_profiler':
-                if item.func_name in dir(module) and len(item.func_name) > 8:
-                    flag = True
+                valid_names = dir(module)
+                if parent is not None:
+                    valid_names += dir(parent)
+                if item.func_name in valid_names:
+                    # hack to prevent small names
+                    #if len(item.func_name) > 8:
+                    if len(item.func_name) > 6:
+                        flag = True
             elif func_module_name == module.__name__:
                 flag = True
         except  AttributeError:

@@ -802,9 +802,9 @@ def parse_docblocks_from_docstr(docstr):
         docstr_blocks.append((header, docblock, line_offset))
     #print(docstr_blocks)
 
-    docblock_headers = ut.get_list_column(docstr_blocks, 0)
-    docblock_bodys = ut.get_list_column(docstr_blocks, 1)
-    docblock_offsets = ut.get_list_column(docstr_blocks, 2)
+    docblock_headers = ut.take_column(docstr_blocks, 0)
+    docblock_bodys = ut.take_column(docstr_blocks, 1)
+    docblock_offsets = ut.take_column(docstr_blocks, 2)
 
     if VERBOSE_TEST:
         print('[util_test]   * found %d docstr_blocks' % (len(docstr_blocks),))
@@ -1324,7 +1324,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         print('Now we need to find which examples are enabled')
         print('len(local_testtup_list) = %r' % (len(local_testtup_list),))
         print('local_testtup_list.T[0:2].T = %s' %
-              ut.list_str(ut.get_list_column(local_testtup_list, [0, 1])))
+              ut.list_str(ut.take_column(local_testtup_list, [0, 1])))
         print('sys.argv = %r' % (sys.argv,))
     all_testflags = []
     enabled_testtup_list = []

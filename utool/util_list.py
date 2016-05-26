@@ -125,7 +125,7 @@ def get_list_column_slice(list_, start=None, stop=None, stride=None):
     return list(util_iter.iget_list_column_slice(list_, start, stop, stride))
 
 
-def get_list_column(list_, colx):
+def take_column(list_, colx):
     r"""
     accepts a list of (indexables) and returns a list of indexables
     can also return a list of list of indexables if colx is a list
@@ -138,14 +138,14 @@ def get_list_column(list_, colx):
         list: list of selected items
 
     CommandLine:
-        python -m utool.util_list --test-get_list_column
+        python -m utool.util_list --test-take_column
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [['a', 'b'], ['c', 'd']]
         >>> colx = 0
-        >>> result = get_list_column(list_, colx)
+        >>> result = take_column(list_, colx)
         >>> import utool as ut
         >>> result = ut.list_str(result, nl=False)
         >>> print(result)
@@ -156,7 +156,7 @@ def get_list_column(list_, colx):
         >>> from utool.util_list import *  # NOQA
         >>> list_ = [['a', 'b'], ['c', 'd']]
         >>> colx = [1, 0]
-        >>> result = get_list_column(list_, colx)
+        >>> result = take_column(list_, colx)
         >>> import utool as ut
         >>> result = ut.list_str(result, nl=False)
         >>> print(result)
@@ -168,7 +168,7 @@ def get_list_column(list_, colx):
         >>> list_ = [{'spam': 'EGGS', 'ham': 'SPAM'}, {'spam': 'JAM', 'ham': 'PRAM'},]
         >>> # colx can be a key or list of keys as well
         >>> colx = ['spam']
-        >>> result = get_list_column(list_, colx)
+        >>> result = take_column(list_, colx)
         >>> import utool as ut
         >>> result = ut.list_str(result, nl=False)
         >>> print(result)
@@ -182,7 +182,7 @@ def get_list_column(list_, colx):
     #    return [row[colx] for row in list_]
 
 
-take_column = get_list_column
+get_list_column = take_column
 #def get_list_row(list_, rowx):
 #    return list_[rowx]
 
