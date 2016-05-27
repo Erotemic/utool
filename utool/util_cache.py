@@ -554,6 +554,26 @@ def to_json(val, allow_pickle=False):
 def from_json(json_str, allow_pickle=False):
     """
     Decodes a JSON object specified in the utool convention
+
+    Args:
+        json_str (str):
+        allow_pickle (bool): (default = False)
+
+    Returns:
+        object: val
+
+    CommandLine:
+        python -m utool.util_cache from_json --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> import utool as ut
+        >>> json_str = 'just a normal string'
+        >>> allow_pickle = False
+        >>> val = from_json(json_str, allow_pickle)
+        >>> result = ('val = %s' % (ut.repr2(val),))
+        >>> print(result)
     """
     UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
     object_hook = UtoolJSONEncoder._json_object_hook
