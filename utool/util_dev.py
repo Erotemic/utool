@@ -1061,6 +1061,27 @@ def grace_period(msg='', seconds=10):
     return True
 
 
+def delayed_retry_gen(delay_schedule=[.1, 1, 10], timeout=None):
+    """ template code for a infinte retry loop """
+    import utool as ut
+    import time
+    if not ut.isiterable(delay_schedule):
+        delay_schedule = [delay_schedule]
+    tt = ut.tic()
+
+    # First attempt is immediate
+    yield 0
+
+    for count in itertools.count(0):
+        print('count = %r' % (count,))
+        if timeout is not None and ut.toc(tt) > timeout:
+            raise Exception('Retry loop timed out')
+        index = min(count, len(delay_schedule) - 1)
+        delay = delay_schedule[index]
+        time.sleep(delay)
+        yield count + 1
+
+
 def tuples_to_unique_scalars(tup_list):
     seen = {}
     def addval(tup):
