@@ -582,7 +582,12 @@ class ProgressIter(object):
             print('---------')
         start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl, backspace=self.backspace))
         start_msg = start_msg_fmt.format(count=self.parent_offset)
-        PROGRESS_FLUSH()
+        try:
+            PROGRESS_FLUSH()
+        except IOError as ex:
+            # There is some weird error when doing progress in IPython notebook
+            if util_arg.VERBOSE:
+                print('IOError flushing %s' % (ex,))
         #PROGRESS_WRITE(start_msg)
         PROGRESS_WRITE(start_msg + '\n')
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
@@ -593,7 +598,8 @@ class ProgressIter(object):
             PROGRESS_FLUSH()
         except IOError as ex:
             # There is some weird error when doing progress in IPython notebook
-            print('IOError flushing %s' % (ex,))
+            if util_arg.VERBOSE:
+                print('IOError flushing %s' % (ex,))
             #print('PROGRESS_FLUSH = %r' % (PROGRESS_FLUSH,))
             #import utool as ut
             #ut.debug_logging_iostreams()
