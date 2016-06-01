@@ -712,7 +712,8 @@ class ProgressIter(object):
                 try:
                     PROGRESS_FLUSH()
                 except IOError as ex:
-                    print('IOError flushing %s' % (ex,))
+                    if util_arg.VERBOSE:
+                        print('IOError flushing %s' % (ex,))
                 if self.prog_hook is not None:
                     self.prog_hook(self.count, nTotal)
         # --- end of main loop
@@ -740,7 +741,8 @@ class ProgressIter(object):
             try:
                 PROGRESS_FLUSH()
             except IOError as ex:
-                print('IOError flushing %s' % (ex,))
+                if util_arg.VERBOSE:
+                    print('IOError flushing %s' % (ex,))
             #PROGRESS_WRITE('\nComplete(2)\n')
         if not self.backspace:
             PROGRESS_WRITE('\n')
