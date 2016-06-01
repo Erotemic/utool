@@ -197,6 +197,7 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
             new_argv = [flag]
             argv = argv[:] + new_argv
             if debug:
+                print('ENV SPECIFIED COMMAND LINE')
                 print('argv.extend(new_argv=%r)' % (new_argv,))
 
     for argstr in argstr_list:
