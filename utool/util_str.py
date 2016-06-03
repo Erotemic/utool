@@ -816,7 +816,7 @@ def newlined_list(list_, joinstr=', ', textwidth=160):
 
 
 def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
-             packkw=None):
+             packkw=None, truncate=False):
     """
     string representation of function definition
 
@@ -853,12 +853,22 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     """
     #repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     import utool as ut
+    # if truncate:
+    # truncatekw = {'maxlen': 20}
+    # else:
+    truncatekw = {}
+
     argrepr_list = ([] if args is None else
-                    ut.get_itemstr_list(args, with_comma=False, nl=False))
+                    ut.get_itemstr_list(args, with_comma=False, nl=False,
+                                        truncate=truncate,
+                                        truncatekw=truncatekw))
     kwrepr_list = ([] if kwargs is None else
                    ut.dict_itemstr_list(kwargs, explicit=True,
-                                        with_comma=False, nl=False))
+                                        with_comma=False, nl=False,
+                                        truncate=truncate,
+                                        truncatekw=truncatekw))
     repr_list = argrepr_list + kwrepr_list
+
     #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     argskwargs_str = ', '.join(repr_list)
     _str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)

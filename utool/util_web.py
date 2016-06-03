@@ -84,6 +84,21 @@ def start_simple_webserver(domain=None, port=5832):
     tornado.ioloop.IOLoop.instance().start()
 
 
+def render_html(html_str):
+    """
+    makes a temporary html rendering
+    """
+    import utool as ut
+    from os.path import abspath
+    import webbrowser
+
+    html_dpath = ut.ensure_app_resource_dir('utool', 'temp_html')
+    fpath = abspath(ut.unixjoin(html_dpath, 'temp.html'))
+    url = 'file://' + fpath
+    ut.writeto(fpath, html_str)
+    webbrowser.open(url)
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
