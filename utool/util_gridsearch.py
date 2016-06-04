@@ -74,6 +74,7 @@ class CountstrParser(object):
         for part in and_parts:
             prop_nid2_result = self.parse_countstr_binop(part)
             prop_nid2_result_list.append(prop_nid2_result)
+        import utool as ut
         # change to dict_union when parsing ors
         andcombine = functools.partial(
             ut.dict_isect_combine, combine_op=operator.and_)
