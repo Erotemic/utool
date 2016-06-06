@@ -187,6 +187,18 @@ get_list_column = take_column
 #    return list_[rowx]
 
 
+def safeapply(func, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except Exception:
+        return None
+
+
+def safelen(list_):
+    return safeapply(len, list_)
+    #return None if list_ is None else len(list_)
+
+
 def safe_listget(list_, index, default='?'):
     """ depricate """
     if index >= len(list_):
