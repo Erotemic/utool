@@ -1737,14 +1737,59 @@ def ungroup(grouped_items, groupxs, maxval=None):
 
 
 def edit_distance(string1, string2):
-    # Edit distance algorithm
+    """
+    Edit distance algorithm. String1 and string2 can be either
+    strings or lists of strings
+
+    pip install python-Levenshtein
+
+    Args:
+        string1 (str or list):
+        string2 (str or list):
+
+    CommandLine:
+        python -m utool.util_alg edit_distance --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> string1 = 'hello world'
+        >>> string2 = ['goodbye world', 'rofl', 'hello', 'world', 'lowo']
+        >>> edit_distance(['hello', 'one'], ['goodbye', 'two'])
+        >>> edit_distance('hello', ['goodbye', 'two'])
+        >>> edit_distance(['hello', 'one'], 'goodbye')
+        >>> edit_distance('hello', 'goodbye')
+        >>> distmat = edit_distance(string1, string2)
+        >>> result = ('distmat = %s' % (ut.repr2(distmat),))
+        >>> print(result)
+        >>> [7, 9, 6, 6, 7]
+    """
+
+    import utool as ut
     try:
         import Levenshtein
     except ImportError as ex:
-        import utool as ut
         ut.printex(ex, 'pip install Levenshtein')
         raise
-    return Levenshtein.distance(string1, string2)
+    #np.vectorize(Levenshtein.distance, [np.int])
+    #vec_lev = np.frompyfunc(Levenshtein.distance, 2, 1)
+    #return vec_lev(string1, string2)
+    import utool as ut
+    isiter1 = ut.isiterable(string1)
+    isiter2 = ut.isiterable(string2)
+    strs1 = string1 if isiter1 else [string1]
+    strs2 = string2 if isiter2 else [string2]
+    distmat = [
+        [Levenshtein.distance(str1, str2) for str2 in strs2]
+        for str1 in strs1
+    ]
+    # broadcast
+    if not isiter2:
+        distmat = ut.take_column(distmat, 0)
+    if not isiter1:
+        distmat = distmat[0]
+    return distmat
 
 
 def get_nth_bell_number(n):

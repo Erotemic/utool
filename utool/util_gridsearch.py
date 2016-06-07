@@ -126,11 +126,13 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
     return cfg_list
 
 
-def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname', checkname=False):
+def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname',
+                        checkname=False):
     r"""
     Args:
         cfg_list (list):
         default_cfg (None): (default = None)
+        checkname (bool): if True removes names if they are all the same.
 
     Returns:
         list: cfglbl_list
@@ -151,11 +153,11 @@ def get_varied_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname', checknam
         >>> print(result)
         cfglbl_list = ['test:f=1', 'test:f=2', 'test:f=3,z=4']
     """
+    import utool as ut
     try:
         cfgname_list = [cfg[mainkey] for cfg in cfg_list]
     except KeyError:
         cfgname_list = [''] * len(cfg_list)
-    import utool as ut
     varied_cfg_list = partition_varied_cfg_list(cfg_list, default_cfg)[1]
     if checkname and ut.allsame(cfgname_list):
         cfgname_list = [None] * len(cfgname_list)
@@ -205,6 +207,8 @@ def get_nonvaried_cfg_lbls(cfg_list, default_cfg=None, mainkey='_cfgname'):
 
 def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     r"""
+    Separates varied from non-varied parameters in a list of configs
+
     TODO: partition nested configs
 
     CommandLine:
@@ -256,7 +260,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     return nonvaried_cfg, varied_cfg_list
 
 
-def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
+def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, with_name=True):
     r"""
     Formats a flat configuration dict into a short string label
 
@@ -305,6 +309,8 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None):
     _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
     _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True, key_order=key_order)
     _lbl = ut.multi_replace(_lbl, _search, _repl).rstrip(',')
+    if not with_name:
+        return _lbl
     if NAMEVARSEP in name:
         # hack for when name contains a little bit of the _lbl
         # VERY HACKY TO PARSE OUT PARTS OF THE GIVEN NAME.
