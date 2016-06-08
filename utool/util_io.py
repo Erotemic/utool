@@ -39,6 +39,8 @@ def load_data(fpath, **kwargs):
     ext = splitext(fpath)[1]
     if ext in ['.pickle', '.cPkl', '.pkl']:
         return load_cPkl(fpath, **kwargs)
+    elif ext in ['.json']:
+        return load_json(fpath, **kwargs)
     elif ext in ['.hdf5']:
         return load_hdf5(fpath, **kwargs)
     elif ext in ['.txt']:
@@ -54,6 +56,8 @@ def save_data(fpath, data, **kwargs):
     ext = splitext(fpath)[1]
     if ext in ['.pickle', '.cPkl', '.pkl']:
         return save_cPkl(fpath, data, **kwargs)
+    elif ext in ['.json']:
+        return save_json(fpath, data, **kwargs)
     elif ext in ['.hdf5']:
         return save_hdf5(fpath, data, **kwargs)
     elif ext in ['.txt']:
@@ -196,6 +200,19 @@ readfrom = read_from
 writeto = write_to
 save_text = write_to
 load_text = read_from
+
+
+def save_json(fpath, data, **kwargs):
+    import utool as ut
+    json_data = ut.to_json(data, **kwargs)
+    ut.save_text(fpath, json_data)
+
+
+def load_json(fpath):
+    import utool as ut
+    json_data = ut.load_text(fpath)
+    data = ut.from_json(json_data)
+    return data
 
 
 def save_cPkl(fpath, data, verbose=None, n=2):

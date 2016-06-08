@@ -18,7 +18,8 @@ from os.path import join, normpath, basename, exists
 #import functools
 from functools import partial
 from itertools import chain
-from zipfile import error as BadZipFile  # Screwy naming convention.
+#from zipfile import error as BadZipFile  # Screwy naming convention.
+import zipfile
 from utool import util_arg
 from utool import util_hash
 from utool import util_inject
@@ -30,10 +31,10 @@ from utool import util_inspect
 from utool import util_list
 from utool import util_class  # NOQA
 from utool import util_type
-from utool import util_decor
+from utool import util_decor   # NOQA
 from utool import util_dict
 from utool._internal import meta_util_constants
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
+print, rrr, profile = util_inject.inject2(__name__, '[cache]')
 
 
 # TODO: Remove globalness
@@ -409,6 +410,7 @@ def make_utool_json_encoder(allow_pickle=False):
         http://stackoverflow.com/questions/24369666/typeerror-b1
         http://stackoverflow.com/questions/30469575/how-to-pickle
     """
+    import utool as ut
     PYOBJECT_TAG = '__PYTHON_OBJECT__'
     UUID_TAG = '__UUID__'
     SLICE_TAG = '__SLICE__'
@@ -430,16 +432,26 @@ def make_utool_json_encoder(allow_pickle=False):
 
     tag_to_type = {tag: type_ for type_, tag in type_to_tag.items()}
 
+    def slice_part(c):
+        return '' if c is None else str(c)
+
+    def encode_slice(s):
+        parts = [slice_part(s.start), slice_part(s.stop), slice_part(s.step)]
+        return ':'.join(parts)
+
+    def decode_slice(x):
+        return ut.smart_cast(x, slice)
+
     encoders = {
         UUID_TAG: str,
         PYOBJECT_TAG: encode_pickle,
-        SLICE_TAG: lambda s: ':'.join([str(s.start), str(s.stop), str(s.step)])
+        SLICE_TAG: encode_slice
     }
 
     decoders = {
         UUID_TAG: uuid.UUID,
         PYOBJECT_TAG: decode_pickle,
-        SLICE_TAG: lambda x: ut.smart_cast(x, slice),
+        SLICE_TAG: decode_slice,
     }
 
     if not allow_pickle:
@@ -475,6 +487,7 @@ def make_utool_json_encoder(allow_pickle=False):
 
         @classmethod
         def _json_object_hook(cls, value, verbose=False, **kwargs):
+            print('value = %r' % (value,))
             if len(value) == 1:
                 tag, text = list(value.items())[0]
                 if tag in decoders:
@@ -493,7 +506,7 @@ def make_utool_json_encoder(allow_pickle=False):
     return UtoolJSONEncoder
 
 
-def to_json(val, allow_pickle=False):
+def to_json(val, allow_pickle=False, pretty=False):
     r"""
     Converts a python object to a JSON string using the utool convention
 
@@ -528,13 +541,16 @@ def to_json(val, allow_pickle=False):
         >>>    ut.LazyDict,
         >>> ]
         >>> #val = ut.LazyDict(x='fo')
-        >>> json_str = ut.to_json(val, allow_pickle=True)
+        >>> allow_pickle = True
+        >>> if not allow_pickle:
+        >>>     val = val[:-2]
+        >>> json_str = ut.to_json(val, allow_pickle=allow_pickle)
         >>> result = ut.repr3(json_str)
-        >>> reload_val = ut.from_json(json_str, allow_pickle=True)
+        >>> reload_val = ut.from_json(json_str, allow_pickle=allow_pickle)
         >>> # Make sure pickle doesnt happen by default
         >>> try:
         >>>     json_str = ut.to_json(val)
-        >>>     assert False, 'expected a type error'
+        >>>     assert False or not allow_pickle, 'expected a type error'
         >>> except TypeError:
         >>>     print('Correctly got type error')
         >>> try:
@@ -545,9 +561,16 @@ def to_json(val, allow_pickle=False):
         >>> print(result)
         >>> print('original = ' + ut.repr3(val, nl=1))
         >>> print('reconstructed = ' + ut.repr3(reload_val, nl=1))
+        >>> assert reload_val[6] == val[6]
+        >>> assert reload_val[6] is not val[6]
     """
     UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
-    json_str = json.dumps(val, cls=UtoolJSONEncoder)
+    json_kw = {}
+    json_kw['cls'] = UtoolJSONEncoder
+    if pretty:
+        json_kw['indent'] = 4
+        json_kw['separators'] = (',', ': ')
+    json_str = json.dumps(val, **json_kw)
     return json_str
 
 
@@ -1058,7 +1081,8 @@ class Cachable(object):
             print('CORRUPT fpath = %s' % (fpath,))
             ut.printex(ex, msg, iswarning=True)
             raise
-        except BadZipFile as ex:
+        #except BadZipFile as ex:
+        except zipfile.error as ex:
             import utool as ut
             msg = '[!Cachable] Cachable(%s) has bad zipfile' % (self.get_cfgstr())
             print('CORRUPT fpath = %s' % (fpath,))

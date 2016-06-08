@@ -949,7 +949,8 @@ class ParamInfo(util_dev.NiceRepr):
     """
     def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
                  type_=util_dev.NoParam, varyvals=[], varyslice=None,
-                 hideif=util_dev.NoParam, help_=None, valid_values=None):
+                 hideif=util_dev.NoParam, help_=None, valid_values=None,
+                 none_ok=True):
         r"""
         Args:
             varname (?):
@@ -981,6 +982,7 @@ class ParamInfo(util_dev.NiceRepr):
         # for gridsearch
         pi.varyvals = varyvals
         pi.varyslice = varyslice
+        pi.none_ok = none_ok
         if valid_values is not None:
             if default not in valid_values:
                 # hack
@@ -997,6 +999,8 @@ class ParamInfo(util_dev.NiceRepr):
     def error_if_invalid_value(pi, value):
         """ Checks if a value for this param is valid """
         from utool import util_type
+        if pi.none_ok and value is None:
+            return True
         if pi.valid_values is not None:
             if value not in pi.valid_values:
                 raise ValueError('pi=%r, value=%r not in valid_values=%r' %
@@ -1009,6 +1013,8 @@ class ParamInfo(util_dev.NiceRepr):
     def cast_to_valid_type(pi, value):
         """ Checks if a value for this param is valid """
         from utool import util_type
+        if pi.none_ok and value is None:
+            return True
         if pi.valid_values is not None:
             if value not in pi.valid_values:
                 raise ValueError('pi=%r, value=%r not in valid_values=%r' %

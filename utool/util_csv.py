@@ -284,7 +284,13 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
                     col_str = [six.text_type(c).replace(',', comma_repl) for c in col]
             else:
                 print('[csv] is_unknown coltype=%r' % (coltype,))
-                col_str = [six.text_type(c) for c in (col)]
+                try:
+                    col_str = [six.text_type(c) for c in (col)]
+                except UnicodeDecodeError:
+                    try:
+                        col_str = [ut.ensure_unicode(c) for c in (col)]
+                    except Exception:
+                        col_str = [repr(c) for c in (col)]
             col_lens = [len(s) for s in (col_str)]
             max_len  = max(col_lens)
             if use_lbl_width:

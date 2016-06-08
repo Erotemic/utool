@@ -1366,6 +1366,7 @@ def nx_ensure_agraph_color(graph):
                 else:
                     data['color'] = '#%02x%02x%02x%02x' % color
         except Exception as ex:
+            import utool as ut
             ut.printex(ex, keys=['color', 'orig_color', 'data'])
             raise
 

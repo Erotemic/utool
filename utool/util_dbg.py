@@ -991,7 +991,8 @@ TB = util_arg.get_flag('--tb')
 
 def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             locals_=None, iswarning=False, tb=TB, pad_stdout=True, N=0,
-            use_stdout=False, reraise=False, msg_=None, keys=None, colored=None):
+            use_stdout=False, reraise=False, msg_=None, keys=None,
+            colored=None):
     """
     Prints (and/or logs) an exception with relevant info
 
@@ -1013,10 +1014,9 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     Returns:
         None
     """
+    import utool as ut
     if isinstance(ex, MemoryError):
-        import utool as ut
         ut.print_resource_usage()
-    #ut.embed()
     if keys is not None:
         # shorthand for key_list
         key_list = keys
@@ -1037,7 +1037,6 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
             sys.stdout.write(msg + '\n')
             sys.stdout.flush()
     else:
-        import utool as ut
         print_func = ut.partial(ut.colorprint, color='yellow' if iswarning else 'red')
         # print_func = print
     if pad_stdout:
@@ -1051,6 +1050,11 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         sys.stdout.flush()
         sys.stderr.flush()
         raise ex
+    if ut.get_argflag('--exit-on-error'):
+        print('WARNING: dont use this flag. Some errors are meant to be caught')
+        ut.print_traceback()
+        print('REQUESTED EXIT ON ERROR')
+        sys.exit(1)
 
 
 def formatex(ex, msg='[!?] Caught exception',

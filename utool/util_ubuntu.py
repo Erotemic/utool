@@ -28,9 +28,12 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
         python -m utool.util_ubuntu --exec-add_new_mimetype_association --mime-name=ipynb+json --ext=.ipynb --exe-fpath=/usr/local/bin/ipynb
         python -m utool.util_ubuntu --exec-add_new_mimetype_association --mime-name=ipynb+json --ext=.ipynb --exe-fpath=jupyter-notebook --force
 
+        python -m utool.util_ubuntu --exec-add_new_mimetype_association --mime-name=sqlite --ext=.sqlite --exe-fpath=sqlitebrowser
+
     Example:
         >>> # SCRIPT
         >>> from utool.util_ubuntu import *  # NOQA
+        >>> import utool as ut
         >>> ext = ut.get_argval('--ext', type_=str, default=None)
         >>> mime_name = ut.get_argval('--mime_name', type_=str, default=None)
         >>> exe_fpath = ut.get_argval('--exe_fpath', type_=str, default=None)
