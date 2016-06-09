@@ -2352,6 +2352,10 @@ def search_module(mod, pat, ignore_case=True, recursive=False, _seen=None):
         >>> found_list = search_module(mod, pat, recursive=recursive)
         >>> result = ('found_list = %s' % (ut.repr2(found_list),))
         >>> print(result)
+
+    Ignore:
+        mod = cv2
+        pat = 'freak'
     """
     if _seen is not None and mod in _seen:
         return []

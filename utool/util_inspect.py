@@ -718,7 +718,13 @@ def is_defined_by_module(item, module, parent=None):
     flag = False
     if isinstance(item, types.ModuleType):
         if not hasattr(item, '__file__'):
-            flag = False
+            try:
+                # hack for cv2 and xfeatures2d
+                import utool as ut
+                name = ut.get_modname_from_modpath(module.__file__)
+                flag = name in str(item)
+            except:
+                flag = False
         else:
             item_modpath = os.path.realpath(dirname(item.__file__))
             mod_fpath = module.__file__.replace('.pyc', '.py')
@@ -1026,6 +1032,46 @@ def prettyprint_parsetree(pt):
     #astdump.indented(pt)
     #print(ast.dump(pt, include_attributes=True))
     print(astor.dump(pt))
+
+
+def special_parse_process_python_code(sourcecode):
+    r"""
+    pip install redbaron
+    http://stackoverflow.com/questions/7456933/python-ast-with-preserved-comments
+
+    CommandLine:
+        python -m utool.util_inspect special_parse_process_python_code --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> sourcecode = ut.read_from(ut.util_inspect.__file__)
+        >>> result = special_parse_process_python_code(sourcecode)
+        >>> print(result)
+    """
+    import ast
+    import astor
+    #sourcecode = 'from __future__ import print_function\n' + sourcecode
+    sourcecode_ = sourcecode.encode('utf8')
+    pt = ast.parse(sourcecode_, 'testfile')
+
+    generator = astor.codegen.SourceGenerator(' ' * 4)
+    generator.visit(pt)
+    resturctured_source = (''.join(generator.result))
+    print(resturctured_source)
+
+    visitor = ast.NodeVisitor()
+    visitor.visit(pt)
+
+    import redbaron
+    # Pares a FULL syntax tree that keeps blockcomments
+    baron = redbaron.RedBaron(sourcecode)
+    #fst = baron.fst()
+    node = (baron.node_list[54])  # NOQA
+    [n.type for n in baron.node_list]
+
+    #class SpecialVisitor(ast.NodeVisitor):
 
 
 def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
