@@ -1534,6 +1534,7 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
 def execstr_func_doctest(func, num=0, start_sentinal=None, end_sentinal=None):
     """
     execs a func doctest and returns requested local vars.
+        >>> from utool.util_inspect import *  # NOQA
 
     func = encoder.learn_threshold2
     num = 0
@@ -1543,8 +1544,14 @@ def execstr_func_doctest(func, num=0, start_sentinal=None, end_sentinal=None):
     import utool as ut
     docsrc = ut.get_doctest_examples(func)[num][0]
     lines = docsrc.split('\n')
-    linex1 = ut.where([x.startswith(start_sentinal) for x in lines])[0]
-    linex2 = ut.where([x.startswith(end_sentinal) for x in lines])[0]
+    if start_sentinal is None:
+        linex1 = 0
+    else:
+        linex1 = ut.where([x.startswith(start_sentinal) for x in lines])[0]
+    if end_sentinal is None:
+        linex2 = len(lines)
+    else:
+        linex2 = ut.where([x.startswith(end_sentinal) for x in lines])[0]
     docsrc_part = '\n'.join(lines[linex1:linex2])
     return docsrc_part
 
