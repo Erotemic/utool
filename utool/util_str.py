@@ -900,7 +900,7 @@ def func_defsig(func, with_name=True):
         >>> defsig = func_defsig(func)
         >>> result = str(defsig)
         >>> print(result)
-        func_str(func, args=[], kwargs={}, type_aliases=[], packed=False, packkw=None)
+        func_str(func, args=[], kwargs={}, type_aliases=[], packed=False, packkw=None, truncate=False)
     """
     import inspect
     argspec = inspect.getargspec(func)
@@ -931,7 +931,7 @@ def func_callsig(func, with_name=True):
         >>> callsig = func_callsig(func)
         >>> result = str(callsig)
         >>> print(result)
-        func_str(func, args, kwargs, type_aliases, packed, packkw)
+        func_str(func, args, kwargs, type_aliases, packed, packkw, truncate)
     """
     import inspect
     argspec = inspect.getargspec(func)
