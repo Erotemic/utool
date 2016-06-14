@@ -188,6 +188,7 @@ def determine_timestamp_format(datetime_str):
         >>>     '2080/04/01 00:00:00',
         >>>     '2005-10-27T14:35:20+02:00',
         >>>     '6:35:01\x002006:03:19 1',
+        >>>     '2016/05/03 16:34:57 EST'
         >>> ]
         >>> result = ut.list_str([determine_timestamp_format(datetime_str)
         >>>            for datetime_str in datetime_str_list])
