@@ -2528,6 +2528,12 @@ def make_index_lookup(list_, dict_factory=dict):
     return dict_factory(zip(list_, range(len(list_))))
 
 
+def list_alignment(list1, list2):
+    idx2_item1 = make_index_lookup(list1)
+    sortx = take(idx2_item1, list2)
+    return sortx
+
+
 def list_transpose(list_):
     r"""
     Swaps rows and columns
@@ -2793,11 +2799,78 @@ def list_strip(list_, to_strip, left=True, right=True):
     return stripped_list
 
 
+def insert_values(list_, index, values, inplace=False):
+    if inplace:
+        assert False
+        del list_[index]
+        for new in values[::-1]:
+            list_.insert(index, new)
+    else:
+        left_part = list_[:index]
+        right_part = list_[index + 1:]
+        new_list = left_part + values + right_part
+    return new_list
+
+
 #def partition2(list_, idxs1, idxs2):
 #    list1_ = ut.take(list_, idxs1)
 #    list2_ = list(zip(ut.take(list_, idxs2)))
 #    partitioned_items = [list1_, list2_]
 #    return partitioned_items
+
+
+#class ListLike(object):
+#    """
+#    similar to DictLike
+#    """
+
+#    def getitem(self, index):
+#        raise NotImplementedError('abstract getitem function')
+
+#    def setitem(self, index, value):
+#        raise NotImplementedError('abstract setitem function')
+
+#    def append(self, value):
+#        raise NotImplementedError('Unfinished')
+
+#    def insert(self, index, value):
+#        raise NotImplementedError('Unfinished')
+
+#    def extend(self, values):
+#        raise NotImplementedError('Unfinished')
+
+#    def pop(self, value):
+#        raise NotImplementedError('Unfinished')
+
+#    def remove(self, value):
+#        raise NotImplementedError('Unfinished')
+
+#    def reverse(self, value):
+#        raise NotImplementedError('Unfinished')
+
+#    def sort(self, value):
+#        raise NotImplementedError('Unfinished')
+
+#    def aslist(self):
+#        return [self[idx] for idx in range(len(self))]
+
+#    def __repr__(self):
+#        return repr(self.aslist())
+
+#    def __str__(self):
+#        return str(self.aslist())
+
+#    def __len__(self):
+#        return len(list(self.keys()))
+
+#    def __contains__(self, key):
+#        return key in self.aslist()
+
+#    def __getitem__(self, key):
+#        return self.getitem(key)
+
+#    def __setitem__(self, key, value):
+#        return self.setitem(key, value)
 
 
 if __name__ == '__main__':

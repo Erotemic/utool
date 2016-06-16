@@ -21,6 +21,18 @@ def nx_common_ancestors(graph, node1, node2):
     return common_ancestors
 
 
+def nx_make_adj_matrix(G):
+    import utool as ut
+    nodes = list(G.nodes())
+    node2_idx = ut.make_index_lookup(nodes)
+    edges = list(G.edges())
+    edge2_idx = ut.partial(ut.dict_take, node2_idx)
+    uv_list = ut.lmap(edge2_idx, edges)
+    A = np.zeros((len(nodes), len(nodes)))
+    A[tuple(np.array(uv_list).T)] = 1
+    return A
+
+
 def nx_transitive_reduction(G, mode=1):
     """
     References:
@@ -782,12 +794,97 @@ def dag_longest_path(graph, source, target):
     return longest(allpaths)
 
 
+def simplify_graph(graph):
+    """
+    strips out everything but connectivity
+
+    Args:
+        graph (nx.Graph):
+
+    Returns:
+        nx.Graph: new_graph
+
+    CommandLine:
+        python -m utool.util_graph simplify_graph --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> graph = nx.DiGraph([('a', 'b'), ('a', 'c'), ('a', 'e'),
+        >>>                     ('a', 'd'), ('b', 'd'), ('c', 'e'),
+        >>>                     ('d', 'e'), ('c', 'e'), ('c', 'd')])
+        >>> new_graph = simplify_graph(graph)
+        >>> adj_list = list(nx.generate_adjlist(new_graph))
+        >>> result = ut.repr2(adj_list)
+        >>> print(result)
+        ['0 1 2 3 4', '1 3 4', '2 4', '3', '4 3']
+    """
+    import utool as ut
+    nodes = list(graph.nodes())
+    node_lookup = ut.make_index_lookup(nodes)
+    if graph.is_multigraph():
+        edges = list(graph.edges(keys=True))
+    else:
+        edges = list(graph.edges())
+    new_nodes = ut.take(node_lookup, nodes)
+    if graph.is_multigraph():
+        new_edges = [(node_lookup[e[0]], node_lookup[e[1]], e[2], {}) for e in edges]
+    else:
+        new_edges = [(node_lookup[e[0]], node_lookup[e[1]]) for e in edges]
+    cls = graph.__class__
+    new_graph = cls()
+    new_graph.add_nodes_from(new_nodes)
+    new_graph.add_edges_from(new_edges)
+    return new_graph
+
+
+def nx_to_adj_dict(graph):
+    import utool as ut
+    adj_dict = ut.ddict(list)
+    for u, edges in graph.adjacency():
+        adj_dict[u].extend(list(edges.keys()))
+    adj_dict = dict(adj_dict)
+    return adj_dict
+
+
+def nx_from_adj_dict(adj_dict, cls=None):
+    if cls is None:
+        import networkx as nx
+        cls = nx.DiGraph
+    nodes = list(adj_dict.keys())
+    edges = [(u, v) for u, adj in adj_dict.items() for v in adj]
+    graph = cls()
+    graph.add_nodes_from(nodes)
+    graph.add_edges_from(edges)
+    return graph
+
+
 def nx_dag_node_rank(graph, nodes=None):
     """
     Returns rank of nodes that define the "level" each node is on in a
     topological sort. This is the same as the Graphviz dot rank.
 
-    >>> from utool.util_graph import *  # NOQA
+    Ignore:
+        simple_graph = ut.simplify_graph(exi_graph)
+        adj_dict = ut.nx_to_adj_dict(simple_graph)
+        import plottool as pt
+        pt.qt4ensure()
+        pt.show_nx(graph)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> adj_dict = {0: [5], 1: [5], 2: [1], 3: [4], 4: [0], 5: [], 6: [4], 7: [9], 8: [6], 9: [1]}
+        >>> import networkx as nx
+        >>> nodes = [2, 1, 5]
+        >>> f_graph = ut.nx_from_adj_dict(adj_dict, nx.DiGraph)
+        >>> graph = f_graph.reverse()
+        >>> #ranks = ut.nx_dag_node_rank(graph, nodes)
+        >>> ranks = ut.nx_dag_node_rank(graph, nodes)
+        >>> result = ('ranks = %r' % (ranks,))
+        >>> print(result)
+        [3, 2, 1]
     """
     import utool as ut
     source = list(ut.nx_source_nodes(graph))[0]
@@ -799,6 +896,19 @@ def nx_dag_node_rank(graph, nodes=None):
     else:
         ranks = ut.dict_take(node_to_rank, nodes)
         return ranks
+
+
+def nx_topsort_rank(graph, nodes=None):
+    """
+    graph = inputs.exi_graph.reverse()
+    nodes = flat_node_order_
+    """
+    import networkx as nx
+    import utool as ut
+    topsort = list(nx.topological_sort(graph))
+    node_to_top_rank = ut.make_index_lookup(topsort)
+    toprank = ut.dict_take(node_to_top_rank, nodes)
+    return toprank
 
 
 def level_order(graph):
@@ -991,6 +1101,9 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
 
 
 def nx_all_nodes_between(graph, source, target, data=False):
+    """
+    Find all nodes with on paths between source and target.
+    """
     import utool as ut
     import networkx as nx
     if source is None:
@@ -1180,6 +1293,51 @@ def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
             if child not in visited_nodes:
                 visited_nodes.add(child)
                 queue.append((child, edges_iter(child)))
+        except StopIteration:
+            queue.popleft()
+
+
+def bfs_conditional(G, source, reverse=False, keys=True, data=False,
+                    yield_nodes=True, yield_condition=None,
+                    continue_condition=None):
+    """
+    Produce edges in a breadth-first-search starting at source, but only return
+    nodes that satisfiy a condition, and only iterate past a node if it
+    satisfies a different condition.
+
+    conditions are callables that take (G, child, edge) and return true or false
+
+    """
+    from collections import deque
+    from functools import partial
+    if reverse:
+        G = G.reverse()
+    #edges_iter = partial(G.edges_iter, keys=keys, data=data)
+    edges_iter = partial(G.edges, keys=keys, data=data)
+
+    #list(G.edges_iter('multitest', keys=True, data=True))
+
+    visited_nodes = set([source])
+    # visited_edges = set([])
+    queue = deque([(source, edges_iter(source))])
+    while queue:
+        parent, edges = queue[0]
+        try:
+            edge = next(edges)
+            edge_nodata = edge[0:3]
+            # if edge_nodata not in visited_edges:
+            # visited_edges.add(edge_nodata)
+            child = edge_nodata[1]
+            if yield_condition is None or yield_condition(G, child, edge):
+                if yield_nodes:
+                    yield child
+                else:
+                    yield edge
+            # Add children to queue if the condition is satisfied
+            if continue_condition is None or continue_condition(G, child, edge):
+                if child not in visited_nodes:
+                    visited_nodes.add(child)
+                    queue.append((child, edges_iter(child)))
         except StopIteration:
             queue.popleft()
 

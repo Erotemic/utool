@@ -487,7 +487,7 @@ def make_utool_json_encoder(allow_pickle=False):
 
         @classmethod
         def _json_object_hook(cls, value, verbose=False, **kwargs):
-            print('value = %r' % (value,))
+            #print('value = %r' % (value,))
             if len(value) == 1:
                 tag, text = list(value.items())[0]
                 if tag in decoders:
