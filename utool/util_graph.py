@@ -420,7 +420,11 @@ def find_odd_cycle():
     import plottool as pt
     scc_list = list(nx.strongly_connected_components(G))
 
-    node_colors = {node: color for scc, color in zip(scc_list, pt.distinct_colors(len(scc_list))) for node in scc}
+    node_colors = {
+        node: color
+        for scc, color in zip(scc_list, pt.distinct_colors(len(scc_list)))
+        for node in scc
+    }
     nx.set_node_attributes(G, 'label', node_labels)
     nx.set_node_attributes(G, 'color', node_colors)
     #nx.set_edge_attributes(G, 'label', edge_labels)
@@ -1504,7 +1508,7 @@ def color_nodes(graph, labelattr='label'):
     lbl_to_color = dict(zip(unique_lbls, unique_colors))
     node_to_color = {node:  lbl_to_color[lbl] for node, lbl in node_to_lbl.items()}
     nx.set_node_attributes(graph, 'color', node_to_color)
-    nx_ensure_agraph_color(graph)
+    ut.nx_ensure_agraph_color(graph)
 
 
 def nx_ensure_agraph_color(graph):
@@ -1550,6 +1554,32 @@ def nx_edges(graph, keys=False, data=False):
         #if keys:
         #    edges = [e[0:2] + (0,) + e[:2] for e in edges]
     return edges
+
+
+def graph_info(graph, verbose=False):
+    import utool as ut
+    node_attrs = list(graph.node.values())
+    edge_attrs = list(ut.take_column(graph.edges(data=True), 2))
+    node_attr_hist = ut.dict_hist(ut.flatten([attr.keys() for attr in node_attrs]))
+    edge_attr_hist = ut.dict_hist(ut.flatten([attr.keys() for attr in edge_attrs]))
+    node_type_hist = ut.dict_hist(list(map(type, graph.nodes())))
+    info_dict = ut.odict([
+        ('directed', graph.is_directed()),
+        ('multi', graph.is_multigraph()),
+        ('num_nodes', len(graph)),
+        ('num_edges', len(list(graph.edges()))),
+        ('edge_attr_hist', edge_attr_hist),
+        ('node_attr_hist', node_attr_hist),
+        ('node_type_hist', node_type_hist),
+        ('graph_attrs', graph.graph),
+        ('graph_name', graph.name),
+    ])
+    #unique_attrs = ut.map_dict_vals(ut.unique, ut.dict_accum(*node_attrs))
+    #ut.dict_isect_combine(*node_attrs))
+    #[list(attrs.keys())]
+    if verbose:
+        print(ut.repr3(info_dict))
+    return info_dict
 
 
 if __name__ == '__main__':

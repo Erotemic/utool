@@ -32,6 +32,17 @@ def maplen(iter_):
     return list(map(len, iter_))
 
 
+def rebase_labels(label_list):
+    counter = itertools.count(0)
+    orig_to_new = {}
+    for label in sorted(label_list):
+        if label not in orig_to_new:
+            orig_to_new[label] = six.next(counter)
+    import utool as ut
+    rebased_labels = ut.take(orig_to_new, label_list)
+    return rebased_labels
+
+
 def replace_nones(list_, repl=-1):
     r"""
     Recursively removes Nones in all lists and sublists and replaces them with

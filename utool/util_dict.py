@@ -1198,6 +1198,13 @@ def dict_union_combine(dict1, dict2, combine_op=operator.add,
     return dict3
 
 
+def dict_accum(*dict_list):
+    accumulator = defaultdict(list)
+    for dict_ in dict_list:
+        for key, val in dict_.items():
+            accumulator[key].append(val)
+    return accumulator
+
 dict_isect = dict_intersection
 
 
