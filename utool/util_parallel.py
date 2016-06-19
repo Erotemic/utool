@@ -355,6 +355,15 @@ def ensure_pool(warn=False, quiet=QUIET):
         return init_pool(quiet=quiet)
 
 
+def futures_generate(func, args_list):
+    # Requries python2.7
+    # pip install futures
+    from concurrent import futures
+    with futures.ProcessPoolExecutor() as executor:
+        result_generator = executor.map(func, args_list)
+    return result_generator
+
+
 def generate(func, args_list, ordered=True, force_serial=None,
              chunksize=None, prog=True, verbose=True, quiet=QUIET, nTasks=None,
              freq=None, **kwargs):
@@ -396,6 +405,8 @@ def generate(func, args_list, ordered=True, force_serial=None,
         >>> #num = 8700  # parallel is slower for smaller numbers
         >>> num = 500  # parallel has an initial (~.1 second startup overhead)
         >>> print('TESTING SERIAL')
+        >>> func = ut.is_prime
+        >>> args_list = list(range(0, num))
         >>> flag_generator0 = ut.generate(ut.is_prime, range(0, num), force_serial=True, freq=num / 4)
         >>> flag_list0 = list(flag_generator0)
         >>> print('TESTING PARALLEL')
