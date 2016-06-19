@@ -123,7 +123,18 @@ def make_application_icon(exe_fpath, dry=True, props={}):
     r"""
     CommandLine:
         python -m utool.util_ubuntu --exec-make_application_icon --exe=cockatrice --icon=/home/joncrall/code/Cockatrice/cockatrice/resources/cockatrice.png
+        python -m utool.util_ubuntu --exec-make_application_icon --exe=cockatrice --icon=/home/joncrall/code/Cockatrice/cockatrice/resources/cockatrice.png
         python -m utool.util_ubuntu --exec-make_application_icon --exe=/opt/zotero/zotero --icon=/opt/zotero/chrome/icons/default/main-window.ico
+
+        python -m utool.util_ubuntu --exec-make_application_icon --exe "env WINEPREFIX="/home/joncrall/.wine" wine C:\\\\windows\\\\command\\\\start.exe /Unix /home/joncrall/.wine32-dotnet45/dosdevices/c:/users/Public/Desktop/Hearthstone.lnk" --path "/home/joncrall/.wine/dosdevices/c:/Program Files (x86)/Hearthstone"
+        # Exec=env WINEPREFIX="/home/joncrall/.wine" wine /home/joncrall/.wine/drive_c/Program\ Files\ \(x86\)/Battle.net/Battle.net.exe
+
+        --icon=/opt/zotero/chrome/icons/default/main-window.ico
+
+        python -m utool.util_ubuntu --exec-make_application_icon --exe=/home/joncrall/code/build-ArenaTracker-Desktop_Qt_5_6_1_GCC_64bit-Debug
+
+        update-desktop-database ~/.local/share/applications
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -154,6 +165,12 @@ def make_application_icon(exe_fpath, dry=True, props={}):
 
     if 'icon' in props:
         lines += ['Icon={icon}']
+
+    if props.get('path'):
+        lines += ['Path={path}']
+
+    # if props.get('comment'):
+    #     lines += ['Path={comment}']
 
     lines += [
         'Terminal={terminal}',

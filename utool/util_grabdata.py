@@ -890,6 +890,22 @@ def scp_pull(remote_path, local_path='.', remote='localhost', user=None):
     ut.cmd(scp_args)
 
 
+def list_remote(remote_uri, verbose=False):
+    """
+    remote_uri = 'user@xx.xx.xx.xx'
+    """
+    remote_uri1, remote_dpath = remote_uri.split(':')
+    if not remote_dpath:
+        remote_dpath = '.'
+    import utool as ut
+    out = ut.cmd('ssh', remote_uri1, 'ls -l %s' % (remote_dpath,), verbose=verbose)
+    import re
+    # Find lines that look like ls output
+    split_lines = [re.split(r'\s+', t) for t in out[0].split('\n')]
+    paths = [' '.join(t2[8:]) for t2 in split_lines if len(t2) > 8]
+    return paths
+
+
 def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
     r"""
     Wrapper for rsync
