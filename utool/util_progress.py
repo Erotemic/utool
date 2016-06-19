@@ -135,13 +135,24 @@ def get_nTotalChunks(nTotal, chunksize):
         util_iter.ichunks
 
     CommandLine:
-        python -m utool.util_progress --exec-get_nTotalChunks
+        python -m utool.util_progress --exec-get_nTotalChunks:0
+        python -m utool.util_progress --exec-get_nTotalChunks:1
 
-    Example:
+    Example0:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_progress import *  # NOQA
         >>> nTotal = 2000
         >>> chunksize = 256
+        >>> nTotalChunks = get_nTotalChunks(nTotal, chunksize)
+        >>> result = ('nTotalChunks = %s' % (six.text_type(nTotalChunks),))
+        >>> print(result)
+        nTotalChunks = 8
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_progress import *  # NOQA
+        >>> nTotal = 256
+        >>> chunksize = 32
         >>> nTotalChunks = get_nTotalChunks(nTotal, chunksize)
         >>> result = ('nTotalChunks = %s' % (six.text_type(nTotalChunks),))
         >>> print(result)

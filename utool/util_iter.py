@@ -388,7 +388,8 @@ def ichunks_noborder(iterable, chunksize):
     chunks_with_sentinals = zip_longest(*copied_iterators, fillvalue=sentinal)
     # Yeild smaller chunks without sentinals
     for chunk in chunks_with_sentinals:
-        yield [item for item in chunk if item is not sentinal]
+        if len(chunk) > 0:
+            yield [item for item in chunk if item is not sentinal]
 
 
 def ichunks_cycle(iterable, chunksize):
@@ -400,8 +401,9 @@ def ichunks_cycle(iterable, chunksize):
     bordervalues = cycle(iter(iterable))
     # Yeild smaller chunks without sentinals
     for chunk in chunks_with_sentinals:
-        yield [item if item is not sentinal else six.next(bordervalues)
-               for item in chunk]
+        if len(chunk) > 0:
+            yield [item if item is not sentinal else six.next(bordervalues)
+                   for item in chunk]
 
 
 def ichunks_replicate(iterable, chunksize):
@@ -412,13 +414,14 @@ def ichunks_replicate(iterable, chunksize):
     chunks_with_sentinals = zip_longest(*copied_iterators, fillvalue=sentinal)
     # Yeild smaller chunks without sentinals
     for chunk in chunks_with_sentinals:
-        filtered_chunk = [item for item in chunk if item is not sentinal]
-        if len(filtered_chunk) == chunksize:
-            yield filtered_chunk
-        else:
-            sizediff = (chunksize - len(filtered_chunk))
-            padded_chunk = filtered_chunk + [filtered_chunk[-1]] * sizediff
-            yield padded_chunk
+        if len(chunk) > 0:
+            filtered_chunk = [item for item in chunk if item is not sentinal]
+            if len(filtered_chunk) == chunksize:
+                yield filtered_chunk
+            else:
+                sizediff = (chunksize - len(filtered_chunk))
+                padded_chunk = filtered_chunk + [filtered_chunk[-1]] * sizediff
+                yield padded_chunk
 
 
 def ichunks_list(list_, chunksize):
