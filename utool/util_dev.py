@@ -2578,7 +2578,7 @@ def ipcopydev():
     pass
 
 
-def make_instancelist(obj_list, check=True):
+def make_instancelist(obj_list, check=True, shared_attrs=None):
     class InstanceList_(object):
         """ executes methods and attribute calls on a list of
         objects of the same type
@@ -2595,7 +2595,7 @@ def make_instancelist(obj_list, check=True):
             >>> print(self.upper())
             >>> print(self.isalpha())
         """
-        def __init__(self, obj_list):
+        def __init__(self, obj_list, shared_attrs=None):
             if len(obj_list) > 0:
                 import utool as ut
 
@@ -2603,10 +2603,11 @@ def make_instancelist(obj_list, check=True):
                 example_obj = obj_list[0]
                 example_type = type(example_obj)
 
-                if check:
-                    shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
-                else:
-                    shared_attrs = dir(example_obj)
+                if shared_attrs is None:
+                    if check:
+                        shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
+                    else:
+                        shared_attrs = dir(example_obj)
 
                 #allowed = ['__getitem__']  # TODO, put in metaclass
                 allowed = []
@@ -2622,6 +2623,9 @@ def make_instancelist(obj_list, check=True):
                         func = self._define_func(attrname)
                         print('func = %r' % (func,))
                         ut.inject_func_as_method(self, func, attrname)
+
+        def __nice__(self):
+            return '(%d)' % (len(self._obj_list))
 
         def __getitem__(self, key):
             # TODO, put in metaclass
@@ -2648,7 +2652,7 @@ def make_instancelist(obj_list, check=True):
         def _map_property(self, attrname):
             mapped_vals = [getattr(obj, attrname) for obj in self._obj_list]
             return mapped_vals
-    return InstanceList_(obj_list)
+    return InstanceList_(obj_list, shared_attrs)
 
 
 if __name__ == '__main__':
