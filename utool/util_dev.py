@@ -1061,7 +1061,7 @@ def grace_period(msg='', seconds=10):
     return True
 
 
-def delayed_retry_gen(delay_schedule=[.1, 1, 10], timeout=None):
+def delayed_retry_gen(delay_schedule=[.1, 1, 10], msg=None, timeout=None, raise_=True):
     """ template code for a infinte retry loop """
     import utool as ut
     import time
@@ -1073,9 +1073,12 @@ def delayed_retry_gen(delay_schedule=[.1, 1, 10], timeout=None):
     yield 0
 
     for count in itertools.count(0):
-        print('count = %r' % (count,))
+        #print('count = %r' % (count,))
         if timeout is not None and ut.toc(tt) > timeout:
-            raise Exception('Retry loop timed out')
+            if raise_:
+                raise Exception('Retry loop timed out')
+            else:
+                raise StopIteration('Retry loop timed out')
         index = min(count, len(delay_schedule) - 1)
         delay = delay_schedule[index]
         time.sleep(delay)

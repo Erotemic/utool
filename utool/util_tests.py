@@ -1542,6 +1542,45 @@ def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
     return test_func, testno
 
 
+def get_module_completions(module):
+    import utool as ut
+    test_tuples = ut.get_package_testables(module)
+    testnames = ut.make_instancelist(test_tuples).name
+    return testnames
+
+
+#def autocomplete_hook(module):
+#    """
+#    # https://argcomplete.readthedocs.io/en/latest/#activating-global-completion%20argcomplete
+#    pip install argcomplete
+
+#    Need to put
+#    PYTHON_ARGCOMPLETE_OK at begining of file
+
+#    pip install argcomplete
+#    activate-global-python-argcomplete
+
+#    eval "$(register-python-argcomplete your_script)"
+#    register-python-argcomplete ibeis
+#    eval "$(register-python-argcomplete ibeis)"
+#    """
+#    #if len(sys.argv) < 3:
+#    #    sys.exit(1)
+#    try:
+#        # hook
+#        import argparse as ap
+#        import argcomplete
+#    except ImportError:
+#        pass
+#    else:
+#        parser = ap.ArgumentParser()
+#        testnames = get_module_completions(module)
+#        testnames = ['foo', 'foo2']
+#        parser.add_argument('position1', choices=[testnames])
+#        argcomplete.autocomplete(parser)
+#        args = parser.parse_args()
+
+
 def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                          test_funcname=None, func_to_module_dict={}):
     """
@@ -1557,15 +1596,29 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         result = ut.repr3(test_tuples)
         print(result)
 
+    #autocomplete_hook(module)
+
+    if ut.get_argflag('--update-bashcomplete'):
+        # http://stackoverflow.com/questions/427472/line-completion-with-custom-commands
+        print('Listing testfuncs')
+        testnames = get_module_completions(module)
+        modname = module if isinstance(module, six.string_types) else module.__name__
+        line = 'complete -W "%s" "%s"' % (' '.join(testnames), modname)
+        bash_completer = ut.unixjoin(ut.ensure_app_resource_dir('ibeis'), 'ibeis_bash_complete.sh')
+        ut.writeto(bash_completer, line)
+        print('ADD TO BASHRC\nsource %s' % (bash_completer,))
+        #print(line)
+        sys.exit(0)
+
     if ut.get_argflag('--make-bashcomplete'):
         # http://stackoverflow.com/questions/427472/line-completion-with-custom-commands
         print('Listing testfuncs')
-        test_tuples = ut.get_package_testables(module)
-        testnames = ut.make_instancelist(test_tuples).name
+        testnames = get_module_completions(module)
         modname = module if isinstance(module, six.string_types) else module.__name__
         line = 'complete -W "%s" "%s"' % (' '.join(testnames), modname)
         print('add the following line to your bashrc')
         print(line)
+        sys.exit(0)
 
     test_funcname = ut.get_argval(
         ('--test-func', '--tfunc', '--tf', '--testfunc'),

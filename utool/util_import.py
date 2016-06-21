@@ -2,6 +2,9 @@
 """
 SeeAlso:
     utool._internal.util_importer
+
+    TODO: http://code.activestate.com/recipes/473888-lazy-module-imports/
+    https://pypi.python.org/pypi/zope.deferredimport/3.5.2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from utool import util_inject

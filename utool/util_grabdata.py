@@ -692,7 +692,8 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         else:
             if verbose:
                 print('[utool] Already have file %s' % fpath)
-    util_path.assert_exists(fpath)
+    if ensure:
+        util_path.assert_exists(fpath)
     return fpath
 
 
