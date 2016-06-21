@@ -3426,6 +3426,19 @@ def insert_block_between_lines(text, row1, row2, line_list, inplace=False):
     return line_list
 
 
+def toggle_comment_lines(text, pattern, flag, char='#'):
+    # TODO: respect indentation
+    lines = text.split('\n')
+    if flag:
+        lines = [char + line if re.search(pattern, line) else line
+                 for line in lines]
+    else:
+        lines = [line.lstrip(char) if re.search(pattern, line) else line
+                 for line in lines]
+    new_text = '\n'.join(lines)
+    return new_text
+
+
 if __name__ == '__main__':
     """
     CommandLine:

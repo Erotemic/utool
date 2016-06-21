@@ -105,6 +105,8 @@ def check_module_usage(modpath_partterns):
             r'^\s*\>\>\>',
             r'\-\-exec\-',
             r'\-\-test-',
+            r'^\s*python -m ibeis ',
+            r'^\s*ibeis ',
             r'\-\-test\-[a-zA-z]*\.',
             r'\-\-exec\-[a-zA-z]*\.',
                                  ))
@@ -129,6 +131,7 @@ def check_module_usage(modpath_partterns):
     grep_results = ut.ddict(dict)
 
     # Extract public members from each module
+    exclude_self = ut.get_argflag('--exclude-self')
     progiter = ut.ProgIter(list(zip(modnames, modpaths, importing_modpaths_list, funcnames_list)))
     for modname, modpath, importing_modpaths, funcname_list in progiter:
         if not restrict_to_importing_modpaths:
@@ -138,6 +141,9 @@ def check_module_usage(modpath_partterns):
         for funcname in ut.ProgIter(funcname_list, lbl='funcs'):
             numcall_graph_, grepres = find_function_callers(funcname, importing_modpaths)
             grep_results[modname][funcname] = grepres
+            if exclude_self:
+                if modname in numcall_graph_:
+                    del numcall_graph_[modname]
             func_numcall_graph[modname][funcname] = numcall_graph_
 
     # Sort by incidence cardinality

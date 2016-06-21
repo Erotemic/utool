@@ -106,6 +106,15 @@ def in_main_process():
     return multiprocessing.current_process().name == 'MainProcess'
 
 
+def get_sys_thread_limit():
+    import utool as ut
+    if ut.LINUX:
+        out, err, ret = ut.cmd('ulimit', '-u', verbose=False, quiet=True,
+                               shell=True)
+    else:
+        raise NotImplementedError('')
+
+
 def get_default_numprocs():
     if __NUM_PROCS__ is not None:
         return __NUM_PROCS__
