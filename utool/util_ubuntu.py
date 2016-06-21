@@ -197,6 +197,10 @@ def make_application_icon(exe_fpath, dry=True, props={}):
 
 
 class XCtrl(object):
+    """
+    xdotool key ctrl+shift+i
+    wmctrl  -l
+    """
     # @staticmethod
     # def send_raw_key_input(keys):
     #     import utool as ut

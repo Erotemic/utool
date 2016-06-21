@@ -1048,7 +1048,8 @@ def change_term_title(title):
         title (str):
 
     CommandLine:
-        python -m utool.util_cplat --test-change_term_title
+        python -m utool change_term_title
+        echo -en "\033]0;newtitle\a"
 
     Example:
         >>> # DISABLE_DOCTEST

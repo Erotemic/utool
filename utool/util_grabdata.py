@@ -607,6 +607,9 @@ def grab_selenium_chromedriver():
 
 
 def grab_selenium_driver(driver_name=None):
+    """
+    pip install selenium -U
+    """
     from selenium import webdriver
     if driver_name is None:
         driver_name = 'firefox'
