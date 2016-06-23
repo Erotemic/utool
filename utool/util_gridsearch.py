@@ -947,14 +947,14 @@ class ParamInfo(util_dev.NiceRepr):
     information however, the actual value of the parameter for any specific
     configuration is not stored here.
     """
-    def __init__(pi, varname, default, shortprefix=util_dev.NoParam,
+    def __init__(pi, varname=None, default=None, shortprefix=util_dev.NoParam,
                  type_=util_dev.NoParam, varyvals=[], varyslice=None,
                  hideif=util_dev.NoParam, help_=None, valid_values=None,
                  none_ok=True):
         r"""
         Args:
-            varname (?):
-            default (str):
+            varname (str): name of the variable
+            default (str): default value of the variable
             shortprefix (str):
             type_ (type):
             varyvals (list):
@@ -1053,9 +1053,9 @@ class ParamInfo(util_dev.NiceRepr):
         if isinstance(varval, slice):
             varstr = varstr.replace(' ', '')
         if pi.shortprefix is not util_dev.NoParam:
-            itemstr = pi.shortprefix + varstr
+            itemstr = '%s%s' % (pi.shortprefix, varstr)
         else:
-            itemstr =  pi.varname + '=' + varstr
+            itemstr =  '%s = %s' % (pi.varname, varstr)
         return itemstr
 
     def make_itemstr(pi, cfg):
