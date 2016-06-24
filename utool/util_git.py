@@ -265,7 +265,7 @@ class Repo(util_dev.NiceRepr):
         repo.scripts[key] = script
 
     def clone(repo):
-        print('[git] checking repo at %s' % (repo.dpath))
+        print('[git] check repo exists at %s' % (repo.dpath))
         if not exists(repo.dpath):
             _cd(dirname(repo.dpath))
             _syscmd('git clone ' + repo.url)
