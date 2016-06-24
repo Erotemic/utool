@@ -1055,7 +1055,7 @@ class ParamInfo(util_dev.NiceRepr):
         if pi.shortprefix is not util_dev.NoParam:
             itemstr = '%s%s' % (pi.shortprefix, varstr)
         else:
-            itemstr =  '%s = %s' % (pi.varname, varstr)
+            itemstr =  '%s=%s' % (pi.varname, varstr)
         return itemstr
 
     def make_itemstr(pi, cfg):

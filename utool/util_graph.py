@@ -815,6 +815,7 @@ def simplify_graph(graph):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
+        >>> import networkx as nx
         >>> graph = nx.DiGraph([('a', 'b'), ('a', 'c'), ('a', 'e'),
         >>>                     ('a', 'd'), ('b', 'd'), ('c', 'e'),
         >>>                     ('d', 'e'), ('c', 'e'), ('c', 'd')])
@@ -879,6 +880,7 @@ def nx_dag_node_rank(graph, nodes=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
         >>> adj_dict = {0: [5], 1: [5], 2: [1], 3: [4], 4: [0], 5: [], 6: [4], 7: [9], 8: [6], 9: [1]}
         >>> import networkx as nx
         >>> nodes = [2, 1, 5]
@@ -888,7 +890,7 @@ def nx_dag_node_rank(graph, nodes=None):
         >>> ranks = ut.nx_dag_node_rank(graph, nodes)
         >>> result = ('ranks = %r' % (ranks,))
         >>> print(result)
-        [3, 2, 1]
+        ranks = [3, 2, 1]
     """
     import utool as ut
     source = list(ut.nx_source_nodes(graph))[0]

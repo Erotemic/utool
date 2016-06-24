@@ -59,7 +59,9 @@ def _test_indent_print():
     text = ut.get_current_log_text()
     # The last line might sometimes be empty or not.
     # Not sure.
-    last_lines = text.split('\n')[-4:]
+    # New hack: had to put in stride. Seems like logs get written
+    # with two line breaks now
+    last_lines = text.split('\n')[-8::2]
     if last_lines[-1] != '':
         assert False, 'DEV ERROR. REMOVE FIRST LINE INSTEAD OF LAST'
         last_lines = last_lines[:-1]

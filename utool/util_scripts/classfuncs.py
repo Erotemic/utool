@@ -67,7 +67,7 @@ def get_codedir():
 if __name__ == '__main__':
 
     CODE_DIR = get_codedir()
-    (IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list([
+    rman = ut.RepoManager(repo_urls=[
         'https://github.com/Erotemic/utool.git',
         'https://github.com/Erotemic/guitool.git',
         'https://github.com/Erotemic/plottool.git',
@@ -78,8 +78,12 @@ if __name__ == '__main__':
         'https://github.com/Erotemic/ibeis.git',
         'https://github.com/aweinstock314/cyth.git',
         #'https://github.com/hjweide/pygist',
-    ], CODE_DIR, forcessh=False)
-    ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    ], code_dir=CODE_DIR)
+
+    # (IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list(, forcessh=False)
+    # ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    dpath_list = rman.repo_dirs
+    # IBEIS_REPO_DIRS
 
     fname = ut.truepath(sys.argv[1])
     #if len(sys.argv) >= 3:
@@ -88,5 +92,4 @@ if __name__ == '__main__':
     funcname_list = ut.list_class_funcnames(fname)
     funcname_list = ut.list_global_funcnames(fname)
     print(ut.indentjoin(funcname_list, '\n *   '))
-    dpath_list = IBEIS_REPO_DIRS
     show_function_usage(fname, funcname_list, dpath_list)

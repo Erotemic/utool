@@ -22,6 +22,16 @@ def in_virtual_env():
 
     References:
         http://stackoverflow.com/questions/1871549/python-determine-if-running-inside-virtualenv
+
+    CommandLine:
+        python -m utool.util_sysreq in_virtual_env
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_sysreq import *  # NOQA
+        >>> import utool as ut
+        >>> result = in_virtual_env()
+        >>> print(result)
     """
     import sys
     return hasattr(sys, 'real_prefix')
@@ -36,6 +46,28 @@ def get_site_packages_dir():
     """
     import distutils.sysconfig
     return distutils.sysconfig.get_python_lib()
+
+
+def get_global_dist_packages_dir():
+    """
+    Attempts to work around virtualenvs and find the system dist_pacakges.
+    Essentially this is implmenented as a lookuptable
+    """
+    import utool as ut
+    if not ut.in_virtual_env():
+        # Non venv case
+        return get_site_packages_dir()
+    else:
+        candidates = []
+        if ut.LINUX:
+            candidates += [
+                '/usr/lib/python2.7/dist-packages',
+            ]
+        else:
+            raise NotImplementedError()
+        for path in candidates:
+            if ut.checkpath(path):
+                return path
 
 
 def is_running_as_root():
@@ -80,3 +112,15 @@ def ensure_in_pythonpath(dname):
         sys.path.append(dpath)
     elif meta_util_arg.DEBUG:
         print('[sysreq] PYTHONPATH has %r' % dname)
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m utool.util_sysreq
+        python -m utool.util_sysreq --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

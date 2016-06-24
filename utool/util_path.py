@@ -1045,7 +1045,7 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         for item in util_iter.iflatten(subiters):
             yield item
         raise StopIteration
-    if debug:
+    if kwargs.get('verbose', False):
         print('[iglob] pattern = %r' % (pattern,))
         print('[iglob] dpath = %r' % (dpath,))
     nFiles = 0
@@ -2373,23 +2373,29 @@ class ChdirContext(object):
     """
     References http://www.astropython.org/snippet/2009/10/chdir-context-manager
     """
-    def __init__(self, dpath=None, stay=False):
+    def __init__(self, dpath=None, stay=False, verbose=None):
+        if verbose is None:
+            import utool as ut
+            verbose = ut.NOT_QUIET
+        self.verbose = verbose
         self.stay = stay
-        self.curdir = os.getcwd()
         self.dpath = dpath
+        self.curdir = os.getcwd()
 
     def __enter__(self):
         if self.dpath is not None:
-            print('[path.push] Change directory to %r' % (self.dpath,))
+            if self.verbose:
+                print('[path.push] Change directory to %r' % (self.dpath,))
             os.chdir(self.dpath)
         return self
 
     def __exit__(self, type_, value, trace):
         if not self.stay:
-            print('[path.pop] Change directory to %r' % (self.curdir,))
+            if self.verbose:
+                print('[path.pop] Change directory to %r' % (self.curdir,))
             os.chdir(self.curdir)
         if trace is not None:
-            if VERBOSE:
+            if self.verbose or VERBOSE:
                 print('[util_path] Error in chdir context manager!: ' + str(value))
             return False  # return a falsey value on error
 
