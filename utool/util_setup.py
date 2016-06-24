@@ -117,9 +117,9 @@ def clean(setup_dir, clutter_patterns, clutter_dirs):
 #        util_dev.compile_cython(fpath)
 
 
-def translate_cyth():
-    import cyth
-    cyth.translate_all()
+# def translate_cyth():
+#     import cyth
+#     cyth.translate_all()
 
 
 def get_numpy_include_dir():
@@ -136,13 +136,13 @@ def find_ext_modules(disable_warnings=True):
     from os.path import relpath
     cwd = os.getcwd()
 
-    CYTH      = 'cyth' in sys.argv
+    # CYTH      = 'cyth' in sys.argv
     BEXT      = 'bext' in sys.argv
     BUILD     = 'build' in sys.argv
     BUILD_EXT = 'build_ext' in sys.argv
 
-    if any([BEXT, CYTH]):
-        translate_cyth()  # translate cyth before finding ext modules
+    # if any([BEXT, CYTH]):
+    #     translate_cyth()  # translate cyth before finding ext modules
 
     if not any([BEXT, BUILD, BUILD_EXT]):
         # dont find modules if they are not being built
