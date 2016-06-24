@@ -112,10 +112,15 @@ class RepoManager(util_dev.NiceRepr):
         missing = []
         print('Checking if%s modules are importable' % (label,))
         msg_list = []
+        recommended_fixes = []
         for repo in rman.repos:
-            flag, msg = repo.check_importable()
+            flag, msg, errors = repo.check_importable()
             if not flag:
                 msg_list.append('  * !!!%s REPO %s HAS IMPORT ISSUES' % (label.upper(), repo,))
+                if any([str(ex).find('undefined symbol') > -1 for ex in errors]):
+                    recommended_fixes.append('rebuild')
+                else:
+                    recommended_fixes.append(None)
                 if ut.VERBOSE:
                     msg_list.append(ut.indent(msg, '    '))
                 missing.append(repo)
@@ -123,7 +128,8 @@ class RepoManager(util_dev.NiceRepr):
                 if ut.VERBOSE:
                     msg_list.append(ut.indent(msg, '    '))
         print('\n'.join(msg_list))
-        return missing
+        problems = list(zip(missing, recommended_fixes))
+        return problems
 
     def check_installed(rman):
         import utool as ut
@@ -304,21 +310,25 @@ class Repo(util_dev.NiceRepr):
         # import utool as ut
         found = False
         tried = []
+        errors = []
         for modname in repo.aliases:
             tried.append(modname)
             try:
                 ut.import_modname(modname)
             except ImportError as ex:  # NOQA
                 tried[-1] += ' but got ImportError'
+                errors.append(ex)
                 pass
             except AttributeError as ex:  # NOQA
                 tried[-1] += ' but got AttributeError'
+                errors.append(ex)
             else:
                 found = True
+                errors.append(None)
                 tried[-1] += ' and it worked'
                 break
         msg = 'tried %s' % (', '.join(tried))
-        return found, msg
+        return found, msg, errors
 
     def check_installed(repo):
         """
