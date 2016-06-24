@@ -111,29 +111,36 @@ class RepoManager(util_dev.NiceRepr):
         label = ' %s' % rman.label if rman.label else rman.label
         missing = []
         print('Checking if%s modules are importable' % (label,))
+        msg_list = []
         for repo in rman.repos:
-            flag, msg = repo.check_installed()
+            flag, msg = repo.check_importable()
             if not flag:
-                print('  * !!!%s REPO %s HAS IMPORT ISSUES' % (label.upper(), repo,))
+                msg_list.append('  * !!!%s REPO %s HAS IMPORT ISSUES' % (label.upper(), repo,))
                 if ut.VERBOSE:
-                    print(ut.indent(msg, '    '))
+                    msg_list.append(ut.indent(msg, '    '))
                 missing.append(repo)
+            else:
+                if ut.VERBOSE:
+                    msg_list.append(ut.indent(msg, '    '))
+        print('\n'.join(msg_list))
         return missing
 
     def check_installed(rman):
         import utool as ut
         label = ' %s' % rman.label if rman.label else rman.label
         missing = []
+        msg_list = []
         print('Checking if%s modules are installed' % (label,))
         for repo in rman.repos:
             flag, msg = repo.check_installed()
             if not flag:
-                print('  * !!!%s REPO %s NEEDS TO BE INSTALLED' % (label.upper(), repo,))
+                msg_list.append('  * !!!%s REPO %s NEEDS TO BE INSTALLED' % (label.upper(), repo,))
                 if ut.VERBOSE:
-                    print(ut.indent(msg, '    '))
+                    msg_list.append(ut.indent(msg, '    '))
                 missing.append(repo)
             # else:
             #     print('  * found%s module = %s' % (label, repo,))
+        print('\n'.join(msg_list))
         return missing
 
     def check_cpp_build(rman):
@@ -207,6 +214,8 @@ class Repo(util_dev.NiceRepr):
             if reponame is not None:
                 aliases.append(reponame)
         aliases.append(repo.reponame)
+        import utool as ut
+        aliases = ut.unique(aliases)
         return aliases
 
     def __nice__(repo):
@@ -291,19 +300,22 @@ class Repo(util_dev.NiceRepr):
         repo.url = new_repo_url
 
     def check_importable(repo):
+        import utool as ut
         # import utool as ut
-        found = None
+        found = False
         tried = []
         for modname in repo.aliases:
             tried.append(modname)
             try:
                 ut.import_modname(modname)
             except ImportError as ex:  # NOQA
+                tried[-1] += ' but got ImportError'
                 pass
             except AttributeError as ex:  # NOQA
-                pass
+                tried[-1] += ' but got AttributeError'
             else:
                 found = True
+                tried[-1] += ' and it worked'
                 break
         msg = 'tried %s' % (', '.join(tried))
         return found, msg
