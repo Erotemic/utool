@@ -2490,6 +2490,15 @@ def doctest_code_line(line_str, varname=None, verbose=True):
     return doctest_line_str
 
 
+def code_repr(var, varname=None, **kwargs):
+    import utool as ut
+    varstr = ut.repr2(var, **kwargs)
+    varname_ = ut.get_varname_from_stack(var, N=1, default=None) if varname is None else varname
+    varprefix = varname_ + ' = ' if varname_ is not None else ''
+    code_str = ut.hz_str(varprefix, varstr)
+    return code_str
+
+
 def doctest_repr(var, varname=None, precision=2, verbose=True):
     import utool as ut
     varname_ = ut.get_varname_from_stack(var, N=1) if varname is None else varname

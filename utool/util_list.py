@@ -877,6 +877,8 @@ def list_all_eq_to(list_, val, strict=True):
     if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
         return all([np.all(item == val) for item in list_])
     try:
+        # FUTURE WARNING
+        # FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
         return all([item == val for item in list_])
     except ValueError:
         if not strict:

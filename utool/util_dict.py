@@ -233,7 +233,18 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> print(result)
         {}
 
-    Example3:
+    Example4:
+        >>> # ENABLE_DOCTEST
+        >>> # Corner case: one dict is empty
+        >>> dict1_ = {'a': [1, 2], 'b': [2, 3]}
+        >>> dict2_ = {}
+        >>> dict_list = [dict1_, dict2_]
+        >>> dict_stacked = dict_stack2(dict_list)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {'a': [1, 2], 'b': [2, 3], 'c': [None, 4]}
+
+    Example5:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: 3 dicts
         >>> from utool.util_dict import *  # NOQA
