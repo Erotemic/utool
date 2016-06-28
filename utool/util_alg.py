@@ -1723,8 +1723,31 @@ def ungroup(grouped_items, groupxs, maxval=None):
     """
     Ungroups items
 
+    Args:
+        grouped_items (list):
+        groupxs (list):
+        maxval (int): (default = None)
+
+    Returns:
+        list: ungrouped_items
+
     SeeAlso:
         vt.invert_apply_grouping
+
+    CommandLine:
+        python -m utool.util_alg ungroup_unique
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> grouped_items = [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]
+        >>> groupxs = [[0, 2], [1, 3], [4, 5]]
+        >>> maxval = None
+        >>> ungrouped_items = ungroup(grouped_items, groupxs, maxval)
+        >>> result = ('ungrouped_items = %s' % (ut.repr2(ungrouped_items),))
+        >>> print(result)
+        ungrouped_items = [1.1, 2.1, 1.2, 2.2, 3.1, 3.2]
     """
     if maxval is None:
         maxpergroup = [max(xs) if len(xs) else 0 for xs in groupxs]
@@ -1732,6 +1755,43 @@ def ungroup(grouped_items, groupxs, maxval=None):
     ungrouped_items = [None] * (maxval + 1)
     for itemgroup, xs in zip(grouped_items, groupxs):
         for item, x in zip(itemgroup, xs):
+            ungrouped_items[x] = item
+    return ungrouped_items
+
+
+def ungroup_unique(unique_items, groupxs, maxval=None):
+    """
+    Ungroups unique items to correspond to original non-unique list
+
+    Args:
+        unique_items (list):
+        groupxs (list):
+        maxval (int): (default = None)
+
+    Returns:
+        list: ungrouped_items
+
+    CommandLine:
+        python -m utool.util_alg ungroup_unique
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> unique_items = [1, 2, 3]
+        >>> groupxs = [[0, 2], [1, 3], [4, 5]]
+        >>> maxval = None
+        >>> ungrouped_items = ungroup_unique(unique_items, groupxs, maxval)
+        >>> result = ('ungrouped_items = %s' % (ut.repr2(ungrouped_items),))
+        >>> print(result)
+        ungrouped_items = [1, 2, 1, 2, 3, 3]
+    """
+    if maxval is None:
+        maxpergroup = [max(xs) if len(xs) else 0 for xs in groupxs]
+        maxval = max(maxpergroup) if len(maxpergroup) else 0
+    ungrouped_items = [None] * (maxval + 1)
+    for item, xs in zip(unique_items, groupxs):
+        for x in xs:
             ungrouped_items[x] = item
     return ungrouped_items
 

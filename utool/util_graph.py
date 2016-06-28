@@ -1325,7 +1325,10 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
 
     visited_nodes = set([source])
     # visited_edges = set([])
-    queue = deque([(source, edges_iter(source))])
+    new_edges = edges_iter(source)
+    if isinstance(new_edges, list):
+        new_edges = iter(new_edges)
+    queue = deque([(source, new_edges)])
     while queue:
         parent, edges = queue[0]
         try:
@@ -1343,7 +1346,10 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
             if continue_condition is None or continue_condition(G, child, edge):
                 if child not in visited_nodes:
                     visited_nodes.add(child)
-                    queue.append((child, edges_iter(child)))
+                    new_edges = edges_iter(child)
+                    if isinstance(new_edges, list):
+                        new_edges = iter(new_edges)
+                    queue.append((child, new_edges))
         except StopIteration:
             queue.popleft()
 
