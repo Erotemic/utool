@@ -978,7 +978,14 @@ class ParamInfo(util_dev.NiceRepr):
         pi.varname = varname
         pi.default = default
         pi.shortprefix = shortprefix
-        pi.type_ = type(default) if type_ is util_dev.NoParam else type_
+        if type_ is util_dev.NoParam:
+            if default is not None:
+                pi.type_ = type(default)
+            else:
+                pi.type_ = None
+        else:
+            pi.type_ = type_
+        # pi.type_ = type(default) if type_ is util_dev.NoParam else type_
         # for gridsearch
         pi.varyvals = varyvals
         pi.varyslice = varyslice

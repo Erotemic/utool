@@ -151,7 +151,18 @@ def smart_cast(var, type_):
         >>> print(result)
         [1]
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> var = '1'
+        >>> type_ = None
+        >>> result = smart_cast(var, type_)
+        >>> print(result)
+        ['1']
+
     """
+    if type_ is None or var is None or issubclass(type_, type(None)):
+        return var
     if is_str(var):
         if type_ in VALID_BOOL_TYPES:
             return bool_from_str(var)
