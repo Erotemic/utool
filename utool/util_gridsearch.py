@@ -1005,7 +1005,7 @@ class ParamInfo(util_dev.NiceRepr):
             if value not in pi.valid_values:
                 raise ValueError('pi=%r, value=%r not in valid_values=%r' %
                                  (pi, value, pi.valid_values,))
-        if not util_type.is_comparable_type(value, pi.type_):
+        if pi.type_ is not None and not util_type.is_comparable_type(value, pi.type_):
             raise TypeError(
                 'pi=%r, value=%r with type_=%r is not the expected type_=%r' %
                 (pi, value, type(value), pi.type_))
