@@ -1993,11 +1993,59 @@ def longest_common_substring(s1, s2):
     return s1[x_longest - longest: x_longest]
 
 
+def expensive_task_gen(num=8700):
+    r"""
+    Runs a task that takes some time
+
+    Args:
+        num (int): (default = 8700)
+
+    CommandLine:
+        python -m utool.util_alg expensive_task_gen --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> #num = 8700
+        >>> num = 40000
+        >>> with ut.Timer('expanesive task'):
+        >>>     time_list = list(ut.expensive_task_gen(num))
+        >>> print(sum(time_list))
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> #pt.plot(time_list)
+        >>> from scipy.optimize import curve_fit
+        >>> def func(x, a, b, c, d):
+        >>>     return a * np.exp(-c * x) + d
+        >>> #a*x**3 + b*x**2 +c*x + d
+        >>> y = np.array(time_list)
+        >>> y = np.array(ut.cumsum(y))
+        >>> x = np.arange(len(y))
+        >>> #popt, pcov = curve_fit(func, x, y, p0=(1, 1e-6, 1))
+        >>> #print('pcov = %r' % (pcov,))
+        >>> #print('popt = %r' % (popt,))
+        >>> # http://stackoverflow.com/questions/3433486/-curve-fitting-in-python
+        >>> pt.plt.plot(x[::num//50], y[::num//50], 'rx', label='measured data')
+        >>> #x2 = np.arange(len(y) * 2)
+        >>> #pt.plt.plot(x2, func(x2, *popt), 'b', label="Fitted Curve") #same as line above \/
+        >>> #pt.plt.legend(loc='upper left')
+        >>> ut.show_if_requested()
+    """
+    import utool as ut
+    #time_list = []
+    for x in range(0, num):
+        with ut.Timer(verbose=False) as t:
+            ut.is_prime(x)
+        yield t.ellapsed
+        #time_list.append(t.ellapsed)
+        #print('t.ellapsed = %r' % (t.ellapsed,))
+    #return time_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg, allexamples=True)"
-        python -c "import utool, utool.util_alg; utool.doctest_funcs(utool.util_alg)"
         python -m utool.util_alg
         python -m utool.util_alg --allexamples
     """

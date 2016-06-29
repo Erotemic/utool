@@ -47,7 +47,8 @@ def get_printable_timestamp(isutc=False):
     return get_timestamp('printable', isutc=isutc)
 
 
-def get_timestamp(format_='filename', use_second=False, delta_seconds=None, isutc=False):
+def get_timestamp(format_='filename', use_second=False, delta_seconds=None,
+                  isutc=False, timezone=False):
     """
     get_timestamp
 
@@ -95,6 +96,14 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None, isut
                 'filename': 'ymd_hm-%04d-%02d-%02d_%02d-%02d',
                 'comment': '# (yyyy-mm-dd hh:mm) %04d-%02d-%02d %02d:%02d'}
         stamp = time_formats[format_] % time_tup
+    if timezone:
+        if isutc:
+            stamp += '_UTC'
+        else:
+            from pytz import reference
+            localtime = reference.LocalTimezone()
+            tzname = localtime.tzname(now)
+            stamp += '_' + tzname
     return stamp
 
 
