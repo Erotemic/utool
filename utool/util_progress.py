@@ -726,7 +726,12 @@ class ProgressIter(object):
                 except IOError as ex:
                     if util_arg.VERBOSE:
                         print('IOError flushing %s' % (ex,))
+                # DO PROGRESS INFO
                 if self.prog_hook is not None:
+                    # From the point of view of the progress iter, we are
+                    # about to enter the body of a for loop. (But we may have executed
+                    # the body implicitly in the yeild....
+                    # so it is ambiguous. In the second case 0 will be executed twice.
                     self.prog_hook(self.count, nTotal)
         # --- end of main loop
         # cleanup
@@ -756,6 +761,12 @@ class ProgressIter(object):
                 if util_arg.VERBOSE:
                     print('IOError flushing %s' % (ex,))
             #PROGRESS_WRITE('\nComplete(2)\n')
+            if self.prog_hook is not None:
+                # From the point of view of the progress iter, we are
+                # about to enter the body of a for loop. (But we may have executed
+                # the body implicitly in the yeild....
+                # so it is ambiguous. In the second case 0 will be executed twice.
+                self.prog_hook(self.count, nTotal)
         if not self.backspace:
             PROGRESS_WRITE('\n')
         else:
