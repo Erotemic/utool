@@ -383,6 +383,7 @@ class ProgressIter(object):
             self.autoadjust = False
 
         if self.prog_hook is not None:
+            # Sets the label of a progress bar to the ProgIter label
             self.prog_hook.register_progiter(self)
         #self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
         self.time_thresh_growth = kwargs.pop('time_thresh_growth', 1.0)
