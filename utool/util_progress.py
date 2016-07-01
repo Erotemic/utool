@@ -369,9 +369,9 @@ class ProgressIter(object):
 
         # FIXME: get these subinder things working
         # ~/code/guitool/guitool/guitool_components.py
-        self.substep_min        = kwargs.pop('substep_min', 0)
-        self.substep_size       = kwargs.pop('substep_size', 1)
-        self.level              = kwargs.pop('level', 0)
+        #self.substep_min        = kwargs.pop('substep_min', 0)
+        #self.substep_size       = kwargs.pop('substep_size', 1)
+        #self.level              = kwargs.pop('level', 0)
 
         self.parent_index       = kwargs.pop('parent_index', 0)
         self.parent_nTotal      = kwargs.pop('parent_nTotal', 1)
@@ -423,35 +423,35 @@ class ProgressIter(object):
             #else:
             #    return self.iter_without_rate()
 
-    def get_subindexers(prog_iter, num_substeps):
-        # FIXME and  make this a method of progiter
-        step_min = (((prog_iter.count - 1) / prog_iter.nTotal) *
-                    prog_iter.substep_size + prog_iter.substep_min)
-        step_size = (1.0 / prog_iter.nTotal) * prog_iter.substep_size
+    #def get_subindexers(prog_iter, num_substeps):
+    #    # FIXME and  make this a method of progiter
+    #    step_min = (((prog_iter.count - 1) / prog_iter.nTotal) *
+    #                prog_iter.substep_size + prog_iter.substep_min)
+    #    step_size = (1.0 / prog_iter.nTotal) * prog_iter.substep_size
 
-        substep_size = step_size / num_substeps
-        substep_min_list = [(step * substep_size) + step_min
-                            for step in range(num_substeps)]
-        #level = prog_iter.level + 1
-        DEBUG = False
-        if DEBUG:
-            with ut.Indenter(' ' * 4 * prog_iter.level):
-                print('\n')
-                print('+____<NEW SUBSTEPS>____')
-                print('Making %d substeps for prog_iter.lbl = %s' % (
-                    num_substeps, prog_iter.lbl,))
-                print(' * step_min         = %.2f' % (step_min,))
-                print(' * step_size        = %.2f' % (step_size,))
-                print(' * substep_size     = %.2f' % (substep_size,))
-                print(' * substep_min_list = %r' % (substep_min_list,))
-                print(r'L____</NEW SUBSTEPS>____')
-                print('\n')
-        subprog_partial_list = [
-            partial(ProgressIter,
-                    parent_nTotal=prog_iter.nTotal * num_substeps,
-                    parent_index=(prog_iter.count - 1) + (prog_iter.nTotal * step))
-            for step in range(num_substeps)]
-        return subprog_partial_list
+    #    substep_size = step_size / num_substeps
+    #    substep_min_list = [(step * substep_size) + step_min
+    #                        for step in range(num_substeps)]
+    #    #level = prog_iter.level + 1
+    #    DEBUG = False
+    #    if DEBUG:
+    #        with ut.Indenter(' ' * 4 * prog_iter.level):
+    #            print('\n')
+    #            print('+____<NEW SUBSTEPS>____')
+    #            print('Making %d substeps for prog_iter.lbl = %s' % (
+    #                num_substeps, prog_iter.lbl,))
+    #            print(' * step_min         = %.2f' % (step_min,))
+    #            print(' * step_size        = %.2f' % (step_size,))
+    #            print(' * substep_size     = %.2f' % (substep_size,))
+    #            print(' * substep_min_list = %r' % (substep_min_list,))
+    #            print(r'L____</NEW SUBSTEPS>____')
+    #            print('\n')
+    #    subprog_partial_list = [
+    #        partial(ProgressIter,
+    #                parent_nTotal=prog_iter.nTotal * num_substeps,
+    #                parent_index=(prog_iter.count - 1) + (prog_iter.nTotal * step))
+    #        for step in range(num_substeps)]
+    #    return subprog_partial_list
 
     #def build_msg_fmtstr_time(self, lbl, invert_rate, backspace):
     #    with_wall = True
