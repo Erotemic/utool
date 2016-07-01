@@ -260,9 +260,10 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     return nonvaried_cfg, varied_cfg_list
 
 
-def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, with_name=True):
+def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, with_name=True, default_cfg=None):
     r"""
-    Formats a flat configuration dict into a short string label
+    Formats a flat configuration dict into a short string label. This is useful
+    for re-creating command line strings.
 
     Args:
         cfg (dict):
@@ -291,6 +292,18 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, wi
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
+        >>> cfg = {'var1': 'val1', 'var2': 'val2'}
+        >>> default_cfg = {'var2': 'val1', 'var1': 'val1'}
+        >>> name = None
+        >>> cfg_lbl = get_cfg_lbl(cfg, name, default_cfg=default_cfg)
+        >>> result = ('cfg_lbl = %s' % (six.text_type(cfg_lbl),))
+        >>> print(result)
+        cfg_lbl = :var2=val2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> cfg = {'_cfgname': 'test:K=[1,2,3]', 'K': '1'}
         >>> name = None
         >>> nonlbl_keys = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
@@ -304,6 +317,10 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, wi
         name = cfg.get('_cfgname', '')
     _search = ['dict(', ')', ' ']
     _repl = [''] * len(_search)
+
+    if default_cfg is not None:
+        # Remove defaulted labels
+        cfg = ut.partition_varied_cfg_list([cfg], default_cfg)[1][0]
 
     # remove keys that should not belong to the label
     _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
