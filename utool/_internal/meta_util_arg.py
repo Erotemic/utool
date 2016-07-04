@@ -22,6 +22,7 @@ USE_ASSERT         = not NO_ASSERTS
 NOT_QUIET          = not QUIET
 PRINT_INJECT_ORDER = (VERYVERBOSE or '--print-inject-order' in sys.argv or
                       '--verbinject' in sys.argv or
+                      '--print-imports' in sys.argv or
                       '--verb-inject' in sys.argv)
 LOGGING_VERBOSE    = VERYVERBOSE or '--verb-logging' in sys.argv
 
