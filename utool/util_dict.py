@@ -1670,8 +1670,8 @@ def sort_dict(dict_, value_key=None):
     """ enforces ordering on dict """
     import utool as ut
     if value_key is None:
-        keys = dict_.keys()
-        items = dict_.items()
+        keys = list(dict_.keys())
+        items = list(dict_.items())
         sortx = ut.argsort(keys)
         return ut.odict(ut.take(items, sortx))
     else:

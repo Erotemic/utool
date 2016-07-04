@@ -319,7 +319,7 @@ class CustomStreamHandler(logging.Handler):
             msg = self.format(record)
             stream = self.stream
             fs = "%s%s"
-            if not logging._unicode:  # if no unicode support...
+            if six.PY3 or not logging._unicode:  # if no unicode support...
                 stream.write(fs % (msg, self.terminator))
             else:
                 try:
@@ -368,9 +368,10 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         >>> handler = ut.util_logging.__UTOOL_ROOT_LOGGER__.handlers[0]
         >>> current_log_fpath = handler.stream.name
         >>> current_log_text = ut.read_from(current_log_fpath)
-        >>> assert current_log_text.find('hello world') > 0
-        >>> assert current_log_text.find('writing1writing2') > 0
-        >>> assert current_log_text.find('writing3') > 0
+        >>> print('current_log_text =\n%s' % (current_log_text,))
+        >>> assert current_log_text.find('hello world') > 0, 'cant hello world'
+        >>> assert current_log_text.find('writing1writing2') > 0, 'cant find writing1writing2'
+        >>> assert current_log_text.find('writing3') > 0, 'cant find writing3'
 
     Example1:
         >>> # DISABLE_DOCTEST

@@ -93,12 +93,12 @@ def test_progress():
             time.sleep(sleeptime)
     print('_________________')
     # Test nested iter
-    progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False)
-    for count1 in progiter1:
-        progiter_partials = progiter1.get_subindexers(1)
-        progiter2 = progiter_partials[0](range(0, 7), lbl='sub_prog1', freq=1, adjust=False)
-        for count2 in progiter2:
-            pass
+    # progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False)
+    # for count1 in progiter1:
+    #     progiter_partials = progiter1.get_subindexers(1)
+    #     progiter2 = progiter_partials[0](range(0, 7), lbl='sub_prog1', freq=1, adjust=False)
+    #     for count2 in progiter2:
+    #         pass
     for x in ut.ProgressIter(zip(range(10), range(10)), freq=8, adjust=True):
         time.sleep(sleeptime)
         #progiter3 = progiter_partials[1](range(0, 3), lbl='sub_prog2', freq=1, adjust=False)

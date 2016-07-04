@@ -983,7 +983,7 @@ class InteractiveIter(object):
         #    utool.embed()
         #    while iiter._is_waiting:
         #        print('waiting')
-        #        #QtGui.qApp.processEvents()
+        #        #QtWidgets.qApp.processEvents()
         #        qapp.processEvents()
         #        time.sleep(.05)
         #    return ans

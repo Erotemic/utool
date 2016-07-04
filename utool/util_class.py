@@ -82,7 +82,7 @@ def inject_instance(self, classkey=None, allow_override=False,
             if classkey == 'ibeis.gui.models_and_views.IBEISTableView':
                 # HACK HACK HACK
                 from guitool.__PYQT__ import QtGui
-                classkey = QtGui.QAbstractItemView
+                classkey = QtWidgets.QAbstractItemView
             if len(__CLASSTYPE_ATTRIBUTES__[classkey]) == 0:
                 print('[utool] Warning: no classes of type %r are registered' % (classkey,))
                 print('[utool] type(self)=%r, self=%r' % (type(self), self)),
