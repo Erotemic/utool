@@ -589,15 +589,19 @@ def from_json(json_str, allow_pickle=False):
         python -m utool.util_cache from_json --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_cache import *  # NOQA
         >>> import utool as ut
         >>> json_str = 'just a normal string'
+        >>> json_str = '["just a normal string"]'
         >>> allow_pickle = False
         >>> val = from_json(json_str, allow_pickle)
         >>> result = ('val = %s' % (ut.repr2(val),))
         >>> print(result)
     """
+    # if six.PY3:
+    #     if isinstance(json_str, bytes):
+    #         json_str = json_str.decode('utf-8')
     UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
     object_hook = UtoolJSONEncoder._json_object_hook
     val = json.loads(json_str, object_hook=object_hook)

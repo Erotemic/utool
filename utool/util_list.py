@@ -263,7 +263,10 @@ def listclip(list_, num, fromback=False):
         >>> print(result)
         [3, 4, 5]
     """
-    num_ = min(len(list_), num)
+    if num is None:
+        num_ = len(list_)
+    else:
+        num_ = min(len(list_), num)
     if fromback:
         sublist = list_[-num_:]
     else:

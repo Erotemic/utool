@@ -227,8 +227,16 @@ def load_cPkl(fpath, verbose=None, n=2):
     """ Loads a pickled file with optional verbosity """
     if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
         print('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath, n=n),))
-    with open(fpath, 'rb') as file_:
-        data = pickle.load(file_)
+    try:
+        with open(fpath, 'rb') as file_:
+            data = pickle.load(file_)
+    except UnicodeDecodeError:
+        if six.PY3:
+            # try to open python2 pickle
+            with open(fpath, 'rb') as file_:
+                data = pickle.load(file_, encoding='latin1')
+        else:
+            raise
     return data
 
 

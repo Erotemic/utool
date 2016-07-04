@@ -20,7 +20,7 @@ from collections import defaultdict
 from utool import util_inject
 from utool import util_set
 from utool import util_arg
-from utool._internal.meta_util_six import get_funcname
+from utool._internal.meta_util_six import get_funcname, get_funcglobals
 print, rrr, profile = util_inject.inject2(__name__, '[class]', DEBUG=False)
 
 
@@ -81,7 +81,8 @@ def inject_instance(self, classkey=None, allow_override=False,
             classkey = self.__class__
             if classkey == 'ibeis.gui.models_and_views.IBEISTableView':
                 # HACK HACK HACK
-                from guitool.__PYQT__ import QtGui
+                # from guitool.__PYQT__ import QtGui  # NOQA
+                from guitool.__PYQT__ import QtWidgets  # NOQA
                 classkey = QtWidgets.QAbstractItemView
             if len(__CLASSTYPE_ATTRIBUTES__[classkey]) == 0:
                 print('[utool] Warning: no classes of type %r are registered' % (classkey,))
@@ -468,13 +469,15 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
     #new_method = profile(func.__get__(self, self.__class__))
 
     if old_method is not None:
+        old_im_func = old_method.im_func if six.PY2 else old_method.__func__
+        new_im_func = new_method.im_func if six.PY2 else new_method.__func__
         if not allow_main and (
-                old_method.im_func.func_globals['__name__'] != '__main__' and
-                new_method.im_func.func_globals['__name__'] == '__main__'):
+                get_funcglobals(old_im_func)['__name__'] != '__main__' and
+                get_funcglobals(new_im_func)['__name__'] == '__main__'):
             if True or VERBOSE_CLASS:
                 print('[util_class] skipping re-inject of %r from __main__' % method_name)
             return
-        if old_method is new_method or old_method.im_func is new_method.im_func:
+        if old_method is new_method or old_im_func is new_im_func:
             if verbose and util_arg.NOT_QUIET:
                 print('WARNING: Injecting the same function twice: %r' % new_method)
         elif allow_override is False:
@@ -491,10 +494,10 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
             #ut.embed()
             print('WARNING: Overrides are allowed, but dangerous. method_name=%r.' %
                   (method_name))
-            print('old_method = %r, im_func=%s' % (old_method, str(old_method.im_func)))
-            print('new_method = %r, im_func=%s' % (new_method, str(new_method.im_func)))
-            print(old_method.im_func.func_globals['__name__'])
-            print(new_method.im_func.func_globals['__name__'])
+            print('old_method = %r, im_func=%s' % (old_method, str(old_im_func)))
+            print('new_method = %r, im_func=%s' % (new_method, str(new_im_func)))
+            print(get_funcglobals(old_im_func)['__name__'])
+            print(get_funcglobals(new_im_func)['__name__'])
         # TODO: does this actually decrement the refcount enough?
         del old_method
     setattr(self, method_name, new_method)
