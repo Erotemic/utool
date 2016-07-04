@@ -420,7 +420,7 @@ def make_utool_json_encoder(allow_pickle=False):
         return obj
 
     def encode_pickle(obj):
-        pickle_bytes = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
+        pickle_bytes = pickle.dump(obj, pickle, protocol=2)  # Use protocol 2 to support python2 and 3
         text = codecs.encode(pickle_bytes, 'base64').decode()
         return text
 

@@ -220,7 +220,7 @@ def save_cPkl(fpath, data, verbose=None, n=2):
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath, n=n),))
     with open(fpath, 'wb') as file_:
-        pickle.dump(data, file_, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(data, file_, protocol=2)  # Use protocol 2 to support python2 and 3
 
 
 def load_cPkl(fpath, verbose=None, n=2):
@@ -235,6 +235,12 @@ def load_cPkl(fpath, verbose=None, n=2):
             # try to open python2 pickle
             with open(fpath, 'rb') as file_:
                 data = pickle.load(file_, encoding='latin1')
+        else:
+            raise
+    except ValueError as ex:
+        if six.PY2:
+            if ex.message == 'unsupported pickle protocol: 4':
+                raise ValueError('unsupported Python3 pickle protocol 4 in Python2 for fpath=%r' % (fpath,))
         else:
             raise
     return data

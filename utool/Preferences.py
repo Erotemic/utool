@@ -366,7 +366,7 @@ class Pref(PrefNode):
         with open(fpath, 'w') as f:
             print('[pref] Saving to ' + fpath)
             pref_dict = self.to_dict()
-            pickle.dump(pref_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(pref_dict, f, protocol=2)  # Use protocol 2 to support python2 and 3
         return True
 
     def get_fpath(self):
