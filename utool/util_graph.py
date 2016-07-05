@@ -1576,9 +1576,9 @@ def graph_info(graph, verbose=False):
         ('multi', graph.is_multigraph()),
         ('num_nodes', len(graph)),
         ('num_edges', len(list(graph.edges()))),
-        ('edge_attr_hist', edge_attr_hist),
-        ('node_attr_hist', node_attr_hist),
-        ('node_type_hist', node_type_hist),
+        ('edge_attr_hist', ut.sort_dict(edge_attr_hist)),
+        ('node_attr_hist', ut.sort_dict(node_attr_hist)),
+        ('node_type_hist', ut.sort_dict(node_type_hist)),
         ('graph_attrs', graph.graph),
         ('graph_name', graph.name),
     ])
