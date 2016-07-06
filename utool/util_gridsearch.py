@@ -967,7 +967,7 @@ class ParamInfo(util_dev.NiceRepr):
     def __init__(pi, varname=None, default=None, shortprefix=util_dev.NoParam,
                  type_=util_dev.NoParam, varyvals=[], varyslice=None,
                  hideif=util_dev.NoParam, help_=None, valid_values=None,
-                 none_ok=True):
+                 max_=None, min_=None, step_=None, none_ok=True):
         r"""
         Args:
             varname (str): name of the variable
@@ -1016,6 +1016,9 @@ class ParamInfo(util_dev.NiceRepr):
         pi.hideif_list = []
         if hideif is not util_dev.NoParam:
             pi.append_hideif(hideif)
+        pi.max_ = max_
+        pi.min_ = min_
+        pi.step_ = step_
 
     def __nice__(pi):
         return '(' + pi.make_varstr(pi.default) + ')'
