@@ -595,6 +595,9 @@ def get_posix_timedelta_str(posixtime, year=False, approx=True):
         %timeit str(datetime.timedelta(seconds=posixtime))
 
     """
+    import numpy as np
+    if np.isnan(posixtime):
+        return 'NaN'
     sign, posixtime_ = (1, posixtime) if posixtime >= 0 else (-1, -posixtime)
     seconds_, subseconds = divmod(posixtime_, 1)
     minutes_, seconds    = divmod(int(seconds_), 60)
@@ -621,8 +624,10 @@ def get_posix_timedelta_str(posixtime, year=False, approx=True):
         timedelta_parts += ['-']
     else:
         timedelta_parts += ['']
-    if approx:
-        timedelta_str = ''.join(timedelta_parts[::-1][0:2]).strip()
+    if approx is not False:
+        if approx is True:
+            approx = 1
+        timedelta_str = ''.join(timedelta_parts[::-1][0:(approx + 1)]).strip()
     else:
         timedelta_str = ''.join(timedelta_parts[::-1])
     return timedelta_str
