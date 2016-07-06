@@ -566,7 +566,7 @@ def get_timedelta_str(timedelta, exclude_zeros=False):
     return timedelta_str
 
 
-def get_posix_timedelta_str(posixtime):
+def get_posix_timedelta_str(posixtime, year=False, approx=True):
     """
     get_timedelta_str
 
@@ -581,12 +581,12 @@ def get_posix_timedelta_str(posixtime):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
-        >>> posixtime_list = [-13, 10.2, 10.2 ** 2, 10.2 ** 3, 10.2 ** 4, 10.2 ** 5, 10.2 ** 8]
-        >>> posixtime = posixtime_list[1]
+        >>> posixtime_list = [-13, 10.2, 10.2 ** 2, 10.2 ** 3, 10.2 ** 4, 10.2 ** 5, 10.2 ** 8, 60 * 60 * 60 * 24 * 7]
+        >>> posixtime = posixtime_list[-1]
         >>> timedelta_str = [get_posix_timedelta_str(posixtime) for posixtime in posixtime_list]
         >>> result = (timedelta_str)
         >>> print(result)
-        ['-00:00:13', '00:00:10.20', '00:01:44.04', '00:17:41.21', '03:00:24.32', '1 days 06:40:08.08', '193 weeks 5 days 02:05:38.10']
+        ['-00:00:13', '00:00:10.20', '00:01:44.04', '00:17:41.21', '03:00:24.32', '1 days 06:40:08.08', '193 weeks 5 days 02:05:38.10', '60 weeks 00:00:00']
 
     Timeit::
         import datetime
@@ -601,15 +601,30 @@ def get_posix_timedelta_str(posixtime):
     hours_, minutes      = divmod(minutes_, 60)
     days_, hours         = divmod(hours_, 24)
     weeks_, days         = divmod(days_, 7)
-    timedelta_str = ':'.join(['%02d' % _ for _ in (hours, minutes, seconds)])
+    if year:
+        years, weeks = divmod(weeks_, 52)  # not accurate
+    else:
+        years = 0
+        weeks = weeks_
+    timedelta_parts = []
     if subseconds > 0:
-        timedelta_str += ('%.2f' % (subseconds,))[1:]
-    if days_ > 0:
-        timedelta_str = '%d days ' % (days,) + timedelta_str
-    if weeks_ > 0:
-        timedelta_str = '%d weeks ' % (weeks_,) + timedelta_str
+        timedelta_parts += [('%.2f' % (subseconds,))[1:]]
+    timedelta_parts += [':'.join(['%02d' % _ for _ in (hours, minutes, seconds)])]
+    import utool as ut
+    if days > 0:
+        timedelta_parts += ['%d %s ' % (days, ut.pluralize('day', days))]
+    if weeks > 0:
+        timedelta_parts += ['%d %s ' % (weeks, ut.pluralize('week', weeks))]
+    if years > 0:
+        timedelta_parts += ['%d %s ' % (years, ut.pluralize('year', years))]
     if sign == -1:
-        timedelta_str = '-' + timedelta_str
+        timedelta_parts += ['-']
+    else:
+        timedelta_parts += ['']
+    if approx:
+        timedelta_str = ''.join(timedelta_parts[::-1][0:2]).strip()
+    else:
+        timedelta_str = ''.join(timedelta_parts[::-1])
     return timedelta_str
 
 
