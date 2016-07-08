@@ -1372,7 +1372,7 @@ class LazyDict(object):
         >>> self.printinfo()
         >>> print(self.tostring(is_eager=False))
     """
-    def __init__(self, other=None, is_eager=True, verbose=False, **kwargs):
+    def __init__(self, other=None, is_eager=True, verbose=False, reprkw=None, **kwargs):
         # Registered lazy evaluations
         self._eval_funcs = {}
         # Computed results
@@ -1381,6 +1381,8 @@ class LazyDict(object):
         self._is_eager = is_eager
         self._verbose = verbose
         self.reprkw = dict(is_eager=False, nl=False)
+        if reprkw is not None:
+            self.reprkw.update(**reprkw)
         if other is not None:
             self.update(other)
         if len(kwargs) > 0:

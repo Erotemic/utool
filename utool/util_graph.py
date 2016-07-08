@@ -1448,6 +1448,22 @@ def nx_delete_None_edge_attr(graph, edges=None):
     return removed
 
 
+def nx_delete_None_node_attr(graph, nodes=None):
+    removed = 0
+    if nodes is None:
+        nodes = list(graph.nodes())
+    for node in graph.nodes():
+        data = graph.node[node]
+        for key in data.keys():
+            try:
+                if data[key] is None:
+                    del data[key]
+                    removed += 1
+            except KeyError:
+                pass
+    return removed
+
+
 def nx_set_default_node_attributes(graph, key, val):
     import networkx as nx
     unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
@@ -1522,15 +1538,26 @@ def color_nodes(graph, labelattr='label'):
 def nx_ensure_agraph_color(graph):
     """ changes colors to hex strings on graph attrs """
     from plottool import color_funcs
-    import six
+    import plottool as pt
+    #import six
     def _fix_agraph_color(data):
         try:
             orig_color = data.get('color', None)
+            alpha = data.get('alpha', None)
             color = orig_color
-            if color is not None and not isinstance(color, six.string_types):
+            if color is None and alpha is not None:
+                color = [0, 0, 0]
+            if color is not None:
+                color = pt.ensure_nonhex_color(color)
                 #if isinstance(color, np.ndarray):
                 #    color = color.tolist()
-                color = tuple(color_funcs.ensure_base255(color))
+                color = list(color_funcs.ensure_base255(color))
+                if alpha is not None:
+                    if len(color) == 3:
+                        color += [int(alpha * 255)]
+                    else:
+                        color[3] = int(alpha * 255)
+                color = tuple(color)
                 if len(color) == 3:
                     data['color'] = '#%02x%02x%02x' % color
                 else:
@@ -1541,10 +1568,12 @@ def nx_ensure_agraph_color(graph):
             raise
 
     for node, node_data in graph.nodes(data=True):
-        _fix_agraph_color(node_data)
+        data = node_data
+        _fix_agraph_color(data)
 
     for u, v, edge_data in graph.edges(data=True):
-        _fix_agraph_color(edge_data)
+        data = edge_data
+        _fix_agraph_color(data)
 
 
 def nx_makenode(graph, name, **attrkw):
@@ -1588,6 +1617,54 @@ def graph_info(graph, verbose=False):
     if verbose:
         print(ut.repr3(info_dict))
     return info_dict
+
+
+def get_graph_bounding_box(graph):
+    import utool as ut
+    import networkx as nx
+    import vtool as vt
+    #nx.get_node_attrs = nx.get_node_attributes
+    nodes = list(graph.nodes())
+    pos_list = ut.take(nx.get_node_attributes(graph, 'pos'), nodes)
+    shape_list = ut.take(nx.get_node_attributes(graph, 'size'), nodes)
+
+    node_extents = np.array([
+        vt.extent_from_bbox(vt.bbox_from_center_wh(xy, wh))
+        for xy, wh in zip(pos_list, shape_list)
+    ])
+    tl_x, br_x, tl_y, br_y = node_extents.T
+    extent = tl_x.min(), br_x.max(), tl_y.min(), br_y.max()
+    bbox = vt.bbox_from_extent(extent)
+    return bbox
+
+
+def translate_graph(graph, t_xy):
+    #import utool as ut
+    import networkx as nx
+    import utool as ut
+    node_pos_attrs = ['pos']
+    for attr in node_pos_attrs:
+        attrdict = nx.get_node_attributes(graph, attr)
+        attrdict = {
+            node: pos + t_xy
+            for node, pos in attrdict.items()
+        }
+        nx.set_node_attributes(graph, attr, attrdict)
+    edge_pos_attrs = ['ctrl_pts', 'end_pt', 'head_lp', 'lp', 'start_pt', 'tail_lp']
+    ut.nx_delete_None_edge_attr(graph)
+    for attr in edge_pos_attrs:
+        attrdict = nx.get_edge_attributes(graph, attr)
+        attrdict = {
+            node: pos + t_xy
+            if pos is not None else pos
+            for node, pos in attrdict.items()
+        }
+        nx.set_edge_attributes(graph, attr, attrdict)
+
+
+def pin_nodes(graph):
+    import networkx as nx
+    nx.set_node_attributes(graph, 'pin', 'true')
 
 
 if __name__ == '__main__':
