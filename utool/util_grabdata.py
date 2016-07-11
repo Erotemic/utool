@@ -277,13 +277,14 @@ def get_prefered_browser(pref_list=[], fallback=True):
                              (pref_list, error_list,))
 
 
-def download_url(url, filename=None, spoof=False):
+def download_url(url, filename=None, spoof=False, iri_fallback=True):
     r""" downloads a url to a filename.
 
     Args:
         url (str): url to download
         filename (str): path to download to. Defaults to basename of url
         spoof (bool): if True pretends to by Firefox
+        iri_fallback : falls back to requests get call if there is a UnicodeError
 
     References:
         http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
@@ -314,29 +315,38 @@ def download_url(url, filename=None, spoof=False):
         sys.stdout.write(msg)
         sys.stdout.flush()
     reporthook = functools.partial(reporthook_, start_time=time.time())
-    if spoof:
-        # Different agents that can be used for spoofing
-        user_agents = [
-            'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11',  # NOQA
-            'Opera/9.25 (Windows NT 5.1; U; en)',
-            'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)',  # NOQA
-            'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)',
-            'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12',  # NOQA
-            'Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9'
-        ]
-        class SpoofingOpener(urllib.FancyURLopener, object):
-            version = user_agents[0]
-        spoofing_opener = SpoofingOpener()
-        spoofing_opener.retrieve(url, filename=filename, reporthook=reporthook)
-    else:
-        # no spoofing
-        if six.PY2:
-            urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
-        elif six.PY3:
-            import urllib.request
-            urllib.request.urlretrieve(url, filename=filename, reporthook=reporthook)
+    try:
+        if spoof:
+            # Different agents that can be used for spoofing
+            user_agents = [
+                'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11',  # NOQA
+                'Opera/9.25 (Windows NT 5.1; U; en)',
+                'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)',  # NOQA
+                'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)',
+                'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12',  # NOQA
+                'Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9'
+            ]
+            class SpoofingOpener(urllib.FancyURLopener, object):
+                version = user_agents[0]
+            spoofing_opener = SpoofingOpener()
+            spoofing_opener.retrieve(url, filename=filename, reporthook=reporthook)
         else:
-            assert False, 'unknown python'
+            # no spoofing
+            if six.PY2:
+                urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
+            elif six.PY3:
+                import urllib.request
+                urllib.request.urlretrieve(url, filename=filename, reporthook=reporthook)
+            else:
+                assert False, 'unknown python'
+    except UnicodeError as ex:
+        import requests
+        # iri error
+        print('Detected iri error: %r' % (ex,))
+        print('Falling back to requests.get (no progress is shown)')
+        resp = requests.get(url)
+        with open(filename, 'wb') as file_:
+            file_.write(resp.content)
     print('')
     print('[utool] Finished downloading filename=%r' % (filename,))
     return filename

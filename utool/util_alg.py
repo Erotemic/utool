@@ -1241,6 +1241,8 @@ def triangular_number(n):
 def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
     """
     Greedy algorithm, may be exact for 1d case.
+    First, choose the first item, then choose the next item that is farthest
+    away from all previously chosen items. Iterate.
 
     CommandLine:
         python -m utool.util_alg --exec-maximin_distance_subset1d
@@ -1255,6 +1257,7 @@ def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
         >>> K = None
         >>> result = maximin_distance_subset1d(items, K, min_thresh, verbose=True)
         >>> print(result)
+        (array([1, 3, 6]), [1, 9, 22])
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1555,11 +1558,16 @@ def safe_pdist(arr, *args, **kwargs):
     if arr is None or len(arr) < 2:
         return None
     else:
-        return spdist.pdist(arr, *args, **kwargs)
+        import vtool as vt
+        arr_ = vt.atleast_nd(arr, 2)
+        return spdist.pdist(arr_, *args, **kwargs)
 
 
 def square_pdist(arr, *args, **kwargs):
-    return spdist.squareform(safe_pdist(arr, *args, **kwargs))
+    dists = safe_pdist(arr, *args, **kwargs)
+    if dists is None:
+        return np.zeros((1, 1))
+    return spdist.squareform(dists)
 
 
 def normalize(array, dim=0):

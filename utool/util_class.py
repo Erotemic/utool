@@ -458,11 +458,7 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
     """
     if method_name is None:
         method_name = get_funcname(func)
-    #printDBG('Injecting method_name=%r' % method_name)
     old_method = getattr(self, method_name, None)
-    #import utool as ut
-    #ut.embed()
-
     # Bind function to the class instance
     #new_method = types.MethodType(func, self, self.__class__)
     new_method = func.__get__(self, self.__class__)
@@ -478,8 +474,10 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
                 print('[util_class] skipping re-inject of %r from __main__' % method_name)
             return
         if old_method is new_method or old_im_func is new_im_func:
-            if verbose and util_arg.NOT_QUIET:
-                print('WARNING: Injecting the same function twice: %r' % new_method)
+            #if verbose and util_arg.NOT_QUIET:
+            #    print('WARNING: Skipping injecting the same function twice: %r' % new_method)
+                #print('WARNING: Injecting the same function twice: %r' % new_method)
+            return
         elif allow_override is False:
             raise AssertionError(
                 'Overrides are not allowed. Already have method_name=%r' %
@@ -506,7 +504,18 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
 def inject_func_as_property(self, func, method_name=None, class_=None,
                             allow_override=False, allow_main=False,
                             verbose=True):
-    pass
+    """
+    WARNING:
+        properties are more safely injected using metaclasses
+
+    References:
+        http://stackoverflow.com/questions/13850114/dynamically-adding-methods-with-or-without-metaclass-in-python
+    """
+    if method_name is None:
+        method_name = get_funcname(func)
+    #new_method = func.__get__(self, self.__class__)
+    new_property = property(func)
+    setattr(self.__class__, method_name, new_property)
 
 
 def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object):
@@ -674,7 +683,11 @@ def private_rrr_factory():
                 print('[class] reloading ' + classname + ' from ' + modname)
             # --HACK--
             if hasattr(self, '_on_reload'):
+                if verbose > 1:
+                    print('[class] calling _on_reload for ' + classname)
                 self._on_reload()
+            elif verbose > 1:
+                print('[class] ' + classname + ' does not have an _on_reload function')
 
             NEW = True
             if NEW:
@@ -744,7 +757,11 @@ def private_rrr_factory():
             # --HACK--
             # TODO: handle injected definitions
             if hasattr(self, '_initialize_self'):
+                if verbose > 1:
+                    print('[class] calling _initialize_self for ' + classname)
                 self._initialize_self()
+            elif verbose > 1:
+                print('[class] ' + classname + ' does not have an _initialize_self function')
         except Exception as ex:
             import utool as ut
             ut.printex(ex, 'Error Reloading Class', keys=[

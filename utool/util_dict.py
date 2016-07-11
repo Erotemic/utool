@@ -1662,7 +1662,14 @@ class DictLike(object):
 
 
 def sort_dict(dict_, value_key=None):
-    """ enforces ordering on dict """
+    """
+    enforces ordering on dict
+
+    Args:
+        dict_ (dict_):  a dictionary
+        value_key (func): if None then keys are used to sort else values are used to sort.
+
+    """
     import utool as ut
     if value_key is None:
         keys = list(dict_.keys())
@@ -1671,6 +1678,14 @@ def sort_dict(dict_, value_key=None):
         return ut.odict(ut.take(items, sortx))
     else:
         return ut.odict(ut.items_sorted_by_value(dict_, value_key))
+
+
+def items_sorted_by_value(dict_, key=None):
+    if key is None:
+        sorted_items = sorted(six.iteritems(dict_), key=lambda k, v: v[1])
+    else:
+        sorted_items = sorted(six.iteritems(dict_), key=lambda item: key(item[1]))
+    return sorted_items
 
 
 def order_dict_by(dict_, key_order):
@@ -1709,14 +1724,6 @@ def iteritems_sorted(dict_):
         return six.iteritems(dict_)
     else:
         return iter(sorted(six.iteritems(dict_)))
-
-
-def items_sorted_by_value(dict_, key=None):
-    if key is None:
-        sorted_items = sorted(six.iteritems(dict_), key=lambda k, v: v[1])
-    else:
-        sorted_items = sorted(six.iteritems(dict_), key=lambda item: key(item[1]))
-    return sorted_items
 
 
 def keys_sorted_by_value(dict_):
