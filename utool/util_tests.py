@@ -764,9 +764,6 @@ def parse_docblocks_from_docstr(docstr):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
-        >>> #import ibeis
-        >>> #import ibeis.algo.hots.query_request
-        >>> #func_or_class = ibeis.algo.hots.query_request.QueryParams
         >>> func_or_class = ut.parse_docblocks_from_docstr
         >>> docstr = ut.get_docstr(func_or_class)
         >>> docstr_blocks = parse_docblocks_from_docstr(docstr)
