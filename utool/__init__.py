@@ -196,8 +196,8 @@ if DOELSE:
                                 colwise_diag_idxs, compare_groupings, cumsum, 
                                 defaultdict, deg_to_rad, diagonalized_iter, 
                                 edit_distance, enumerate_primes, 
-                                euclidean_dist, fibonacci, fibonacci_iterative, 
-                                fibonacci_recursive, 
+                                euclidean_dist, expensive_task_gen, fibonacci, 
+                                fibonacci_iterative, fibonacci_recursive, 
                                 find_grouping_consistencies, 
                                 flatten_membership_mapping, generate_primes, 
                                 get_nth_bell_number, get_nth_prime, 
@@ -218,8 +218,8 @@ if DOELSE:
                                 rad_to_deg, safe_div, safe_pdist, self_prodx, 
                                 setcover_greedy, setcover_ilp, solve_boolexpr, 
                                 square_pdist, triangular_number, ungroup, 
-                                unixtime_hourdiff, upper_diag_self_prodx, 
-                                xywh_to_tlbr,) 
+                                ungroup_unique, unixtime_hourdiff, 
+                                upper_diag_self_prodx, xywh_to_tlbr,) 
     from utool.util_aliases import (OrderedDict, ddict, iprod, namedtuple, 
                                     odict, partial, product,) 
     from utool.util_arg import (ArgumentParser2, DEBUG, DEBUG2, NOT_QUIET, 
@@ -309,7 +309,8 @@ if DOELSE:
                                   autogen_import_list, compare_instance, 
                                   decorate_class_method, decorate_postinject, 
                                   get_classname, get_comparison_methods, 
-                                  get_funcname, get_injected_modules, 
+                                  get_funcglobals, get_funcname, 
+                                  get_injected_modules, 
                                   inject_all_external_modules, 
                                   inject_func_as_method, 
                                   inject_func_as_property, inject_instance, 
@@ -441,8 +442,7 @@ if DOELSE:
                                  map_dict_keys, map_dict_vals, merge_dicts, 
                                  move_odict_item, order_dict_by, sort_dict, 
                                  update_existing, updateif_haskey,) 
-    from utool.util_func import (compose_functions, general_get, general_set, 
-                                 identity, uinput_1to1,) 
+    from utool.util_func import (compose_functions, identity,) 
     from utool.util_grabdata import (BadZipfile, TESTIMG_URL_DICT, 
                                      archive_files, clean_dropbox_link, 
                                      clear_test_img_cache, download_url, 
@@ -479,7 +479,7 @@ if DOELSE:
                                        recombine_nestings, 
                                        testdata_grid_search,) 
     from utool.util_git import (Repo, RepoManager, git_sequence_editor_squash, 
-                                isdir,) 
+                                isdir, std_build_command,) 
     from utool.util_latex import (compile_latex_text, compress_pdf, 
                                   ensure_colvec, ensure_rowvec, escape_latex, 
                                   find_ghostscript_exe, get_bibtex_dict, 
@@ -498,12 +498,14 @@ if DOELSE:
                                   dag_longest_path, dfs_template, dict_depth, 
                                   edges_to_adjacency_list, find_odd_cycle, 
                                   get_allkeys, get_ancestor_levels, 
-                                  get_descendant_levels, get_levels, 
+                                  get_descendant_levels, 
+                                  get_graph_bounding_box, get_levels, 
                                   graph_info, level_order, longest_levels, 
                                   merge_level_order, nx_all_nodes_between, 
                                   nx_all_simple_edge_paths, 
                                   nx_common_ancestors, nx_common_descendants, 
                                   nx_dag_node_rank, nx_delete_None_edge_attr, 
+                                  nx_delete_None_node_attr, 
                                   nx_delete_edge_attr, nx_delete_node_attr, 
                                   nx_edges, nx_ensure_agraph_color, 
                                   nx_from_adj_dict, nx_from_matrix, 
@@ -513,11 +515,11 @@ if DOELSE:
                                   nx_sink_nodes, nx_source_nodes, 
                                   nx_to_adj_dict, nx_topsort_rank, 
                                   nx_transitive_reduction, path_to_leafs, 
-                                  paths_to_root, reverse_path, 
+                                  paths_to_root, pin_nodes, reverse_path, 
                                   reverse_path_edges, shortest_levels, 
                                   simplify_graph, subgraph_from_edges, 
                                   testdata_graph, topsort_ordering, 
-                                  traverse_path,) 
+                                  translate_graph, traverse_path,) 
     from utool.util_hash import (ALPHABET, ALPHABET_16, ALPHABET_27, BIGBASE, 
                                  DictProxyType, HASH_LEN, augment_uuid, 
                                  convert_hexstr_to_bigbase, deterministic_uuid, 
@@ -571,8 +573,7 @@ if DOELSE:
                                     get_dev_hints, get_docstr, 
                                     get_func_argspec, get_func_kwargs, 
                                     get_func_modname, get_func_sourcecode, 
-                                    get_funcdoc, get_funcfpath, 
-                                    get_funcglobals, get_imfunc, 
+                                    get_funcdoc, get_funcfpath, get_imfunc, 
                                     get_instance_attrnames, get_kwargs, 
                                     get_kwdefaults, get_kwdefaults2, 
                                     get_module_owned_functions, 
@@ -754,7 +755,7 @@ if DOELSE:
                                 align_lines, array2string2, array_repr2, 
                                 autoformat_pep8, bbox_str, bubbletext, 
                                 byte_str, byte_str2, chr_range, clipstr, 
-                                closet_words, codeblock, color_text, 
+                                closet_words, code_repr, codeblock, color_text, 
                                 conj_phrase, countdown_flag, dict_itemstr_list, 
                                 dict_str, difftext, doctest_code_line, 
                                 doctest_repr, ensure_ascii, ensure_unicode, 
@@ -794,9 +795,10 @@ if DOELSE:
                                 trunc_repr, truncate_str, tupstr, 
                                 unformat_text_as_docstr, unindent, varinfo_str, 
                                 verts_str,) 
-    from utool.util_sysreq import (ensure_in_pythonpath, get_site_packages_dir, 
-                                   in_virtual_env, is_running_as_root, 
-                                   locate_path,) 
+    from utool.util_sysreq import (ensure_in_pythonpath, 
+                                   get_global_dist_packages_dir, 
+                                   get_site_packages_dir, in_virtual_env, 
+                                   is_running_as_root, locate_path,) 
     from utool.util_sqlite import (SQLColumnRichInfo, 
                                    get_nonprimary_columninfo, 
                                    get_primary_columninfo, get_table_column, 
@@ -811,8 +813,7 @@ if DOELSE:
                                   get_cmdclass, get_numpy_include_dir, 
                                   parse_author, parse_package_for_version, 
                                   parse_readme, presetup, presetup_commands, 
-                                  read_license, setup_chmod, setuptools_setup, 
-                                  translate_cyth,) 
+                                  read_license, setup_chmod, setuptools_setup,) 
     from utool.util_set import (OrderedSet, oset,) 
     from utool.util_regex import (REGEX_C_COMMENT, REGEX_ESCSTR, REGEX_FLOAT, 
                                   REGEX_INT, REGEX_LATEX_COMMENT, 
