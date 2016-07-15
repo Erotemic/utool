@@ -157,6 +157,9 @@ class Timer(object):
             sys.stdout.flush()
         return ellapsed
 
+    start = tic
+    stop = toc
+
     def __enter__(self):
         #if self.msg is not None:
         #    sys.stdout.write('---tic---' + self.msg + '  \n')
