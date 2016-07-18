@@ -82,6 +82,13 @@ COMPARABLE_TYPES = {
     ]
     for type_ in type_list
 }
+for int_type_ in VALID_INT_TYPES:
+    COMPARABLE_TYPES[int_type_] = COMPARABLE_TYPES[int_type_] + tuple([other for other in VALID_BOOL_TYPES if isinstance(other, type)])
+for float_type_ in VALID_FLOAT_TYPES:
+    COMPARABLE_TYPES[float_type_] = (COMPARABLE_TYPES[float_type_] +
+                                     tuple([other for other in VALID_BOOL_TYPES if isinstance(other, type)]) +
+                                     tuple([other for other in VALID_INT_TYPES if isinstance(other, type)]))
+
 
 PRIMATIVE_TYPES = (
     tuple(six.string_types) + (bytes, list, dict, int, float, bool, type(None))
@@ -91,8 +98,33 @@ PRIMATIVE_TYPES = (
 def is_comparable_type(var, type_):
     """
     Check to see if `var` is an instance of known compatible types for `type_`
+
+    Args:
+        var (?):
+        type_ (?):
+
+    Returns:
+        bool:
+
+    CommandLine:
+        python -m utool.util_type is_comparable_type --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> import utool as ut
+        >>> flags = []
+        >>> flags += [is_comparable_type(0, float)]
+        >>> flags += [is_comparable_type(0, np.float32)]
+        >>> flags += [is_comparable_type(0, np.int32)]
+        >>> flags += [is_comparable_type(0, int)]
+        >>> flags += [is_comparable_type(0.0, int)]
+        >>> result = ut.repr2(flags)
+        >>> print(result)
+        [True, True, True, True, False]
     """
-    return isinstance(var, COMPARABLE_TYPES.get(type_, type_))
+    other_types = COMPARABLE_TYPES.get(type_, type_)
+    return isinstance(var, other_types)
 
 
 def is_valid_floattype(type_):
