@@ -1,4 +1,3 @@
-
 # TODO Licence:
 #
 # TODO:  move library intensive functions to vtool
@@ -9,6 +8,7 @@ import six
 import itertools
 from six.moves import zip, range, reduce, map
 from collections import defaultdict
+import math
 from utool import util_type
 from utool import util_list
 from utool import util_dict
@@ -29,9 +29,14 @@ except ImportError:
 print, rrr, profile = util_inject.inject2(__name__, '[alg]')
 
 
+# Constants
 PHI = 1.61803398875
 PHI_A = (1 / PHI)
 PHI_B = 1 - PHI_A
+TAU = 2 * math.pi
+# Conversion factors
+KM_PER_MILE = 1.609344
+FOOT_PER_MILE = 5280
 
 
 def compare_groupings(groups1, groups2):
@@ -1449,14 +1454,12 @@ def maximum_distance_subset(items, K, verbose=False):
 
 def deg_to_rad(degree):
     degree %= 360.0
-    tau = 2 * np.pi
-    return (degree / 360.0) * tau
+    return (degree / 360.0) * TAU
 
 
 def rad_to_deg(radians):
-    tau = 2 * np.pi
-    radians %= tau
-    return (radians / tau) * 360.0
+    radians %= TAU
+    return (radians / TAU) * 360.0
 
 
 def inbounds(num, low, high, eq=False):
