@@ -402,7 +402,7 @@ def ibeis_user_profile():
     ]
     self.project_exclude_dirs = [
         '_graveyard', '_broken', 'CompilerIdCXX', 'CompilerIdC', 'build',
-        'old',
+        'old', '_old_qt_hs_matcher',
     ]
     return self
 
