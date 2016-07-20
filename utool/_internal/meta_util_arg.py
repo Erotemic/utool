@@ -23,7 +23,11 @@ NOT_QUIET          = not QUIET
 PRINT_INJECT_ORDER = (VERYVERBOSE or '--print-inject-order' in sys.argv or
                       '--verbinject' in sys.argv or
                       '--print-imports' in sys.argv or
-                      '--verb-inject' in sys.argv)
+                      '--verb-inject' in sys.argv or
+                      '--verbimport' in sys.argv or
+                      '--verb-import' in sys.argv or
+                      '--verb-import' in sys.argv or
+                      '--verbose-import' in sys.argv)
 LOGGING_VERBOSE    = VERYVERBOSE or '--verb-logging' in sys.argv
 
 if PRINT_INJECT_ORDER:
