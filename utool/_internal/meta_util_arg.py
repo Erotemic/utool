@@ -25,6 +25,7 @@ PRINT_INJECT_ORDER = (VERYVERBOSE or '--print-inject-order' in sys.argv or
                       '--print-imports' in sys.argv or
                       '--verb-inject' in sys.argv or
                       '--verbimport' in sys.argv or
+                      '--verbimp' in sys.argv or
                       '--verb-import' in sys.argv or
                       '--verb-import' in sys.argv or
                       '--verbose-import' in sys.argv)
