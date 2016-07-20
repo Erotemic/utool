@@ -131,7 +131,31 @@ def get_nTotalChunks(nTotal, chunksize):
     Returns:
         int: nTotalChunks
 
-    SeeAlso:
+    SeeAlso    from ibeis.algo.hots import graph_iden
+    infr_list = []
+    for annots in ut.ProgIter(flagged_annots, lbl='creating inference', freq=1, bs=True):
+        aids = annots.aids
+        nids = [1] * len(aids)
+        infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=False)
+        infr.initialize_graph()
+        infr.reset_feedback()
+        infr.apply_feedback()
+        infr_list.append(infr)
+
+    for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', freq=1, bs=True):
+        annots = ibs.annots(infr.aids)
+        edge_to_speeds = annots.get_speeds()
+        for (aid1, aid2), speed in edge_to_speeds.items():
+            if speed > MAX_SPEED:
+                if infr.graph.has_edge(aid1, aid2):
+                    pass
+                infr.add_feedback(aid1, aid2, 'nonmatch')
+        infr.apply_feedback()
+
+    relabel_stats = []
+    for infr in ut.ProgIter(infr_list, lbl='finding trivial splits', freq=1, bs=True):
+        num_ccs, num_inconsistent = infr.connected_compoment_relabel()
+        relabel_stats.append({'num_ccs': num_ccs, 'num_incon': num_inconsistent}):
         util_iter.ichunks
 
     CommandLine:
@@ -376,6 +400,9 @@ class ProgressIter(object):
         self.parent_index       = kwargs.pop('parent_index', 0)
         self.parent_nTotal      = kwargs.pop('parent_nTotal', 1)
         self.parent_offset      = self.parent_index * self.nTotal
+
+        # Window sizes for estimates
+        self.est_window         = kwargs.pop('est_window', 64)
         #self.start_offset       = self.substep_min
 
         if FORCE_ALL_PROGRESS:
@@ -635,8 +662,8 @@ class ProgressIter(object):
 
         USE_RECORD = True
         # use last 64 times to compute a more stable average rate
-        measure_between_time = collections.deque([], maxlen=64)
-        measure_est_seconds = collections.deque([], maxlen=16)
+        measure_between_time = collections.deque([], maxlen=self.est_window)
+        measure_est_seconds = collections.deque([], maxlen=self.est_window)
 
         # Wrap the for loop with a generator
         for self.count, item in enumerate(self.iterable, start=start):
