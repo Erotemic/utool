@@ -792,6 +792,23 @@ def get_timestats_dict(unixtime_list, full=True, isutc=False):
     return datetime_stats
 
 
+def date_to_datetime(date, fraction=0.0):
+    """
+    fraction is how much through the day you are. 0=start of the day, 1=end of the day.
+    """
+    day_seconds = (60 * 60 * 24) - 1
+    total_seconds = int(day_seconds * fraction)
+    delta = datetime.timedelta(seconds=total_seconds)
+    time = datetime.time()
+    dt = datetime.datetime.combine(date, time) + delta
+    return dt
+
+
+def datetime_to_posixtime(dt):
+    posixtime = time.mktime(dt.timetuple())
+    return posixtime
+
+
 #def datetime_to_posixtime(dt):
 #    return dt.toordinal()
 
