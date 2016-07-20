@@ -100,6 +100,43 @@ def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
     return module_list
 
 
+def check_module_installed(modname):
+    """
+    Check if a python module is installed without attempting to import it.
+    Note, that if ``modname`` indicates a child module, the parent module is
+    always loaded.
+
+    Args:
+        modname (str):  module name
+
+    Returns:
+        bool: found
+
+    References:
+        http://stackoverflow.com/questions/14050281/module-exists-without-importing
+
+    CommandLine:
+        python -m utool.util_import check_module_installed --show --verbimp --modname=this
+        python -m utool.util_import check_module_installed --show --verbimp --modname=guitool
+        python -m utool.util_import check_module_installed --show --verbimp --modname=guitool.__PYQT__
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_import import *  # NOQA
+        >>> import utool as ut
+        >>> modname = ut.get_argval('--modname', default='this')
+        >>> is_installed = check_module_installed(modname)
+        >>> is_imported = modname in sys.modules
+        >>> print('module(%r).is_installed = %r' % (modname, is_installed))
+        >>> print('module(%r).is_imported = %r' % (modname, is_imported))
+        >>> assert 'this' not in sys.modules, 'module(this) should not have ever been imported'
+    """
+    import pkgutil
+    loader = pkgutil.find_loader(modname)
+    is_installed = loader is not None
+    return is_installed
+
+
 def import_modname(modname):
     r"""
     Args:

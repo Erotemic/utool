@@ -331,30 +331,14 @@ class Repo(util_dev.NiceRepr):
         return found, msg, errors
 
     def check_installed(repo):
-        """
-        # http://stackoverflow.com/questions/14050281/how-to-check-if-a-python-module-exists-without-importing-it
-        """
-        # import utool as ut
-        import pkgutil
+        import utool as ut
         found = None
         tried = []
         for modname in repo.aliases:
             tried.append(modname)
-            loader = pkgutil.find_loader(modname)
-            found = loader is not None
+            found = ut.check_module_installed(modname)
             if found:
                 break
-            # try:
-            #     ut.import_modname(modname)
-            # except ImportError:
-            #     continue
-            # else:
-            #     found = modname
-            #     break
-        # return
-        # if flag:
-        #     # Change internal name
-        #     repo._modname = modname
         msg = 'tried %s' % (', '.join(tried))
         return found, msg
 
