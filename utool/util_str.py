@@ -1371,7 +1371,7 @@ def repr2(obj_, **kwargs):
         if util_type.HAVE_NUMPY and isinstance(obj_, np.ndarray):
             return numpy_str(obj_, **kwitems)
         else:
-            return reprfunc(obj_)
+            return reprfunc(obj_, precision=kwargs.get('precision', None))
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,

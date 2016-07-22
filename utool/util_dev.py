@@ -2658,6 +2658,95 @@ def make_instancelist(obj_list, check=True, shared_attrs=None):
     return InstanceList_(obj_list, shared_attrs)
 
 
+class ColumnLists(NiceRepr):
+    r"""
+    Way to work with column data
+
+    Args:
+        key_to_list (dict): (default = {})
+
+    CommandLine:
+        python -m utool.util_dev ColumnLists --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> key_to_list = {'a': [1, 2, 3], 'b': [4, 5, 6]}
+        >>> self = ColumnLists(key_to_list)
+        >>> newself = self.take([1, 2])
+        >>> print(self)
+        >>> print(newself)
+    """
+    def __init__(self, key_to_list={}):
+        import utool as ut
+        self._key_to_list = key_to_list
+        len_list = [len(vals) for vals in self._key_to_list.values()]
+        self._idxs = list(range(len_list[0]))
+        assert ut.allsame(len_list)
+
+    @property
+    def shape(self):
+        shape = (len(self), len(self._key_to_list))
+        return shape
+
+    def __nice__(self):
+        return '(rows=%r, cols=%r)' % self.shape
+
+    def __iter__(self):
+        return iter(self._idxs)
+
+    def __len__(self):
+        return len(self._idxs)
+
+    def keys(self):
+        return self._key_to_list.keys()
+
+    def __getitem__(self, key):
+        return self._key_to_list[key]
+
+    def __setitem__(self, key, val):
+        assert len(val) == len(self), (
+            'len(val)=%r does not correspond with len(self)=%r' % (
+                len(val), len(self)))
+        self._key_to_list[key] = val
+
+    def take(self, idxs):
+        import utool as ut
+        key_to_list = {key: ut.take(val, idxs)
+                       for key, val in six.iteritems(self._key_to_list)}
+        newself = self.__class__(key_to_list)
+        return newself
+
+    def compress(self,  flags):
+        import utool as ut
+        idxs = ut.where(flags)
+        return self.take(idxs)
+
+    def chunks(self,  chunksize):
+        import utool as ut
+        for idxs in ut.ichunks(self, range(len(self))):
+            yield self.take(idxs)
+
+    def group_indicies(self, labels):
+        import utool as ut
+        unique_labels, groupxs = ut.group_indices(labels)
+        return unique_labels, groupxs
+
+    def group_items(self, labels):
+        """ group as dict """
+        import utool as ut
+        unique_labels, groups = self.group(labels)
+        label_to_group = ut.odict(zip(unique_labels, groups))
+        return label_to_group
+
+    def group(self, labels):
+        """ group as list """
+        unique_labels, groupxs = self.group_indicies(labels)
+        groups = [self.take(idxs) for idxs in groupxs]
+        return unique_labels, groups
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -932,6 +932,10 @@ def compress(item_list, flag_list):
     return filtered_items
 
 
+def zipflat(*args):
+    return [flatten(tup) for tup in zip(*args)]
+
+
 def ziptake(items_list, indexes_list):
     """
     SeeAlso:

@@ -634,7 +634,8 @@ def grab_selenium_driver(driver_name=None):
 
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
-                  delay=None, spoof=False, fname=None, verbose=True, redownload=False):
+                  delay=None, spoof=False, fname=None, verbose=True,
+                  redownload=False):
     r"""
     Downloads a file and returns the local path of the file.
 
@@ -705,6 +706,13 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
     if ensure:
         util_path.assert_exists(fpath)
     return fpath
+
+
+#def grab_multiple_files(url_list, download_dir=None):
+#    import utool as ut
+#    #funckw = dict(download_dir=download_dir, verbose=False)
+#    fpath_list = list(ut.generate(ut.grab_file_url, url_list))
+#    return fpath_list
 
 
 def grab_zipped_url(zipped_url, ensure=True, appname='utool',

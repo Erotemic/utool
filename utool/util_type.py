@@ -179,22 +179,58 @@ def smart_cast(var, type_):
         >>> from utool.util_type import *  # NOQA
         >>> var = '1'
         >>> type_ = 'fuzzy_subset'
-        >>> result = smart_cast(var, type_)
+        >>> cast_var = smart_cast(var, type_)
+        >>> result = repr(cast_var)
         >>> print(result)
         [1]
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_type import *  # NOQA
+        >>> import utool as ut
         >>> var = '1'
         >>> type_ = None
-        >>> result = smart_cast(var, type_)
+        >>> cast_var = smart_cast(var, type_)
+        >>> result = ut.repr2(cast_var)
         >>> print(result)
-        ['1']
+        '1'
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> var = '(1,3)'
+        >>> type_ = 'eval'
+        >>> cast_var = smart_cast(var, type_)
+        >>> result = repr(cast_var)
+        >>> print(result)
+        (1, 3)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> var = '(1,3)'
+        >>> type_ = eval
+        >>> cast_var = smart_cast(var, type_)
+        >>> result = repr(cast_var)
+        >>> print(result)
+        (1, 3)
 
     """
-    if type_ is None or var is None or issubclass(type_, type(None)):
+    #if isinstance(type_, tuple):
+    #    for trytype in type_:
+    #        try:
+    #            return trytype(var)
+    #        except Exception:
+    #            pass
+    #    raise TypeError('Cant figure out type=%r' % (type_,))
+    if type_ is None or var is None:
         return var
+    #if not isinstance(type_, six.string_types):
+    try:
+        if issubclass(type_, type(None)):
+            return var
+    except TypeError:
+        pass
     if is_str(var):
         if type_ in VALID_BOOL_TYPES:
             return bool_from_str(var)
@@ -208,6 +244,8 @@ def smart_cast(var, type_):
         elif isinstance(type_, six.string_types):
             if type_ == 'fuzzy_subset':
                 return fuzzy_subset(var)
+            if type_ == 'eval':
+                return eval(var, {}, {})
             #elif type_ == 'fuzzy_int':
             #    return fuzzy_subset(var)
             else:

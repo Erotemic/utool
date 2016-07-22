@@ -261,9 +261,12 @@ def determine_timestamp_format(datetime_str):
             elif [ ord(_) >= 128 for _ in clean_datetime_str ].count(True) > 1:
                 return None
         #return -1
-        import utool as ut
-        ut.embed()
-        raise NotImplementedError('Unknown format: datetime_str=%r' % (datetime_str,))
+        #import utool as ut
+        #ut.embed()
+        msg = 'Unknown format: datetime_str=%r' % (datetime_str,)
+        print(msg)
+        return None
+        #raise NotImplementedError(msg)
     return timefmt
 
 
@@ -317,9 +320,10 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         >>> print(result)
         1142750101
     """
+    invalid_value = -1
     if isinstance(datetime_str, int):
         if datetime_str == -1:
-            return -1
+            return invalid_value
     elif datetime_str is None:
         return None
     if not isinstance(datetime_str, six.string_types):
@@ -328,7 +332,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
     if timestamp_format is None:
         timefmt = determine_timestamp_format(datetime_str)
         if timefmt is None:
-            return -1
+            return invalid_value
     elif timestamp_format == 2:
         timefmt = '%m/%d/%Y %H:%M:%S'
     elif timestamp_format == 1:
@@ -344,7 +348,12 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
             datetime_str_ = datetime_str[:19].strip(';').strip()
         else:
             datetime_str_ = datetime_str
+        #try:
         dt = datetime.datetime.strptime(datetime_str_, timefmt)
+        #except ValueError as ex:
+        #    import utool as ut
+        #    ut.printex(ex, iswarning=True)
+        #    return invalid_value
         return calendar.timegm(dt.timetuple())
         #return time.mktime(dt.timetuple())
     except TypeError:
@@ -353,18 +362,18 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         return -1
     except ValueError as ex:
         if strict is None:
-            strict = util_arg.STRICT
-        strict = True
+            strict = util_arg.SUPER_STRICT
+        #strict = False
         #from utool.util_arg import STRICT
         if isinstance(datetime_str, six.string_types):
             if len(datetime_str_.strip()) == 0:
-                return -1
+                return invalid_value
             if datetime_str_.find('No EXIF Data') == 0:
-                return -1
+                return invalid_value
             if datetime_str_.find('Invalid') == 0:
-                return -1
+                return invalid_value
             if datetime_str_ == '0000:00:00 00:00:00':
-                return -1
+                return invalid_value
         print('<!!! ValueError !!!>')
         print('[util_time] Caught Error: ' + repr(ex))
         print('[util_time] type(datetime_str)  = %r' % type(datetime_str))
@@ -378,7 +387,6 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         debug = True
         if debug:
             def find_offending_part(datetime_str_, timefmt, splitchar=' '):
-                import datetime
                 import utool as ut
                 parts_list = datetime_str_.split(splitchar)
                 fmt_list = timefmt.split(splitchar)
@@ -404,7 +412,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
             raise
         else:
             print('Supressed ValueError')
-            return -1
+            return invalid_value
 
 
 def parse_timedelta_str(str_):
