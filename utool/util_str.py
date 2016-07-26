@@ -1250,6 +1250,31 @@ def numeric_str(num, precision=None, **kwargs):
 
 
 def reprfunc(val, precision=None):
+    r"""
+    Args:
+        val (?):
+        precision (None): (default = None)
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m utool.util_str reprfunc --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> import utool as ut
+        >>> #vals = [{'foo': [1/3, 2]}, np.float64, 1/3, 'foo']
+        >>> vals = [{'foo': [1, 2]}, np.float64, 1/3, 'foo']
+        >>> precision = 2
+        >>> result = ut.repr3([reprfunc(val, precision) for val in vals], nobr=True)
+        >>> print(result)
+        "{u'foo': [1, 2]}",
+        'numpy.float64',
+        '0.33',
+        "'foo'",
+    """
     if isinstance(val, six.string_types):
         repr_ = repr(val)
         if repr_.startswith('u\'') or repr_.startswith('u"'):
@@ -1258,6 +1283,9 @@ def reprfunc(val, precision=None):
             repr_ = repr_[1:]
     elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
         return scalar_str(val, precision)
+    elif isinstance(val, type):
+        import utool as ut
+        repr_ = ut.type_str(val)
     else:
         #import utool as ut
         #print('val = %r' % (val,))
