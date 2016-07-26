@@ -152,12 +152,6 @@ def get_nTotalChunks(nTotal, chunksize):
                 infr.add_feedback(aid1, aid2, 'nonmatch')
         infr.apply_feedback()
 
-    relabel_stats = []
-    for infr in ut.ProgIter(infr_list, lbl='finding trivial splits', freq=1, bs=True):
-        num_ccs, num_inconsistent = infr.connected_compoment_relabel()
-        relabel_stats.append({'num_ccs': num_ccs, 'num_incon': num_inconsistent}):
-        util_iter.ichunks
-
     CommandLine:
         python -m utool.util_progress --exec-get_nTotalChunks:0
         python -m utool.util_progress --exec-get_nTotalChunks:1
