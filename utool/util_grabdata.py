@@ -166,7 +166,7 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
     """
     # force extracted components into a subdirectory if force_commonprefix is
     # on return_path = output_diG
-    # FIXME doesn't work right
+    # FIXMpathE doesn't work right
     if prefix is not None:
         output_dir = join(output_dir, prefix)
         util_path.ensurepath(output_dir)
@@ -807,8 +807,9 @@ def geo_locate(default='Unknown', timeout=1):
     return success, location_city, location_state, location_country, location_zip
 
 
-def s3_dict_encode_to_str(s3_dict):
+def s3_dict_encode_to_str(s3_dict, return_local_directory_if_available=False):
     default_s3_dict = {
+        '_localDirect'    : None,
         'bucket'          : None,
         'key'             : None,
         'auth_domain'     : None,
@@ -816,13 +817,21 @@ def s3_dict_encode_to_str(s3_dict):
         'auth_secret_key' : None,
     }
     default_s3_dict.update(s3_dict)
-    assert len(default_s3_dict.keys()) == 5
+    assert len(default_s3_dict.keys()) == 6
 
     for key in default_s3_dict.keys():
         if key.startswith('auth'):
             value = default_s3_dict[key]
             if value is None:
                 default_s3_dict[key] = 'EMPTY'
+
+    local_directory = default_s3_dict.get('_localDirect', None)
+    if local_directory is not None and isinstance(local_directory, six.string_types):
+        if exists(local_directory) and return_local_directory_if_available:
+            return local_directory
+
+    if '_localDirect' in default_s3_dict:
+        default_s3_dict.pop('_localDirect')
 
     assert None not in default_s3_dict.values()
     values = (
