@@ -476,7 +476,10 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             #    "print 'System Ready!'",
             #]
             #IPython.embed(config=c)
-            IPython.embed()
+            try:
+                IPython.embed()
+            except RuntimeError as ex:
+                ut.printex(ex, 'Failed to open ipython')
             #config = IPython.terminal.ipapp.load_default_config()
             #config.InteractiveShellEmbed = config.TerminalInteractiveShell
             #module = sys.modules[parent_globals['__name__']]

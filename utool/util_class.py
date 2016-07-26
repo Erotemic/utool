@@ -703,7 +703,10 @@ def private_rrr_factory():
                 head_class = self.__class__
                 class_list = find_base_clases(head_class, find_base_clases)
                 for _class in class_list:
-                    if verbose:
+                    if _class is HashComparable2:
+                        # HACK
+                        continue
+                    if verbose or True:
                         print('[class] reloading parent ' + _class.__name__ +
                               ' from ' + _class.__module__)
                     if _class.__module__ != '__main__':
@@ -815,10 +818,17 @@ def reload_class_methods(self, class_, verbose=True):
 
 
 def compare_instance(op, self, other):
-    if other.__hash__ is None:
-        return op(self.__hash__(), other)
+    hash1 = self.__hash__()
+    if other.__hash__ is not None:
+        hash2 = hash(other)
     else:
-        return op(self.__hash__(), hash(other))
+        hash2 = other
+    try:
+        return op(hash1, hash2)
+    except Exception as ex:
+        import utool as ut
+        ut.printex(ex, 'could not compare hash1 to hash2', keys=['hash1', 'hash2'])
+        raise
 
 
 def get_comparison_methods():
@@ -883,6 +893,26 @@ class HashComparableMetaclass(type):
 @six.add_metaclass(HashComparableMetaclass)
 class HashComparable(object):
     pass
+
+
+class HashComparable2(object):
+    def __lt__(self, other):
+        return compare_instance(op.lt, self, other)
+
+    def __le__(self, other):
+        return compare_instance(op.le, self, other)
+
+    def __eq__(self, other):
+        return compare_instance(op.eq, self, other)
+
+    def __ne__(self, other):
+        return compare_instance(op.ne, self, other)
+
+    def __gt__(self, other):
+        return compare_instance(op.gt, self, other)
+
+    def __ge__(self, other):
+        return compare_instance(op.ge, self, other)
 
 
 def reloadable_class(cls):
