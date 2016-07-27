@@ -1906,11 +1906,118 @@ def num_partitions(num_items):
     return get_nth_bell_number(num_items - 1)
 
 
+def standardize_boolexpr(boolexpr_, parens=False):
+    r"""
+    Standardizes a boolean expression into an or-ing of and-ed variables
+
+    Args:
+        boolexpr_ (str):
+
+    Returns:
+        str: final_expr
+
+    CommandLine:
+        python -m utool.util_alg standardize_boolexpr --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> boolexpr_ = 'not force_opencv and (orient_ or is_gif)'
+        >>> result = standardize_boolexpr(boolexpr_, parens=True)
+        >>> print(result)
+        (orient_ and (not force_opencv)) or (is_gif and (not force_opencv))
+    """
+    import utool as ut
+    import re
+    onlyvars = boolexpr_
+    onlyvars = re.sub('\\bnot\\b', '', onlyvars)
+    onlyvars = re.sub('\\band\\b', '', onlyvars)
+    onlyvars = re.sub('\\bor\\b', '', onlyvars)
+    onlyvars = re.sub('\\(', '', onlyvars)
+    onlyvars = re.sub('\\)', '', onlyvars)
+    varnames = ut.remove_doublspaces(onlyvars).strip().split(' ')
+    varied_dict = {var: [True, False] for var in varnames}
+    bool_states = ut.all_dict_combinations(varied_dict)
+    outputs = [eval(boolexpr_, state.copy(), state.copy()) for state in bool_states]
+    true_states = ut.compress(bool_states, outputs)
+    true_tuples = ut.take_column(true_states, varnames)
+    true_cases = [str(''.join([str(int(t)) for t in tup])) for tup in true_tuples]
+
+    # Convert to binary
+    ones_bin = [int(x, 2) for x in true_cases]
+    #ones_str = [str(x) for x in true_cases]
+    from quine_mccluskey.qm import QuineMcCluskey
+    qm = QuineMcCluskey()
+    result = qm.simplify(ones=ones_bin, num_bits=len(varnames))
+    #result = qm.simplify_los(ones=ones_str, num_bits=len(varnames))
+
+    grouped_terms = [dict(ut.group_items(varnames, rs)) for rs in result]
+    def parenjoin(char, list_):
+        if len(list_) == 0:
+            return ''
+        else:
+            if parens:
+                return '(' + char.join(list_) + ')'
+            else:
+                return char.join(list_)
+
+    if parens:
+        expanded_terms = [
+            (
+                term.get('1', []) +
+                ['(not ' + b + ')' for b in term.get('0', [])] +
+                [
+                    parenjoin(' ^ ', term.get('^', [])),
+                    parenjoin(' ~ ', term.get('~', [])),
+                ]
+            ) for term in grouped_terms
+        ]
+    else:
+        expanded_terms = [
+            (
+                term.get('1', []) +
+                ['not ' + b  for b in term.get('0', [])] +
+                [
+                    parenjoin(' ^ ', term.get('^', [])),
+                    parenjoin(' ~ ', term.get('~', [])),
+                ]
+            ) for term in grouped_terms
+        ]
+
+    final_terms = [[t for t in term if t] for term in expanded_terms]
+
+    products = [parenjoin(' and ', [f for f in form if f]) for form in final_terms]
+    final_expr = ' or '.join(products)
+    return final_expr
+
+
 def solve_boolexpr():
     """
     sudo pip install git+https://github.com/tpircher/quine-mccluskey.git
     sudo pip uninstall quine_mccluskey
     pip uninstall quine_mccluskey
+
+    pip install git+https://github.com/tpircher/quine-mccluskey.git
+
+
+    Args:
+        varnames (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_alg solve_boolexpr --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> varnames = ['sa', 'said', 'aid']
+        >>> result = solve_boolexpr()
+        >>> print(result)
+
     """
     #false_cases = [
     #    int('111', 2),
@@ -1918,9 +2025,9 @@ def solve_boolexpr():
     #    int('001', 2),
     #]
     #true_cases = list(set(range(2 ** 3)) - set(false_cases))
+    varnames = ['sa', 'said', 'aid']
 
     #import utool as ut
-    varnames = ['sa', 'said', 'aid']
     truth_table = [
         dict(sa=True,  said=True,  aid=True,  output=False),
         dict(sa=True,  said=True,  aid=False, output=True),
@@ -1940,9 +2047,8 @@ def solve_boolexpr():
     #truth_nums = [int(s, 2) for s in true_cases]
 
     from quine_mccluskey.qm import QuineMcCluskey
-
     qm = QuineMcCluskey(use_xor=False)
-    result = qm.simplify_los(true_cases)
+    result = qm.simplify_los(true_cases, num_bits=len(varnames))
     print(result)
     #ut.chr_range(3)
 
