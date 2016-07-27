@@ -29,8 +29,8 @@ def ensure_text(fname, text, repo_dpath='.', force=None, locals_={}, chmod=None)
         >>> result = setup_repo()
         >>> print(result)
     """
-    print('Ensuring fname=%r' % (fname))
     import utool as ut
+    ut.colorprint('Ensuring fname=%r' % (fname), 'yellow')
 
     if force is None and ut.get_argflag('--force-%s' % (fname,)):
         force = True
