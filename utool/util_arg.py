@@ -37,6 +37,14 @@ DEBUG = 0
 __REGISTERED_ARGS__ = []
 
 
+def aug_sysargv(cmdstr):
+    """ DEBUG FUNC modify argv to look like you ran a command """
+    import shlex
+    argv = shlex.split(cmdstr)
+    sys.argv.extend(argv)
+    #return argv
+
+
 def get_module_verbosity_flags(*labels):
     """ checks for standard flags for enableing module specific verbosity """
     verbose_prefix_list = ['--verbose-', '--verb', '--verb-']
@@ -126,7 +134,7 @@ def autogen_argparse_block(extra_args=[]):
 
 #@profile
 def get_argflag(argstr_, default=False, help_='', return_specified=None,
-                need_prefix=True, return_was_specified=False, argv=sys.argv,
+                need_prefix=True, return_was_specified=False, argv=None,
                 debug=None,
                 **kwargs):
     """
@@ -162,6 +170,8 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
         >>> result = ('(parsed_val, was_specified) = %s' % (str((parsed_val, was_specified)),))
         >>> print(result)
     """
+    if argv is None:
+        argv = sys.argv
     assert isinstance(default, bool), 'default must be boolean'
     argstr_list = meta_util_iter.ensure_iterable(argstr_)
     #if VERYVERBOSE:
@@ -1026,7 +1036,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
     return dict_
 
 
-def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
+def get_argv_tail(scriptname, prefer_main=None, argv=None):
     r"""
     gets the rest of the arguments after a script has been invoked hack.
     accounts for python -m scripts.
@@ -1067,6 +1077,8 @@ def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
         >>> print(result)
         ['utool/__main__.py', '--tf', 'get_argv_tail']
     """
+    if argv is None:
+        argv = sys.argv
     import utool as ut
     modname = ut.get_argval('-m', help_='specify module name to profile', argv=argv)
     if modname is not None:
@@ -1086,11 +1098,13 @@ def get_argv_tail(scriptname, prefer_main=None, argv=sys.argv):
     return argv_tail
 
 
-def get_cmdline_varargs(argv=sys.argv):
+def get_cmdline_varargs(argv=None):
     """
     Returns positional args specified directly after the scriptname on the
     commandline.
     """
+    if argv is None:
+        argv = sys.argv
     scriptname = argv[0]
     if scriptname == '':
         # python invoked by iteself

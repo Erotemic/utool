@@ -2014,6 +2014,20 @@ def list_depth(list_, func=max, _depth=0):
         return _depth
 
 
+def depth(sequence, func=max, _depth=0):
+    """
+    Find the nesting depth of a nested sequence
+    """
+    if isinstance(sequence, dict):
+        sequence = list(sequence.values())
+    depth_list = [depth(item, func=func, _depth=_depth + 1)
+                  for item in sequence if (isinstance(item, dict) or util_type.is_listlike(item))]
+    if len(depth_list) > 0:
+        return func(depth_list)
+    else:
+        return _depth
+
+
 def list_deep_types(list_):
     """
     Returns all types in a deep list

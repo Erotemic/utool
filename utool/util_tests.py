@@ -745,7 +745,7 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
     return testcmd_list
 
 
-def parse_docblocks_from_docstr(docstr):
+def parse_docblocks_from_docstr(docstr, new=False):
     """
     parse_docblocks_from_docstr
     Depth 5)
@@ -758,7 +758,6 @@ def parse_docblocks_from_docstr(docstr):
     Returns:
         list: docstr_blocks tuples
             [(blockname, blockstr, offset)]
-
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -775,42 +774,92 @@ def parse_docblocks_from_docstr(docstr):
         return []
     import parse
     import utool as ut
-    import itertools
+    import itertools as it
     docstr = ut.ensure_unicode(docstr)
-    initial_docblocks = docstr.split('\n\n')
-    docblock_len_list = [str_.count('\n') + 2 for str_ in initial_docblocks]
-    offset_iter = itertools.chain([0], ut.cumsum(docblock_len_list)[:-1])
-    initial_line_offsets = [offset for offset in offset_iter]
 
-    if VERBOSE_TEST:
-        if ut.VERBOSE:
-            print('__________')
-            print('__Initial Docblocks__')
-            print('\n---\n'.join(initial_docblocks))
-    docstr_blocks = []
-    for docblock, line_offset in zip(initial_docblocks, initial_line_offsets):
-        docblock = docblock.strip('\n')
-        indent = ' ' * ut.get_indentation(docblock)
-        parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
-        if parse_result is not None:
-            header = parse_result['tag']
-        else:
-            header = ''
-        docstr_blocks.append((header, docblock, line_offset))
-    #print(docstr_blocks)
+    if new:
+        # TODO: Finish this
+        # Parse out initial documentation lines
+        # Then parse out the blocked lines.
+        docstr_lines = docstr.split('\n')
+        line_indent = [ut.get_indentation(line) for line in docstr_lines]
+        line_len = [len(line) for line in docstr_lines]
 
-    docblock_headers = ut.take_column(docstr_blocks, 0)
-    docblock_bodys = ut.take_column(docstr_blocks, 1)
-    docblock_offsets = ut.take_column(docstr_blocks, 2)
+        # Group blocks together
+        true_indent = []
+        prev_indent = None
+        for indent_, len_ in zip(line_indent, line_len):
+            if len_ == 0:
+                indent_ = prev_indent
+            true_indent.append(indent_)
+            prev_indent = indent_
 
-    if VERBOSE_TEST:
-        print('[util_test]   * found %d docstr_blocks' % (len(docstr_blocks),))
-        print('[util_test]   * docblock_headers = %r' % (docblock_headers,))
-        print('[util_test]   * docblock_offsets = %r' % (docblock_offsets,))
-        if ut.VERBOSE:
-            print('[util_test]  * docblock_bodys:')
-            print('\n-=-\n'.join(docblock_bodys))
-    return docstr_blocks
+        groupnum = 0
+        previndent = 0
+        group_list = []
+        for indent_ in true_indent:
+            if indent_ != previndent and indent_ == 0:
+                groupnum += 1
+            group_list.append(groupnum)
+            previndent = indent_
+
+        groups_ = ut.group_items(docstr_lines, group_list)
+        groups = []
+        for k, lines in groups_.items():
+            if len(lines) == 0 or (len(lines) == 1 and len(lines[0]) == 0):
+                continue
+            import re
+            if len(lines) > 1 and ut.get_indentation(lines[0]) < ut.get_indentation(lines[1]) and re.match('[^\s]*:', lines[0]):
+                # An encoded google sub-block
+                key = lines[0]
+                val = lines[1:]
+                subblock = ut.unindent('\n'.join(val))
+                groups.append((key, subblock))
+            else:
+                # A top level text documentation block
+                key = '__DOC__'
+                val = lines[:]
+                subblock = '\n'.join(val)
+                groups.append((key, subblock))
+        # Ensure that no keys are duplicated
+        assert len(ut.find_duplicate_items(ut.take_column(groups, 0))) == 0, ('Duplicate google docblock keys are not allowed')
+        groups = dict(groups)
+        return groups
+    else:
+        initial_docblocks = docstr.split('\n\n')
+        docblock_len_list = [str_.count('\n') + 2 for str_ in initial_docblocks]
+        offset_iter = it.chain([0], ut.cumsum(docblock_len_list)[:-1])
+        initial_line_offsets = [offset for offset in offset_iter]
+
+        if VERBOSE_TEST:
+            if ut.VERBOSE:
+                print('__________')
+                print('__Initial Docblocks__')
+                print('\n---\n'.join(initial_docblocks))
+        docstr_blocks = []
+        for docblock, line_offset in zip(initial_docblocks, initial_line_offsets):
+            docblock = docblock.strip('\n')
+            indent = ' ' * ut.get_indentation(docblock)
+            parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
+            if parse_result is not None:
+                header = parse_result['tag']
+            else:
+                header = ''
+            docstr_blocks.append((header, docblock, line_offset))
+        #print(docstr_blocks)
+
+        docblock_headers = ut.take_column(docstr_blocks, 0)
+        docblock_bodys = ut.take_column(docstr_blocks, 1)
+        docblock_offsets = ut.take_column(docstr_blocks, 2)
+
+        if VERBOSE_TEST:
+            print('[util_test]   * found %d docstr_blocks' % (len(docstr_blocks),))
+            print('[util_test]   * docblock_headers = %r' % (docblock_headers,))
+            print('[util_test]   * docblock_offsets = %r' % (docblock_offsets,))
+            if ut.VERBOSE:
+                print('[util_test]  * docblock_bodys:')
+                print('\n-=-\n'.join(docblock_bodys))
+        return docstr_blocks
 
 
 def read_exampleblock(docblock):
