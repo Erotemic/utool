@@ -2686,7 +2686,10 @@ class ColumnLists(NiceRepr):
         import utool as ut
         self._key_to_list = key_to_list
         len_list = [len(vals) for vals in self._key_to_list.values()]
-        self._idxs = list(range(len_list[0]))
+        if len(key_to_list) == 0:
+            self._idxs = []
+        else:
+            self._idxs = list(range(len_list[0]))
         assert ut.allsame(len_list)
 
     @classmethod
@@ -2700,10 +2703,17 @@ class ColumnLists(NiceRepr):
 
     def __add__(self, other):
         import utool as ut
+        if len(other) == 0:
+            return self.copy()
+        elif len(self) == 0:
+            return other.copy()
         key_to_list = ut.dict_union_combine(self._key_to_list,
                                             other._key_to_list)
         new = self.__class__(key_to_list)
         return new
+
+    def copy(self):
+        return self.__class__(self._key_to_list.copy())
 
     @property
     def shape(self):
@@ -2740,6 +2750,11 @@ class ColumnLists(NiceRepr):
     def asdict(self):
         return self._key_to_list
 
+    def asdataframe(self):
+        import pandas as pd
+        df = pd.DataFrame(self.asdict())
+        return df
+
     def take(self, idxs):
         import utool as ut
         key_to_list = {key: ut.take(val, idxs)
@@ -2774,6 +2789,11 @@ class ColumnLists(NiceRepr):
         unique_labels, groupxs = self.group_indicies(labels)
         groups = [self.take(idxs) for idxs in groupxs]
         return unique_labels, groups
+
+    def loc_by_key(self, key, vals):
+        val_to_idx = ut.make_index_lookup(self[key])
+        idx_list = ut.take(val_to_idx, vals)
+        return self.take(idx_list)
 
 
 if __name__ == '__main__':
