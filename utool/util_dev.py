@@ -2658,10 +2658,10 @@ def make_instancelist(obj_list, check=True, shared_attrs=None):
     return InstanceList_(obj_list, shared_attrs)
 
 
-from utool import util_class  # NOQA
+#from utool import util_class  # NOQA
 
 
-@util_class.reloadable_class
+#@util_class.reloadable_class
 class ColumnLists(NiceRepr):
     r"""
     Way to work with column data
@@ -2691,7 +2691,19 @@ class ColumnLists(NiceRepr):
 
     @classmethod
     def flatten(cls, list_):
-        pass
+        import utool as ut
+        dict_list = [c._key_to_list for c in list_]
+        stacked_dict = ut.dict_stack2(dict_list)
+        key_to_list = ut.map_dict_vals(ut.flatten, stacked_dict)
+        self = cls(key_to_list)
+        return self
+
+    def __add__(self, other):
+        import utool as ut
+        key_to_list = ut.dict_union_combine(self._key_to_list,
+                                            other._key_to_list)
+        new = self.__class__(key_to_list)
+        return new
 
     @property
     def shape(self):

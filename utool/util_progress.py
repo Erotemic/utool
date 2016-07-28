@@ -136,7 +136,7 @@ def get_nTotalChunks(nTotal, chunksize):
     for annots in ut.ProgIter(flagged_annots, lbl='creating inference', freq=1, bs=True):
         aids = annots.aids
         nids = [1] * len(aids)
-        infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=False)
+        infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=False)
         infr.initialize_graph()
         infr.reset_feedback()
         infr.apply_feedback()
@@ -149,7 +149,7 @@ def get_nTotalChunks(nTotal, chunksize):
             if speed > MAX_SPEED:
                 if infr.graph.has_edge(aid1, aid2):
                     pass
-                infr.add_feedback(aid1, aid2, 'nonmatch')
+                infr.add_feedback(aid1, aid2, 'nomatch')
         infr.apply_feedback()
 
     CommandLine:

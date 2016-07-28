@@ -158,6 +158,7 @@ def dict_stack(dict_list, key_prefix=''):
 
     CommandLine:
         python -m utool.util_dict --test-dict_stack
+        python -m utool.util_dict --test-dict_stack:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -166,6 +167,20 @@ def dict_stack(dict_list, key_prefix=''):
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
         >>> dict_stacked = dict_stack([dict1_, dict2_])
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {'a': [1, 2], 'b': [2, 3], 'c': [4]}
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> # Get equivalent behavior with dict_stack2?
+        >>> # Almost, as long as None is not part of the list
+        >>> dict1_ = {'a': 1, 'b': 2}
+        >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
+        >>> dict_stacked_ = dict_stack2([dict1_, dict2_])
+        >>> dict_stacked = {key: ut.filter_Nones(val) for key, val in dict_stacked_.items()}
         >>> result = ut.repr2(dict_stacked, sorted_=True)
         >>> print(result)
         {'a': [1, 2], 'b': [2, 3], 'c': [4]}
