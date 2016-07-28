@@ -2658,6 +2658,10 @@ def make_instancelist(obj_list, check=True, shared_attrs=None):
     return InstanceList_(obj_list, shared_attrs)
 
 
+from utool import util_class  # NOQA
+
+
+@util_class.reloadable_class
 class ColumnLists(NiceRepr):
     r"""
     Way to work with column data
@@ -2685,6 +2689,10 @@ class ColumnLists(NiceRepr):
         self._idxs = list(range(len_list[0]))
         assert ut.allsame(len_list)
 
+    @classmethod
+    def flatten(cls, list_):
+        pass
+
     @property
     def shape(self):
         shape = (len(self), len(self._key_to_list))
@@ -2702,6 +2710,12 @@ class ColumnLists(NiceRepr):
     def keys(self):
         return self._key_to_list.keys()
 
+    def values(self):
+        return self._key_to_list.values()
+
+    def __delitem__(self, key):
+        del self._key_to_list[key]
+
     def __getitem__(self, key):
         return self._key_to_list[key]
 
@@ -2710,6 +2724,9 @@ class ColumnLists(NiceRepr):
             'len(val)=%r does not correspond with len(self)=%r' % (
                 len(val), len(self)))
         self._key_to_list[key] = val
+
+    def asdict(self):
+        return self._key_to_list
 
     def take(self, idxs):
         import utool as ut

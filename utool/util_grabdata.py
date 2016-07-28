@@ -277,7 +277,7 @@ def get_prefered_browser(pref_list=[], fallback=True):
                              (pref_list, error_list,))
 
 
-def download_url(url, filename=None, spoof=False, iri_fallback=True):
+def download_url(url, filename=None, spoof=False, iri_fallback=True, verbose=True):
     r""" downloads a url to a filename.
 
     Args:
@@ -303,7 +303,8 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True):
     import urllib  # NOQA
     if filename is None:
         filename = basename(url)
-    print('[utool] Downloading url=%r to filename=%r' % (url, filename))
+    if verbose:
+        print('[utool] Downloading url=%r to filename=%r' % (url, filename))
     def reporthook_(num_blocks, block_nBytes, total_nBytes, start_time=0):
         total_seconds = time.time() - start_time + 1E-9
         num_kb_down   = int(num_blocks * block_nBytes) / 1024
@@ -314,7 +315,10 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True):
         msg = fmt_msg % (percent_down, num_mb_down, kb_per_second, total_seconds)
         sys.stdout.write(msg)
         sys.stdout.flush()
-    reporthook = functools.partial(reporthook_, start_time=time.time())
+    if verbose:
+        reporthook = functools.partial(reporthook_, start_time=time.time())
+    else:
+        reporthook = None
     try:
         if spoof:
             # Different agents that can be used for spoofing
@@ -347,8 +351,9 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True):
         resp = requests.get(url)
         with open(filename, 'wb') as file_:
             file_.write(resp.content)
-    print('')
-    print('[utool] Finished downloading filename=%r' % (filename,))
+    if verbose:
+        print('')
+        print('[utool] Finished downloading filename=%r' % (filename,))
     return filename
 
 

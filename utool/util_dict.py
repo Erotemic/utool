@@ -242,9 +242,20 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> dict_stacked = dict_stack2(dict_list)
         >>> result = ut.repr2(dict_stacked, sorted_=True)
         >>> print(result)
-        {'a': [1, 2], 'b': [2, 3], 'c': [None, 4]}
+        {'a': [[1, 2], None], 'b': [[2, 3], None]}
 
     Example5:
+        >>> # ENABLE_DOCTEST
+        >>> # Corner case: disjoint dicts
+        >>> dict1_ = {'a': [1, 2], 'b': [2, 3]}
+        >>> dict2_ = {'c': 4}
+        >>> dict_list = [dict1_, dict2_]
+        >>> dict_stacked = dict_stack2(dict_list)
+        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> print(result)
+        {'a': [[1, 2], None], 'b': [[2, 3], None], 'c': [None, 4]}
+
+    Example6:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: 3 dicts
         >>> from utool.util_dict import *  # NOQA

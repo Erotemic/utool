@@ -220,6 +220,7 @@ def iter_compress(item_iter, flag_iter):
         >>> print(result)
         [2, 3, 5]
     """
+    # TODO: Just use itertools.compress
     true_items = (item for (item, flag) in zip(item_iter, flag_iter) if flag)
     return true_items
 
