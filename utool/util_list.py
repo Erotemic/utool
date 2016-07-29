@@ -2247,20 +2247,25 @@ def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
 
     CommandLine:
         python -m utool.util_list --exec-list_type_profile
+        python3 -m utool.util_list --exec-list_type_profile
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
-        >>> sequence = []
+        >>> import numpy as np
+        >>> sequence = [[1, 2], np.array([1, 2, 3], dtype=np.int32), (np.array([1, 2, 3], dtype=np.int32),)]
         >>> compress_homogenous = True
         >>> level_type_str = list_type_profile(sequence, compress_homogenous)
         >>> result = ('level_type_str = %s' % (str(level_type_str),))
         >>> print(result)
+        level_type_str = list(list(int*2), ndarray[int32], tuple(ndarray[int32]*1))
     """
     # For a pure bottom level list return the length
     #if not any(map(util_type.is_listlike, sequence)) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
     if not util_type.is_listlike(sequence) or (isinstance(sequence, np.ndarray) and sequence.dtype != object):
         typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
+        if six.PY3:
+            typename = str(type(sequence)).replace('<class \'', '').replace('\'>', '')
         if with_dtype and typename == 'numpy.ndarray':
             typename = typename.replace('numpy.', '')
             typename += '[%s]' % (sequence.dtype,)
@@ -2284,6 +2289,8 @@ def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
         else:
             level_type_str = ', '.join(level_type_list)
     typename = str(type(sequence)).replace('<type \'', '').replace('\'>', '')
+    if six.PY3:
+        typename = str(type(sequence)).replace('<class \'', '').replace('\'>', '')
     level_type_str = typename + '(' + str(level_type_str) + ')'
     return level_type_str
 
