@@ -11,14 +11,17 @@ def is_local_port_open(port):
     """
     import socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = s.connect_ex((get_localhost(), port))
+    result = s.connect_ex(('127.0.0.1', port))
     s.close()
     return result != 0
 
 
 def get_localhost():
     import socket
-    return socket.gethostbyname(socket.gethostname())
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except socket.gaierror:
+        return '127.0.0.1'
 
 
 def _testping():
