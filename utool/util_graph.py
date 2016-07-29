@@ -641,6 +641,8 @@ def reverse_path(dict_, root, child_to_parents):
 
 def get_levels(dict_, n=0, levels=None):
     r"""
+    DEPCIRATE
+
     Args:
         dict_ (dict_):  a dictionary
         n (int): (default = 0)
@@ -651,7 +653,7 @@ def get_levels(dict_, n=0, levels=None):
         python3 -m utool.util_graph --test-get_levels --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> from_root = {
