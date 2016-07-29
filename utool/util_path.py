@@ -953,8 +953,8 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
-        >>> import utool as ut
         >>> from os.path import dirname
+        >>> import utool as ut
         >>> dpath = dirname(ut.__file__)
         >>> pattern = '__*.py'
         >>> recursive = True
@@ -963,10 +963,11 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         >>> maxdepth = None
         >>> fullpath = False
         >>> exclude_dirs = ['_internal', join(dpath, 'experimental')]
-        >>> print('exclude_dirs = ' + ut.list_str(exclude_dirs))
+        >>> print('exclude_dirs = ' + ut.repr2(exclude_dirs))
         >>> path_list = glob(dpath, pattern, recursive, with_files, with_dirs,
         >>>                  maxdepth, exclude_dirs, fullpath)
-        >>> result = ('path_list = %s' % (ut.list_str(path_list),))
+        >>> path_list = sorted(path_list)
+        >>> result = ('path_list = %s' % (ut.repr3(path_list),))
         >>> result = result.replace(r'\\', '/')
         >>> print(result)
         path_list = [
@@ -978,6 +979,7 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
         >>> dpath = dirname(ut.__file__) + '/__*.py'
         >>> path_list = glob(dpath)
         >>> result = ('path_list = %s' % (str(path_list),))
