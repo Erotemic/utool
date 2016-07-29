@@ -536,24 +536,6 @@ def parse_cfgstr3(string):
                 out += [child]
         return (parentTag, out)
 
-    #def combine_nested(opener, closer, content, name):
-    #    """
-    #    opener, closer, content = '(', ')', nest_body
-    #    """
-    #    import utool as ut  # NOQA
-    #    ret = pp.Forward()
-    #    _SUP = ut.identity
-    #    #_SUP = pp.Suppress
-    #    opener_ = _SUP(opener)
-    #    closer_ = _SUP(closer)
-    #    # ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
-    #    # This seems to be weird depending on the version of pyparsing
-    #    ret_ = ret << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
-    #    ret.setResultsName(name)
-    #    ret = ret_  # NOQA
-    #    return
-    #    #return ret.setResultsName('paren')
-    #    #return ret
     def combine_nested(opener, closer, content, name=None):
         """
         opener, closer, content = '(', ')', nest_body
@@ -600,7 +582,9 @@ def parse_cfgstr3(string):
     nest_body << val + pp.ZeroOrMore(COMMA + val)
 
     assign = pp.Group(key + pp.Suppress('=') + (val)).setResultsName('assign')
-    item = (assign | val).setResultsName('item')
+    #item = (assign | val).setResultsName('item')
+    item = (assign | val)
+    #.setResultsName('item')
 
     # Assignments only allowed at outer level
     assign_body = item + pp.ZeroOrMore(pp.Suppress(',') + item)
