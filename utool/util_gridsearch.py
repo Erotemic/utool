@@ -584,7 +584,8 @@ def parse_cfgstr3(string):
     assign = pp.Group(key + pp.Suppress('=') + (val)).setResultsName('assign')
     #item = (assign | val).setResultsName('item')
     item = (assign | val)
-    #.setResultsName('item')
+    # OMG THIS LINE CAUSES NON-DETERMENISTIC RESULTS IN PYTHON3
+    #item = (assign | val).setResultsName('item')
 
     # Assignments only allowed at outer level
     assign_body = item + pp.ZeroOrMore(pp.Suppress(',') + item)
