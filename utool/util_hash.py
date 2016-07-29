@@ -174,6 +174,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
     CommandLine:
         python -m utool.util_hash --test-hashstr
         python3 -m utool.util_hash --test-hashstr
+        python3 -m utool.util_hash --test-hashstr:2
 
 
     Example:
@@ -197,6 +198,18 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> result = ('hashstr = %s' % (str(hashstr),))
         >>> print(result)
         hashstr = 0000000000000000
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> import numpy as np
+        >>> data = np.array([1, 2, 3])
+        >>> hashlen = 16
+        >>> alphabet = ALPHABET
+        >>> hashstr = hashstr(data, hashlen, alphabet)
+        >>> result = ('hashstr = %s' % (str(hashstr),))
+        >>> print(result)
+        hashstr = z5lqw0bzt4dmb9yy
     """
     if isinstance(data, tuple):
         data = repr(data)  # Hack?
