@@ -420,14 +420,19 @@ def make_utool_json_encoder(allow_pickle=False):
         return obj
 
     def encode_pickle(obj):
-        pickle_bytes = pickle.dump(obj, pickle, protocol=2)  # Use protocol 2 to support python2 and 3
+        try:
+            # Use protocol 2 to support both python2.7 and python3
+            COMPATIBLE_PROTOCOL = 2
+            pickle_bytes = pickle.dumps(obj, protocol=COMPATIBLE_PROTOCOL)
+        except Exception:
+            raise
         text = codecs.encode(pickle_bytes, 'base64').decode()
         return text
 
     type_to_tag = collections.OrderedDict([
-        (object, PYOBJECT_TAG),
         (slice, SLICE_TAG),
         (uuid.UUID, UUID_TAG),
+        (object, PYOBJECT_TAG),
     ])
 
     tag_to_type = {tag: type_ for type_, tag in type_to_tag.items()}
@@ -444,14 +449,14 @@ def make_utool_json_encoder(allow_pickle=False):
 
     encoders = {
         UUID_TAG: str,
+        SLICE_TAG: encode_slice,
         PYOBJECT_TAG: encode_pickle,
-        SLICE_TAG: encode_slice
     }
 
     decoders = {
         UUID_TAG: uuid.UUID,
-        PYOBJECT_TAG: decode_pickle,
         SLICE_TAG: decode_slice,
+        PYOBJECT_TAG: decode_pickle,
     }
 
     if not allow_pickle:
@@ -480,6 +485,9 @@ def make_utool_json_encoder(allow_pickle=False):
             else:
                 for type_, tag in type_to_tag.items():
                     if isinstance(obj, type_):
+                        #print('----')
+                        #print('encoder obj = %r' % (obj,))
+                        #print('encoder type_ = %r' % (type_,))
                         func = encoders[tag]
                         text = func(obj)
                         return {tag: text}
@@ -491,8 +499,11 @@ def make_utool_json_encoder(allow_pickle=False):
             if len(value) == 1:
                 tag, text = list(value.items())[0]
                 if tag in decoders:
+                    #print('----')
+                    #print('decoder tag = %r' % (tag,))
                     func = decoders[tag]
                     obj = func(text)
+                    #print('decoder obj = %r' % (obj,))
                     return obj
             else:
                 return value

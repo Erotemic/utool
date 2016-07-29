@@ -60,8 +60,12 @@ def test_progress():
     #import time
     #ut.rrrr()
     print('_________________')
-    numiter = 50
-    sleeptime = 1E-4
+    #numiter = 50
+    #sleeptime = 1E-4
+    #sleeptime2 = 1E-2
+    numiter = 20
+    sleeptime = 1E-7
+    sleeptime2 = 1E-7
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
             time.sleep(sleeptime)
@@ -109,14 +113,14 @@ def test_progress():
     for count1 in progiter1:
         progiter2 = ut.ProgressIter(range(0, 10), lbl='prog2', freq=1, adjust=False, backspace=True)
         for count2 in progiter2:
-            time.sleep(.01)
+            time.sleep(sleeptime2)
 
     print('Double backspace progress 2')
     progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False, backspace=True)
     for count1 in progiter1:
         progiter2 = ut.ProgressIter(range(0, 10), lbl='prog2', freq=1, adjust=False, backspace=True)
         for count2 in progiter2:
-            time.sleep(.01)
+            time.sleep(sleeptime2)
 
 
 def get_nTotalChunks(nTotal, chunksize):

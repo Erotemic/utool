@@ -184,37 +184,38 @@ def smart_cast(var, type_):
         >>> print(result)
         [1]
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_type import *  # NOQA
         >>> import utool as ut
-        >>> var = '1'
-        >>> type_ = None
-        >>> cast_var = smart_cast(var, type_)
+        >>> cast_var = smart_cast('1', None)
         >>> result = ut.repr2(cast_var)
         >>> print(result)
         '1'
 
-    Example:
+    Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_type import *  # NOQA
-        >>> var = '(1,3)'
-        >>> type_ = 'eval'
-        >>> cast_var = smart_cast(var, type_)
+        >>> cast_var = smart_cast('(1,3)', 'eval')
         >>> result = repr(cast_var)
         >>> print(result)
         (1, 3)
 
-    Example:
+    Example3:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_type import *  # NOQA
-        >>> var = '(1,3)'
-        >>> type_ = eval
-        >>> cast_var = smart_cast(var, type_)
+        >>> cast_var = smart_cast('(1,3)', eval)
         >>> result = repr(cast_var)
         >>> print(result)
         (1, 3)
 
+    Example4:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_type import *  # NOQA
+        >>> cast_var = smart_cast('1::3', slice)
+        >>> result = repr(cast_var)
+        >>> print(result)
+        slice(1, None, 3)
     """
     #if isinstance(type_, tuple):
     #    for trytype in type_:

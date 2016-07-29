@@ -809,7 +809,11 @@ def simplify_graph(graph):
         nx.Graph: new_graph
 
     CommandLine:
-        python -m utool.util_graph simplify_graph --show
+        python3 -m utool.util_graph simplify_graph --show
+        python2 -m utool.util_graph simplify_graph --show
+
+        python2 -c "import networkx as nx; print(nx.__version__)"
+        python3 -c "import networkx as nx; print(nx.__version__)"
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -820,13 +824,16 @@ def simplify_graph(graph):
         >>>                     ('a', 'd'), ('b', 'd'), ('c', 'e'),
         >>>                     ('d', 'e'), ('c', 'e'), ('c', 'd')])
         >>> new_graph = simplify_graph(graph)
-        >>> adj_list = list(nx.generate_adjlist(new_graph))
-        >>> result = ut.repr2(adj_list)
+        >>> result = ut.repr2(list(new_graph.edges()))
+        >>> #adj_list = sorted(list(nx.generate_adjlist(new_graph)))
+        >>> #result = ut.repr2(adj_list)
         >>> print(result)
+        [(0, 1), (0, 2), (0, 3), (0, 4), (1, 3), (2, 3), (2, 4), (3, 4)]
+
         ['0 1 2 3 4', '1 3 4', '2 4', '3', '4 3']
     """
     import utool as ut
-    nodes = list(graph.nodes())
+    nodes = sorted(list(graph.nodes()))
     node_lookup = ut.make_index_lookup(nodes)
     if graph.is_multigraph():
         edges = list(graph.edges(keys=True))

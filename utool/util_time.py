@@ -592,12 +592,13 @@ def get_posix_timedelta_str(posixtime, year=False, approx=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
+        >>> import utool as ut
         >>> posixtime_list = [-13, 10.2, 10.2 ** 2, 10.2 ** 3, 10.2 ** 4, 10.2 ** 5, 10.2 ** 8, 60 * 60 * 60 * 24 * 7]
         >>> posixtime = posixtime_list[-1]
         >>> timedelta_str = [get_posix_timedelta_str(posixtime) for posixtime in posixtime_list]
-        >>> result = (timedelta_str)
+        >>> result = ut.repr2(timedelta_str)
         >>> print(result)
-        ['-00:00:13', '00:00:10.20', '00:01:44.04', '00:17:41.21', '03:00:24.32', '1 days 06:40:08.08', '193 weeks 5 days 02:05:38.10', '60 weeks 00:00:00']
+        ['-00:00:13', '00:00:10', '00:01:44', '00:17:41', '03:00:24', '1 day', '193 weeks', '60 weeks']
 
     Timeit::
         import datetime

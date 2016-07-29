@@ -6,8 +6,24 @@ print, rrr, profile = util_inject.inject2(__name__, '[web]')
 
 def is_local_port_open(port):
     """
+    Args:
+        port (int):
+
+    Returns:
+        bool:
+
     References:
         http://stackoverflow.com/questions/7436801/identifying-listening-ports-using-python
+
+    CommandLine:
+        python -m utool.util_web is_local_port_open --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_web import *  # NOQA
+        >>> port = 32183
+        >>> assert is_local_port_open(80) is False, 'port 80 should always be closed'
+        >>> assert is_local_port_open(port) is True, 'maybe this port is actually used?'
     """
     import socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

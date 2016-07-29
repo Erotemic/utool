@@ -369,6 +369,12 @@ def parse_nestings(string):
         >>> string = r'\chapter{Identification \textbf{foobar} workflow}\label{chap:application}'
         >>> parsed_blocks = parse_nestings(string)
         >>> print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+        PARSED_BLOCKS = [
+            ('nonNested', '\\chapter'),
+            ('curl', [('ITEM', '{'), ('nonNested', 'Identification \\textbf'), ('curl', [('ITEM', '{'), ('nonNested', 'foobar'), ('ITEM', '}')]), ('nonNested', 'workflow'), ('ITEM', '}')]),
+            ('nonNested', '\\label'),
+            ('curl', [('ITEM', '{'), ('nonNested', 'chap:application'), ('ITEM', '}')]),
+        ]
     """
     import utool as ut  # NOQA
     import pyparsing as pp
@@ -413,26 +419,35 @@ def parse_nestings(string):
                 out += [child]
         return (parentTag, out)
 
-    def combine_nested(opener, closer, content):
+    def combine_nested(opener, closer, content, name=None):
         """
         opener, closer, content = '(', ')', nest_body
         """
         import utool as ut  # NOQA
-        ret = pp.Forward()
+        ret1 = pp.Forward()
         _SUP = ut.identity
         #_SUP = pp.Suppress
         opener_ = _SUP(opener)
         closer_ = _SUP(closer)
-        # ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
-        ret = ret << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
-        ret = ret
-        return ret
+        # ret1 <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        ret2 = ret1 << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        if ret2 is None:
+            ret2 = ret1
+        else:
+            pass
+            #raise AssertionError('Weird pyparsing behavior. Comment this line if encountered. pp.__version__ = %r' % (pp.__version__,))
+        if name is None:
+            ret3 = ret2
+        else:
+            ret3 = ret2.setResultsName(name)
+        assert ret3 is not None, 'cannot have a None return'
+        return ret3
 
     # Current Best Grammar
     nest_body = pp.Forward()
-    nestedParens   = combine_nested('(', ')', content=nest_body).setResultsName('paren')
-    nestedBrackets = combine_nested('[', ']', content=nest_body).setResultsName('brak')
-    nestedCurlies  = combine_nested('{', '}', content=nest_body).setResultsName('curl')
+    nestedParens   = combine_nested('(', ')', content=nest_body, name='paren')
+    nestedBrackets = combine_nested('[', ']', content=nest_body, name='brak')
+    nestedCurlies  = combine_nested('{', '}', content=nest_body, name='curl')
 
     nonBracePrintables = ''.join(c for c in pp.printables if c not in '(){}[]') + ' '
     nonNested = pp.Word(nonBracePrintables).setResultsName('nonNested')
@@ -506,20 +521,47 @@ def parse_cfgstr3(string):
                 out += [child]
         return (parentTag, out)
 
-    def combine_nested(opener, closer, content):
+    #def combine_nested(opener, closer, content, name):
+    #    """
+    #    opener, closer, content = '(', ')', nest_body
+    #    """
+    #    import utool as ut  # NOQA
+    #    ret = pp.Forward()
+    #    _SUP = ut.identity
+    #    #_SUP = pp.Suppress
+    #    opener_ = _SUP(opener)
+    #    closer_ = _SUP(closer)
+    #    # ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+    #    # This seems to be weird depending on the version of pyparsing
+    #    ret_ = ret << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+    #    ret.setResultsName(name)
+    #    ret = ret_  # NOQA
+    #    return
+    #    #return ret.setResultsName('paren')
+    #    #return ret
+    def combine_nested(opener, closer, content, name=None):
         """
         opener, closer, content = '(', ')', nest_body
         """
         import utool as ut  # NOQA
-        ret = pp.Forward()
+        ret1 = pp.Forward()
         _SUP = ut.identity
         #_SUP = pp.Suppress
         opener_ = _SUP(opener)
         closer_ = _SUP(closer)
-        # ret <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
-        ret = ret << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
-        ret = ret
-        return ret
+        # ret1 <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        ret2 = ret1 << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        if ret2 is None:
+            ret2 = ret1
+        else:
+            pass
+            #raise AssertionError('Weird pyparsing behavior. Comment this line if encountered. pp.__version__ = %r' % (pp.__version__,))
+        if name is None:
+            ret3 = ret2
+        else:
+            ret3 = ret2.setResultsName(name)
+        assert ret3 is not None, 'cannot have a None return'
+        return ret3
 
     # Current Best Grammar
     STRING = (pp.quotedString.copy()).setResultsName('quotedstring')
@@ -529,9 +571,9 @@ def parse_cfgstr3(string):
     atom   = (NAME | NUM | STRING).setResultsName('atom')
 
     nest_body = pp.Forward().setResultsName('nest_body')
-    nestedParens   = combine_nested('(', ')', content=nest_body).setResultsName('paren')
-    nestedBrackets = combine_nested('[', ']', content=nest_body).setResultsName('brak')
-    nestedCurlies  = combine_nested('{', '}', content=nest_body).setResultsName('curl')
+    nestedParens   = combine_nested('(', ')', content=nest_body, name='paren')
+    nestedBrackets = combine_nested('[', ']', content=nest_body, name='brak')
+    nestedCurlies  = combine_nested('{', '}', content=nest_body, name='curl')
 
     nest_stmt = pp.Combine((nestedParens | nestedBrackets | nestedCurlies).setResultsName('sequence'))
 
