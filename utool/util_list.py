@@ -2246,8 +2246,8 @@ def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
         str: level_type_str
 
     CommandLine:
-        python -m utool.util_list --exec-list_type_profile
-        python3 -m utool.util_list --exec-list_type_profile
+        python -m utool.util_list --test-list_type_profile
+        python3 -m utool.util_list --test-list_type_profile
 
     Example:
         >>> # ENABLE_DOCTEST
