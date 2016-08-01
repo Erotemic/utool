@@ -2575,9 +2575,10 @@ def list_alignment(list1, list2):
     return sortx
 
 
-def list_transpose(list_):
+def list_transpose(list_, shape=None):
     r"""
-    Swaps rows and columns
+    Swaps rows and columns.
+    nCols should be specified if the initial list is empty.
 
     Args:
         list_ (list):
@@ -2596,20 +2597,41 @@ def list_transpose(list_):
         >>> print(result)
         [(1, 3), (2, 4)]
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
+        >>> list_ = []
+        >>> result = list_transpose(list_, shape=(0, 5))
+        >>> print(result)
+        [[], [], [], [], []]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> list_ = [[], [], [], [], []]
+        >>> result = list_transpose(list_)
+        >>> print(result)
+        []
+
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
         >>> list_ = [[1, 2, 3], [3, 4]]
-        >>> try:
-        >>>     result = list_transpose(list_)
-        >>> except AssertionError:
-        >>>     pass
-        >>> else:
-        >>>     assert False, 'should error'
+        >>> ut.assert_raises(ValueError, list_transpose, list_)
     """
-    #import utool as ut
-    num_cols_set = list(set(list(map(len, list_))))
-    assert len(num_cols_set) == 1, 'inconsistent num_cols_set=%r' % (num_cols_set,)
+    num_cols_set = unique([len(x) for x in list_])
+    if shape is None:
+        if len(num_cols_set) == 0:
+            raise ValueError('listT does not support empty transpose without shapes')
+    else:
+        assert len(shape) == 2, 'shape must be a 2-tuple'
+        if len(num_cols_set) == 0:
+            return [[] for _ in range(shape[1])]
+        elif num_cols_set[0] == 0:
+            return []
+    if len(num_cols_set) != 1:
+        raise ValueError('inconsistent column lengths=%r' % (num_cols_set,))
     return list(zip(*list_))
 
 

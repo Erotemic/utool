@@ -12,8 +12,8 @@ from six.moves import zip
 from utool import util_iter
 from utool import util_alg
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[util_assert]')
-from utool import util_arg
+print, rrr, profile = util_inject.inject2(__name__, '[util_assert]')
+from utool import util_arg  # NOQA
 
 
 def get_first_None_position(list_):
@@ -23,13 +23,21 @@ def get_first_None_position(list_):
     return None
 
 
+def assert_raises(ex_type, func, *args, **kwargs):
+    try:
+        func(*args, **kwargs)
+    except Exception as ex:
+        assert isinstance(ex, ex_type), 'Should have raised an error'
+        return True
+
+
 def assert_all_in(key_list, valid_list, msg=''):
     missing_keys = set(key_list).difference(set(valid_list))
     assert len(missing_keys) == 0, 'missing_keys = %r. %s' % (missing_keys, msg)
 
 
-def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=not util_arg.QUIET,
-                        veryverbose=False):
+def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=not
+                        util_arg.QUIET, veryverbose=False):
     if util_arg.NO_ASSERTS:
         return
     try:
