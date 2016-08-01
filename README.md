@@ -1,3 +1,8 @@
+|  **`Travis CI Status`**   |
+|-------------------|
+|[![Travis](https://img.shields.io/travis/numpy/numpy.svg)](https://travis-ci.org/Erotemic/utool)|
+
+
 utool
 =====
 
