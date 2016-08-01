@@ -21,10 +21,15 @@ def build_alias_map(regex_map, tag_vocab):
     import utool as ut
     import re
     alias_map = {}
-    for pat, new_tag in reversed(regex_map):
-        flags = [re.match(pat, t) for t in tag_vocab]
-        for old_tag in ut.compress(tag_vocab, flags):
-            alias_map[old_tag] = new_tag
+    for pats, new_tag in reversed(regex_map):
+        pats = ut.ensure_iterable(pats)
+        for pat in pats:
+            flags = [re.match(pat, t) for t in tag_vocab]
+            for old_tag in ut.compress(tag_vocab, flags):
+                alias_map[old_tag] = new_tag
+    identity_map = ut.take_column(regex_map, 1)
+    for tag in ut.filter_Nones(identity_map):
+        alias_map[tag] = tag
     return alias_map
 
 

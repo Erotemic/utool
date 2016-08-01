@@ -209,6 +209,16 @@ class Repo(util_dev.NiceRepr):
         if dpath is not None:
             repo.dpath = util_path.unixpath(dpath)
 
+    def as_gitpython(repo):
+        """ pip install gitpython """
+        import git
+        gitrepo = git.Repo(repo.dpath)
+        return gitrepo
+
+    @property
+    def active_branch(repo):
+        return repo.as_gitpython().active_branch.name
+
     @property
     def aliases(repo):
         aliases = []

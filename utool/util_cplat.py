@@ -453,7 +453,18 @@ def geteditor():
 
 
 def editfile(fpath):
-    """ Runs gvim """
+    """ Runs gvim. Can also accept a module / class / function """
+    if not isinstance(fpath, six.string_types):
+        from six import types
+        print('Rectify to module fpath = %r' % (fpath,))
+        if isinstance(fpath, types.ModuleType):
+            fpath = fpath.__file__
+        else:
+            fpath =  sys.modules[fpath.__module__].__file__
+        fpath_py = fpath.replace('.pyc', '.py')
+        if exists(fpath_py):
+            fpath = fpath_py
+
     print('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
