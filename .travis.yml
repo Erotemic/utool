@@ -2,6 +2,9 @@ language: python
 python:
   - "2.7"
   - "3.4"
+before_install:
+  - pip install networkx
+  - pip install jedi
 install:
   - travis_retry python setup.py build develop
 script: 
@@ -10,3 +13,7 @@ script:
   - travis_wait py.test
 after_failure: 
   - cat failed_doctests.txt
+cache: 
+    apt: true
+    directories:
+        - $HOME/.pip-cache
