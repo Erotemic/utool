@@ -19,7 +19,7 @@ def is_local_port_open(port):
         python -m utool.util_web is_local_port_open --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_web import *  # NOQA
         >>> port = 32183
         >>> assert is_local_port_open(80) is False, 'port 80 should always be closed'

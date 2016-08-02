@@ -1477,7 +1477,7 @@ def inbounds(num, low, high, eq=False):
         python -m utool.util_alg --test-inbounds
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> num = np.array([[ 0.   ,  0.431,  0.279],
