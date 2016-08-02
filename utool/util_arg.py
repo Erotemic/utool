@@ -338,9 +338,9 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         >>> # Execute the command with for each of the test cases
         >>> res_list = []
         >>> argstr_list = ut.get_list_column(argstr_kwargs_list, 0)
-        >>> list1 = [1,3,5,7,9]
+        >>> list1 = [1, 3, 5, 7, 9]
         >>> import numpy as np
-        >>> list2 = np.array([[1, 2],[3,4],[5,6],[7,8],[9,1]])
+        >>> list2 = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 1]])
         >>> for argstr_, kwargs in argstr_kwargs_list:
         >>>     res = get_argval(argstr_, **kwargs)
         >>>     print('---')

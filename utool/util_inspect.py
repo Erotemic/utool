@@ -1188,18 +1188,18 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> sourcecode = ut.codeblock(
-            '''
-            warped_patch1_list, warped_patch2_list = list(zip(*ut.ichunks(data, 2)))
-            interact_patches(labels, warped_patch1_list, warped_patch2_list, flat_metadata, **kwargs)
-            import sys
-            sys.badcall(**kwargs)
-            def foo():
-                bar(**kwargs)
-                ut.holymoly(**kwargs)
-                baz()
-                def biz(**kwargs):
-                    foo2(**kwargs)
-            ''')
+                '''
+                warped_patch1_list, warped_patch2_list = list(zip(*ut.ichunks(data, 2)))
+                interact_patches(labels, warped_patch1_list, warped_patch2_list, flat_metadata, **kwargs)
+                import sys
+                sys.badcall(**kwargs)
+                def foo():
+                    bar(**kwargs)
+                    ut.holymoly(**kwargs)
+                    baz()
+                    def biz(**kwargs):
+                        foo2(**kwargs)
+                ''')
         >>> child_funcnamess = ut.find_child_kwarg_funcs(sourcecode)
         >>> print('child_funcnamess = %r' % (child_funcnamess,))
         >>> assert 'foo2' not in child_funcnamess, 'foo2 should not be found'
@@ -1318,9 +1318,9 @@ def parse_return_type(sourcecode):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> sourcecode = ut.codeblock(
-        ... 'def foo(tmp=False):\n'
-        ... '    bar = True\n'
-        ... '    return bar\n'
+        ...     'def foo(tmp=False):\n'
+        ...     '    bar = True\n'
+        ...     '    return bar\n'
         ... )
         >>> returninfo = parse_return_type(sourcecode)
         >>> result = ut.repr2(returninfo)
@@ -1332,8 +1332,8 @@ def parse_return_type(sourcecode):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> sourcecode = ut.codeblock(
-        ... 'def foo(tmp=False):\n'
-        ... '    return True\n'
+        ...     'def foo(tmp=False):\n'
+        ...     '    return True\n'
         ... )
         >>> returninfo = parse_return_type(sourcecode)
         >>> result = ut.repr2(returninfo)
@@ -1345,9 +1345,9 @@ def parse_return_type(sourcecode):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> sourcecode = ut.codeblock(
-        ... 'def foo(tmp=False):\n'
-        ... '    for i in range(2): \n'
-        ... '        yield i\n'
+        ...     'def foo(tmp=False):\n'
+        ...     '    for i in range(2): \n'
+        ...     '        yield i\n'
         ... )
         >>> returninfo = parse_return_type(sourcecode)
         >>> result = ut.repr2(returninfo)
@@ -1359,14 +1359,14 @@ def parse_return_type(sourcecode):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> sourcecode = ut.codeblock(
-        ... 'def foo(tmp=False):\n'
-        ... '    if tmp is True:\n'
-        ... '        return (True, False)\n'
-        ... '    elif tmp is False:\n'
-        ... '        return 1\n'
-        ... '    else:\n'
-        ... '        bar = baz()\n'
-        ... '        return bar\n'
+        ...     'def foo(tmp=False):\n'
+        ...     '    if tmp is True:\n'
+        ...     '        return (True, False)\n'
+        ...     '    elif tmp is False:\n'
+        ...     '        return 1\n'
+        ...     '    else:\n'
+        ...     '        bar = baz()\n'
+        ...     '        return bar\n'
         ... )
         >>> returninfo = parse_return_type(sourcecode)
         >>> result = ut.repr2(returninfo)

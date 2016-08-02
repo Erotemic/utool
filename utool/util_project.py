@@ -228,12 +228,12 @@ def setup_repo():
                 *.npz
 
                 # utool output
-                _test_times.txt
+                _timeings.txt
                 failed.txt
 
                 *.orig
                 _doc
-                test_times.txt
+                timeings.txt
                 failed_doctests.txt
                 # ENDBLOCK
                 '''

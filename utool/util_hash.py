@@ -183,10 +183,10 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> data = 'foobar'
         >>> hashlen = 16
         >>> alphabet = ALPHABET
-        >>> hashstr = hashstr(data, hashlen, alphabet)
-        >>> result = ('hashstr = %s' % (str(hashstr),))
+        >>> text = hashstr(data, hashlen, alphabet)
+        >>> result = ('text = %s' % (str(text),))
         >>> print(result)
-        hashstr = mi5yum60mbxhyp+x
+        text = mi5yum60mbxhyp+x
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -194,10 +194,10 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> data = ''
         >>> hashlen = 16
         >>> alphabet = ALPHABET
-        >>> hashstr = hashstr(data, hashlen, alphabet)
-        >>> result = ('hashstr = %s' % (str(hashstr),))
+        >>> text = hashstr(data, hashlen, alphabet)
+        >>> result = ('text = %s' % (str(text),))
         >>> print(result)
-        hashstr = 0000000000000000
+        text = 0000000000000000
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -206,10 +206,10 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> data = np.array([1, 2, 3])
         >>> hashlen = 16
         >>> alphabet = ALPHABET
-        >>> hashstr = hashstr(data, hashlen, alphabet)
-        >>> result = ('hashstr = %s' % (str(hashstr),))
+        >>> text = hashstr(data, hashlen, alphabet)
+        >>> result = ('text = %s' % (str(text),))
         >>> print(result)
-        hashstr = z5lqw0bzt4dmb9yy
+        text = z5lqw0bzt4dmb9yy
     """
     if isinstance(data, tuple):
         data = repr(data)  # Hack?
@@ -218,16 +218,16 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         data = data.encode('utf-8')
     if isinstance(data, stringlike) and len(data) == 0:
         # Make a special hash for empty data
-        hashstr = (alphabet[0] * hashlen)
+        text = (alphabet[0] * hashlen)
     else:
         # Get a 128 character hex string
-        hashstr = hashlib.sha512(data).hexdigest()
+        text = hashlib.sha512(data).hexdigest()
         #if six.PY3:
         # Shorten length of string (by increasing base)
-        hashstr2 = convert_hexstr_to_bigbase(hashstr, alphabet, bigbase=len(alphabet))
+        hashstr2 = convert_hexstr_to_bigbase(text, alphabet, bigbase=len(alphabet))
         # Truncate
-        hashstr = hashstr2[:hashlen]
-    return hashstr
+        text = hashstr2[:hashlen]
+    return text
 
 """
 def valid_filename_ascii_chars():
@@ -269,16 +269,16 @@ def convert_hexstr_to_bigbase(hexstr, alphabet=ALPHABET, bigbase=BIGBASE):
 
 
 def hashstr_md5(data):
-    hashstr = hashlib.md5(data).hexdigest()
+    text = hashlib.md5(data).hexdigest()
     #bin(int(my_hexdata, scale))
-    return hashstr
+    return text
 
 
 def hashstr_sha1(data, base10=False):
-    hashstr = hashlib.sha1(data).hexdigest()
+    text = hashlib.sha1(data).hexdigest()
     if base10:
-        hashstr = int("0x" + hashstr, 0)
-    return hashstr
+        text = int("0x" + text, 0)
+    return text
 
 
 def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1):

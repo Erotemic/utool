@@ -680,9 +680,9 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         >>> spoof = False
         >>> verbose = True
         >>> redownload = True
-        >>> fname ='lena.png'
+        >>> fname = 'lena.png'
         >>> lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,
-        >>>     delay, spoof, fname, verbose, redownload)
+        >>>                               delay, spoof, fname, verbose, redownload)
         >>> result = basename(lena_fpath)
         >>> print(result)
         lena.png

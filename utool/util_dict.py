@@ -331,7 +331,7 @@ def invert_dict(dict_, unique_vals=True):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
-        >>> dict_ = OrderedDict([(2, 'good',), (1, 'ok',), (0, 'junk',), (None, 'UNKNOWN',),])
+        >>> dict_ = OrderedDict([(2, 'good',), (1, 'ok',), (0, 'junk',), (None, 'UNKNOWN',)])
         >>> inverted_dict = invert_dict(dict_)
         >>> result = ut.dict_str(inverted_dict, nl=False)
         >>> print(result)
@@ -707,7 +707,7 @@ def delete_dict_keys(dict_, key_list):
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
         >>> # build test data
-        >>> dict_ = {'bread': 1, 'churches': 1, 'cider': 2, 'very small rocks':2}
+        >>> dict_ = {'bread': 1, 'churches': 1, 'cider': 2, 'very small rocks': 2}
         >>> key_list = ['duck', 'bread', 'cider']
         >>> # execute function
         >>> delete_dict_keys(dict_, key_list)
@@ -1730,8 +1730,8 @@ def order_dict_by(dict_, key_order):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
-        >>> dict_ = {1:1, 2:2, 3:3, 4:4}
-        >>> key_order = [4,2,3,1]
+        >>> dict_ = {1: 1, 2: 2, 3: 3, 4: 4}
+        >>> key_order = [4, 2, 3, 1]
         >>> sorted_dict = order_dict_by(dict_, key_order)
         >>> result = ('sorted_dict = %s' % (ut.dict_str(sorted_dict, nl=False),))
         >>> print(result)

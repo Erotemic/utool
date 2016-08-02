@@ -145,7 +145,7 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         ...          r'/ham',
         ...          r'./eggs',
         ...          r'/spam/eggs',
-        ...          r'C:\Program Files (x86)/foobar/bin',]
+        ...          r'C:\Program Files (x86)/foobar/bin']
         >>> N = 2
         >>> iter_ = ut.iprod(paths, range(1, N + 1))
         >>> force_unix = True

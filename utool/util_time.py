@@ -517,10 +517,11 @@ def get_unix_timedelta_str(unixtime_diff):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
+        >>> import utool as ut
         >>> unixtime_diff = 0
         >>> timestr = get_unix_timedelta_str(unixtime_diff)
         >>> timestr_list = [get_unix_timedelta_str(_) for _ in [-9001, -1, 0, 1, 9001]]
-        >>> result = str(timestr_list)
+        >>> result = ut.repr2(timestr_list)
         >>> print(result)
         ['2 hours 30 minutes 1 second', '1 second', '0 seconds', '1 second', '2 hours 30 minutes 1 second']
     """
@@ -720,7 +721,7 @@ def get_timestats_str(unixtime_list, newlines=False, full=True, isutc=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> import utool as ut
-        >>> unixtime_list = [0, 0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5]
+        >>> unixtime_list = [0, 0 + 60 * 60 * 5 , 10 + 60 * 60 * 5, 100 + 60 * 60 * 5, 1000 + 60 * 60 * 5]
         >>> newlines = True
         >>> full = False
         >>> timestat_str = get_timestats_str(unixtime_list, newlines, full=full, isutc=True)
@@ -738,7 +739,7 @@ def get_timestats_str(unixtime_list, newlines=False, full=True, isutc=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> import utool as ut
-        >>> unixtime_list = [0, 0 + 60*60*5 , 10+ 60*60*5, 100+ 60*60*5, 1000+ 60*60*5, float('nan'), 0]
+        >>> unixtime_list = [0, 0 + 60 * 60 * 5 , 10 + 60 * 60 * 5, 100 + 60 * 60 * 5, 1000 + 60 * 60 * 5, float('nan'), 0]
         >>> newlines = True
         >>> timestat_str = get_timestats_str(unixtime_list, newlines, isutc=True)
         >>> result = ut.align(str(timestat_str), ':')

@@ -541,15 +541,15 @@ def to_json(val, allow_pickle=False, pretty=False):
         >>> import numpy as np
         >>> import uuid
         >>> val = [
-        >>>    '{"foo": "not a dict"}',
-        >>>    1.3,
-        >>>    [1],
-        >>>    slice(1, None, 1),
-        >>>    b'an ascii string',
-        >>>    np.array([1, 2, 3]),
-        >>>    ut.get_zero_uuid(),
-        >>>    ut.LazyDict(x='fo'),
-        >>>    ut.LazyDict,
+        >>>     '{"foo": "not a dict"}',
+        >>>     1.3,
+        >>>     [1],
+        >>>     slice(1, None, 1),
+        >>>     b'an ascii string',
+        >>>     np.array([1, 2, 3]),
+        >>>     ut.get_zero_uuid(),
+        >>>     ut.LazyDict(x='fo'),
+        >>>     ut.LazyDict,
         >>> ]
         >>> #val = ut.LazyDict(x='fo')
         >>> allow_pickle = True
@@ -758,11 +758,11 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> def costly_func(a, b, c='d', *args, **kwargs):
-        ...    return ([a] * b, c, args, kwargs)
+        ...     return ([a] * b, c, args, kwargs)
         >>> ans0 = costly_func(41, 3)
         >>> ans1 = costly_func(42, 3)
         >>> closure_ = ut.cached_func('costly_func', appname='utool_test',
-        >>>         key_argx=[0, 1])
+        >>>                           key_argx=[0, 1])
         >>> efficient_func = closure_(costly_func)
         >>> ans2 = efficient_func(42, 3)
         >>> ans3 = efficient_func(42, 3)

@@ -598,13 +598,13 @@ def reverse_path(dict_, root, child_to_parents):
         >>> to_root = {
         >>>     'fgweight': {
         >>>         'keypoint': {
-        >>>                 'chip': {
-        >>>                             'dummy_annot': None,
-        >>>                         },
-        >>>             },
-        >>>         'probchip': {
+        >>>             'chip': {
         >>>                 'dummy_annot': None,
         >>>             },
+        >>>         },
+        >>>         'probchip': {
+        >>>             'dummy_annot': None,
+        >>>         },
         >>>     },
         >>> }
         >>> reversed_ = reverse_path(to_root, 'dummy_annot', child_to_parents)

@@ -14,7 +14,7 @@ import math
 import collections
 from os.path import split
 from utool import util_type
-from utool import util_time
+#from utool import util_time
 from utool import util_cplat
 from utool._internal import meta_util_six
 from utool._internal import meta_util_arg
@@ -1553,10 +1553,10 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         >>> from utool.util_str import *  # NOQA
         >>> import utool as ut
         >>> list_ = [[(('--verbose-qt', '--verbqt'), 1, False, ''),
-        ...     (('--verbose-qt', '--verbqt'), 1, False, ''), (('--verbose-qt',
-        ...     '--verbqt'), 1, False, ''), (('--verbose-qt', '--verbqt'), 1,
-        ...     False, '')], [(['--nodyn'], 1, False, ''), (['--nodyn'], 1, False,
-        ...     '')]]
+        >>>           (('--verbose-qt', '--verbqt'), 1, False, ''),
+        >>>           (('--verbose-qt', '--verbqt'), 1, False, ''),
+        >>>           (('--verbose-qt', '--verbqt'), 1, False, '')],
+        >>>          [(['--nodyn'], 1, False, ''), (['--nodyn'], 1, False, '')]]
         >>> indent_ = ''
         >>> newlines = 2
         >>> truncate = ut.get_argval('--truncate', type_=None, default=False)
@@ -1904,12 +1904,12 @@ def str2(obj):
         return six.text_type(obj)
 
 
-def get_unix_timedelta_str(unixtime_diff):
-    """ string representation of time deltas """
-    timedelta = util_time.get_unix_timedelta(unixtime_diff)
-    sign = '+' if unixtime_diff >= 0 else '-'
-    timedelta_str = sign + six.text_type(timedelta)
-    return timedelta_str
+#def get_unix_timedelta_str(unixtime_diff):
+#    """ string representation of time deltas """
+#    timedelta = util_time.get_unix_timedelta(unixtime_diff)
+#    sign = '+' if unixtime_diff >= 0 else '-'
+#    timedelta_str = sign + six.text_type(timedelta)
+#    return timedelta_str
 
 
 def str_between(str_, startstr, endstr):

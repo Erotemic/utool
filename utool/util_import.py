@@ -182,7 +182,7 @@ def tryimport(modname, pipiname=None, ensure=False):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_tests import *   # NOQA
+        >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
         >>> modname = 'pyfiglet'
         >>> pipiname = 'git+https://github.com/pwaller/pyfiglet'
@@ -192,7 +192,7 @@ def tryimport(modname, pipiname=None, ensure=False):
     Example2:
         >>> # UNSTABLE_DOCTEST
         >>> # disabled because not everyone has access to being a super user
-        >>> from utool.util_tests import *   # NOQA
+        >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
         >>> modname = 'lru'
         >>> pipiname = 'git+https://github.com/amitdev/lru-dict'

@@ -671,9 +671,9 @@ def memoize(func):
         >>> closure = {'a': 'b', 'c': 'd'}
         >>> incr = [0]
         >>> def foo(key):
-        >>>    value = closure[key]
-        >>>    incr[0] += 1
-        >>>    return value
+        >>>     value = closure[key]
+        >>>     incr[0] += 1
+        >>>     return value
         >>> foo_memo = memoize(foo)
         >>> assert foo('a') == 'b' and foo('c') == 'd'
         >>> assert incr[0] == 2

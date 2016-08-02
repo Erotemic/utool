@@ -229,7 +229,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
-        >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3':1}, 'b2': 1}, 'e1': 1}]
+        >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 1}, 'b2': 1}, 'e1': 1}]
         >>> print(ut.list_str(cfg_list, nl=True))
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
         >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
@@ -1340,9 +1340,9 @@ class GridSearch(object):
         ... ]
         >>> gridsearch = ut.GridSearch(grid_basis, label='testdata_gridsearch')
         >>> for cfgdict in gridsearch:
-        ...    tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
-        ...    tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['dcvs_clip_max']
-        ...    gridsearch.append_result(tp_score, tn_score)
+        ...     tp_score = cfgdict['p'] + (cfgdict['K'] ** .5)
+        ...     tn_score = (cfgdict['p'] * (cfgdict['K'])) / cfgdict['dcvs_clip_max']
+        ...     gridsearch.append_result(tp_score, tn_score)
     """
     def __init__(gridsearch, grid_basis, label=None):
         gridsearch.label = label
@@ -1575,8 +1575,8 @@ def grid_search_generator(grid_basis=[], *args, **kwargs):
         >>> import utool as ut
         >>> # build test data
         >>> grid_basis = [
-        ... DimensionBasis('dim1', [.1, .2, .3]),
-        ... DimensionBasis('dim2', [.1, .4, .5]),
+        ...     DimensionBasis('dim1', [.1, .2, .3]),
+        ...     DimensionBasis('dim2', [.1, .4, .5]),
         ... ]
         >>> args = tuple()
         >>> kwargs = {}
@@ -1684,12 +1684,12 @@ def get_cfgdict_list_subset(cfgdict_list, keys):
         >>> import utool as ut
         >>> # build test data
         >>> cfgdict_list = [
-        ...    {'K': 3, 'dcvs_clip_max': 0.1, 'p': 0.1},
-        ...    {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.1},
-        ...    {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.2},
-        ...    {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1},
-        ...    {'K': 5, 'dcvs_clip_max': 0.2, 'p': 0.1},
-        ...    {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}]
+        ...     {'K': 3, 'dcvs_clip_max': 0.1, 'p': 0.1},
+        ...     {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.1},
+        ...     {'K': 5, 'dcvs_clip_max': 0.1, 'p': 0.2},
+        ...     {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1},
+        ...     {'K': 5, 'dcvs_clip_max': 0.2, 'p': 0.1},
+        ...     {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}]
         >>> keys = ['K', 'dcvs_clip_max']
         >>> # execute function
         >>> cfgdict_sublist = get_cfgdict_list_subset(cfgdict_list, keys)

@@ -176,7 +176,7 @@ def take_column(list_, colx):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
-        >>> list_ = [{'spam': 'EGGS', 'ham': 'SPAM'}, {'spam': 'JAM', 'ham': 'PRAM'},]
+        >>> list_ = [{'spam': 'EGGS', 'ham': 'SPAM'}, {'spam': 'JAM', 'ham': 'PRAM'}]
         >>> # colx can be a key or list of keys as well
         >>> colx = ['spam']
         >>> result = take_column(list_, colx)
@@ -716,9 +716,9 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         >>> num_calls0 = [0]
         >>> num_input0 = [0]
         >>> def func0(rowids, num_calls0=num_calls0, num_input0=num_input0):
-        ...    num_calls0[0] += 1
-        ...    num_input0[0] += len(rowids)
-        ...    return [rowid + 10 for rowid in rowids]
+        ...     num_calls0[0] += 1
+        ...     num_input0[0] += len(rowids)
+        ...     return [rowid + 10 for rowid in rowids]
         >>> func = func0
         >>> unflat_vals = unflat_unique_rowid_map(func, unflat_rowids, **kwargs)
         >>> result = [arr.tolist() for arr in unflat_vals]
@@ -737,9 +737,9 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         >>> num_calls1 = [0]
         >>> num_input1 = [0]
         >>> def func1(rowids, num_calls1=num_calls1, num_input1=num_input1, np=np):
-        ...    num_calls1[0] += 1
-        ...    num_input1[0] += len(rowids)
-        ...    return [np.array([rowid + 10, rowid, 3]) for rowid in rowids]
+        ...     num_calls1[0] += 1
+        ...     num_input1[0] += len(rowids)
+        ...     return [np.array([rowid + 10, rowid, 3]) for rowid in rowids]
         >>> func = func1
         >>> unflat_vals = unflat_unique_rowid_map(func, unflat_rowids, **kwargs)
         >>> result = [arr.tolist() for arr in unflat_vals]
@@ -2702,7 +2702,8 @@ def unflat_map(func, unflat_items, vectorized=False, **kwargs):
         >>> from utool.util_list import *  # NOQA
         >>> vectorized = False
         >>> kwargs = {}
-        >>> func = lambda x: x + 1
+        >>> def func(x):
+        >>>     return x + 1
         >>> unflat_items = [[], [1, 2, 3], [4, 5], [6, 7, 8, 9], [], []]
         >>> unflat_vals = unflat_map(func, unflat_items)
         >>> result = str(unflat_vals)

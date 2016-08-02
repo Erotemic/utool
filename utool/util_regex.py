@@ -258,11 +258,11 @@ def named_field_regex(keypat_tups):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_regex import *  # NOQA
         >>> keypat_tups = [
-        ...    ('name',  r'G\d+'),  # species and 2 numbers
-        ...    ('under', r'_'),     # 2 more numbers
-        ...    ('id',    r'\d+'),   # 2 more numbers
-        ...    ( None,   r'\.'),
-        ...    ('ext',   r'\w+'),
+        ...     ('name',  r'G\d+'),  # species and 2 numbers
+        ...     ('under', r'_'),     # 2 more numbers
+        ...     ('id',    r'\d+'),   # 2 more numbers
+        ...     ( None,   r'\.'),
+        ...     ('ext',   r'\w+'),
         ... ]
         >>> regex = named_field_regex(keypat_tups)
         >>> result = (regex)

@@ -132,7 +132,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
     Example:
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
-        >>> my_dictionary = {'a': True, 'b':False}
+        >>> my_dictionary = {'a': True, 'b': False}
         >>> execstr = execstr_dict(my_dictionary)
         >>> exec(execstr)
         >>> assert 'a' in vars() and 'b' in vars(), 'execstr failed'
@@ -146,7 +146,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
         >>> import utool as ut
-        >>> my_dictionary = {'a': True, 'b':False}
+        >>> my_dictionary = {'a': True, 'b': False}
         >>> execstr = execstr_dict(my_dictionary)
         >>> locals_ = locals()
         >>> exec(execstr, locals_)
@@ -162,7 +162,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
         >>> import utool as ut
-        >>> my_dictionary = {'a': True, 'b':False}
+        >>> my_dictionary = {'a': True, 'b': False}
         >>> execstr = execstr_dict(my_dictionary, explicit=True)
         >>> result = execstr
         >>> print(result)
@@ -1252,7 +1252,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
         >>> import utool as ut
-        >>> locals_ = {'foo': [1,2,3], 'bar': 'spam', 'eggs': 4, 'num': 5}
+        >>> locals_ = {'foo': [1, 2, 3], 'bar': 'spam', 'eggs': 4, 'num': 5}
         >>> key_list = [(len, 'foo'), 'bar.lower.__name__', 'eggs', 'num', 'other']
         >>> strlist_ = None
         >>> prefix = u''

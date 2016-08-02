@@ -341,9 +341,9 @@ def make_class_method_decorator(classkey, modname=None):
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> class CheeseShop(object):
-        ...    def __init__(self):
-        ...        import utool as ut
-        ...        ut.inject_all_external_modules(self)
+        ...     def __init__(self):
+        ...         import utool as ut
+        ...         ut.inject_all_external_modules(self)
         >>> cheeseshop_method = ut.make_class_method_decorator(CheeseShop)
         >>> shop1 = CheeseShop()
         >>> assert not hasattr(shop1, 'has_cheese'), 'have not injected yet'

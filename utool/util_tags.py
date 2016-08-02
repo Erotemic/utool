@@ -115,7 +115,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
-        >>> tags_list = [['v'], [], ['P'], ['P', 'o'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['q', 'v'], ['n'], ['n'], ['N']]
+        >>> tags_list = [['v'], [], ['P'], ['P', 'o'], ['n', 'o'], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['q', 'v'], ['n'], ['n'], ['N']]
         >>> kwargs = ut.argparse_dict(ut.get_kwdefaults2(filterflags_general_tags), type_hint=list)
         >>> print('kwargs = %r' % (kwargs,))
         >>> flags = filterflags_general_tags(tags_list, **kwargs)
@@ -127,7 +127,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
-        >>> tags_list = [['v'], [], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n'], ['N']]
+        >>> tags_list = [['v'], [], ['P'], ['P'], ['n', 'o'], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n'], ['N']]
         >>> has_all = 'n'
         >>> min_num = 1
         >>> flags = filterflags_general_tags(tags_list, has_all=has_all, min_num=min_num)
@@ -138,7 +138,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
-        >>> tags_list = [['vn'], ['vn', 'no'], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n', 'nP'], ['NP']]
+        >>> tags_list = [['vn'], ['vn', 'no'], ['P'], ['P'], ['n', 'o'], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n', 'nP'], ['NP']]
         >>> kwargs = {
         >>>     'any_endswith': 'n',
         >>>     'any_match': None,

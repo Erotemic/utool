@@ -381,11 +381,11 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         >>> from utool.util_dev import *  # NOQA
         >>> import utool as ut
         >>> setup = ut.codeblock(
-            '''
-            import numpy as np
-            rng = np.random.RandomState(0)
-            invVR_mats = rng.rand(1000, 3, 3).astype(np.float64)
-            ''')
+                '''
+                import numpy as np
+                rng = np.random.RandomState(0)
+                invVR_mats = rng.rand(1000, 3, 3).astype(np.float64)
+                ''')
         >>> stmt1 = 'invVR_mats[:, 0:2, 2].T'
         >>> stmt2 = 'invVR_mats.T[2, 0:2]'
         >>> iterations = 1000
@@ -423,7 +423,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         #print('+     L________________')
 
     if assertsame:
-        result_list = [ut.testit(stmt, setup) for stmt in stmt_list]
+        result_list = [_testit(stmt, setup) for stmt in stmt_list]
     else:
         result_list = None
     time_list   = [timeit.timeit(stmt, setup=setup, number=iterations)
@@ -486,7 +486,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         return (passed, time_list, result_list)
 
 
-def testit(stmt, setup):
+def _testit(stmt, setup):
     # Make temporary locals/globals for a sandboxlike run
     _globals = {}
     try:

@@ -5,6 +5,8 @@ python:
 install:
   - travis_retry python setup.py build develop
 script: 
-  - travis_wait ./run_tests.py
+  #- travis_wait ./run_tests.py
+  - travis_wait ./run_tests.py --tonose
+  - travis_wait py.test
 after_failure: 
   - cat failed_doctests.txt

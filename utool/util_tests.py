@@ -282,7 +282,7 @@ def doctest_module_list(module_list):
     print('[util_test] Running doctests on module list')
 
     try:
-        ut.write_to('test_times.txt', '\n\n --- begining doctest_module_list\n', mode='a')
+        ut.write_to('timeings.txt', '\n\n --- begining doctest_module_list\n', mode='a')
     except IOError as ex:
         ut.printex(ex, '[util_test] IOWarning', iswarning=True)
 
@@ -320,7 +320,7 @@ def doctest_module_list(module_list):
         print('--- Done printing error reports ----')
 
     try:
-        ut.write_to('test_times.txt', '\n\n --- finished doctest_module_list total_time=%.3fs\n' % (total_time), mode='a')
+        ut.write_to('timeings.txt', '\n\n --- finished doctest_module_list total_time=%.3fs\n' % (total_time), mode='a')
     except IOError as ex:
         ut.printex(ex, '[util_test] IOWarning', iswarning=True)
 
@@ -651,7 +651,7 @@ def run_test(func_or_testtup, *args, **kwargs):
                 timemsg = '%.4fs in %s %s\n' % (
                     timer.ellapsed, funcname, frame_fpath)
                 try:
-                    ut.write_to('test_times.txt', timemsg, mode='a')
+                    ut.write_to('timeings.txt', timemsg, mode='a')
                 except IOError as ex:
                     ut.printex(ex, '[util_test] IOWarning', iswarning=True)
         # RETURN VALID TEST LOCALS
