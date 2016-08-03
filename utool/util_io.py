@@ -70,7 +70,7 @@ def save_data(fpath, data, **kwargs):
 
 
 def write_to(fpath, to_write, aslines=False, verbose=None,
-             onlyifdiff=False, mode='w', n=2):
+             onlyifdiff=False, mode='w', n=None):
     """ Writes text to a file. Automatically encodes text as utf8.
 
     Args:
@@ -110,6 +110,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
             print('[util_io] * no difference')
             return
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
+        n = None if verbose > 1 else 2
         print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=n))
 
     backup = False and exists(fpath)

@@ -352,6 +352,8 @@ class Pref(PrefNode):
             return (pref_dict, struct_dict)
         return pref_dict
 
+    asdict = to_dict
+
     def save(self):
         """ Saves prefs to disk in dict format """
         fpath = self.get_fpath()

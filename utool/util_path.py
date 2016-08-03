@@ -162,51 +162,38 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         n=1: '.../eggs', n=2: './eggs'
         n=1: '.../eggs', n=2: '.../spam/eggs'
         n=1: '.../bin', n=2: '.../foobar/bin'
-
     """
     if n is None:
-        return ensure_crossplat_path(path_)
-    if n == 0:
-        return ''
-    sep = '/' if force_unix else os.sep
-    ndirs_list = []
-    head = path_
-    reached_end = False
-    for nx in range(n):
-        #print('--')
-        #print('IN head = %r' % (head,))
-        head, tail = split(head)
-        #print('head = %r' % (head,))
-        #print('tail = %r' % (tail,))
-        if tail == '':
-            if head == '':
-                reached_end = True
+        cplat_path = ensure_crossplat_path(path_)
+    elif n == 0:
+        cplat_path = ''
+    else:
+        sep = '/' if force_unix else os.sep
+        ndirs_list = []
+        head = path_
+        reached_end = False
+        for nx in range(n):
+            head, tail = split(head)
+            if tail == '':
+                if head == '':
+                    reached_end = True
+                else:
+                    root = head if len(ndirs_list) == 0 else head.strip('\\/')
+                    ndirs_list.append(root)
+                    reached_end = True
                 break
             else:
-                root = head if len(ndirs_list) == 0 else head.strip('\\/')
-                ndirs_list.append(root)
-                reached_end = True
-                break
-        else:
-            ndirs_list.append(tail)
-        #print('ndirs_list = %r' % (ndirs_list,))
-    if trailing and not reached_end:
-        head, tail = split(head)
-        #print('--')
-        #print('head = %r' % (head,))
-        #print('tail = %r' % (tail,))
-        if len(tail) == 0:
-            if len(head) == 0:  # or head == '/':
-                reached_end = True
-    #if head == '/':
-    #    reached_end = True
-    ndirs = sep.join(ndirs_list[::-1])
-    cplat_path = ensure_crossplat_path(ndirs)
-    #if trailing and not reached_end:
-    if trailing and not reached_end:
-        cplat_path = '.../' + cplat_path
-    #print('cplat_path = %r' % (cplat_path,))
-    #print('--')
+                ndirs_list.append(tail)
+        if trailing and not reached_end:
+            head, tail = split(head)
+            if len(tail) == 0:
+                if len(head) == 0:  # or head == '/':
+                    reached_end = True
+        ndirs = sep.join(ndirs_list[::-1])
+        cplat_path = ensure_crossplat_path(ndirs)
+        #if trailing and not reached_end:
+        if trailing and not reached_end:
+            cplat_path = '.../' + cplat_path
     return cplat_path
 
 

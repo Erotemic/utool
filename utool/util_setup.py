@@ -16,6 +16,49 @@ from utool._internal import meta_util_arg
 VERBOSE = meta_util_arg.VERBOSE
 
 
+class SetupManager(object):
+    """
+    Helps with writing setup.py
+    """
+    def __init__(self):
+        self.cmdclass = {}
+
+    def _register_command(self, name, func):
+        import setuptools
+        class _WrapCommand(setuptools.Command):
+            """
+            https://dankeder.com/posts/adding-custom-commands-to-setup-py/
+            """
+            description = name
+            user_options = []
+            def initialize_options(self):
+                pass
+            def finalize_options(self):
+                pass
+            def run(cmd):
+                func()
+        self.cmdclass[name] = _WrapCommand
+        #self.cmdclass[name] = func
+        #TmpCommand
+
+    def register_command(self, name):
+        import utool as ut
+        if ut.is_funclike(name):
+            func = name
+            name = ut.get_funcname(func)
+            self._register_command(name, func)
+            return func
+        else:
+            def _wrap(func):
+                self._register_command(name, func)
+            return _wrap
+
+    def get_cmdclass(self):
+        cmdclass = self.cmdclass.copy()
+        cmdclass.update(**get_cmdclass())
+        return cmdclass
+
+
 class SETUP_PATTERNS():
     clutter_pybuild = [
         '*.pyc',
