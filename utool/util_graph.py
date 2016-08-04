@@ -7,8 +7,9 @@ from utool import util_inject
 
 def nx_topsort_nodes(graph, nodes):
     import utool as ut
-    node_rank = nx_topsort_rank(graph, nodes)
-    sorted_nodes = ut.take(nodes, node_rank)
+    node_rank = ut.nx_topsort_rank(graph, nodes)
+    node_idx = ut.rebase_labels(node_rank)
+    sorted_nodes = ut.take(nodes, node_idx)
     return sorted_nodes
 
 
