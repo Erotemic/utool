@@ -1730,7 +1730,7 @@ def apply_grouping(items, groupxs):
     return [util_list.list_take(items, xs) for xs in groupxs]
 
 
-def ungroup(grouped_items, groupxs, maxval=None):
+def ungroup(grouped_items, groupxs, maxval=None, fill=None):
     """
     Ungroups items
 
@@ -1753,21 +1753,127 @@ def ungroup(grouped_items, groupxs, maxval=None):
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> grouped_items = [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]
-        >>> groupxs = [[0, 2], [1, 3], [4, 5]]
+        >>> groupxs = [[0, 2], [1, 5], [4, 3]]
         >>> maxval = None
         >>> ungrouped_items = ungroup(grouped_items, groupxs, maxval)
         >>> result = ('ungrouped_items = %s' % (ut.repr2(ungrouped_items),))
         >>> print(result)
-        ungrouped_items = [1.1, 2.1, 1.2, 2.2, 3.1, 3.2]
+        ungrouped_items = [1.1, 2.1, 1.2, 3.2, 3.1, 2.2]
     """
     if maxval is None:
+        # Determine the number of items if unknown
         maxpergroup = [max(xs) if len(xs) else 0 for xs in groupxs]
         maxval = max(maxpergroup) if len(maxpergroup) else 0
-    ungrouped_items = [None] * (maxval + 1)
+    # Allocate an array containing the newly flattened items
+    ungrouped_items = [fill] * (maxval + 1)
+    # Populate the array
     for itemgroup, xs in zip(grouped_items, groupxs):
         for item, x in zip(itemgroup, xs):
             ungrouped_items[x] = item
     return ungrouped_items
+
+
+def ungroup_gen(grouped_items, groupxs, fill=None):
+    """
+    Ungroups items returning a generator.
+    Note that this is much slower than the list version and is not gaurenteed
+    to have better memory usage.
+
+    Args:
+        grouped_items (list):
+        groupxs (list):
+        maxval (int): (default = None)
+
+    Returns:
+        list: ungrouped_items
+
+    SeeAlso:
+        vt.invert_apply_grouping
+
+    CommandLine:
+        python -m utool.util_alg ungroup_unique
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> grouped_items = [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]
+        >>> groupxs = [[1, 2], [5, 6], [9, 3]]
+        >>> ungrouped_items1 = list(ungroup_gen(grouped_items, groupxs))
+        >>> ungrouped_items2 = ungroup(grouped_items, groupxs)
+        >>> assert ungrouped_items1 == ungrouped_items2
+        >>> grouped_items = [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]
+        >>> groupxs = [[0, 2], [1, 5], [4, 3]]
+        >>> ungrouped_items1 = list(ungroup_gen(grouped_items, groupxs))
+        >>> ungrouped_items2 = ungroup(grouped_items, groupxs)
+        >>> assert ungrouped_items1 == ungrouped_items2
+
+    Ignore:
+        labels = np.random.randint(0, 64, 10000)
+        unique_labels, groupxs = ut.group_indices(labels)
+        grouped_items = ut.apply_grouping(np.arange(len(labels)), groupxs)
+        ungrouped_items1 = list(ungroup_gen(grouped_items, groupxs))
+        ungrouped_items2 = ungroup(grouped_items, groupxs)
+        assert ungrouped_items2 == ungrouped_items1
+        %timeit list(ungroup_gen(grouped_items, groupxs))
+        %timeit ungroup(grouped_items, groupxs)
+    """
+    import utool as ut
+    # Determine the number of items if unknown
+    #maxpergroup = [max(xs) if len(xs) else 0 for xs in groupxs]
+    #maxval = max(maxpergroup) if len(maxpergroup) else 0
+
+    minpergroup = [min(xs) if len(xs) else 0 for xs in groupxs]
+    minval = min(minpergroup) if len(minpergroup) else 0
+
+    flat_groupx = ut.flatten(groupxs)
+    sortx = ut.argsort(flat_groupx)
+    # Indicates the index being yeilded
+    groupx_sorted = ut.take(flat_groupx, sortx)
+    flat_items = ut.iflatten(grouped_items)
+
+    # Storage for data weiting to be yeilded
+    toyeild = {}
+    items_yeilded = 0
+    # Indicates the index we are curently yeilding
+    current_index = 0
+
+    # Determine where fills need to happen
+    num_fills_before = [minval] + (np.diff(groupx_sorted) - 1).tolist() + [0]
+
+    # Check if there are fills before the first item
+    fills = num_fills_before[items_yeilded]
+    if fills > 0:
+        for _ in range(fills):
+            yield None
+            current_index += 1
+    # Yield items as possible
+    for yeild_at, item in zip(flat_groupx, flat_items):
+        if yeild_at > current_index:
+            toyeild[yeild_at] = item
+        elif yeild_at == current_index:
+            # When we find the next element to yeild
+            yield item
+            current_index += 1
+            items_yeilded += 1
+            # Check if there are fills before the next item
+            fills = num_fills_before[items_yeilded]
+            if fills > 0:
+                for _ in range(fills):
+                    yield None
+                    current_index += 1
+            # Now yield everything that came before this
+            while current_index in toyeild:
+                item = toyeild.pop(current_index)
+                yield item
+                current_index += 1
+                items_yeilded += 1
+                # Check if there are fills before the next item
+                fills = num_fills_before[items_yeilded]
+                if fills > 0:
+                    for _ in range(fills):
+                        yield None
+                        current_index += 1
 
 
 def ungroup_unique(unique_items, groupxs, maxval=None):

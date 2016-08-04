@@ -5,6 +5,26 @@ from utool import util_inject
 (print, rrr, profile) = util_inject.inject2(__name__, '[depgraph_helpers]')
 
 
+def nx_topsort_nodes(graph, nodes):
+    import utool as ut
+    node_rank = nx_topsort_rank(graph, nodes)
+    sorted_nodes = ut.take(nodes, node_rank)
+    return sorted_nodes
+
+
+def nx_topsort_rank(graph, nodes=None):
+    """
+    graph = inputs.exi_graph.reverse()
+    nodes = flat_node_order_
+    """
+    import networkx as nx
+    import utool as ut
+    topsort = list(nx.topological_sort(graph))
+    node_to_top_rank = ut.make_index_lookup(topsort)
+    toprank = ut.dict_take(node_to_top_rank, nodes)
+    return toprank
+
+
 def nx_common_descendants(graph, node1, node2):
     import networkx as nx
     descendants1 = nx.descendants(graph, node1)
@@ -69,7 +89,8 @@ def nx_transitive_reduction(G, mode=1):
     import networkx as nx
     has_cycles = not nx.is_directed_acyclic_graph(G)
     if has_cycles:
-        # FIXME: this does not work for cycle graphs. Need to do algorithm on SCCs
+        # FIXME: this does not work for cycle graphs.
+        # Need to do algorithm on SCCs
         G_orig = G
         G = nx.condensation(G_orig)
 
@@ -161,6 +182,366 @@ def nx_transitive_reduction(G, mode=1):
     return G_tr
 
 
+def nx_source_nodes(graph):
+    import networkx as nx
+    topsort_iter = nx.dag.topological_sort(graph)
+    source_iter = (node for node in topsort_iter
+                   if graph.in_degree(node) == 0)
+    return source_iter
+
+
+def nx_sink_nodes(graph):
+    import networkx as nx
+    topsort_iter = nx.dag.topological_sort(graph)
+    sink_iter = (node for node in topsort_iter
+                 if graph.out_degree(node) == 0)
+    return sink_iter
+
+
+def nx_to_adj_dict(graph):
+    import utool as ut
+    adj_dict = ut.ddict(list)
+    for u, edges in graph.adjacency():
+        adj_dict[u].extend(list(edges.keys()))
+    adj_dict = dict(adj_dict)
+    return adj_dict
+
+
+def nx_from_adj_dict(adj_dict, cls=None):
+    if cls is None:
+        import networkx as nx
+        cls = nx.DiGraph
+    nodes = list(adj_dict.keys())
+    edges = [(u, v) for u, adj in adj_dict.items() for v in adj]
+    graph = cls()
+    graph.add_nodes_from(nodes)
+    graph.add_edges_from(edges)
+    return graph
+
+
+def nx_dag_node_rank(graph, nodes=None):
+    """
+    Returns rank of nodes that define the "level" each node is on in a
+    topological sort. This is the same as the Graphviz dot rank.
+
+    Ignore:
+        simple_graph = ut.simplify_graph(exi_graph)
+        adj_dict = ut.nx_to_adj_dict(simple_graph)
+        import plottool as pt
+        pt.qt4ensure()
+        pt.show_nx(graph)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> adj_dict = {0: [5], 1: [5], 2: [1], 3: [4], 4: [0], 5: [], 6: [4], 7: [9], 8: [6], 9: [1]}
+        >>> import networkx as nx
+        >>> nodes = [2, 1, 5]
+        >>> f_graph = ut.nx_from_adj_dict(adj_dict, nx.DiGraph)
+        >>> graph = f_graph.reverse()
+        >>> #ranks = ut.nx_dag_node_rank(graph, nodes)
+        >>> ranks = ut.nx_dag_node_rank(graph, nodes)
+        >>> result = ('ranks = %r' % (ranks,))
+        >>> print(result)
+        ranks = [3, 2, 1]
+    """
+    import utool as ut
+    source = list(ut.nx_source_nodes(graph))[0]
+    longest_paths = dict([(target, dag_longest_path(graph, source, target))
+                          for target in graph.nodes()])
+    node_to_rank = ut.map_dict_vals(len, longest_paths)
+    if nodes is None:
+        return node_to_rank
+    else:
+        ranks = ut.dict_take(node_to_rank, nodes)
+        return ranks
+
+
+def nx_all_nodes_between(graph, source, target, data=False):
+    """
+    Find all nodes with on paths between source and target.
+    """
+    import utool as ut
+    import networkx as nx
+    if source is None:
+        # assume there is a single source
+        sources = list(ut.nx_source_nodes(graph))
+        assert len(sources) == 1, (
+            'specify source if there is not only one')
+        source = sources[0]
+    if target is None:
+        # assume there is a single source
+        sinks = list(ut.nx_sink_nodes(graph))
+        assert len(sinks) == 1, (
+            'specify sink if there is not only one')
+        target = sinks[0]
+    all_simple_paths = list(nx.all_simple_paths(graph, source, target))
+    nodes = list(set(ut.flatten(all_simple_paths)))
+    return nodes
+
+
+def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
+                             data=False):
+    """
+    Returns each path from source to target as a list of edges.
+
+    This function is meant to be used with MultiGraphs or MultiDiGraphs.
+    When ``keys`` is True each edge in the path is returned with its unique key
+    identifier. In this case it is possible to distinguish between different
+    paths along different edges between the same two nodes.
+
+    Derived from simple_paths.py in networkx
+    """
+    if cutoff is None:
+        cutoff = len(G) - 1
+    if cutoff < 1:
+        return
+    import six
+    visited_nodes = [source]
+    visited_edges = []
+    edge_stack = [iter(G.edges(source, keys=keys, data=data))]
+    while edge_stack:
+        children_edges = edge_stack[-1]
+        child_edge = six.next(children_edges, None)
+        if child_edge is None:
+            edge_stack.pop()
+            visited_nodes.pop()
+            if len(visited_edges) > 0:
+                visited_edges.pop()
+        elif len(visited_nodes) < cutoff:
+            child_node = child_edge[1]
+            if child_node == target:
+                yield visited_edges + [child_edge]
+            elif child_node not in visited_nodes:
+                visited_nodes.append(child_node)
+                visited_edges.append(child_edge)
+                edge_stack.append(iter(G.edges(child_node, keys=keys, data=data)))
+        else:
+            for edge in [child_edge] + list(children_edges):
+                if edge[1] == target:
+                    yield visited_edges + [edge]
+            edge_stack.pop()
+            visited_nodes.pop()
+            if len(visited_edges) > 0:
+                visited_edges.pop()
+
+
+def nx_delete_node_attr(graph, key, nodes=None):
+    removed = 0
+    if nodes is None:
+        nodes = list(graph.nodes())
+    for node in nodes:
+        try:
+            del graph.node[node][key]
+            removed += 1
+        except KeyError:
+            pass
+    return removed
+
+
+def nx_delete_edge_attr(graph, key, edges=None):
+    removed = 0
+    if not isinstance(key, list):
+        keys = [key]
+    else:
+        keys = key
+    for key in keys:
+        if graph.is_multigraph():
+            if edges is None:
+                edges = list(graph.edges(keys=graph.is_multigraph()))
+            for edge in edges:
+                u, v, k = edge
+                try:
+                    del graph[u][v][k][key]
+                    removed += 1
+                except KeyError:
+                    pass
+        else:
+            if edges is None:
+                edges = list(graph.edges())
+            for edge in graph.edges():
+                u, v = edge
+                try:
+                    del graph[u][v][key]
+                    removed += 1
+                except KeyError:
+                    pass
+    return removed
+
+
+def nx_delete_None_edge_attr(graph, edges=None):
+    removed = 0
+    if graph.is_multigraph():
+        if edges is None:
+            edges = list(graph.edges(keys=graph.is_multigraph()))
+        for edge in edges:
+            u, v, k = edge
+            data = graph[u][v][k]
+            for key in data.keys():
+                try:
+                    if data[key] is None:
+                        del data[key]
+                        removed += 1
+                except KeyError:
+                    pass
+    else:
+        if edges is None:
+            edges = list(graph.edges())
+        for edge in graph.edges():
+            u, v = edge
+            data = graph[u][v]
+            for key in data.keys():
+                try:
+                    if data[key] is None:
+                        del data[key]
+                        removed += 1
+                except KeyError:
+                    pass
+    return removed
+
+
+def nx_delete_None_node_attr(graph, nodes=None):
+    removed = 0
+    if nodes is None:
+        nodes = list(graph.nodes())
+    for node in graph.nodes():
+        data = graph.node[node]
+        for key in data.keys():
+            try:
+                if data[key] is None:
+                    del data[key]
+                    removed += 1
+            except KeyError:
+                pass
+    return removed
+
+
+def nx_set_default_node_attributes(graph, key, val):
+    import networkx as nx
+    unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
+    if isinstance(val, dict):
+        values = {n: val[n] for n in unset_nodes if n in val}
+    else:
+        values = {n: val for n in unset_nodes}
+    nx.set_node_attributes(graph, key, values)
+
+
+def nx_get_default_node_attributes(graph, key, default=None):
+    import networkx as nx
+    import utool as ut
+    node_list = list(graph.nodes())
+    partial_attr_dict = nx.get_node_attributes(graph, key)
+    attr_list = ut.dict_take(partial_attr_dict, node_list, default)
+    attr_dict = dict(zip(node_list, attr_list))
+    return attr_dict
+
+
+def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
+    import networkx as nx
+    import utool as ut
+    import numpy as np
+    if nodes is None:
+        nodes = list(range(len(weight_matrix)))
+    weight_list = weight_matrix.ravel()
+    flat_idxs_ = np.arange(weight_matrix.size)
+    multi_idxs_ = np.unravel_index(flat_idxs_, weight_matrix.shape)
+
+    # Remove 0 weight edges
+    flags = np.logical_not(np.isclose(weight_list, 0))
+    weight_list = ut.compress(weight_list, flags)
+    multi_idxs = ut.compress(list(zip(*multi_idxs_)), flags)
+    edge_list = ut.lmap(tuple, ut.unflat_take(nodes, multi_idxs))
+
+    if remove_self:
+        flags = [e1 != e2 for e1, e2 in edge_list]
+        edge_list = ut.compress(edge_list, flags)
+        weight_list = ut.compress(weight_list, flags)
+
+    graph = nx.Graph()
+    graph.add_nodes_from(nodes)
+    graph.add_edges_from(edge_list)
+    label_list = ['%.2f' % w for w in weight_list]
+    nx.set_edge_attributes(graph, 'weight', dict(zip(edge_list,
+                                                     weight_list)))
+    nx.set_edge_attributes(graph, 'label', dict(zip(edge_list,
+                                                     label_list)))
+    return graph
+
+
+def nx_ensure_agraph_color(graph):
+    """ changes colors to hex strings on graph attrs """
+    from plottool import color_funcs
+    import plottool as pt
+    #import six
+    def _fix_agraph_color(data):
+        try:
+            orig_color = data.get('color', None)
+            alpha = data.get('alpha', None)
+            color = orig_color
+            if color is None and alpha is not None:
+                color = [0, 0, 0]
+            if color is not None:
+                color = pt.ensure_nonhex_color(color)
+                #if isinstance(color, np.ndarray):
+                #    color = color.tolist()
+                color = list(color_funcs.ensure_base255(color))
+                if alpha is not None:
+                    if len(color) == 3:
+                        color += [int(alpha * 255)]
+                    else:
+                        color[3] = int(alpha * 255)
+                color = tuple(color)
+                if len(color) == 3:
+                    data['color'] = '#%02x%02x%02x' % color
+                else:
+                    data['color'] = '#%02x%02x%02x%02x' % color
+        except Exception as ex:
+            import utool as ut
+            ut.printex(ex, keys=['color', 'orig_color', 'data'])
+            raise
+
+    for node, node_data in graph.nodes(data=True):
+        data = node_data
+        _fix_agraph_color(data)
+
+    for u, v, edge_data in graph.edges(data=True):
+        data = edge_data
+        _fix_agraph_color(data)
+
+
+def nx_makenode(graph, name, **attrkw):
+    if 'size' in attrkw:
+        attrkw['width'], attrkw['height'] = attrkw.pop('size')
+    graph.add_node(name, **attrkw)
+    return name
+
+
+def nx_edges(graph, keys=False, data=False):
+    if graph.is_multigraph():
+        edges = graph.edges(keys=keys, data=data)
+    else:
+        edges = graph.edges(data=data)
+        #if keys:
+        #    edges = [e[0:2] + (0,) + e[:2] for e in edges]
+    return edges
+
+
+def dag_longest_path(graph, source, target):
+    """
+    Finds the longest path in a dag between two nodes
+    """
+    import networkx as nx
+    if source == target:
+        return [source]
+    allpaths = nx.all_simple_paths(graph, source, target)
+    longest_path = []
+    for l in allpaths:
+        if len(l) > len(longest_path):
+            longest_path = l
+    return longest_path
+
+
 def testdata_graph():
     r"""
     Returns:
@@ -228,211 +609,6 @@ def testdata_graph():
             except ValueError:
                 pass
     return graph, G
-
-
-def dfs_template(graph, previsit, postvisit):
-    seen_ = set()
-    meta = {}  # NOQA
-
-    def previsit(parent):
-        pass
-
-    def postvisit(parent):
-        pass
-
-    def explore(graph, parent, seen_):
-        # Mark visited
-        seen_.add(parent)
-        previsit(parent)
-        # Explore children
-        children = graph[parent]
-        for child in children:
-            if child not in seen_:
-                explore(graph, child, seen_)
-        postvisit(parent)
-
-    # Run Depth First Search
-    for node in graph.keys():
-        if node not in seen_:
-            explore(graph, node, seen_)
-
-
-def topsort_ordering(G):
-    graph_dict = dict(zip(G.nodes(), G.adjacency_list()))
-
-    seen_ = set()
-    meta = {
-        'clock': 0,
-        'pre': {},
-        'post': {},
-    }
-
-    def previsit(parent):
-        meta['pre'][parent] = meta['clock']
-        meta['clock'] += 1
-
-    def postvisit(parent):
-        meta['post'][parent] = meta['clock']
-        meta['clock'] += 1
-
-    def explore(graph_dict, parent, seen_):
-        # Mark visited
-        seen_.add(parent)
-        previsit(parent)
-        # Explore children
-        children = graph_dict[parent]
-        for child in children:
-            if child not in seen_:
-                explore(graph_dict, child, seen_)
-        postvisit(parent)
-
-    # Run Depth First Search
-    #nodes = graph_dict.keys()
-    #import numpy as np
-    #np.random.shuffle(nodes)
-
-    import networkx as nx
-
-    for node in nx.dag.topological_sort(G):
-        if node not in seen_:
-            explore(graph_dict, node, seen_)
-    del meta['clock']
-    return meta
-
-
-def find_odd_cycle():
-    r"""
-    given any starting point in an scc
-    if there is an odd length cycle in the scc
-    then the starting node is part of the odd length cycle
-
-    Let s* be part of the odd length cycle
-    Start from any point s
-    There is also a cycle from (s* to s) due to scc.
-    If that cycle is even, then go to s*, then go in the odd length cycle back to s*
-    and then go back to s, which makes this path odd.
-    If s s* s is odd we are done.
-
-    because it is strongly connected there is a path from s* to s and
-    s to s*. If that cycle is odd then done otherwise,
-
-    # Run pairity check on each scc
-    # Then check all edges for equal pairity
-
-    CommandLine:
-        python -m utool.util_graph --exec-find_odd_cycle --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_graph import *  # NOQA
-        >>> import utool as ut
-        >>> result = find_odd_cycle()
-        >>> print(result)
-        >>> ut.show_if_requested()
-    """
-    import utool as ut
-    graph, G = testdata_graph()
-
-    seen_ = set()
-    meta = {
-        'clock': 0,
-        'pre': {},
-        'post': {},
-        'pairity': {n: 0 for n in graph}
-    }
-
-    def previsit(parent):
-        meta['pre'][parent] = meta['clock']
-        meta['clock'] += 1
-
-    def postvisit(parent):
-        meta['post'][parent] = meta['clock']
-        meta['clock'] += 1
-
-    def explore(graph, parent, seen_):
-        # Mark visited
-        seen_.add(parent)
-        previsit(parent)
-        # Explore children
-        children = graph[parent]
-        for child in children:
-            if child not in seen_:
-                meta['pairity'][child] = 1 - meta['pairity'][parent]
-                explore(graph, child, seen_)
-        postvisit(parent)
-
-    # Run Depth First Search
-    for node in graph.keys():
-        if node not in seen_:
-            explore(graph, node, seen_)
-
-    # Check edges for neighboring pairities
-    import networkx as nx
-    scc_list = list(nx.strongly_connected_components(G))
-
-    found = False
-
-    for scc in scc_list:
-        SCC_G = nx.subgraph(G, scc)
-        for u, v in SCC_G.edges():
-            if meta['pairity'][u] == meta['pairity'][v]:
-                found = True
-                print('FOUND ODD CYCLE')
-
-    if not found:
-        print("NO ODD CYCLES")
-
-    # Mark edge types
-    edge_types = {(0, 1, 3, 2): 'forward',
-                  (1, 0, 2, 3): 'back',
-                  (1, 3, 0, 2): 'cross', }
-
-    edge_labels = {}
-    type_to_edges = ut.ddict(list)
-    pre = meta['pre']
-    post = meta['post']
-
-    for u, v in G.edges():
-        orders = [pre[u], pre[v], post[u], post[v]]
-        sortx = tuple(ut.argsort(orders))
-        type_ = edge_types[sortx]
-        edge_labels[(u, v)] = type_
-        type_to_edges[type_].append((u, v))
-
-    ## Check back edges
-    #is_odd_list = []
-    #for back_edge in type_to_edges['back']:
-    #    u, v = back_edge
-    #    pre_v = meta['pre'][v]
-    #    post_u = meta['post'][u]
-    #    is_even = (post_u - pre_v) % 2 == 0
-    #    is_odd = not is_even
-    #    is_odd_list.append(is_odd)
-
-    # Visualize the graph
-    node_labels = {
-        #node: (meta['pre'][node], meta['post'][node])
-        node: (meta['pairity'][node])
-        for node in graph
-    }
-
-    import networkx as nx
-    import plottool as pt
-    scc_list = list(nx.strongly_connected_components(G))
-
-    node_colors = {
-        node: color
-        for scc, color in zip(scc_list, pt.distinct_colors(len(scc_list)))
-        for node in scc
-    }
-    nx.set_node_attributes(G, 'label', node_labels)
-    nx.set_node_attributes(G, 'color', node_colors)
-    #nx.set_edge_attributes(G, 'label', edge_labels)
-
-    ut.ensure_pylab_qt4()
-    #pt.figure(pt.next_fnum())
-    pt.show_nx(G, layout='pygraphviz')
-    #dfs(G)
 
 
 def dict_depth(dict_, accum=0):
@@ -771,35 +947,6 @@ def shortest_levels(levels_):
     return new_levels
 
 
-def nx_source_nodes(graph):
-    import networkx as nx
-    topsort_iter = nx.dag.topological_sort(graph)
-    source_iter = (node for node in topsort_iter if graph.in_degree(node) == 0)
-    return source_iter
-
-
-def nx_sink_nodes(graph):
-    import networkx as nx
-    topsort_iter = nx.dag.topological_sort(graph)
-    sink_iter = (node for node in topsort_iter if graph.out_degree(node) == 0)
-    return sink_iter
-
-
-def dag_longest_path(graph, source, target):
-    import networkx as nx
-    def longest(gen):
-        list_ = []
-        for l in gen:
-            if len(l) > len(list_):
-                list_ = l
-        return list_
-    # inefficient
-    if source == target:
-        return [source]
-    allpaths = nx.all_simple_paths(graph, source, target)
-    return longest(allpaths)
-
-
 def simplify_graph(graph):
     """
     strips out everything but connectivity
@@ -851,79 +998,6 @@ def simplify_graph(graph):
     new_graph.add_nodes_from(new_nodes)
     new_graph.add_edges_from(new_edges)
     return new_graph
-
-
-def nx_to_adj_dict(graph):
-    import utool as ut
-    adj_dict = ut.ddict(list)
-    for u, edges in graph.adjacency():
-        adj_dict[u].extend(list(edges.keys()))
-    adj_dict = dict(adj_dict)
-    return adj_dict
-
-
-def nx_from_adj_dict(adj_dict, cls=None):
-    if cls is None:
-        import networkx as nx
-        cls = nx.DiGraph
-    nodes = list(adj_dict.keys())
-    edges = [(u, v) for u, adj in adj_dict.items() for v in adj]
-    graph = cls()
-    graph.add_nodes_from(nodes)
-    graph.add_edges_from(edges)
-    return graph
-
-
-def nx_dag_node_rank(graph, nodes=None):
-    """
-    Returns rank of nodes that define the "level" each node is on in a
-    topological sort. This is the same as the Graphviz dot rank.
-
-    Ignore:
-        simple_graph = ut.simplify_graph(exi_graph)
-        adj_dict = ut.nx_to_adj_dict(simple_graph)
-        import plottool as pt
-        pt.qt4ensure()
-        pt.show_nx(graph)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_graph import *  # NOQA
-        >>> import utool as ut
-        >>> adj_dict = {0: [5], 1: [5], 2: [1], 3: [4], 4: [0], 5: [], 6: [4], 7: [9], 8: [6], 9: [1]}
-        >>> import networkx as nx
-        >>> nodes = [2, 1, 5]
-        >>> f_graph = ut.nx_from_adj_dict(adj_dict, nx.DiGraph)
-        >>> graph = f_graph.reverse()
-        >>> #ranks = ut.nx_dag_node_rank(graph, nodes)
-        >>> ranks = ut.nx_dag_node_rank(graph, nodes)
-        >>> result = ('ranks = %r' % (ranks,))
-        >>> print(result)
-        ranks = [3, 2, 1]
-    """
-    import utool as ut
-    source = list(ut.nx_source_nodes(graph))[0]
-    longest_paths = dict([(target, dag_longest_path(graph, source, target))
-                          for target in graph.nodes()])
-    node_to_rank = ut.map_dict_vals(len, longest_paths)
-    if nodes is None:
-        return node_to_rank
-    else:
-        ranks = ut.dict_take(node_to_rank, nodes)
-        return ranks
-
-
-def nx_topsort_rank(graph, nodes=None):
-    """
-    graph = inputs.exi_graph.reverse()
-    nodes = flat_node_order_
-    """
-    import networkx as nx
-    import utool as ut
-    topsort = list(nx.topological_sort(graph))
-    node_to_top_rank = ut.make_index_lookup(topsort)
-    toprank = ut.dict_take(node_to_top_rank, nodes)
-    return toprank
 
 
 def level_order(graph):
@@ -1115,27 +1189,6 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
     return G_sub
 
 
-def nx_all_nodes_between(graph, source, target, data=False):
-    """
-    Find all nodes with on paths between source and target.
-    """
-    import utool as ut
-    import networkx as nx
-    if source is None:
-        # assume there is a single source
-        sources = list(ut.nx_source_nodes(graph))
-        assert len(sources) == 1, 'specify source if there is not only one'
-        source = sources[0]
-    if target is None:
-        # assume there is a single source
-        sinks = list(ut.nx_sink_nodes(graph))
-        assert len(sinks) == 1, 'specify sink if there is not only one'
-        target = sinks[0]
-    all_simple_paths = list(nx.all_simple_paths(graph, source, target))
-    nodes = list(set(ut.flatten(all_simple_paths)))
-    return nodes
-
-
 def all_multi_paths(graph, source, target, data=False):
     """
     Returns specific paths along multi-edges from the source to this table.
@@ -1227,52 +1280,6 @@ def all_multi_paths(graph, source, target, data=False):
     ##                    for path in expanded_paths]
     ## path_multiedges = expanded_paths
     #return path_multiedges
-
-
-def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
-                             data=False):
-    """
-    Returns each path from source to target as a list of edges.
-
-    This function is meant to be used with MultiGraphs or MultiDiGraphs.
-    When ``keys`` is True each edge in the path is returned with its unique key
-    identifier. In this case it is possible to distinguish between different
-    paths along different edges between the same two nodes.
-
-    Derived from simple_paths.py in networkx
-    """
-    if cutoff is None:
-        cutoff = len(G) - 1
-    if cutoff < 1:
-        return
-    import six
-    visited_nodes = [source]
-    visited_edges = []
-    edge_stack = [iter(G.edges(source, keys=keys, data=data))]
-    while edge_stack:
-        children_edges = edge_stack[-1]
-        child_edge = six.next(children_edges, None)
-        if child_edge is None:
-            edge_stack.pop()
-            visited_nodes.pop()
-            if len(visited_edges) > 0:
-                visited_edges.pop()
-        elif len(visited_nodes) < cutoff:
-            child_node = child_edge[1]
-            if child_node == target:
-                yield visited_edges + [child_edge]
-            elif child_node not in visited_nodes:
-                visited_nodes.append(child_node)
-                visited_edges.append(child_edge)
-                edge_stack.append(iter(G.edges(child_node, keys=keys, data=data)))
-        else:
-            for edge in [child_edge] + list(children_edges):
-                if edge[1] == target:
-                    yield visited_edges + [edge]
-            edge_stack.pop()
-            visited_nodes.pop()
-            if len(visited_edges) > 0:
-                visited_edges.pop()
 
 
 def reverse_path_edges(edge_list):
@@ -1383,148 +1390,6 @@ def bzip(*args):
     return bc
 
 
-def nx_delete_node_attr(graph, key, nodes=None):
-    removed = 0
-    if nodes is None:
-        nodes = list(graph.nodes())
-    for node in nodes:
-        try:
-            del graph.node[node][key]
-            removed += 1
-        except KeyError:
-            pass
-    return removed
-
-
-def nx_delete_edge_attr(graph, key, edges=None):
-    removed = 0
-    if not isinstance(key, list):
-        keys = [key]
-    else:
-        keys = key
-    for key in keys:
-        if graph.is_multigraph():
-            if edges is None:
-                edges = list(graph.edges(keys=graph.is_multigraph()))
-            for edge in edges:
-                u, v, k = edge
-                try:
-                    del graph[u][v][k][key]
-                    removed += 1
-                except KeyError:
-                    pass
-        else:
-            if edges is None:
-                edges = list(graph.edges())
-            for edge in graph.edges():
-                u, v = edge
-                try:
-                    del graph[u][v][key]
-                    removed += 1
-                except KeyError:
-                    pass
-    return removed
-
-
-def nx_delete_None_edge_attr(graph, edges=None):
-    removed = 0
-    if graph.is_multigraph():
-        if edges is None:
-            edges = list(graph.edges(keys=graph.is_multigraph()))
-        for edge in edges:
-            u, v, k = edge
-            data = graph[u][v][k]
-            for key in data.keys():
-                try:
-                    if data[key] is None:
-                        del data[key]
-                        removed += 1
-                except KeyError:
-                    pass
-    else:
-        if edges is None:
-            edges = list(graph.edges())
-        for edge in graph.edges():
-            u, v = edge
-            data = graph[u][v]
-            for key in data.keys():
-                try:
-                    if data[key] is None:
-                        del data[key]
-                        removed += 1
-                except KeyError:
-                    pass
-    return removed
-
-
-def nx_delete_None_node_attr(graph, nodes=None):
-    removed = 0
-    if nodes is None:
-        nodes = list(graph.nodes())
-    for node in graph.nodes():
-        data = graph.node[node]
-        for key in data.keys():
-            try:
-                if data[key] is None:
-                    del data[key]
-                    removed += 1
-            except KeyError:
-                pass
-    return removed
-
-
-def nx_set_default_node_attributes(graph, key, val):
-    import networkx as nx
-    unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
-    if isinstance(val, dict):
-        values = {n: val[n] for n in unset_nodes if n in val}
-    else:
-        values = {n: val for n in unset_nodes}
-    nx.set_node_attributes(graph, key, values)
-
-
-def nx_get_default_node_attributes(graph, key, default=None):
-    import networkx as nx
-    import utool as ut
-    node_list = list(graph.nodes())
-    partial_attr_dict = nx.get_node_attributes(graph, key)
-    attr_list = ut.dict_take(partial_attr_dict, node_list, default)
-    attr_dict = dict(zip(node_list, attr_list))
-    return attr_dict
-
-
-def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
-    import networkx as nx
-    import utool as ut
-    import numpy as np
-    if nodes is None:
-        nodes = list(range(len(weight_matrix)))
-    weight_list = weight_matrix.ravel()
-    flat_idxs_ = np.arange(weight_matrix.size)
-    multi_idxs_ = np.unravel_index(flat_idxs_, weight_matrix.shape)
-
-    # Remove 0 weight edges
-    flags = np.logical_not(np.isclose(weight_list, 0))
-    weight_list = ut.compress(weight_list, flags)
-    multi_idxs = ut.compress(list(zip(*multi_idxs_)), flags)
-    edge_list = ut.lmap(tuple, ut.unflat_take(nodes, multi_idxs))
-
-    if remove_self:
-        flags = [e1 != e2 for e1, e2 in edge_list]
-        edge_list = ut.compress(edge_list, flags)
-        weight_list = ut.compress(weight_list, flags)
-
-    graph = nx.Graph()
-    graph.add_nodes_from(nodes)
-    graph.add_edges_from(edge_list)
-    label_list = ['%.2f' % w for w in weight_list]
-    nx.set_edge_attributes(graph, 'weight', dict(zip(edge_list,
-                                                     weight_list)))
-    nx.set_edge_attributes(graph, 'label', dict(zip(edge_list,
-                                                     label_list)))
-    return graph
-
-
 def color_nodes(graph, labelattr='label'):
     """ Colors edges and nodes by nid """
     import plottool as pt
@@ -1542,64 +1407,6 @@ def color_nodes(graph, labelattr='label'):
     node_to_color = {node:  lbl_to_color[lbl] for node, lbl in node_to_lbl.items()}
     nx.set_node_attributes(graph, 'color', node_to_color)
     ut.nx_ensure_agraph_color(graph)
-
-
-def nx_ensure_agraph_color(graph):
-    """ changes colors to hex strings on graph attrs """
-    from plottool import color_funcs
-    import plottool as pt
-    #import six
-    def _fix_agraph_color(data):
-        try:
-            orig_color = data.get('color', None)
-            alpha = data.get('alpha', None)
-            color = orig_color
-            if color is None and alpha is not None:
-                color = [0, 0, 0]
-            if color is not None:
-                color = pt.ensure_nonhex_color(color)
-                #if isinstance(color, np.ndarray):
-                #    color = color.tolist()
-                color = list(color_funcs.ensure_base255(color))
-                if alpha is not None:
-                    if len(color) == 3:
-                        color += [int(alpha * 255)]
-                    else:
-                        color[3] = int(alpha * 255)
-                color = tuple(color)
-                if len(color) == 3:
-                    data['color'] = '#%02x%02x%02x' % color
-                else:
-                    data['color'] = '#%02x%02x%02x%02x' % color
-        except Exception as ex:
-            import utool as ut
-            ut.printex(ex, keys=['color', 'orig_color', 'data'])
-            raise
-
-    for node, node_data in graph.nodes(data=True):
-        data = node_data
-        _fix_agraph_color(data)
-
-    for u, v, edge_data in graph.edges(data=True):
-        data = edge_data
-        _fix_agraph_color(data)
-
-
-def nx_makenode(graph, name, **attrkw):
-    if 'size' in attrkw:
-        attrkw['width'], attrkw['height'] = attrkw.pop('size')
-    graph.add_node(name, **attrkw)
-    return name
-
-
-def nx_edges(graph, keys=False, data=False):
-    if graph.is_multigraph():
-        edges = graph.edges(keys=keys, data=data)
-    else:
-        edges = graph.edges(data=data)
-        #if keys:
-        #    edges = [e[0:2] + (0,) + e[:2] for e in edges]
-    return edges
 
 
 def graph_info(graph, verbose=False):
@@ -1669,11 +1476,6 @@ def translate_graph(graph, t_xy):
             for node, pos in attrdict.items()
         }
         nx.set_edge_attributes(graph, attr, attrdict)
-
-
-def pin_nodes(graph):
-    import networkx as nx
-    nx.set_node_attributes(graph, 'pin', 'true')
 
 
 if __name__ == '__main__':

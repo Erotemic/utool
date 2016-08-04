@@ -94,7 +94,6 @@ def hashstr27(data, alphabet=ALPHABET_27, **kwargs):
     return hashstr(data, alphabet=alphabet, **kwargs)
 
 
-#@profile
 def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
     r"""
     Args:
@@ -158,7 +157,6 @@ if six.PY3:
     stringlike = (str, bytes)
 
 
-@profile
 def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
     """
     python -c "import utool as ut; print(ut.hashstr('abcd'))"

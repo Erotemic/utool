@@ -257,7 +257,7 @@ def lock_and_save_cPkl(fpath, data, verbose=False):
         return save_cPkl(fpath, data, verbose)
 
 
-def save_hdf5(fpath, data, verbose=False, compression='lzf'):
+def save_hdf5(fpath, data, verbose=None, compression='lzf'):
     r"""
     Restricted save of data using hdf5. Can only save ndarrays and dicts of
     ndarrays.
@@ -285,18 +285,32 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
-        >>> # build test data
         >>> rng = np.random.RandomState(0)
         >>> data = (rng.rand(100000, 128) * 255).astype(np.uint8).copy()
         >>> verbose = True
         >>> fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool'), 'myfile.hdf5')
         >>> compression = 'lzf'
-        >>> # execute function
         >>> ut.delete(fpath)
         >>> save_hdf5(fpath, data, verbose, compression)
         >>> data2 = load_hdf5(fpath, verbose)
         >>> assert data is not data2
         >>> assert np.all(data == data2)
+        >>> assert ut.delete(fpath)
+
+    Example:
+        >>> # ENABLE_IF HAS_H5PY
+        >>> from utool.util_io import *  # NOQA
+        >>> import numpy as np
+        >>> import utool as ut
+        >>> rng = np.random.RandomState(0)
+        >>> data = {'name': 'foobar', 'x': [1, 2, 3], 'y': np.array([3, 2, 1])}
+        >>> ut.exec_funckw(save_hdf5, globals())
+        >>> fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool'), 'myfile2.hdf5')
+        >>> ut.delete(fpath)
+        >>> save_hdf5(fpath, data, verbose, compression)
+        >>> data2 = load_hdf5(fpath, verbose)
+        >>> assert data is not data2
+        >>> assert all([np.all(data[key] == data2[key]) for key in data.keys()])
         >>> assert ut.delete(fpath)
 
     Timeit:
@@ -421,18 +435,25 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
     h5kw = {}
 
     if isinstance(data, dict):
-        assert all([
-            isinstance(vals, np.ndarray)
-            for vals in six.itervalues(data)
-        ]), ('can only save dicts as ndarrays')
+        array_data = {key: val for key, val in data.items()
+                      if isinstance(val, (list, np.ndarray))}
+        attr_data = {key: val for key, val in data.items() if key not in array_data}
+
+        #assert all([
+        #    isinstance(vals, np.ndarray)
+        #    for vals in six.itervalues(data)
+        #]), ('can only save dicts as ndarrays')
         # file_ = h5py.File(fpath, 'w', **h5kw)
         with h5py.File(fpath, mode='w', **h5kw) as file_:
             grp = file_.create_group(fname)
-            for key, val in six.iteritems(data):
+            for key, val in six.iteritems(array_data):
+                val = np.asarray(val)
                 dset = grp.create_dataset(
                     key, val.shape,  val.dtype, chunks=chunks,
                     compression=compression)
                 dset[...] = val
+            for key, val in six.iteritems(attr_data):
+                grp.attrs[key] = val
     else:
         assert isinstance(data, np.ndarray)
         shape = data.shape
@@ -449,7 +470,7 @@ def save_hdf5(fpath, data, verbose=False, compression='lzf'):
             dset[...] = data
 
 
-def load_hdf5(fpath, verbose=False):
+def load_hdf5(fpath, verbose=None):
     fname = basename(fpath)
     #file_ = h5py.File(fpath, 'r')
     #file_.values()
@@ -467,7 +488,8 @@ def load_hdf5(fpath, verbose=False):
                 subdata = np.empty(shape, dtype=dtype)
                 dset.read_direct(subdata)
                 data[key] = subdata
-                pass
+            for key, val in six.iteritems(grp.attrs):
+                data[key] = val
         elif isinstance(value, h5py.Dataset):
             dset = value
             shape = dset.shape
