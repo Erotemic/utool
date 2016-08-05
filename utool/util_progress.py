@@ -618,7 +618,12 @@ class ProgressIter(object):
         if print_sep:
             print('---------')
         start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl, backspace=self.backspace))
-        start_msg = start_msg_fmt.format(count=self.parent_offset)
+        # Prepare for iteration
+        msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
+                                            self.invert_rate, self.backspace)
+        #msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
+        #                                   self.invert_rate, self.backspace)
+
         try:
             PROGRESS_FLUSH()
         except IOError as ex:
@@ -626,7 +631,17 @@ class ProgressIter(object):
             if util_arg.VERBOSE:
                 print('IOError flushing %s' % (ex,))
         #PROGRESS_WRITE(start_msg)
-        PROGRESS_WRITE(start_msg + '\n')
+        if self.backspace:
+            msg = msg_fmtstr.format(
+                count=self.count, rate=0.0,
+                etr=six.text_type('0:00:00'),
+                ellapsed=six.text_type('0:00:00'),
+                wall=time.strftime('%H:%M'),
+            )
+            PROGRESS_WRITE(msg)
+        else:
+            start_msg = start_msg_fmt.format(count=self.parent_offset)
+            PROGRESS_WRITE(start_msg + '\n')
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
         #if force_newlines:
         #    PROGRESS_WRITE('\n')
@@ -645,11 +660,6 @@ class ProgressIter(object):
         if self.prog_hook is not None:
             self.prog_hook(self.count, nTotal)
 
-        # Prepare for iteration
-        msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
-                                            self.invert_rate, self.backspace)
-        #msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
-        #                                   self.invert_rate, self.backspace)
 
         # TODO: on windows is time.clock better?
         # http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
