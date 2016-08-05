@@ -70,6 +70,28 @@ def get_global_dist_packages_dir():
                 return path
 
 
+def get_local_dist_packages_dir():
+    """
+    Attempts to work around virtualenvs and find the system dist_pacakges.
+    Essentially this is implmenented as a lookuptable
+    """
+    import utool as ut
+    if not ut.in_virtual_env():
+        # Non venv case
+        return get_site_packages_dir()
+    else:
+        candidates = []
+        if ut.LINUX:
+            candidates += [
+                '/usr/local/lib/python2.7/dist-packages',
+            ]
+        else:
+            raise NotImplementedError()
+        for path in candidates:
+            if ut.checkpath(path):
+                return path
+
+
 def is_running_as_root():
     """
     References:
@@ -112,6 +134,103 @@ def ensure_in_pythonpath(dname):
         sys.path.append(dpath)
     elif meta_util_arg.DEBUG:
         print('[sysreq] PYTHONPATH has %r' % dname)
+
+
+def total_purge_developed_repo(repodir):
+    r"""
+    Outputs commands to help purge a repo
+
+    Args:
+        repodir (str): path to developed repository
+
+    CommandLine:
+        python -m utool.util_sysreq total_purge_installed_repo --show
+
+    Ignore:
+        repodir = ut.truepath('~/code/Lasagne')
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_sysreq import *  # NOQA
+        >>> import utool as ut
+        >>> repodir = ut.get_argval('--repodir', default=None)
+        >>> result = total_purge_installed_repo(repodir)
+    """
+    assert repodir is not None
+    import utool as ut
+    import os
+    repo = ut.util_git.Repo(dpath=repodir)
+
+    user = os.environ['USER']
+
+    fmtdict = dict(
+        user=user,
+        modname=repo.modname,
+        reponame=repo.reponame,
+        dpath=repo.dpath,
+        global_site_pkgs=ut.get_global_dist_packages_dir(),
+        local_site_pkgs=ut.get_local_dist_packages_dir(),
+        venv_site_pkgs=ut.get_site_packages_dir(),
+    )
+
+    commands = [_.format(**fmtdict) for _ in [
+        'pip uninstall {modname}',
+        'sudo -H pip uninstall {modname}',
+        'sudo pip uninstall {modname}',
+        'easy_install -m {modname}',
+        'cd {dpath} && python setup.py develop --uninstall',
+        # If they still exist try chowning to current user
+        'sudo chown -R {user}:{user} {dpath}',
+    ]]
+    print('Normal uninstall commands')
+    print('\n'.join(commands))
+
+    possible_link_paths = [_.format(**fmtdict) for _ in [
+        '{dpath}/{modname}.egg-info',
+        '{dpath}/build',
+        '{venv_site_pkgs}/{reponame}.egg-info',
+        '{local_site_pkgs}/{reponame}.egg-info',
+        '{venv_site_pkgs}/{reponame}.egg-info',
+    ]]
+    from os.path import exists, basename
+    existing_link_paths = [path for path in possible_link_paths]
+    print('# Delete paths and eggs')
+    for path in existing_link_paths:
+        if exists(path):
+            if ut.get_file_info(path)['owner'] != user:
+                print('sudo /bin/rm -rf {path}'.format(path=path))
+            else:
+                print('/bin/rm -rf {path}'.format(path=path))
+        #ut.delete(path)
+
+    print('# Make sure nothing is in the easy install paths')
+    easyinstall_paths = [_.format(**fmtdict) for _ in [
+        '{venv_site_pkgs}/easy-install.pth',
+        '{local_site_pkgs}/easy-install.pth',
+        '{venv_site_pkgs}/easy-install.pth',
+    ]]
+    for path in easyinstall_paths:
+        if exists(path):
+            easy_install_list = ut.readfrom(path, verbose=False).strip().split('\n')
+            easy_install_list_ = [basename(p) for p in easy_install_list]
+            index1 = ut.listfind(easy_install_list_, repo.reponame)
+            index2 = ut.listfind(easy_install_list_, repo.modname)
+            if index1 is not None or index2 is not None:
+                print('Found at index1=%r, index=%r' % (index1, index2))
+                if ut.get_file_info(path)['owner'] != user:
+                    print('sudo gvim {path}'.format(path=path))
+                else:
+                    print('gvim {path}'.format(path=path))
+
+    checkcmds = [_.format(**fmtdict) for _ in [
+        'python -c "import {modname}; print({modname}.__file__)"'
+    ]]
+    import sys
+    assert repo.modname not in sys.modules
+    print("# CHECK STATUS")
+    for cmd in checkcmds:
+        print(cmd)
+        #ut.cmd(cmd, verbose=False)
 
 
 if __name__ == '__main__':

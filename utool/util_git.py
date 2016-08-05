@@ -209,6 +209,10 @@ class Repo(util_dev.NiceRepr):
         if dpath is not None:
             repo.dpath = util_path.unixpath(dpath)
 
+    def infer_info(repo):
+        if repo.url is None:
+            repo.url = list(repo.as_gitpython().remotes[0].urls)[0]
+
     def as_gitpython(repo):
         """ pip install gitpython """
         import git

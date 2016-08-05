@@ -323,35 +323,6 @@ def augpath(path, augsuf='', augext='', augpref='', augdir=None, newext=None,
     return newpath
 
 
-def touch(fname, times=None, verbose=True):
-    r"""
-    Args:
-        fname (str)
-        times (None):
-        verbose (bool):
-
-    Example:
-        >>> from utool.util_path import *  # NOQA
-        >>> fname = '?'
-        >>> times = None
-        >>> verbose = True
-        >>> result = touch(fname, times, verbose)
-        >>> print(result)
-
-    References:
-        http://stackoverflow.com/questions/1158076/implement-touch-using-python
-    """
-    try:
-        if verbose:
-            print('[util_path] touching %r' % fname)
-        with open(fname, 'a'):
-            os.utime(fname, times)
-    except Exception as ex:
-        import utool
-        utool.printex(ex, 'touch %s' % fname)
-        raise
-
-
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
                         verbose=VERBOSE, dryrun=False, ignore_errors=False,
                         **kwargs):
@@ -616,6 +587,41 @@ def ensuredir(path_, verbose=VERYVERBOSE, info=False, mode=0o1777):
     #return True
 
 
+def touch(fpath, times=None, verbose=True):
+    r"""
+    Creates file if it doesnt exist
+
+    Args:
+        fpath (str): file path
+        times (None):
+        verbose (bool):
+
+    Example:
+        >>> from utool.util_path import *  # NOQA
+        >>> fpath = '?'
+        >>> times = None
+        >>> verbose = True
+        >>> result = touch(fpath, times, verbose)
+        >>> print(result)
+
+    References:
+        http://stackoverflow.com/questions/1158076/implement-touch-using-python
+    """
+    try:
+        if verbose:
+            print('[util_path] touching %r' % fpath)
+        with open(fpath, 'a'):
+            os.utime(fpath, times)
+    except Exception as ex:
+        import utool
+        utool.printex(ex, 'touch %s' % fpath)
+        raise
+    return fpath
+
+
+ensurefile = touch
+
+
 # ---File Copy---
 
 def copy_worker(args):
@@ -823,67 +829,6 @@ def move_list(src_list, dst_list, lbl='Moving'):
     progiter = util_progress.ProgIter(task_iter, lbl=lbl, adjust=True)
     success_list = [trymove(src, dst) for (src, dst) in progiter]
     return success_list
-
-
-def win_shortcut(source, link_name):
-    """
-    Attempt to create windows shortcut
-    TODO: TEST / FIXME
-
-    References:
-        http://stackoverflow.com/questions/1447575/symlinks-on-windows
-    """
-    if True:
-        import ctypes
-        kdll = ctypes.windll.LoadLibrary("kernel32.dll")
-        code = 1 if isdir(source) else 0
-        kdll.CreateSymbolicLinkA(source, link_name, code)
-    else:
-        import ctypes
-        csl = ctypes.windll.kernel32.CreateSymbolicLinkW
-        csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
-        csl.restype = ctypes.c_ubyte
-        flags = 1 if isdir(source) else 0
-        retval = csl(link_name, source, flags)
-        if retval == 0:
-            #warn_msg = '[util_path] Unable to create symbolic link on windows.'
-            #print(warn_msg)
-            #warnings.warn(warn_msg, category=UserWarning)
-            if checkpath(link_name):
-                return True
-            raise ctypes.WinError()
-
-
-def symlink(path, link, noraise=False):
-    """
-    Attempt to create unix or windows symlink
-    TODO: TEST / FIXME
-
-    Args:
-        path (str): path to real file or directory
-        link (str): path to desired location for symlink
-        noraise (bool):
-
-    """
-    path = normpath(path)
-    link = normpath(link)
-    if os.path.islink(link):
-        print('[util_path] symlink %r exists' % (link))
-        return
-    print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
-    try:
-        os_symlink = getattr(os, "symlink", None)
-        if callable(os_symlink):
-            os_symlink(path, link)
-        else:
-            win_shortcut(path, link)
-    except Exception as ex:
-        checkpath(link, True)
-        checkpath(path, True)
-        import utool as ut
-        ut.printex(ex, 'error making symlink', iswarning=noraise)
-        if not noraise:
-            raise
 
 
 def file_bytes(fpath):
@@ -2467,6 +2412,113 @@ def sanitize_filename(fname):
     fname = util_str.multi_replace(fname, invalid_sep_chars, '-')
     fname = util_str.multi_replace(fname, ugly_space_chars, '')
     return fname
+
+
+def win_shortcut(source, link_name):
+    """
+    Attempt to create windows shortcut
+    TODO: TEST / FIXME
+
+    References:
+        http://stackoverflow.com/questions/1447575/symlinks-on-windows
+    """
+    if True:
+        import ctypes
+        kdll = ctypes.windll.LoadLibrary("kernel32.dll")
+        code = 1 if isdir(source) else 0
+        kdll.CreateSymbolicLinkA(source, link_name, code)
+    else:
+        import ctypes
+        csl = ctypes.windll.kernel32.CreateSymbolicLinkW
+        csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
+        csl.restype = ctypes.c_ubyte
+        flags = 1 if isdir(source) else 0
+        retval = csl(link_name, source, flags)
+        if retval == 0:
+            #warn_msg = '[util_path] Unable to create symbolic link on windows.'
+            #print(warn_msg)
+            #warnings.warn(warn_msg, category=UserWarning)
+            if checkpath(link_name):
+                return True
+            raise ctypes.WinError()
+
+
+def symlink(path, link, noraise=False):
+    """
+    Attempt to create unix or windows symlink
+    TODO: TEST / FIXME
+
+    Args:
+        path (str): path to real file or directory
+        link (str): path to desired location for symlink
+        noraise (bool):
+
+    """
+    path = normpath(path)
+    link = normpath(link)
+    if os.path.islink(link):
+        print('[util_path] symlink %r exists' % (link))
+        return
+    print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
+    try:
+        os_symlink = getattr(os, "symlink", None)
+        if callable(os_symlink):
+            os_symlink(path, link)
+        else:
+            win_shortcut(path, link)
+    except Exception as ex:
+        checkpath(link, True)
+        checkpath(path, True)
+        import utool as ut
+        ut.printex(ex, 'error making symlink', iswarning=noraise)
+        if not noraise:
+            raise
+    return link
+
+
+def remove_broken_links(dpath, verbose=True):
+    """
+    Removes all broken links in a directory
+
+    Args:
+        dpath (str):  directory path
+
+    Returns:
+        int: num removed
+
+    References:
+        http://stackoverflow.com/questions/20794/find-broken-symlinks-with-python
+
+    CommandLine:
+        python -m utool.util_path remove_broken_links --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> dpath = ut.ensure_app_resource_dir('utool', 'path_tests')
+        >>> ut.delete(dpath)
+        >>> test_dpath = ut.ensuredir(join(dpath, 'testdpath'))
+        >>> test_fpath = ut.ensurefile(join(dpath, 'testfpath.txt'))
+        >>> flink1 = ut.symlink(test_fpath, join(dpath, 'flink1'))
+        >>> dlink1 = ut.symlink(test_fpath, join(dpath, 'dlink1'))
+        >>> assert len(ut.ls(dpath)) == 4
+        >>> ut.delete(test_fpath)
+        >>> assert len(ut.ls(dpath)) == 3
+        >>> remove_broken_links(dpath)
+        >>> ut.delete(test_dpath)
+        >>> remove_broken_links(dpath)
+        >>> assert len(ut.ls(dpath)) == 0
+    """
+    fname_list = [join(dpath, fname) for fname in os.listdir(dpath)]
+    broken_links = list(filterfalse(exists, filter(islink, fname_list)))
+    num_broken = len(broken_links)
+    if verbose:
+        if verbose > 1 or num_broken > 0:
+            print('[util_path] Removing %d broken links in %r' % (num_broken, dpath,))
+    for link in broken_links:
+        os.unlink(link)
+    return num_broken
 
 
 if __name__ == '__main__':

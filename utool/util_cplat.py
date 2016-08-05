@@ -13,6 +13,7 @@ from os.path import exists, normpath, basename
 from utool import util_inject
 from utool._internal import meta_util_cplat
 from utool._internal.meta_util_path import unixpath, truepath
+from six.moves import zip
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
@@ -170,12 +171,17 @@ def get_file_info(fpath):
     import time
     from collections import OrderedDict
     statbuf = os.stat(fpath)
+
+    from pwd import getpwuid
+    owner = getpwuid(os.stat(fpath).st_uid).pw_name
+
     info = OrderedDict(
         [
             ('filesize', get_file_nBytes_str(fpath)),
             ('last_modified', util_time.unixtime_to_datetimestr(statbuf.st_mtime, isutc=False) + ' ' + time.tzname[0]),
             ('last_accessed', util_time.unixtime_to_datetimestr(statbuf.st_atime, isutc=False) + ' ' + time.tzname[0]),
             ('created', util_time.unixtime_to_datetimestr(statbuf.st_ctime, isutc=False) + ' ' + time.tzname[0]),
+            ('owner', owner)
         ]
     )
     return info
