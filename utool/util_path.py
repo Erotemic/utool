@@ -2490,7 +2490,12 @@ def remove_broken_links(dpath, verbose=True):
         http://stackoverflow.com/questions/20794/find-broken-symlinks-with-python
 
     CommandLine:
-        python -m utool.util_path remove_broken_links --show
+        python -m utool remove_broken_links:0
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_path import *  # NOQA
+        >>> remove_broken_links('.')
 
     Example:
         >>> # ENABLE_DOCTEST

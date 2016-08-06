@@ -398,13 +398,23 @@ class Repo(util_dev.NiceRepr):
                         else:
                             ut.cmd(script.fpath)
                     else:
-                        print("CANT QUITE EXECUTE THIS YET")
-                        ut.print_code(script.text, 'bash')
+                        if script.text is not None:
+                            print('ABOUT TO EXECUTE')
+                            ut.print_code(script.text, 'bash')
+                            if ut.are_you_sure('execute above script?'):
+                                from os.path import join
+                                scriptdir = ut.ensure_app_resource_dir('utool', 'build_scripts')
+                                script_path = join(scriptdir, 'script_' + script.type_ + '_' + ut.hashstr27(script.text) + '.sh')
+                                ut.writeto(script_path, script.text)
+                                _ = ut.cmd('bash ', script_path)
+                        else:
+                            print("CANT QUITE EXECUTE THIS YET")
+                            ut.print_code(script.text, 'bash')
                 #os.system(scriptname)
                 print('L**** exec %s script *******' % (script.type_))
 
         script = Script()
-        script.text = repo.scripts.get('build', None)
+        script.text = repo.scripts.get(type_, None)
 
         if type_ == 'build' and repo.dpath:
             if sys.platform.startswith('win32'):
