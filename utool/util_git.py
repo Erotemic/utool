@@ -36,7 +36,7 @@ class RepoManager(util_dev.NiceRepr):
     Batch git operations on multiple repos
     """
     def __init__(rman, repo_urls=None, code_dir=None, userid=None,
-                 permitted_repos=None, label=''):
+                 permitted_repos=None, label='', pythoncmd=None):
         if userid is None:
             userid = None
         if permitted_repos is None:
@@ -46,6 +46,7 @@ class RepoManager(util_dev.NiceRepr):
         rman.userid = userid
         rman.repos = []
         rman.label = label
+        rman.pythoncmd = pythoncmd
 
         if repo_urls is not None:
             rman.add_repos(repo_urls)
@@ -89,7 +90,8 @@ class RepoManager(util_dev.NiceRepr):
         if code_dir is None:
             code_dir = rman.code_dir
         assert code_dir is not None, 'Must specify the checkout code_dir'
-        repos = [Repo(url, code_dir) for url in repo_urls]
+        repos = [Repo(url, code_dir, pythoncmd=rman.pythoncmd)
+                 for url in repo_urls]
         for repo in repos:
             repo._fix_url(rman.userid, rman.permitted_repos)
         rman.repos.extend(repos)
@@ -194,7 +196,7 @@ class Repo(util_dev.NiceRepr):
     Handles a Python module repository
     """
     def __init__(repo, url=None, code_dir=None, dpath=None,
-                 modname=None):
+                 modname=None, pythoncmd=None):
         import utool as ut
         repo.url = url
         repo._modname = None
@@ -203,6 +205,7 @@ class Repo(util_dev.NiceRepr):
         repo._modname_hints = ut.ensure_iterable(modname)
         repo.dpath = None
         repo.scripts = {}
+        repo.pythoncmd = pythoncmd
 
         if dpath is None and repo.url is not None and code_dir is not None:
             dpath = join(code_dir, repo.reponame)
@@ -406,7 +409,7 @@ class Repo(util_dev.NiceRepr):
                                 scriptdir = ut.ensure_app_resource_dir('utool', 'build_scripts')
                                 script_path = join(scriptdir, 'script_' + script.type_ + '_' + ut.hashstr27(script.text) + '.sh')
                                 ut.writeto(script_path, script.text)
-                                _ = ut.cmd('bash ', script_path)
+                                _ = ut.cmd('bash ', script_path)  # NOQA
                         else:
                             print("CANT QUITE EXECUTE THIS YET")
                             ut.print_code(script.text, 'bash')
@@ -416,7 +419,7 @@ class Repo(util_dev.NiceRepr):
         script = Script()
         script.text = repo.scripts.get(type_, None)
 
-        if type_ == 'build' and repo.dpath:
+        if script.text is None and type_ == 'build' and repo.dpath:
             if sys.platform.startswith('win32'):
                 # vtool --rebuild-sver didnt work with this line
                 #scriptname = './mingw_build.bat'
@@ -485,6 +488,11 @@ class Repo(util_dev.NiceRepr):
                 if ret != 0:
                     raise Exception('Failed command %r' % (cmd,))
         print('L____')
+
+    def python_develop(repo):
+        import utool as ut
+        repo.issue('{pythoncmd} setup.py develop'.format(
+            pythoncmd=repo.pythoncmd), sudo=not ut.in_virtual_env())
 
     def is_gitrepo(repo):
         gitdir = join(repo.dpath, '.git')
