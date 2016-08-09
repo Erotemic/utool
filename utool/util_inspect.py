@@ -25,6 +25,11 @@ VERBOSE_INSPECT, VERYVERB_INSPECT = util_arg.get_module_verbosity_flags('inspect
 LIB_PATH = dirname(os.__file__)
 
 
+#def check_dynamic_member_vars(self):
+#    return {name: attr for name, attr in self.__dict__.items()
+#            if not name.startswith("__") and not callable(attr) and not type(attr) is staticmethod}
+
+
 def check_static_member_vars(fpath, classname):
     #import ast
     #import astor

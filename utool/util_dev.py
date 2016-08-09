@@ -2757,8 +2757,13 @@ class ColumnLists(NiceRepr):
 
     def take(self, idxs):
         import utool as ut
-        key_to_list = {key: ut.take(val, idxs)
-                       for key, val in six.iteritems(self._key_to_list)}
+        if False:
+            key_to_list = {key: ut.take(val, idxs)
+                           for key, val in six.iteritems(self._key_to_list)}
+        else:
+            import numpy as np
+            key_to_list = {key: ut.take(val, idxs) if not isinstance(val, np.ndarray) else val.take(idxs, axis=0)
+                           for key, val in six.iteritems(self._key_to_list)}
         newself = self.__class__(key_to_list)
         return newself
 
