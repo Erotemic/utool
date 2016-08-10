@@ -747,6 +747,11 @@ def time_func(func):
     return wrp_time
 
 
+#def rename_func(newname):
+#    import utool as ut
+#    return ut.partial(ut.set_funcname, newname=newname)
+
+
 #class copy_argspec(object):
 #    """
 #    copy_argspec is a signature modifying decorator.
