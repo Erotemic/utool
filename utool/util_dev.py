@@ -168,7 +168,7 @@ def get_nonconflicting_path_old(base_fmtstr, dpath, offset=0):
     return newpath
 
 
-def get_nonconflicting_path(path_, dpath=None, offset=0):
+def get_nonconflicting_path(path_, dpath=None, offset=0, suffix=None):
     r"""
     """
     import utool as ut
@@ -177,7 +177,12 @@ def get_nonconflicting_path(path_, dpath=None, offset=0):
     if dpath is None:
         dpath = dirname(path_)
     base_fmtstr = basename(path_)
-    if '%' not in base_fmtstr:
+    if suffix is not None:
+        if exists(path_):
+            base_fmtstr = ut.augpath(base_fmtstr, suffix)
+        else:
+            return path_
+    elif '%' not in base_fmtstr:
         base_fmtstr += '%d'
 
     pattern = '*'

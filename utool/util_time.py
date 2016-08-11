@@ -47,7 +47,7 @@ def get_printable_timestamp(isutc=False):
     return get_timestamp('printable', isutc=isutc)
 
 
-def get_timestamp(format_='filename', use_second=False, delta_seconds=None,
+def get_timestamp(format_='iso', use_second=False, delta_seconds=None,
                   isutc=False, timezone=False):
     """
     get_timestamp
@@ -77,6 +77,14 @@ def get_timestamp(format_='filename', use_second=False, delta_seconds=None,
         now = datetime.datetime.now()
     if delta_seconds is not None:
         now += datetime.timedelta(seconds=delta_seconds)
+    if format_ == 'iso':
+        # ISO 8601
+        #utcnow = datetime.datetime.utcnow()
+        #utcnow.isoformat()
+        localOffsetHour = time.timezone // 3600
+        utc_offset = '-' + str(localOffsetHour) if localOffsetHour < 0 else '+' + str(localOffsetHour)
+        stamp = time.strftime('%Y-%m-%dT%H%M%S') + utc_offset
+        return stamp
     if format_ == 'tag':
         time_tup = (now.year - 2000, now.month, now.day)
         stamp = '%02d%02d%02d' % time_tup

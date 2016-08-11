@@ -29,7 +29,11 @@ if six.PY2:
             elif isinstance(func, six.class_types):
                 return func.__name__
                 #return str(func).replace('<class \'', '').replace('\'>', '')
+            elif hasattr(func, '__class__'):
+                return func.__class__.__name__
             else:
+                print('Error inspecting func type')
+                print(type(func))
                 raise
         #except Exception as ex:
         #    import utool as ut
