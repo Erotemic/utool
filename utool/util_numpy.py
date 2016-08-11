@@ -1,16 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import six
+import itertools
 try:
     import numpy as np
 except ImportError as ex:
     pass
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[util_numpy]')
+print, rrr, profile = util_inject.inject2(__name__, '[util_numpy]')
 
 
 def tiled_range(range_, cols):
     return np.tile(np.arange(range_), (cols, 1)).T
     #np.tile(np.arange(num_qf).reshape(num_qf, 1), (1, k_vsmany))
+
+
+def ensure_rng(rng):
+    if rng is None:
+        rng = np.random
+    if isinstance(rng, int):
+        rng = np.random.RandomState(seed=rng)
+    return rng
 
 
 def random_indexes(max_index, subset_size=None, seed=None, rng=None):
@@ -40,8 +50,7 @@ def random_indexes(max_index, subset_size=None, seed=None, rng=None):
         >>> print(result)
     """
     subst_ = np.arange(0, max_index)
-    if rng is None:
-        rng = np.random if seed is None else np.random.RandomState(seed=seed)
+    rng = ensure_rng(seed if rng is None else rng)
     rng.shuffle(subst_)
     if subset_size is None:
         subst = subst_
@@ -142,7 +151,7 @@ def intersect2d(A, B):
     #return arr[np.sort(idx)]
 
 
-def deterministic_shuffle(list_, seed=None, rng=None):
+def deterministic_shuffle(list_, seed=0, rng=None):
     r"""
     Args:
         list_ (list):
@@ -164,15 +173,12 @@ def deterministic_shuffle(list_, seed=None, rng=None):
         >>> print(result)
         [3, 2, 5, 1, 4, 6]
     """
-    if seed is None and rng is None:
-        seed = 0
-    if seed is not None:
-        rng = np.random.RandomState(seed)
+    rng = ensure_rng(seed if rng is None else rng)
     rng.shuffle(list_)
     return list_
 
 
-def random_sample(list_, nSample, strict=False, rng=np.random, seed=None):
+def random_sample(list_, nSample, strict=False, rng=None, seed=None):
     """
     Grabs data randomly
 
@@ -201,8 +207,7 @@ def random_sample(list_, nSample, strict=False, rng=np.random, seed=None):
         >>> result = ('sample_list = %s' % (str(sample_list),))
         >>> print(result)
     """
-    if seed is not None:
-        rng = np.random.RandomState(seed)
+    rng = ensure_rng(seed if rng is None else rng)
     if isinstance(list_, list):
         list2_ = list_[:]
     else:
@@ -218,11 +223,10 @@ def random_sample(list_, nSample, strict=False, rng=np.random, seed=None):
     return sample_list
 
 
-def deterministic_sample(list_, nSample, seed=None, rng=None, strict=False):
+def deterministic_sample(list_, nSample, seed=0, rng=None, strict=False):
     """ Grabs data randomly, but in a repeatable way """
-    if seed is None and rng is None:
-        seed = 0
-    sample_list = random_sample(list_, nSample, strict=strict, seed=seed, rng=rng)
+    rng = ensure_rng(seed if rng is None else rng)
+    sample_list = random_sample(list_, nSample, strict=strict, rng=rng)
     return sample_list
 
 
@@ -258,10 +262,12 @@ def sample_domain(min_, max_, nSamp, mode='linear'):
 
 
 def make_incrementer():
-    def incrementer(_mem=[0]):
-        _mem[0] += 1
-        return _mem[0]
-    return incrementer
+    # DEPRICATE FOR ITERTOOLS.COUNT
+    return ut.partial(six.next, itertools.count(1))
+    # def incrementer(_mem=[0]):
+    #     _mem[0] += 1
+    #     return _mem[0]
+    # return incrementer
 
 
 if __name__ == '__main__':
