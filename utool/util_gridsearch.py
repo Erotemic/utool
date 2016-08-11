@@ -359,10 +359,64 @@ def recombine_nestings(parsed_blocks):
     return recombined
 
 
-def parse_nestings(string):
+class Nesting(object):
+    """
+    x = Nesting.from_nestings(nestings)
+    list(x.itertype('nonNested'))
+    """
+    def __init__(self, type_, value):
+        self.type_ = type_
+        self.value = value
+
+    def __repr__(self):
+        return 'N' + repr(self.value)
+        # if isinstance(self.value, list):
+        #     # return str(self.type_) + ':' + repr(self.value)
+        # else:
+        #     return repr(self.value)
+
+    def as_list(self):
+        if self.type_ == 'root':
+            if isinstance(self.value, list):
+                return [x.as_list() for x in self.value]
+        else:
+            if isinstance(self.value, list):
+                return (self.type_, [x.as_list() for x in self.value])
+            elif self.value.__class__.__name__.endswith('Nesting'):
+                return (self.type_, self.value.as_list())
+            else:
+                return (self.type_, self.value)
+
+    def recombine(self):
+        return recombine_nestings(self.as_list())
+
+    @classmethod
+    def from_nestings(cls, nestings, type_='root'):
+        if isinstance(nestings, list):
+            if type_ == 'root':
+                return cls(type_, [cls.from_nestings(v) for v in nestings])
+            else:
+                return [cls.from_nestings(v) for v in nestings]
+        elif isinstance(nestings, tuple):
+            type_, v = nestings
+            return cls(type_, cls.from_nestings(v, type_))
+        else:
+            return nestings
+
+    def itertype(self, type_):
+        if self.type_ == type_:
+            yield self
+        elif isinstance(self.value, list):
+            for v in self.value:
+                for x in v.itertype(type_):
+                    yield x
+
+
+def parse_nestings(string, only_curl=False):
     r"""
     References:
         http://stackoverflow.com/questions/4801403/pyparsing-nested-mutiple-opener-clo
+
 
     Example:
         >>> from utool.util_gridsearch import *  # NOQA
@@ -451,7 +505,12 @@ def parse_nestings(string):
 
     nonBracePrintables = ''.join(c for c in pp.printables if c not in '(){}[]') + ' '
     nonNested = pp.Word(nonBracePrintables).setResultsName('nonNested')
-    nest_body << (nonNested | nestedParens | nestedBrackets | nestedCurlies)
+    # if with_curl and not with_paren and not with_brak:
+    if only_curl:
+        # TODO figure out how to chain |
+        nest_body << (nonNested | nestedCurlies)
+    else:
+        nest_body << (nonNested | nestedParens | nestedBrackets | nestedCurlies)
     parser = pp.ZeroOrMore(nest_body)
     debug_ = ut.VERBOSE
 
