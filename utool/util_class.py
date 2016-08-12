@@ -439,6 +439,10 @@ def decorate_postinject(func, classkey=None, skipmain=False):
     return func
 
 
+def get_method_func(method):
+    return method.im_func if six.PY2 else method.__func__
+
+
 def inject_func_as_method(self, func, method_name=None, class_=None,
                           allow_override=False, allow_main=False, verbose=True):
     """ Injects a function into an object as a method
@@ -465,8 +469,8 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
     #new_method = profile(func.__get__(self, self.__class__))
 
     if old_method is not None:
-        old_im_func = old_method.im_func if six.PY2 else old_method.__func__
-        new_im_func = new_method.im_func if six.PY2 else new_method.__func__
+        old_im_func = get_method_func(old_method)
+        new_im_func = get_method_func(new_method)
         if not allow_main and (
                 get_funcglobals(old_im_func)['__name__'] != '__main__' and
                 get_funcglobals(new_im_func)['__name__'] == '__main__'):
