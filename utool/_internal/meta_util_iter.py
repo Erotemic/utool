@@ -73,6 +73,10 @@ def isiterable(obj):
     #return np.iterable(obj) and not isinstance(obj, six.string_types)
 
 
+def isscalar(obj):
+    return not isiterable(obj)
+
+
 #def isscalar(obj):
 if __name__ == '__main__':
     """

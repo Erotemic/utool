@@ -12,6 +12,7 @@ print, rrr, profile = util_inject.inject2(__name__, '[iter]')
 
 ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable
+isscalar = meta_util_iter.isscalar
 
 
 def wrap_iterable(obj):
