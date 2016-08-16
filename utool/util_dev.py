@@ -904,36 +904,33 @@ class InteractiveIter(object):
         LIVE_INTERACTIVE_ITER = None
 
     def handle_ans(iiter, ans_):
+        """
+        preforms an actionm based on a user answer
+        """
         ans = ans_.strip(' ')
         def parse_str_value(ans):
             return ' '.join(ans.split(' ')[1:])
         def chack_if_answer_was(valid_keys):
             return any([ans == key or ans.startswith(key + ' ') for key in valid_keys])
-        # Quit
+        # Handle standard actions
         if ans in iiter.action_keys['quit']:
             raise StopIteration()
-        # Prev
         elif ans in iiter.action_keys['prev']:
             iiter.index -= 1
-        # Next
         elif ans in iiter.action_keys['next']:
             iiter.index += 1
-        # Reload
         elif ans in iiter.action_keys['reload']:
             iiter.index += 0
-        # Index
         elif chack_if_answer_was(iiter.action_keys['index']):
             try:
                 iiter.index = int(parse_str_value(ans))
             except ValueError:
                 print('Unknown ans=%r' % (ans,))
-        # Set
         elif chack_if_answer_was(iiter.action_keys['set']):
             try:
                 iiter.iterable[iiter.index] = eval(parse_str_value(ans))
             except ValueError:
                 print('Unknown ans=%r' % (ans,))
-        # IPython
         elif ans in iiter.action_keys['ipy']:
             return 'IPython'
         else:

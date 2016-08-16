@@ -898,7 +898,8 @@ def get_dict_column(dict_, colx):
         >>> print(result)
         {'a': [2, 0], 'c': [8, 6], 'b': [5, 3]}
     """
-    retdict_ = {key: util_list.list_take(val, colx) for key, val in six.iteritems(dict_)}
+    retdict_ = {key: util_list.list_take(val, colx)
+                for key, val in six.iteritems(dict_)}
     return retdict_
 
 
