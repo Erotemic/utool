@@ -74,3 +74,4 @@ run_cyth_benchmarks.sh
 _doc
 failed_doctests.txt
 timeings.txt
+test_times.txt
