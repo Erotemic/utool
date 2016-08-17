@@ -16,6 +16,8 @@ from utool import util_dev
 from utool import util_inject
 from utool import util_class
 from utool import util_path
+from utool import util_decor
+from utool import util_list
 print, rrr, profile = util_inject.inject2(__name__, '[git]')
 
 
@@ -197,6 +199,7 @@ class Repo(util_dev.NiceRepr):
     """
     def __init__(repo, url=None, code_dir=None, dpath=None,
                  modname=None, pythoncmd=None):
+        # modname might need to be called egg?
         import utool as ut
         repo.url = url
         repo._modname = None
@@ -216,6 +219,9 @@ class Repo(util_dev.NiceRepr):
         if repo.url is None:
             repo.url = list(repo.as_gitpython().remotes[0].urls)[0]
 
+    # --- GIT PYTHON STUFF ---
+
+    @util_decor.memoize
     def as_gitpython(repo):
         """ pip install gitpython """
         import git
@@ -223,8 +229,89 @@ class Repo(util_dev.NiceRepr):
         return gitrepo
 
     @property
+    def remotes(repo):
+        remotes = repo.as_gitpython().remotes
+        remote_dict = {}
+        for remote in remotes:
+            remote_info = repo._remote_info(remote)
+            if remote_info is not None:
+                name = remote_info.pop('name')
+                remote_dict[name] = remote_info
+        return remote_dict
+
+    def _remote_info(repo, remote):
+        urls = list(remote.urls)
+        if len(urls) == 0:
+            print('[git] WARNING: repo %r has no remote urls' % (repo,))
+            remote_info = None
+        else:
+            if len(urls) > 1:
+                print('[git] WARNING: repo %r has multiple urls' % (repo,))
+            url = urls[0]
+            remote_info = {}
+            url_parts = re.split('[@/:]', url)
+            idx = util_list.listfind(url_parts, 'github.com')
+            remote_info['name'] = remote.name
+            remote_info['url'] = url
+            if idx is not None:
+                username = url_parts[idx + 1]
+                remote_info['host'] = 'github'
+                remote_info['username'] = username
+        return remote_info
+
+    def _new_repo_url(repo, host=None, user=None, reponame=None, fmt=None):
+        import utool as ut
+        if reponame is None:
+            reponame = repo.reponame
+        if host is None:
+            host = 'github.com'
+        if fmt is None:
+            fmt = 'ssh'
+        if host is not None:
+            assert user is not None, 'github needs a user'
+        url_fmts = {
+            'https': ('https://', '/'),
+            'ssh':   ('git@', ':'),
+        }
+        prefix, sep = url_fmts[fmt]
+        parts = [prefix, host, sep, user, '/', reponame, '.git']
+        parts = ut.filter_Nones(parts)
+        url = ''.join(parts)
+        return url
+
+    @property
     def active_branch(repo):
         return repo.as_gitpython().active_branch.name
+
+    @property
+    def active_remote(repo):
+        branch = repo.as_gitpython().active_branch
+        tracking_branch = branch.tracking_branch()
+        remote_info = None
+        for remote in repo.as_gitpython().remotes:
+            if remote.name == tracking_branch.remote_name:
+                remote_info = repo._remote_info(remote)
+                break
+        return remote_info
+
+    @property
+    def active_tracking_remote_head(repo):
+        branch = repo.as_gitpython().active_branch
+        tracking_branch = branch.tracking_branch()
+        return tracking_branch.remote_head
+
+    @property
+    def active_tracking_branch_name(repo):
+        branch = repo.as_gitpython().active_branch
+        tracking_branch = branch.tracking_branch()
+        return tracking_branch.name
+
+    @property
+    def branches(repo):
+        gitrepo = repo.as_gitpython()
+        return [branch.name for branch in gitrepo.branches]
+
+    # --- </GIT PYTHON STUFF> ---
 
     @property
     def aliases(repo):
@@ -309,14 +396,15 @@ class Repo(util_dev.NiceRepr):
 
     def change_url_format(repo, out_type='ssh'):
         """ Changes the url format for committing """
-        url_parts = re.split('[/:]', repo.url)
+        url = repo.url
+        url_parts = re.split('[/:]', url)
         in_type = url_parts[0]
         url_fmts = {
             'https': ('.com/', 'https://'),
             'ssh':   ('.com:', 'git@'),
         }
         url_fmts['git'] = url_fmts['ssh']
-        new_repo_url = repo.url
+        new_repo_url = url
         for old, new in zip(url_fmts[in_type], url_fmts[out_type]):
             new_repo_url = new_repo_url.replace(old, new)
         # Inplace change
@@ -406,8 +494,11 @@ class Repo(util_dev.NiceRepr):
                             ut.print_code(script.text, 'bash')
                             if ut.are_you_sure('execute above script?'):
                                 from os.path import join
-                                scriptdir = ut.ensure_app_resource_dir('utool', 'build_scripts')
-                                script_path = join(scriptdir, 'script_' + script.type_ + '_' + ut.hashstr27(script.text) + '.sh')
+                                scriptdir = ut.ensure_app_resource_dir('utool',
+                                                                       'build_scripts')
+                                script_path = join(scriptdir,
+                                                   'script_' + script.type_ + '_' +
+                                                   ut.hashstr27(script.text) + '.sh')
                                 ut.writeto(script_path, script.text)
                                 _ = ut.cmd('bash ', script_path)  # NOQA
                         else:
