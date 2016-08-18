@@ -248,11 +248,7 @@ class Repo(util_dev.NiceRepr):
             if len(urls) > 1:
                 print('[git] WARNING: repo %r has multiple urls' % (repo,))
             url = urls[0]
-            # Special cases in parsing
-            if '://' in url:
-                url = url.split('://')[-1]
             url = url.replace('github.com:/', 'github.com:')
-            # Continue parsing
             remote_info = {}
             url_parts = re.split('[@/:]', url)
             idx = util_list.listfind(url_parts, 'github.com')
