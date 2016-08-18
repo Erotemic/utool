@@ -7,6 +7,24 @@ from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[util_tags]')
 
 
+def clean_tags(tags_list, direct_map=None, regex_map=None, regex_aug=None):
+    import utool as ut
+    tag_vocab = ut.unique(ut.flatten(tags_list))
+    alias_map = ut.odict()
+    if regex_map is not None:
+        alias_map.update(**ut.build_alias_map(regex_map, tag_vocab))
+    if direct_map is not None:
+        alias_map.update(ut.odict(direct_map))
+
+    new_tags_list = ut.alias_tags(tags_list, alias_map)
+
+    if regex_aug is not None:
+        alias_aug = ut.build_alias_map(regex_aug, tag_vocab)
+        aug_tags_list = ut.alias_tags(new_tags_list, alias_aug)
+        new_tags_list = [ut.unique(t1 + t2) for t1, t2 in zip(new_tags_list, aug_tags_list)]
+    return new_tags_list
+
+
 def build_alias_map(regex_map, tag_vocab):
     """
     Constructs explicit mapping. Order of items in regex map matters.
@@ -20,7 +38,7 @@ def build_alias_map(regex_map, tag_vocab):
     """
     import utool as ut
     import re
-    alias_map = {}
+    alias_map = ut.odict([])
     for pats, new_tag in reversed(regex_map):
         pats = ut.ensure_iterable(pats)
         for pat in pats:

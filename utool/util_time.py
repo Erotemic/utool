@@ -183,7 +183,7 @@ class Timer(object):
         #return self.ellapsed
 
 
-def determine_timestamp_format(datetime_str):
+def determine_timestamp_format(datetime_str, warn=True):
     r"""
     Args:
         datetime_str (str):
@@ -220,8 +220,12 @@ def determine_timestamp_format(datetime_str):
     if len(clean_datetime_str) == 25 and 'T' in clean_datetime_str:
         # Delete last colon from ISO 8601 format
         # clean_datetime_str = clean_datetime_str[:-3] + clean_datetime_str[-2:]
-        print('WARNING: Python 2.7 does not support %z directive in strptime, ignoring timezone in parsing: ' + clean_datetime_str)
-        clean_datetime_str = clean_datetime_str[:-6]
+        if True or six.PY2:
+            if warn:
+                print('WARNING: Python 2.7 does not support %z directive '
+                      'in strptime, ignoring timezone in parsing: ' +
+                      clean_datetime_str)
+            clean_datetime_str = clean_datetime_str[:-6]
 
     year_regex  = '(\d\d)?\d\d'
     month_regex = '[0-1]?[0-9]'
@@ -278,9 +282,138 @@ def determine_timestamp_format(datetime_str):
     return timefmt
 
 
+def local_timezone():
+    import time
+    return time.tzname
+
+
+def utcnow_tz():
+    import pytz
+    dt = datetime.datetime.utcnow()
+    dt = dt.replace(tzinfo=pytz.timezone('UTC'))
+    return dt
+
+
+def parse_timestamp(timestamp, utc=True, timestamp_format=None):
+    r"""
+    pip install delorean
+
+    Args:
+        timestamp (str): assumed to be in utc unless specified
+        timestamp_format (None): (default = None)
+        utc (bool): if True assumes input is in utc and gives output in utc.
+
+    CommandLine:
+        python -m utool.util_time --test-parse_timestamp --show
+        python -m utool.util_time parse_timestamp --show
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_time import *  # NOQA
+        >>> import utool as ut
+        >>> utc = True
+        >>> timestampe_format = None
+        >>> timestamps = [
+        >>>     ('2015:04:01 00:00:00',),
+        >>>     ('2005-10-27T14:35:20+02:00',),
+        >>>     ('2000-01-01T09:00:00-05:00', True),
+        >>>     ('2000-01-01T09:00:00-05:00', False),
+        >>>     ('2000-01-01T09:00:00', False),
+        >>>     ('2000-01-01T09:00:00', True),
+        >>>     ('6:35:01\x002006:03:19 1',),
+        >>>     ('2016/08/18 10:51:02 EST',),
+        >>>     ('2016-08-18T10:51:02-05:00',),
+        >>> ]
+        >>> timestamp = timestamps[-1][0]
+        >>> dn_list = [parse_timestamp(*args) for args in timestamps]
+        >>> result = ut.NEWLINE.join([str(dn) for dn in dn_list])
+        >>> print(result)
+        2015-04-01 00:00:00+00:00
+        2005-10-27 12:35:20+00:00
+        2000-01-01 14:00:00+00:00
+        2000-01-01 09:00:00-05:00
+        2000-01-01 09:00:00-05:00
+        2000-01-01 09:00:00+00:00
+        2006-03-19 06:35:01+00:00
+        2016-08-18 15:51:02+00:00
+        2016-08-18 15:51:02+00:00
+    """
+    if timestamp is None:
+        return None
+
+    use_delorean = True or six.PY2
+    if use_delorean:
+        import delorean
+        ## customize delorean string method
+        #def __str__(self):
+        #    return str(self.datetime)
+        #    #return str(self.datetime) + ' ' + str(self.timezone)
+        #delorean.Delorean.__str__ = __str__
+        ## method types must be injected into the class
+        ##ut.inject_func_as_method(dn, __str__, '__repr__', override=True)
+
+    if not isinstance(timestamp, six.string_types):
+        raise NotImplementedError('Unknown format: timestamp=%r' % (timestamp,))
+
+    # Normal format, or non-standard year first data
+    if timestamp_format is None:
+        # dont warn because we will take care of utc
+        timefmt = determine_timestamp_format(timestamp, warn=False)
+    else:
+        timefmt = timestamp_format
+    if timefmt is None or not isinstance(timefmt, six.string_types):
+        raise AssertionError('unknown timestamp_format=%r' % (timestamp_format,))
+
+    # Fixup timestamp
+    utc_offset = None
+    if len(timestamp) == 20 and '\x00' in timestamp:
+        timestamp_ = timestamp.replace('\x00', ' ').strip(';').strip()
+    elif use_delorean and len(timestamp) > 19:
+        timestamp_ = timestamp[:19].strip(';').strip()
+        utc_offset = timestamp[19:]
+    else:
+        timestamp_ = timestamp
+
+    dt_ = datetime.datetime.strptime(timestamp_, timefmt)
+    if use_delorean:
+        #if utc and utc_offset is not None:
+        if utc:
+            dn_ = delorean.Delorean(dt_, 'UTC')
+        else:
+            dn_ = delorean.Delorean(dt_, time.tzname[0])
+    else:
+        dn_ = dt_
+
+    if utc_offset is not None and utc:
+        if use_delorean:
+            # Python 2.7 does not account for timezones
+            if ':' in utc_offset:
+                sign = {' ': +1, '+': +1, '-': -1}[utc_offset[0]]
+                hours, seconds = utc_offset[1:].split(':')
+                delta_ = datetime.timedelta(hours=int(hours), seconds=int(seconds))
+                delta = sign * delta_
+            else:
+                import pytz
+                tzname = utc_offset.strip()
+                delta = pytz.timezone(tzname).utcoffset(dt_)
+            # Move back to utc
+            dn = dn_ - delta
+        else:
+            raise AssertionError('python3 should take care of timezone')
+    else:
+        dn = dn_
+
+    if use_delorean:
+        if not utc:
+            dn.shift(time.tzname[0])
+        return dn.datetime
+    #return dn
+
+
 def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
     r"""
     converts a datetime string to posixtime (unixtime)
+    Use parse timestamp instead
 
     Args:
         datetime_str     (str):
@@ -334,6 +467,18 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
             return invalid_value
     elif datetime_str is None:
         return None
+
+    # TODO: use parse_timestamp to reduce duplicate code
+    #try:
+    #    dt = parse_timestamp(datetime_str)
+    #except TypeError:
+    #    #if datetime_str is None:
+    #        #return -1
+    #    return -1
+    #except ValueError as ex:
+    #    if strict is None:
+    #        ...
+
     if not isinstance(datetime_str, six.string_types):
         raise NotImplementedError('Unknown format: datetime_str=%r' % (datetime_str,))
     # Normal format, or non-standard year first data

@@ -440,11 +440,19 @@ def decorate_postinject(func, classkey=None, skipmain=False):
 
 
 def get_method_func(method):
-    return method.im_func if six.PY2 else method.__func__
+    try:
+        return method.im_func if six.PY2 else method.__func__
+    except AttributeError:
+        # check if this is a method-wrapper type
+        if isinstance(method, type(all.__call__)):
+            # in which case there is no underlying function
+            return None
+        raise
 
 
 def inject_func_as_method(self, func, method_name=None, class_=None,
-                          allow_override=False, allow_main=False, verbose=True):
+                          allow_override=False, allow_main=False,
+                          verbose=True, override=None):
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
@@ -460,6 +468,9 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
     References:
         http://stackoverflow.com/questions/1015307/python-bind-an-unbound-method
     """
+    if override is not None:
+        # TODO depcirate allow_override
+        allow_override = override
     if method_name is None:
         method_name = get_funcname(func)
     old_method = getattr(self, method_name, None)
@@ -471,7 +482,7 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
     if old_method is not None:
         old_im_func = get_method_func(old_method)
         new_im_func = get_method_func(new_method)
-        if not allow_main and (
+        if not allow_main and old_im_func is not None and (
                 get_funcglobals(old_im_func)['__name__'] != '__main__' and
                 get_funcglobals(new_im_func)['__name__'] == '__main__'):
             if True or VERBOSE_CLASS:

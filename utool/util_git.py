@@ -251,6 +251,7 @@ class Repo(util_dev.NiceRepr):
             url = url.replace('github.com:/', 'github.com:')
             remote_info = {}
             url_parts = re.split('[@/:]', url)
+            # TODO: parse what format the url is in, ssh/http/https
             idx = util_list.listfind(url_parts, 'github.com')
             remote_info['name'] = remote.name
             remote_info['url'] = url

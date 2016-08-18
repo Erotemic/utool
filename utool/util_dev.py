@@ -2738,7 +2738,11 @@ class ColumnLists(NiceRepr):
         return self._key_to_list.values()
 
     def __delitem__(self, key):
-        del self._key_to_list[key]
+        if isinstance(key, list):
+            import utool as ut
+            ut.delete_dict_keys(self._key_to_list, key)
+        else:
+            del self._key_to_list[key]
 
     def __getitem__(self, key):
         return self._key_to_list[key]
@@ -2752,7 +2756,15 @@ class ColumnLists(NiceRepr):
     def asdict(self):
         return self._key_to_list
 
+    def ascsv(self):
+        import utool as ut
+        column_lbls = list(self.keys())
+        column_list = ut.take(self._key_to_list, column_lbls)
+        return ut.util_csv.make_csv_table(column_list, column_lbls)
+
     def asdataframe(self):
+        #import pandas as pd
+        #pd.set_option("display.width", 1000)
         import pandas as pd
         df = pd.DataFrame(self.asdict())
         return df
@@ -2781,6 +2793,8 @@ class ColumnLists(NiceRepr):
 
     def group_indicies(self, labels):
         import utool as ut
+        if isinstance(labels, six.string_types):
+            labels = self[labels]
         unique_labels, groupxs = ut.group_indices(labels)
         return unique_labels, groupxs
 
@@ -2793,6 +2807,8 @@ class ColumnLists(NiceRepr):
 
     def group(self, labels):
         """ group as list """
+        if isinstance(labels, six.string_types):
+            labels = self[labels]
         unique_labels, groupxs = self.group_indicies(labels)
         groups = [self.take(idxs) for idxs in groupxs]
         return unique_labels, groups

@@ -1947,7 +1947,7 @@ def edit_distance(string1, string2):
     try:
         import Levenshtein
     except ImportError as ex:
-        ut.printex(ex, 'pip install Levenshtein')
+        ut.printex(ex, 'pip install python-Levenshtein')
         raise
     #np.vectorize(Levenshtein.distance, [np.int])
     #vec_lev = np.frompyfunc(Levenshtein.distance, 2, 1)

@@ -381,6 +381,15 @@ def url_read(url, verbose=True):
     return data
 
 
+def url_read_text(url, verbose=True):
+    r"""
+    Directly reads text data from url
+    """
+    data = url_read(url, verbose)
+    text = data.decode('utf8')
+    return text
+
+
 def experiment_download_multiple_urls(url_list):
     r"""
     References:

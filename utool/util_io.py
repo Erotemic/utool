@@ -121,6 +121,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
         if aslines:
             file_.writelines(to_write)
         else:
+            # Ensure python2 writes in bytes
             if six.PY2 and isinstance(to_write, unicode):
                 to_write = to_write.encode('utf8')
             try:
@@ -152,6 +153,12 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='r
 
     Returns:
         str: text from fpath (this is unicode)
+
+    Ignore:
+        x = b'''/whaleshark_003_fors\xc3\xb8g.wmv" />\r\n'''
+        ut.writeto('foo.txt', x)
+        y = ut.readfrom('foo.txt')
+        y.encode('utf8') == x
     """
     if n is None:
         n = __READ_TAIL_N__
@@ -165,6 +172,7 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='r
             if aslines:
                 #text = file_.readlines()
                 if six.PY2:
+                    # python2 writes in bytes, so read as bytes then convert to utf8
                     text = [line.decode('utf8', errors=errors) for line in file_.readlines()]
                 else:
                     text = [line.decode('utf8', errors=errors) for line in file_.readlines()]
