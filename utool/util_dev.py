@@ -2684,7 +2684,7 @@ class ColumnLists(NiceRepr):
         >>> print(self)
         >>> print(newself)
     """
-    def __init__(self, key_to_list={}):
+    def __init__(self, key_to_list={}, _meta=None):
         import utool as ut
         self._key_to_list = key_to_list
         len_list = [len(vals) for vals in self._key_to_list.values()]
@@ -2692,6 +2692,7 @@ class ColumnLists(NiceRepr):
             self._idxs = []
         else:
             self._idxs = list(range(len_list[0]))
+        self._meta = {} if _meta is None else _meta
         assert ut.allsame(len_list)
 
     @classmethod
@@ -2700,7 +2701,11 @@ class ColumnLists(NiceRepr):
         dict_list = [c._key_to_list for c in list_]
         stacked_dict = ut.dict_stack2(dict_list)
         key_to_list = ut.map_dict_vals(ut.flatten, stacked_dict)
-        self = cls(key_to_list)
+        if len(list_) > 0:
+            meta = list_[0]._meta.copy()
+        else:
+            meta = None
+        self = cls(key_to_list, meta)
         return self
 
     def __add__(self, other):
@@ -2711,11 +2716,11 @@ class ColumnLists(NiceRepr):
             return other.copy()
         key_to_list = ut.dict_union_combine(self._key_to_list,
                                             other._key_to_list)
-        new = self.__class__(key_to_list)
+        new = self.__class__(key_to_list, self._meta.copy())
         return new
 
     def copy(self):
-        return self.__class__(self._key_to_list.copy())
+        return self.__class__(self._key_to_list.copy(), self._meta.copy())
 
     @property
     def shape(self):
@@ -2756,12 +2761,6 @@ class ColumnLists(NiceRepr):
     def asdict(self):
         return self._key_to_list
 
-    def ascsv(self):
-        import utool as ut
-        column_lbls = list(self.keys())
-        column_list = ut.take(self._key_to_list, column_lbls)
-        return ut.util_csv.make_csv_table(column_list, column_lbls)
-
     def asdataframe(self):
         #import pandas as pd
         #pd.set_option("display.width", 1000)
@@ -2769,16 +2768,75 @@ class ColumnLists(NiceRepr):
         df = pd.DataFrame(self.asdict())
         return df
 
+    def aspandas(self):
+        return self.asdataframe()
+
+    def to_csv(self, **kwargs):
+        import utool as ut
+        column_lbls = list(self.keys())
+        column_list = ut.take(self._key_to_list, column_lbls)
+        kwargs['standardize'] = kwargs.get('standardize', True)
+        csv_text = ut.util_csv.make_csv_table(column_list, column_lbls, **kwargs)
+        #csv_text = ut.make_standard_csv(column_list, column_lbls)
+        return csv_text.strip('\n')
+
+    def print(self, ignore=None):
+        self_ = self
+        if ignore is None:
+            ignore = self._meta.get('ignore', [])
+        if ignore:
+            self_ = self_.copy()
+            del self_[ignore]
+
+        csv_text = self_.to_csv()
+        lines = csv_text.split('\n')
+        max_lines_start = 10
+        max_lines_end = 10
+        max_lines = max_lines_start + max_lines_end + 3
+        if len(csv_text) > 100000 or len(lines) > max_lines:
+            reduced_text = '\n'.join(
+                lines[:max_lines_start] + ['...'] +
+                lines[-max_lines_end:]
+            )
+            print(self_)
+            print(reduced_text)
+        else:
+            print(self_)
+            print(csv_text)
+
+    def rrr(self):
+        import utool as ut
+        ut.reload_class(self)
+
+    def reorder_columns(self, keys):
+        import utool as ut
+        self._key_to_list = ut.order_dict_by(self._key_to_list, keys)
+
+    def take_column(self, keys, *extra_keys):
+        """ Takes a subset of columns """
+        import utool as ut
+        keys = ut.ensure_iterable(keys) + list(extra_keys)
+        key_to_list = ut.dict_subset(self._key_to_list, keys)
+        newself = self.__class__(key_to_list, self._meta.copy())
+        return newself
+
     def take(self, idxs):
+        """ Takes a subset of rows """
         import utool as ut
         if False:
-            key_to_list = {key: ut.take(val, idxs)
-                           for key, val in six.iteritems(self._key_to_list)}
+            key_to_list = ut.odict([
+                (key, ut.take(val, idxs))
+                for key, val in six.iteritems(self._key_to_list)
+            ])
         else:
             import numpy as np
-            key_to_list = {key: ut.take(val, idxs) if not isinstance(val, np.ndarray) else val.take(idxs, axis=0)
-                           for key, val in six.iteritems(self._key_to_list)}
-        newself = self.__class__(key_to_list)
+            key_to_list = ut.odict([
+                (key, ut.take(val, idxs))
+                if not isinstance(val, np.ndarray)
+                else val.take(idxs, axis=0)
+                for key, val in six.iteritems(self._key_to_list)
+            ])
+        newself = self.__class__(key_to_list, self._meta.copy())
         return newself
 
     def compress(self,  flags):
@@ -2807,8 +2865,6 @@ class ColumnLists(NiceRepr):
 
     def group(self, labels):
         """ group as list """
-        if isinstance(labels, six.string_types):
-            labels = self[labels]
         unique_labels, groupxs = self.group_indicies(labels)
         groups = [self.take(idxs) for idxs in groupxs]
         return unique_labels, groups
@@ -2817,6 +2873,90 @@ class ColumnLists(NiceRepr):
         val_to_idx = ut.make_index_lookup(self[key])
         idx_list = ut.take(val_to_idx, vals)
         return self.take(idx_list)
+
+    def get_singles(self, key):
+        groups = self.group(self[key])[1]
+        single_groups = [g for g in groups if len(g) == 1]
+        singles = self.__class__.flatten(single_groups)
+        return singles
+
+    def get_multis(self, key):
+        groups = self.group(self[key])[1]
+        multi_groups  = [g for g in groups if len(g) > 1]
+        multis = self.__class__.flatten(multi_groups)
+        return multis
+
+    def map_column(self, keys, func):
+        import utool as ut
+        for key in ut.ensure_iterable(keys):
+            self[key] = [func(v) for v in self[key]]
+
+    def merge_rows(self, key):
+        """
+        Uses key as a unique index an merges all duplicates rows
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from utool.util_dev import *  # NOQA
+            >>> import utool as ut
+            >>> key_to_list = {
+            >>>     'uuid': [1, 1, 2, 3, 4, 2, 1],
+            >>>     'a':    [1, 2, 3, 4, 5, 6, 7],
+            >>>     'b':    [[1], [2], [3], [4], [5], [6], [7]],
+            >>>     'c':    [[1], [1], [2], [3], [4], [2], [1]],
+            >>> }
+            >>> self = ColumnLists(key_to_list)
+            >>> key = 'uuid'
+            >>> newself = self.merge_rows('uuid')
+            >>> print(newself.to_csv())
+            #             a,            c,            b,         uuid
+                          4,          [3],          [4],            3
+                          5,          [4],          [5],            4
+                "[1, 2, 7]",  "[1, 1, 1]",  "[1, 2, 7]",  "[1, 1, 1]"
+                   "[3, 6]",     "[2, 2]",     "[3, 6]",     "[2, 2]"
+
+        """
+        import utool as ut
+        unique_labels, groupxs = self.group_indicies(key)
+        single_xs = [xs for xs in groupxs if len(xs) == 1]
+        multi_xs = [xs for xs in groupxs if len(xs) > 1]
+        singles = self.take(ut.flatten(single_xs))
+        multis = [self.take(idxs) for idxs in multi_xs]
+
+        merged_groups = []
+        for group in multis:
+            newgroup = {}
+            for key_ in group.keys():
+                val = group[key_]
+                if key_ == key:
+                    # key_ was garuenteed unique
+                    val_ = val[0]
+                elif hasattr(val[0].__class__, 'union'):
+                    # HACK
+                    # Sets are unioned
+                    val_ = ut.oset.union(*val)
+                elif isinstance(val[0], (ut.oset,)):
+                    # Sets are unioned
+                    val_ = ut.oset.union(*val)
+                elif isinstance(val[0], (set)):
+                    # Sets are unioned
+                    val_ = set.union(*val)
+                elif isinstance(val[0], (tuple, list)):
+                    # Lists are merged together
+                    val_ = ut.flatten(val)
+                    #val_ = ut.unique(ut.flatten(val))
+                else:
+                    if ut.allsame(val):
+                        # Merge items that are the same
+                        val_ = val[0]
+                    else:
+                        # Values become lists if they are different
+                        val_ = val
+                newgroup[key_] = [val_]
+            merged_groups.append(ut.ColumnLists(newgroup))
+        merged_multi = self.__class__.flatten(merged_groups)
+        merged = singles + merged_multi
+        return merged
 
 
 if __name__ == '__main__':

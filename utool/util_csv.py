@@ -162,8 +162,8 @@ def make_standard_csv(column_list, column_lbls=None):
 
 def make_csv_table(column_list=[], column_lbls=None, header='',
                    column_type=None, row_lbls=None, transpose=False,
-                   precision=2, use_lbl_width=True, comma_repl='<comma>',
-                   raw=False, new=False):
+                   precision=2, use_lbl_width=True, comma_repl='<com>',
+                   raw=False, new=False, standardize=False):
     """
     Creates a csv table with aligned columns
 
@@ -237,7 +237,8 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         csv_rows.append(header)
     elif not raw:
         csv_rows.append(header)
-        csv_rows.append('# num_rows=%r' % num_data)
+        if not standardize:
+            csv_rows.append('# num_rows=%r' % num_data)
 
     column_maxlen = []
     column_str_list = []
@@ -261,43 +262,64 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             raise
         return ('%d') % int(c)
 
+    import uuid
+    textable_types = [uuid.UUID, six.text_type]
+
     try:
-        # Loop over every column
-        for col, lbl, coltype in zip(column_list, column_lbls, column_type):
-            # Loop over every row in the column (using list comprehension)
-            if coltype is list or util_type.is_list(coltype):
-                #print('list')
-                #col_str = [six.text_type(c).replace(',', comma_repl).replace('.', '<dot>') for c in (col)]
-                col_str = [six.text_type(c).replace(',', ' ').replace('.', '<dot>') for c in col]
-            elif (coltype is float or
-                  util_type.is_float(coltype) or
-                  coltype == np.float32 or
-                  util_type.is_valid_floattype(coltype)):
-                precision_fmtstr = '%.' + six.text_type(precision) + 'f'
-                col_str = ['None' if r is None else precision_fmtstr % float(r) for r in col]
-            elif coltype is int or util_type.is_int(coltype) or coltype == np.int64:
-                col_str = [_toint(c) for c in (col)]
-            elif coltype is six.text_type or coltype is six.text_type or  util_type.is_str(coltype):
-                if coltype is six.text_type:
+        if standardize:
+            def csv_format(r):
+                text = ut.repr2(r, precision=precision)
+                #text = six.text_type(r)
+                # Check if needs escape
+                escape_chars = ['"', ' ', ',']
+                if any([c in text for c in escape_chars]):
+                    # escape quotes with quotes
+                    text = text.replace('"', '""')
+                    # encapsulate with quotes
+                    text = '"' + text + '"'
+                return text
+            for col, lbl, coltype in zip(column_list, column_lbls, column_type):
+                col_str = [csv_format(r) for r in col]
+                column_str_list.append(col_str)
+                pass
+        else:
+            # Loop over every column
+            for col, lbl, coltype in zip(column_list, column_lbls, column_type):
+                # Loop over every row in the column (using list comprehension)
+                if coltype is list or util_type.is_list(coltype):
+                    col_str = [six.text_type(c).replace(',', ' ').replace('.', '<dot>')
+                               for c in col]
+                elif (coltype is float or
+                      util_type.is_float(coltype) or
+                      coltype == np.float32 or
+                      util_type.is_valid_floattype(coltype)):
+                    precision_fmtstr = '%.' + six.text_type(precision) + 'f'
+                    col_str = ['None' if r is None else precision_fmtstr % float(r)
+                               for r in col]
+                    #col_ = [r if r is None else float(r) for r in col]
+                    #col_str = [ut.repr2(r, precision=2) for r in col_]
+                elif coltype is int or util_type.is_int(coltype) or coltype == np.int64:
+                    col_str = [_toint(c) for c in (col)]
+                elif coltype in textable_types or util_type.is_str(coltype):
                     col_str = [six.text_type(c).replace(',', comma_repl) for c in col]
                 else:
-                    col_str = [six.text_type(c).replace(',', comma_repl) for c in col]
-            else:
-                print('[csv] is_unknown coltype=%r' % (coltype,))
-                try:
-                    col_str = [six.text_type(c) for c in (col)]
-                except UnicodeDecodeError:
+                    print('[csv] is_unknown coltype=%r' % (coltype,))
                     try:
-                        col_str = [ut.ensure_unicode(c) for c in (col)]
-                    except Exception:
-                        col_str = [repr(c) for c in (col)]
+                        col_str = [six.text_type(c) for c in (col)]
+                    except UnicodeDecodeError:
+                        try:
+                            col_str = [ut.ensure_unicode(c) for c in (col)]
+                        except Exception:
+                            col_str = [repr(c) for c in (col)]
+                column_str_list.append(col_str)
+
+        for col_str, lbl in zip(column_str_list, column_lbls):
             col_lens = [len(s) for s in (col_str)]
             max_len  = max(col_lens)
             if use_lbl_width:
                 # The column label counts towards the column width
                 max_len  = max(len(lbl), max_len)
             column_maxlen.append(max_len)
-            column_str_list.append(col_str)
     except Exception as ex:
         #ut.embed()
         ut.printex(ex, keys=['col', 'lbl', 'coltype'])

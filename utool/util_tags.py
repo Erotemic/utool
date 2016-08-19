@@ -7,7 +7,9 @@ from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__, '[util_tags]')
 
 
-def clean_tags(tags_list, direct_map=None, regex_map=None, regex_aug=None):
+def modify_tags(tags_list, direct_map=None, regex_map=None, regex_aug=None,
+                delete_unmapped=False, return_unmapped=False,
+                return_map=False):
     import utool as ut
     tag_vocab = ut.unique(ut.flatten(tags_list))
     alias_map = ut.odict()
@@ -16,13 +18,48 @@ def clean_tags(tags_list, direct_map=None, regex_map=None, regex_aug=None):
     if direct_map is not None:
         alias_map.update(ut.odict(direct_map))
 
-    new_tags_list = ut.alias_tags(tags_list, alias_map)
+    new_tags_list = tags_list
+    new_tags_list = ut.alias_tags(new_tags_list, alias_map)
 
     if regex_aug is not None:
         alias_aug = ut.build_alias_map(regex_aug, tag_vocab)
         aug_tags_list = ut.alias_tags(new_tags_list, alias_aug)
         new_tags_list = [ut.unique(t1 + t2) for t1, t2 in zip(new_tags_list, aug_tags_list)]
-    return new_tags_list
+
+    unmapped = list(set(tag_vocab) - set(alias_map.keys()))
+    if delete_unmapped:
+        new_tags_list = [ut.setdiff(tags, unmapped) for tags in new_tags_list]
+
+    toreturn = None
+    if return_map:
+        toreturn = (alias_map,)
+
+    if return_unmapped:
+        toreturn = toreturn + (unmapped,)
+
+    if toreturn is None:
+        toreturn = new_tags_list
+    else:
+        toreturn = (new_tags_list,) + toreturn
+    return toreturn
+
+
+def tag_coocurrence(tags_list):
+    import utool as ut
+    co_occur_list = []
+    for tags in tags_list:
+        for combo in ut.combinations(tags, 2):
+            key = tuple(sorted(combo))
+            co_occur_list.append(key)
+    co_occur = ut.dict_hist(co_occur_list, ordered=True)
+    #        co_occur[key] += 1
+    #co_occur = ut.odict(co_occur)
+    return co_occur
+
+
+def tag_hist(tags_list):
+    import utool as ut
+    return ut.dict_hist(ut.flatten(tags_list), ordered=True)
 
 
 def build_alias_map(regex_map, tag_vocab):

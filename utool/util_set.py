@@ -4,7 +4,7 @@ from six.moves import zip, map, range  # NOQA
 import collections
 import weakref
 from utool import util_inject
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[set]')
+print, rrr, profile = util_inject.inject2(__name__, '[set]')
 
 
 class _Link(object):
@@ -93,6 +93,15 @@ class OrderedSet(collections.MutableSet):
         if isinstance(other, OrderedSet):
             return len(self) == len(other) and list(self) == list(other)
         return not self.isdisjoint(other)
+
+    @classmethod
+    def union(cls, *sets):
+        """
+        >>> from utool.util_set import *  # NOQA
+        """
+        import utool as ut
+        lists_ = ut.flatten([list(s) for s in sets])
+        return cls(lists_)
 
 
 # alias
