@@ -194,7 +194,7 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='r
             raise
 
 
-def read_lines_from(fpath, num_lines=None, verbose=None, n=3):
+def read_lines_from(fpath, num_lines=None, verbose=None, n=None):
     with open(fpath, 'r') as file_:
         line_list = []
         #for lineno, line in enumerate(file_.readline()):
@@ -224,16 +224,20 @@ def load_json(fpath):
     return data
 
 
-def save_cPkl(fpath, data, verbose=None, n=2):
+def save_cPkl(fpath, data, verbose=None, n=None):
     """ Saves data to a pickled file with optional verbosity """
     if verbose or (verbose is None and __PRINT_WRITES__) or __FORCE_PRINT_WRITES__:
         print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath, n=n),))
     with open(fpath, 'wb') as file_:
-        pickle.dump(data, file_, protocol=2)  # Use protocol 2 to support python2 and 3
+        # Use protocol 2 to support python2 and 3
+        pickle.dump(data, file_, protocol=2)
 
 
-def load_cPkl(fpath, verbose=None, n=2):
-    """ Loads a pickled file with optional verbosity """
+def load_cPkl(fpath, verbose=None, n=None):
+    """
+    Loads a pickled file with optional verbosity.
+    Aims for compatibility between python2 and python3.
+    """
     if verbose or (verbose is None and __PRINT_READS__) or __FORCE_PRINT_READS__:
         print('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath, n=n),))
     try:
@@ -249,7 +253,9 @@ def load_cPkl(fpath, verbose=None, n=2):
     except ValueError as ex:
         if six.PY2:
             if ex.message == 'unsupported pickle protocol: 4':
-                raise ValueError('unsupported Python3 pickle protocol 4 in Python2 for fpath=%r' % (fpath,))
+                raise ValueError(
+                    'unsupported Python3 pickle protocol 4 '
+                    'in Python2 for fpath=%r' % (fpath,))
         else:
             raise
     return data

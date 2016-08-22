@@ -1329,6 +1329,22 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
 
 get_statdict = get_stats
 
+
+def set_overlaps(set1, set2, s1='s1', s2='s2'):
+    set1 = set(set1)
+    set2 = set(set2)
+    overlaps = ut.odict([
+        (s1, len(set1)),
+        (s2, len(set2)),
+        ('isect', len(set1.intersection(set2))),
+        ('union', len(set1.union(set2))),
+        ('%s - %s' % (s1, s2), len(set1.difference(set2))),
+        ('%s - %s' % (s2, s1), len(set2.difference(set1))),
+    ])
+    return overlaps
+
+get_overlaps = set_overlaps
+
 # --- Info Strings ---
 
 
@@ -2957,6 +2973,26 @@ class ColumnLists(NiceRepr):
         merged_multi = self.__class__.flatten(merged_groups)
         merged = singles + merged_multi
         return merged
+
+
+# def fix_autoreload_classes():
+#     """
+#     http://stackoverflow.com/questions/15605925/last-exception-python-prompt
+#     http://stackoverflow.com/questions/31363311/any-way-to-manually-fix-operation-of-super-after-ipython-reload-avoiding-ty
+#     """
+#     tb = sys.last_traceback
+#     val = sys.last_value
+#     next_tb = tb
+#     while next_tb is not None:
+#         this_tb = next_tb
+#         next_tb = this_tb.tb_next
+#     frame = this_tb.tb_frame
+#     code = frame.f_code
+#     fpath = code.co_filename
+#     modname = frame.f_globals['__name__']
+#     module = sys.modules[modname]
+#     # ... not sure what to do now
+#     # need to change local variables. seems not possible
 
 
 if __name__ == '__main__':
