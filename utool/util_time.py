@@ -29,10 +29,24 @@ else:
 
 # --- Timing ---
 def tic(msg=None):
+    """
+    similar to matlab tic
+
+    SeeAlso:
+        ut.toc
+    """
     return (msg, default_timer())
 
 
-def toc(tt, return_msg=False, write_msg=True):
+def toc(tt, return_msg=False, write_msg=True, verbose=None):
+    """
+    similar to matlab toc
+
+    SeeAlso:
+        ut.tic
+    """
+    if verbose is not None:
+        write_msg = verbose
     (msg, start_time) = tt
     ellapsed = (default_timer() - start_time)
     if (not return_msg) and write_msg and msg is not None:
@@ -41,10 +55,6 @@ def toc(tt, return_msg=False, write_msg=True):
         return msg
     else:
         return ellapsed
-
-
-def get_printable_timestamp(isutc=False):
-    return get_timestamp('printable', isutc=isutc)
 
 
 def get_timestamp(format_='iso', use_second=False, delta_seconds=None,

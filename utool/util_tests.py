@@ -290,7 +290,7 @@ def doctest_module_list(module_list):
     seen_ = set([])
     with open(failed_doctest_fname, 'a') as file_:
         file_.write('\n-------\n\n')
-        file_.write(ut.get_printable_timestamp() + '\n')
+        file_.write(ut.get_timestamp(format='printable') + '\n')
         file_.write('logfile (only present if logging) = %r\n' %
                     (ut.util_logging.get_current_log_fpath(),))
         testkw = dict(allexamples=True)
