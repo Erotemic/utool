@@ -17,6 +17,7 @@ from utool import util_inject
 from utool import util_dict
 from utool import util_arg
 from utool import util_const
+from utool import util_decor
 try:
     import numpy as np
     HAVE_NUMPY = True
@@ -2806,8 +2807,8 @@ class ColumnLists(NiceRepr):
 
         csv_text = self_.to_csv()
         lines = csv_text.split('\n')
-        max_lines_start = 10
-        max_lines_end = 10
+        max_lines_start = self._meta.get('max_lines_start', 10)
+        max_lines_end = self._meta.get('max_lines_end', 10)
         max_lines = max_lines_start + max_lines_end + 3
         if len(csv_text) > 100000 or len(lines) > max_lines:
             reduced_text = '\n'.join(
@@ -2891,21 +2892,34 @@ class ColumnLists(NiceRepr):
         return self.take(idx_list)
 
     def get_singles(self, key):
-        groups = self.group(self[key])[1]
-        single_groups = [g for g in groups if len(g) == 1]
-        singles = self.__class__.flatten(single_groups)
+        import utool as ut
+        unique_labels, groupxs = self.group_indicies(key)
+        single_xs = [xs for xs in groupxs if len(xs) == 1]
+        singles = self.take(ut.flatten(single_xs))
+        #groups = self.group(self[key])[1]
+        #single_groups = [g for g in groups if len(g) == 1]
+        #singles = self.__class__.flatten(single_groups)
         return singles
 
     def get_multis(self, key):
-        groups = self.group(self[key])[1]
-        multi_groups  = [g for g in groups if len(g) > 1]
-        multis = self.__class__.flatten(multi_groups)
+        import utool as ut
+        unique_labels, groupxs = self.group_indicies(key)
+        multi_xs = [xs for xs in groupxs if len(xs) > 1]
+        multis = self.take(ut.flatten(multi_xs))
+        #groups = self.group(self[key])[1]
+        #multi_groups  = [g for g in groups if len(g) > 1]
+        #multis = self.__class__.flatten(multi_groups)
         return multis
 
-    def map_column(self, keys, func):
+    def cast_column(self, keys, func):
+        """ like map column but applies values inplace """
         import utool as ut
         for key in ut.ensure_iterable(keys):
             self[key] = [func(v) for v in self[key]]
+
+    @util_decor.accepts_scalar_input2()
+    def map_column(self, keys, func):
+        return [[func(v) for v in self[key]] for key in keys]
 
     def merge_rows(self, key):
         """

@@ -1368,12 +1368,6 @@ def obj_str(obj_, **kwargs):
         return repr(obj_)
 
 
-def repr3(obj_, **kwargs):
-    _kw = dict(nl=True)
-    _kw.update(**kwargs)
-    return repr2(obj_, **_kw)
-
-
 def trunc_repr(obj, maxlen=50):
     return truncate_str(repr2(obj), maxlen, truncmsg='~//~')
 
@@ -1400,6 +1394,24 @@ def repr2(obj_, **kwargs):
             return numpy_str(obj_, **kwitems)
         else:
             return reprfunc(obj_, precision=kwargs.get('precision', None))
+
+
+def repr3(obj_, **kwargs):
+    _kw = dict(nl=True)
+    _kw.update(**kwargs)
+    return repr2(obj_, **_kw)
+
+
+def repr4(obj_, **kwargs):
+    _kw = dict(nl=1, precision=2)
+    _kw.update(**kwargs)
+    return repr2(obj_, **_kw)
+
+
+def repr5(obj_, **kwargs):
+    _kw = dict(nl=2, precision=2)
+    _kw.update(**kwargs)
+    return repr2(obj_, **_kw)
 
 
 def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,

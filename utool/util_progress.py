@@ -660,7 +660,6 @@ class ProgressIter(object):
         if self.prog_hook is not None:
             self.prog_hook(self.count, nTotal)
 
-
         # TODO: on windows is time.clock better?
         # http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
         start_time    = default_timer()
@@ -877,10 +876,12 @@ progiter = ProgressIter
 
 
 class ProgIter(ProgressIter):
-    # Thin wrapper with better arg positions
-    def __init__(self, iterable, lbl='Prog', adjust=True, freq=1, **kwargs):
+    """ Thin wrapper with better arg positions """
+    def __init__(self, iterable, lbl='Prog', adjust=True, freq=1, bs=True,
+                 **kwargs):
         import utool as ut
-        super(ut.ProgIter, self).__init__(iterable, lbl=lbl, adjust=adjust, freq=freq, **kwargs)
+        super(ut.ProgIter, self).__init__(iterable, lbl=lbl, adjust=adjust,
+                                          freq=freq, bs=bs, **kwargs)
 
 
 def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):

@@ -31,6 +31,18 @@ def assert_raises(ex_type, func, *args, **kwargs):
         return True
 
 
+def assert_unique(item_list, ignore=[], name='list', verbose=None):
+    import utool as ut
+    dups = ut.find_duplicate_items(item_list)
+    ut.delete_dict_keys(dups, ignore)
+    if len(dups) > 0:
+        raise AssertionError(
+            'Found duplicate items in %s: %s' % (
+                name, ut.repr4(dups)))
+    if verbose:
+        print('No duplicates found in %s' % (name,))
+
+
 def assert_all_in(key_list, valid_list, msg=''):
     missing_keys = set(key_list).difference(set(valid_list))
     assert len(missing_keys) == 0, 'missing_keys = %r. %s' % (missing_keys, msg)
