@@ -958,7 +958,7 @@ class InteractiveIter(object):
     def prompt(iiter):
         import utool as ut
         def _or_phrase(list_):
-            return ut.conj_phrase(list(map(repr, map(str, list_))), 'or')
+            return ut.conj_phrase(ut.lmap(repr, map(str, list_)), 'or')
         msg_list = ['enter %s to %s' % (_or_phrase(tup[1]), tup[2])
                     for tup in iiter.action_tuples]
         msg = ut.indentjoin(msg_list, '\n | * ')
