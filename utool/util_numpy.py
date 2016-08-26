@@ -15,6 +15,15 @@ def tiled_range(range_, cols):
     #np.tile(np.arange(num_qf).reshape(num_qf, 1), (1, k_vsmany))
 
 
+def quantum_random():
+    """ returns a 32 bit unsigned integer quantum random number """
+    import quantumrandom
+    data16 = quantumrandom.uint16(array_length=2)
+    assert data16.flags['C_CONTIGUOUS']
+    data32 = data16.view(np.dtype('uint32'))[0]
+    return data32
+
+
 def ensure_rng(rng):
     if rng is None:
         rng = np.random

@@ -358,25 +358,32 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
 
 def delete(path, dryrun=False, recursive=True, verbose=VERBOSE,
            print_exists=True, ignore_errors=True, **kwargs):
-    """ Removes a file or directory """
+    """ Removes a file, directory, or symlink """
     if not QUIET:
         print('[util_path] Deleting path=%r' % path)
-    if not exists(path):
+    exists_flag = exists(path)
+    link_flag = islink(path)
+    if not exists_flag and not link_flag:
         if print_exists and not QUIET:
-            msg = ('..does not exist!')
-            print(msg)
-        return False
-    rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
-                  ignore_errors=ignore_errors, **kwargs)
-    if isdir(path):
-        flag = remove_files_in_dir(path, **rmargs)
-        flag = flag and remove_dirs(path, **rmargs)
-    elif isfile(path):
-        flag = remove_file(path, **rmargs)
+            print('..does not exist!')
+        flag = False
     else:
-        raise ValueError('Unknown type of path=%r' (path,))
-    if not QUIET:
-        print('[util_path] Finished deleting path=%r' % path)
+        rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
+                      ignore_errors=ignore_errors, **kwargs)
+        if islink(path):
+            os.unlink(path)
+            flag = True
+        elif isdir(path):
+            # First remove everything in the directory
+            flag = remove_files_in_dir(path, **rmargs)
+            # Then remove the directory itself
+            flag = flag and remove_dirs(path, **rmargs)
+        elif isfile(path):
+            flag = remove_file(path, **rmargs)
+        else:
+            raise ValueError('Unknown type of path=%r' % (path,))
+        if not QUIET:
+            print('[util_path] Finished deleting path=%r' % path)
     return flag
 
 
@@ -562,20 +569,34 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
     return does_exist
 
 
-def ensurepath(path_, verbose=VERYVERBOSE):
+def ensurepath(path_, verbose=None):
     """ DEPRICATE - alias - use ensuredir instead """
+    if verbose is None:
+        verbose = VERYVERBOSE
     return ensuredir(path_, verbose=verbose)
 
 
-def ensuredir(path_, verbose=VERYVERBOSE, info=False, mode=0o1777):
+def ensuredir(path_, verbose=None, info=False, mode=0o1777):
     r"""
     Ensures that directory will exist. creates new dir with sticky bits by
     default
+
+    Args:
+        path (str): dpath to ensure. Can also be a tuple to send to join
+        info (bool): if True prints extra information
+        mode (int): octal mode of directory (default 0o1777)
+
+    Returns:
+        str: path - the ensured directory
+
     """
+    if verbose is None:
+        verbose = VERYVERBOSE
+    if isinstance(path_, (list, tuple)):
+        path_ = join(*path_)
     if not checkpath(path_, verbose=verbose, info=info):
         if verbose:
             print('[util_path] mkdir(%r)' % path_)
-        #os.makedirs(path_)
         try:
             os.makedirs(normpath(path_), mode=mode)
         except OSError as ex:
@@ -584,7 +605,6 @@ def ensuredir(path_, verbose=VERYVERBOSE, info=False, mode=0o1777):
                              'is not a bad windows symlink.')
             raise
     return path_
-    #return True
 
 
 def touch(fpath, times=None, verbose=True):
@@ -2443,7 +2463,7 @@ def win_shortcut(source, link_name):
             raise ctypes.WinError()
 
 
-def symlink(path, link, noraise=False):
+def symlink(path, link, noraise=False, overwrite=False, verbose=True):
     """
     Attempt to create unix or windows symlink
     TODO: TEST / FIXME
@@ -2457,9 +2477,14 @@ def symlink(path, link, noraise=False):
     path = normpath(path)
     link = normpath(link)
     if os.path.islink(link):
-        print('[util_path] symlink %r exists' % (link))
-        return
-    print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
+        if verbose:
+            print('[util_path] symlink %r exists' % (link))
+        if overwrite:
+            delete(link)
+        else:
+            return
+    if verbose:
+        print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
     try:
         os_symlink = getattr(os, "symlink", None)
         if callable(os_symlink):
