@@ -24,7 +24,16 @@ if six.PY2:
         try:
             return getattr(func, 'func_name')
         except AttributeError:
-            if isinstance(func, functools.partial):
+            builtin_function_name_dict = {
+                len:    'len',
+                zip:    'zip',
+                range:  'range',
+                map:    'map',
+                type:   'type',
+            }
+            if func in builtin_function_name_dict:
+                return builtin_function_name_dict[func]
+            elif isinstance(func, functools.partial):
                 return get_funcname(func.func)
             elif isinstance(func, six.class_types):
                 return func.__name__

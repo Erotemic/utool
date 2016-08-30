@@ -1396,6 +1396,19 @@ def repr2(obj_, **kwargs):
             return reprfunc(obj_, precision=kwargs.get('precision', None))
 
 
+def repr2_json(obj_, **kwargs):
+    """ hack for json reprs """
+    import utool as ut
+    kwargs['trailing_comma'] = False
+    kwargs['hack_liststr'] = True
+    json_str = ut.repr2(obj_, **kwargs)
+    json_str = str(json_str.replace('\'', '"'))
+    json_str = json_str.replace('(', '[')
+    json_str = json_str.replace(')', ']')
+    json_str = json_str.replace('None', 'null')
+    return json_str
+
+
 def repr3(obj_, **kwargs):
     _kw = dict(nl=True)
     _kw.update(**kwargs)
@@ -1498,8 +1511,11 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         hack_liststr = True
 
     itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines_,
-                                     recursive, indent_, precision,
-                                     hack_liststr, explicit,
+                                     recursive=recursive,
+                                     indent_=indent_,
+                                     precision=precision,
+                                     explicit=explicit,
+                                     hack_liststr=hack_liststr,
                                      truncate=truncate_, truncatekw=truncatekw,
                                      key_order=key_order,
                                      key_order_metric=key_order_metric,
@@ -1514,6 +1530,9 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         leftbrace = ''
         rightbrace = ''
 
+    if not dictkw.get('trailing_comma', True):
+        itemstr_list[-1] = itemstr_list[-1].rstrip(',')
+
     if newlines:
         import utool as ut
         if nobraces:
@@ -1525,9 +1544,10 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
             if align:
                 retstr = ut.align(retstr, ':')
     else:
-        # hack away last comma
+        # hack away last trailing comma
         sequence_str = ' '.join(itemstr_list)
-        sequence_str = sequence_str.rstrip(',')
+        if dictkw.get('trailing_comma', True):
+            sequence_str = sequence_str.rstrip(',')
         retstr = leftbrace +  sequence_str + rightbrace
     # Is there a way to make truncate for dict_str compatible with list_str?
     return retstr
@@ -1608,6 +1628,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
                                     packed=packed_,
                                     label_list=label_list, **listkw)
     is_tuple = isinstance(list_, tuple)
+    is_one_tuple = (is_tuple and len(list_) <= 1)
     if nobraces:
         leftbrace, rightbrace = '', ''
     else:
@@ -1615,6 +1636,11 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
             leftbrace, rightbrace  = '(', ')'
         else:
             leftbrace, rightbrace  = '[', ']'
+
+    if not listkw.get('trailing_comma', True):
+        if not is_one_tuple:
+            if len(itemstr_list) > 0:
+                itemstr_list[-1] = itemstr_list[-1].rstrip(',')
 
     if newlines is not False and (newlines is True or newlines > 0):
         if nobraces or label_list is not None:
@@ -1634,8 +1660,11 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     else:
         sequence_str = ' '.join(itemstr_list)
         # hack away last comma except in 1-tuple case
-        if not (is_tuple and len(list_) <= 1):
-            sequence_str = sequence_str.rstrip(',')
+        is_one_tuple = (is_tuple and len(list_) <= 1)
+        if listkw.get('trailing_comma', True):
+            # Only do this if the first item did not happen
+            if not is_one_tuple:
+                sequence_str = sequence_str.rstrip(',')
         retstr  = (leftbrace + sequence_str +  rightbrace)
 
     # TODO: rectify with dict_truncate
@@ -1668,6 +1697,9 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         #print('hack_liststr = %r' % (hack_liststr,))
         new_indent = indent_ + '    '
         if isinstance(val, dict):
+            #print('val = %r' % (id(val),))
+            #print(type(val))
+            #print('val = %r' % (val.keys(),))
             return dict_str(val, strvals=strvals, sorted_=sorted_,
                             newlines=newlines, recursive=recursive,
                             indent_=new_indent, precision=precision,
@@ -1687,11 +1719,20 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
         if hack_liststr and isinstance(val, (list, tuple)):
             #print('**dictkw = %r' % (dictkw,))
             #print('newlines = %r' % (newlines,))
-            return list_str(val, newlines=newlines, precision=precision)
+            #print('LIST')
+            #print(val)
+            #print('hack_liststr = %r' % (hack_liststr,))
+            return list_str(val, newlines=newlines, precision=precision,
+                            hack_liststr=hack_liststr)
         elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
             return scalar_str(val, precision)
         else:
             # base case
+            #assert not isinstance(val, collections.OrderedDict), repr(val)
+            #print('BASIC')
+            #print('hack_liststr = %r' % (hack_liststr,))
+            #print(type(val))
+            #print(val)
             return valfunc(val)
 
     if sorted_ is None:
@@ -1719,13 +1760,13 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
 
     def make_item_str(key, val, indent_):
         if explicit:
-            repr_str = key + '='
+            key_str = key + '='
         else:
-            repr_str = reprfunc(key, precision=precision) + ': '
+            key_str = reprfunc(key, precision=precision) + ': '
         val_str = _valstr(val)
-        padded_indent = ' ' * min(len(indent_), len(repr_str))
+        padded_indent = ' ' * min(len(indent_), len(key_str))
         val_str = val_str.replace('\n', '\n' + padded_indent)
-        item_str = repr_str + val_str
+        item_str = key_str + val_str
         if with_comma:
             item_str += ','
         return item_str
@@ -1777,6 +1818,8 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
             common_kw.update(
                 dict(sorted_=listkws.get('sorted_', True and not isinstance(val, collections.OrderedDict)),
                      hack_liststr=listkws.get('hack_liststr', False)))
+            #print('val = %r' % (id(val),))
+            #print('val = %r' % (val.keys(),))
             return dict_str(val, **common_kw)
         if isinstance(val, (tuple, list)):
             common_kw.update(dict(label_list=sublabels, **listkws))
@@ -1791,6 +1834,8 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
         elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
             return scalar_str(val, precision)
         else:
+            #assert not isinstance(val, collections.OrderedDict), repr(val)
+            #print(hasattr(val, 'keys'))
             # base case
             return valfunc(val)
 
@@ -1960,10 +2005,10 @@ def get_callable_name(func):
     """ Works on must functionlike objects including str, which has no func_name
 
     Args:
-        func (?):
+        func (function):
 
     Returns:
-        ?:
+        str:
 
     CommandLine:
         python -m utool.util_str --exec-get_callable_name
@@ -1979,16 +2024,7 @@ def get_callable_name(func):
     try:
         return meta_util_six.get_funcname(func)
     except AttributeError:
-        builtin_function_name_dict = {
-            len:    'len',
-            zip:    'zip',
-            range:  'range',
-            map:    'map',
-            type:   'type',
-        }
-        if func in builtin_function_name_dict:
-            return builtin_function_name_dict[func]
-        elif isinstance(func, type):
+        if isinstance(func, type):
             return repr(func).replace('<type \'', '').replace('\'>', '')
         elif hasattr(func, '__name__'):
             return func.__name__

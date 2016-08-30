@@ -256,6 +256,21 @@ def inject_print_functions(module_name=None, module_prefix='[???]',
     return print_funcs
 
 
+def reload_module(module, verbose=True):
+    if not __RELOAD_OK__:
+        raise Exception('Reloading has been forced off')
+    try:
+        import imp
+        if verbose and not QUIET:
+            module_name = getattr(module, '__name__', '???')
+            builtins.print('RELOAD: module __name__=' + module_name)
+        imp.reload(module)
+    except Exception as ex:
+        print(ex)
+        print('Failed to reload %r' % (module,))
+        raise
+
+
 def inject_reload_function(module_name=None, module_prefix='[???]', module=None):
     """ Injects dynamic module reloading """
     module = _get_module(module_name, module, register=False)

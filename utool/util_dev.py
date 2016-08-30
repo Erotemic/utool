@@ -9,6 +9,7 @@ import gc
 import warnings
 import weakref
 import itertools
+import functools
 from collections import OrderedDict
 from six.moves import input, zip, range, map  # NOQA
 from utool import util_progress
@@ -3007,6 +3008,56 @@ class ColumnLists(NiceRepr):
 #     module = sys.modules[modname]
 #     # ... not sure what to do now
 #     # need to change local variables. seems not possible
+
+
+class NamedPartial(functools.partial, NiceRepr):
+    def __init__(self, func, *args, **kwargs):
+        import utool as ut
+        super(functools.partial, self).__init__(func, *args, **kwargs)
+        self.__name__ = ut.get_funcname(func)
+
+    def __nice__(self):
+        return '(' + self.__name__ + ')'
+
+
+def fix_super_reload_error(this_class, self):
+    """
+    #this_class = AbstractCategoricalModel  # NOQA
+    #self = model  # NOQA
+    """
+
+    if not isinstance(self, this_class):
+        #print('Fixing')
+        def find_parent_class(leaf_class, target_name):
+            target_class = None
+            from collections import deque
+            queue = deque()
+            queue.append(leaf_class)
+            seen_ = set([])
+            while len(queue) > 0:
+                related_class = queue.pop()
+                if related_class.__name__ != target_name:
+                    for base in related_class.__bases__:
+                        if base not in seen_:
+                            queue.append(base)
+                            seen_.add(base)
+                else:
+                    target_class = related_class
+                    break
+            return target_class
+        # Find new version of class
+        leaf_class = self.__class__
+        target_name = this_class.__name__
+        target_class = find_parent_class(leaf_class, target_name)
+
+        this_class_now = target_class
+        #print('id(this_class)     = %r' % (id(this_class),))
+        #print('id(this_class_now) = %r' % (id(this_class_now),))
+    else:
+        this_class_now = this_class
+    assert isinstance(self, this_class_now), (
+        'Failed to fix %r, %r, %r' % (self, this_class, this_class_now))
+    return this_class_now
 
 
 if __name__ == '__main__':
