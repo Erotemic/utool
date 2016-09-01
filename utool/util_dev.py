@@ -2922,7 +2922,7 @@ class ColumnLists(NiceRepr):
     def map_column(self, keys, func):
         return [[func(v) for v in self[key]] for key in keys]
 
-    def merge_rows(self, key):
+    def merge_rows(self, key, merge_scalars=True):
         """
         Uses key as a unique index an merges all duplicates rows
 
@@ -2981,8 +2981,14 @@ class ColumnLists(NiceRepr):
                         # Merge items that are the same
                         val_ = val[0]
                     else:
-                        # Values become lists if they are different
-                        val_ = val
+                        if merge_scalars:
+                            # If mergeing scalars is ok, then
+                            # Values become lists if they are different
+                            val_ = val
+                        else:
+                            # If merging scalars is not ok, then
+                            # we must raise an error
+                            raise ValueError('tried to merge a scalar in %r' % (key_,))
                 newgroup[key_] = [val_]
             merged_groups.append(ut.ColumnLists(newgroup))
         merged_multi = self.__class__.flatten(merged_groups)
