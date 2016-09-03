@@ -2539,7 +2539,7 @@ class NiceRepr(object):
         try:
             classname = self.__class__.__name__
             devnice = self.__nice__()
-            return '<%s%s at %s>' % (classname, devnice, hex(id(self)))
+            return '<%s(%s) at %s>' % (classname, devnice, hex(id(self)))
         except AttributeError:
             return object.__repr__(self)
             #return super(NiceRepr, self).__repr__()
@@ -2548,7 +2548,7 @@ class NiceRepr(object):
         try:
             classname = self.__class__.__name__
             devnice = self.__nice__()
-            return '<%s%s>' % (classname, devnice)
+            return '<%s(%s)>' % (classname, devnice)
         except AttributeError:
             return object.__str__(self)
             #return super(NiceRepr, self).__str__()
@@ -2746,7 +2746,7 @@ class ColumnLists(NiceRepr):
         return shape
 
     def __nice__(self):
-        return '(rows=%r, cols=%r)' % self.shape
+        return 'rows=%r, cols=%r' % self.shape
 
     def __iter__(self):
         return iter(self._idxs)
@@ -2798,10 +2798,13 @@ class ColumnLists(NiceRepr):
         #csv_text = ut.make_standard_csv(column_list, column_lbls)
         return csv_text.strip('\n')
 
-    def print(self, ignore=None):
+    def print(self, ignore=None, keys=None):
         self_ = self
         if ignore is None:
             ignore = self._meta.get('ignore', [])
+
+        if keys:
+            self_ = self_.take_column(keys)
         if ignore:
             self_ = self_.copy()
             del self_[ignore]
@@ -2888,6 +2891,7 @@ class ColumnLists(NiceRepr):
         return unique_labels, groups
 
     def loc_by_key(self, key, vals):
+        import utool as ut
         val_to_idx = ut.make_index_lookup(self[key])
         idx_list = ut.take(val_to_idx, vals)
         return self.take(idx_list)
@@ -3023,7 +3027,7 @@ class NamedPartial(functools.partial, NiceRepr):
         self.__name__ = ut.get_funcname(func)
 
     def __nice__(self):
-        return '(' + self.__name__ + ')'
+        return self.__name__
 
 
 def fix_super_reload_error(this_class, self):

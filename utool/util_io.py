@@ -117,6 +117,11 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
     if backup:
         util_path.copy(fpath, fpath + '.backup')
 
+    if not isinstance(fpath, six.string_types):
+        # Assuming a file object with a name attribute
+        # Should just read from the file
+        fpath = fpath.name
+
     with open(fpath, mode) as file_:
         if aslines:
             file_.writelines(to_write)

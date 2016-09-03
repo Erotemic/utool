@@ -163,6 +163,10 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
         n=1: '.../eggs', n=2: '.../spam/eggs'
         n=1: '.../bin', n=2: '.../foobar/bin'
     """
+    if not isinstance(path_, six.string_types):
+        # Probably given a file pointer
+        return path_
+
     if n is None:
         cplat_path = ensure_crossplat_path(path_)
     elif n == 0:

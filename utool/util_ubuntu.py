@@ -199,7 +199,19 @@ def make_application_icon(exe_fpath, dry=True, props={}):
 class XCtrl(object):
     """
     xdotool key ctrl+shift+i
-    wmctrl  -l
+
+    List current windows:
+        wmctrl  -l
+
+    Example:
+        >>> orig_window = []
+        >>> doscript = [
+        >>>     ('focus', 'x-terminal-emulator.X-terminal-emulator'),
+        >>>     ('type', '%paste'),
+        >>>     ('key', 'KP_Enter'),
+        >>>     ('focus', 'GVIM')
+        >>> ]
+
     """
     # @staticmethod
     # def send_raw_key_input(keys):

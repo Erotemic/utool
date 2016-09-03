@@ -1276,16 +1276,26 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     # FIND THE TEST NAMES REQUESTED
     # Grab sys.argv enabled tests
     cmdline_varargs = ut.get_cmdline_varargs()
-    force_enable_testnames = cmdline_varargs[:]
+    force_enable_testnames_ = cmdline_varargs[:]
     valid_prefix_list = ['--test-', '--exec-', '--dump-']
     #if False:
     for arg in sys.argv:
         for prefix in valid_prefix_list:
             if arg.startswith(prefix):
-                testname = arg[len(prefix):].split(':')[0].replace('-', '_')
-                force_enable_testnames.append(testname)
-                # TODO: parse out requested number up here
-                break
+                testname = arg[len(prefix):]
+                #testname = testname.split(':')[0].replace('-', '_')
+                force_enable_testnames_.append(testname)
+                #break
+
+    # PartA: Fixup names
+    # TODO: parse out requested test number here
+    # instead of later in the code. See PartB
+    force_enable_testnames = []
+    for testname in force_enable_testnames_:
+        testname = testname.split(':')[0].replace('-', '_')
+        testname.split(':')[0].replace('-', '_')
+        force_enable_testnames.append(testname)
+
     def _get_testable_name(testable):
         import utool as ut
         if isinstance(testable, staticmethod):
@@ -1345,6 +1355,10 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                     local_testtup_list.append(local_testtup)
                 else:
                     if VERBOSE_TEST:
+                        #print('force_enable_testnames = %r' % (force_enable_testnames,))
+                        #print('nametup = %r' % (nametup,))
+                        #print('needs_enable = %r' % (needs_enable,))
+                        #print('test_disabled = %r' % (test_disabled,))
                         print(' * skipping: %r / %r' % (short_testname,
                                                         full_testname))
         else:
@@ -1396,6 +1410,10 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         if VERBOSE_TEST:
             print('Checking cmdline for %r %r' % (nametup, num))
         valid_argflags = []
+
+        # FIXME: PartB
+        # should parse out test number above instead of here
+        # See PartA
         mode = None
         veryverb = 0
         # First check positional args
