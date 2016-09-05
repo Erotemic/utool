@@ -83,6 +83,7 @@ def utool_setup():
         'sphinxcontrib-napoleon',
         'objgraph',
         'h5py',
+        'delorean',
     ]
 
     # format optional dependencies
