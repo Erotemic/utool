@@ -222,6 +222,8 @@ def safe_listget(list_, index, default='?'):
 
 def listclip(list_, num, fromback=False):
     r"""
+    DEPRICATE: use slices instead
+
     Args:
         list_ (list):
         num (int):

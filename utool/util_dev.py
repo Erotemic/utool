@@ -1333,6 +1333,7 @@ get_statdict = get_stats
 
 
 def set_overlaps(set1, set2, s1='s1', s2='s2'):
+    import utool as ut
     set1 = set(set1)
     set2 = set(set2)
     overlaps = ut.odict([

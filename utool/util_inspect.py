@@ -104,21 +104,43 @@ def check_static_member_vars(fpath, classname):
     accessed_attrs = ut.unique(accessed_attrs)
 
     print('Missing Attrs: ' + str(ut.setdiff(accessed_attrs, class_members)))
-
     #fst = baron.fst()
     #node = (baron.node_list[54])  # NOQA
     #[n.type for n in baron.node_list]
-
     #generator = astor.codegen.SourceGenerator(' ' * 4)
     #generator.visit(pt)
     #resturctured_source = (''.join(generator.result))
     #print(resturctured_source)
-
     #visitor = ast.NodeVisitor()
     #visitor.visit(pt)
-
     #class SpecialVisitor(ast.NodeVisitor):
     pass
+
+
+def get_funcnames_from_modpath(modpath, include_methods=True):
+    """
+    Get all functions defined in module
+    """
+    import utool as ut
+    if True:
+        import jedi
+        source = ut.read_from(modpath)
+        #script = jedi.Script(source=source, source_path=modpath, line=source.count('\n') + 1)
+        definition_list = jedi.names(source)
+        funcname_list = [definition.name for definition in definition_list if definition.type == 'function']
+        if include_methods:
+            classdef_list = [definition for definition in definition_list if definition.type == 'class']
+            defined_methods = ut.flatten([definition.defined_names() for definition in classdef_list])
+            funcname_list += [method.name for method in defined_methods
+                              if method.type == 'function' and not method.name.startswith('_')]
+    else:
+        import redbaron
+        # Pares a FULL syntax tree that keeps blockcomments
+        sourcecode = ut.read_from(modpath)
+        baron = redbaron.RedBaron(sourcecode)
+        funcname_list = [node.name for node in baron.find_all('def', recursive=include_methods)
+                         if not node.name.startswith('_')]
+    return funcname_list
 
 
 #@profile
@@ -167,18 +189,6 @@ def check_module_usage(modpath_partterns):
     restrict_to_importing_modpaths = False
     cache = {}
 
-    def get_funcnames_from_modpath(modpath):
-        import jedi
-        source = ut.read_from(modpath)
-        #script = jedi.Script(source=source, source_path=modpath, line=source.count('\n') + 1)
-        definition_list = jedi.names(source)
-        funcname_list = [definition.name for definition in definition_list if definition.type == 'function']
-        if True:
-            classdef_list = [definition for definition in definition_list if definition.type == 'class']
-            defined_methods = ut.flatten([definition.defined_names() for definition in classdef_list])
-            funcname_list += [method.name for method in defined_methods if method.type == 'function' and not method.name.startswith('_')]
-        return funcname_list
-
     def find_where_module_is_imported(modname):
         """ finds where a module was explicitly imported. (in most scenareos) """
         # Find places where the module was imported
@@ -195,17 +205,21 @@ def check_module_usage(modpath_partterns):
             pattern, new=True, verbose=False, cache=cache,
             fpath_list=importing_modpaths)
         # Exclude places where function is defined or call is commented out
-        filter_pat = ut.regex_or((
+        nohit_patterns = [
             r'^\s*def',
             r'^\s*#',
-            r'^\s*\>\>\>',
             r'\-\-exec\-',
             r'\-\-test-',
+            r'^\s*python -m ',
             r'^\s*python -m ibeis ',
             r'^\s*ibeis ',
             r'\-\-test\-[a-zA-z]*\.',
             r'\-\-exec\-[a-zA-z]*\.',
-                                 ))
+        ]
+        nohit_patterns += [
+            r'^\s*\>\>\>',
+        ]
+        filter_pat = ut.regex_or(nohit_patterns)
         # import copy
         # grepres_ = copy.deepcopy(grepres)
         grepres.inplace_filter_results(filter_pat)
