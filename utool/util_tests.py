@@ -1499,21 +1499,50 @@ def doctest_was_requested():
                                       for arg in sys.argv])
 
 
-def find_doctestable_modnames(dpath_list=None, exclude_doctests_fnames=[], exclude_dirs=[]):
+def find_doctestable_modnames(dpath_list=None, exclude_doctests_fnames=[],
+                              exclude_dirs=[], allow_nonpackages=False):
     """
     Tries to find files with a call to ut.doctest_funcs in the __main__ part
+    Implementation is very hacky. Should find a better heuristic
+
+    Args:
+        dpath_list (list): list of python package directories
+        exclude_doctests_fnames (list): (default = [])
+        exclude_dirs (list): (default = [])
+        allow_nonpackages (bool): (default = False)
+
+    Returns:
+        list: list of filepaths
+
+    CommandLine:
+        python -m utool.util_tests find_doctestable_modnames --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
+        >>> from os.path import dirname
+        >>> dpath_list = [ut.get_module_dir(ut)]
+        >>> exclude_doctests_fnames = []
+        >>> exclude_dirs = []
+        >>> allow_nonpackages = False
+        >>> result = find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs, allow_nonpackages)
+        >>> print(result)
     """
     import utool as ut
-    fpath_list, lines_list, lxs_list = ut.grep('doctest_funcs',
-                                               dpath_list=dpath_list,
-                                               include_patterns=['*.py'],
-                                               exclude_dirs=exclude_dirs,
-                                               recursive=True)
+    from os.path import dirname, exists, join
+    fpath_list = ut.grep(r'doctest_funcs\(', dpath_list=dpath_list,
+                         include_patterns=['*.py'], exclude_dirs=exclude_dirs,
+                         recursive=True)[0]
     exclude_doctests_fnames = set(exclude_doctests_fnames)
     def is_not_excluded(fpath):
         return basename(fpath) not in exclude_doctests_fnames
-    doctest_modpath_list = list(filter(is_not_excluded, fpath_list))
-    doctest_modname_list = list(map(ut.get_modname_from_modpath, doctest_modpath_list))
+    def is_in_package(fpath):
+        return exists(join(dirname(fpath), '__init__.py'))
+    fpath_list = list(filter(is_in_package, fpath_list))
+    fpath_list = list(filter(is_not_excluded, fpath_list))
+    doctest_modname_list = list(map(ut.get_modname_from_modpath, fpath_list))
+    doctest_modname_list = ut.unique(doctest_modname_list)
     return doctest_modname_list
 
 
