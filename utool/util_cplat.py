@@ -1064,9 +1064,16 @@ def change_term_title(title):
     Args:
         title (str):
 
+    References:
+        http://stackoverflow.com/questions/5343265/setting-title-for-tabs-in-terminator-console-application-in-ubuntu/8850484#8850484
+
     CommandLine:
         python -m utool change_term_title
         echo -en "\033]0;newtitle\a"
+
+         printf "\e]2;newtitle\a";
+
+        echo -en "\033]0;DocTest /home/joncrall/code/ibeis/ibeis/algo/hots/graph_iden.py --test-AnnotInference._make_state_delta\a"
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1075,9 +1082,15 @@ def change_term_title(title):
         >>> result = change_term_title(title)
         >>> print(result)
     """
+    if True:
+        # Disabled
+        return
     if not WIN32:
-        cmd_str = r'''echo -en "\033]0;''' + title + '''\a"'''
-        os.system(cmd_str)
+        #print("CHANGE TERM TITLE to %r" % (title,))
+        if title:
+            #os.environ['PS1'] = os.environ['PS1'] + '''"\e]2;\"''' + title + '''\"\a"'''
+            cmd_str = r'''echo -en "\033]0;''' + title + '''\a"'''
+            os.system(cmd_str)
 
 
 def send_keyboard_input(text=None, key_list=None):

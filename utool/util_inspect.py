@@ -15,6 +15,7 @@ from six.moves import range, zip  # NOQA
 from utool import util_regex
 from utool import util_arg
 from utool import util_inject
+from utool import util_class
 from utool._internal import meta_util_six
 print, rrr, profile = util_inject.inject2(__name__, '[inspect]')
 
@@ -28,6 +29,84 @@ LIB_PATH = dirname(os.__file__)
 #def check_dynamic_member_vars(self):
 #    return {name: attr for name, attr in self.__dict__.items()
 #            if not name.startswith("__") and not callable(attr) and not type(attr) is staticmethod}
+
+
+@util_class.reloadable_class
+class BaronWraper(object):
+    def __init__(self, sourcecode):
+        import redbaron
+        self.baron = redbaron.RedBaron(sourcecode)
+
+    def defined_functions(self, recursive=False):
+        found = self.baron.find_all('def', recursive=recursive)
+        return found
+        #name_list = [node.name for node in found]
+        #return name_list
+
+    def find_usage(self, name):
+        found = self.baron.find_all('NameNode', value=name, recursive=True)
+        used_in = []
+        for node in found:
+
+            parent_func = node.parent_find('def')
+            assert parent_func.indentation == '', 'fixme'
+            used_in.append(parent_func)
+        return used_in
+
+    def internal_call_graph(self):
+        """
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> pt.show_nx(G)
+        """
+        import utool as ut
+        import networkx as nx
+        G = nx.DiGraph()
+        functions = self.defined_functions()
+
+        doc_nodes = {}
+        for func in functions:
+            if len(func) > 0:
+                if func[0].type == 'raw_string':
+                    docstr = eval(func[0].value)
+                    docblocks = ut.parse_docblocks_from_docstr(
+                        ut.unindent(docstr), new=True)
+                    doctest = docblocks['Example:']
+                    docname = '<doctest>' + func.name
+                    doc_nodes[docname] = doctest
+                    G.add_node(docname)
+                    G.node[docname]['color'] = (1, 0, 0)
+
+        for func in functions:
+            found = self.find_usage(func.name)
+            used_funcs = [f.name for f in found]
+            callee = func.name
+            G.add_node(callee)
+            #G.node[callee]['color'] = '0x000000'
+            # Check for usage in functions
+            for caller in used_funcs:
+                #G.add_edge(caller, callee)
+                G.add_edge(callee, caller)
+            # Check for usage in doctests
+            for caller, doctest in doc_nodes.items():
+                if func.name in doctest:
+                    #G.add_edge(caller, callee)
+                    G.add_edge(callee, caller)
+        return G
+
+
+def get_internal_call_graph(fpath):
+    """
+    >>> from utool.util_inspect import *  # NOQA
+    >>> fpath = ut.truepath('~/code/ibeis/ibeis/init/main_helpers.py')
+    """
+    import utool as ut
+    sourcecode = ut.readfrom(fpath)
+    self = ut.BaronWraper(sourcecode)
+    G = self.internal_call_graph()
+    import plottool as pt
+    pt.qt4ensure()
+    pt.show_nx(G)
 
 
 def check_static_member_vars(fpath, classname):

@@ -822,7 +822,10 @@ def parse_docblocks_from_docstr(docstr, new=False):
                 subblock = '\n'.join(val)
                 groups.append((key, subblock))
         # Ensure that no keys are duplicated
-        assert len(ut.find_duplicate_items(ut.take_column(groups, 0))) == 0, ('Duplicate google docblock keys are not allowed')
+        try:
+            assert len(ut.find_duplicate_items(ut.take_column(groups, 0))) == 0, ('Duplicate google docblock keys are not allowed')
+        except Exception as ex:
+            ut.printex(ex, iswarning=True)
         groups = dict(groups)
         return groups
     else:
