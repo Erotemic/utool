@@ -278,7 +278,7 @@ def nx_all_nodes_between(graph, source, target, data=False):
             'specify sink if there is not only one')
         target = sinks[0]
     all_simple_paths = list(nx.all_simple_paths(graph, source, target))
-    nodes = list(set(ut.flatten(all_simple_paths)))
+    nodes = list(ut.union_ordered(ut.flatten(all_simple_paths)))
     return nodes
 
 

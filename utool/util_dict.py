@@ -1687,6 +1687,12 @@ class DictLike(object):
     def iterkeys(self):
         return (key for key in self.keys())
 
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
 
 def sort_dict(dict_, value_key=None):
     """

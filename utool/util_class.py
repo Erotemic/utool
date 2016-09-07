@@ -452,7 +452,7 @@ def get_method_func(method):
 
 def inject_func_as_method(self, func, method_name=None, class_=None,
                           allow_override=False, allow_main=False,
-                          verbose=True, override=None):
+                          verbose=True, override=None, force=False):
     """ Injects a function into an object as a method
 
     Wraps func as a bound method of self. Then injects func into self
@@ -473,6 +473,9 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
         allow_override = override
     if method_name is None:
         method_name = get_funcname(func)
+    if force:
+        allow_override = True
+        allow_main = True
     old_method = getattr(self, method_name, None)
     # Bind function to the class instance
     #new_method = types.MethodType(func, self, self.__class__)

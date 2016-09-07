@@ -2319,10 +2319,6 @@ def infer_function_info(func):
         python -m utool --tf infer_function_info:0
         python -m utool --tf infer_function_info:1 --funcname=ibeis_cnn.models.siam.ignore_hardest_cases
 
-    Ignore:
-        import ibeis
-        func = ibeis.control.IBEISControl.IBEISController.query_chips
-
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
