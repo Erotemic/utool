@@ -58,22 +58,20 @@ def test_ignore_exec_traceback():
         >>> print(result)
     """
     import utool as ut
-    from utool import util_dbg
-
     @ut.indent_func
     def foobar():
         print('foobar')
-        raise Exception('foobar')
+        raise AssertionError('This error is exepcted')
 
     try:
         print('printing foobar')
         foobar()
-    except Exception as ex:
+    except AssertionError as ex:
         #import sys
         #exc_type, exc_value, exc_traceback = sys.exc_info()
         #print(exc_traceback)
         # TODO: ensure decorators are not printed in stack trace
-        util_dbg.printex(ex, tb=True)
+        ut.printex(ex, 'There is no error. This is a test', tb=True)
 
 
 if six.PY2:

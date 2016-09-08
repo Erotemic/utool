@@ -166,7 +166,7 @@ def inject_colored_exceptions():
             print('[inject] cannot inject colored exceptions')
 
 
-def inject_print_func2(module):
+def make_module_print_func(module):
     if SILENT:
         def print(*args):
             """ silent builtins.print """
@@ -183,9 +183,25 @@ def inject_print_func2(module):
             def print(*args):
                 """ logging builtins.print """
                 util_logging.__UTOOL_PRINT__(*args)
-    # TODO: can we get away with not actually injecting at all?
-    #_inject_funcs(module, print)
     return print
+
+
+def make_module_write_func(module):
+    if SILENT:
+        def print_(*args):
+            """ silent stdout.write """
+            pass
+    else:
+        if __AGGROFLUSH__:
+            def print_(*args):
+                """ aggressive logging stdout.write """
+                util_logging.__UTOOL_WRITE__(*args)
+                util_logging.__UTOOL_FLUSH__()
+        else:
+            def print_(*args):
+                """ logging stdout.write """
+                util_logging.__UTOOL_WRITE__(*args)
+    return print_
 
 
 def inject_print_functions(module_name=None, module_prefix='[???]',
@@ -271,7 +287,7 @@ def reload_module(module, verbose=True):
         raise
 
 
-def inject_reload_function(module_name=None, module_prefix='[???]', module=None):
+def make_module_reload_func(module_name=None, module_prefix='[???]', module=None):
     """ Injects dynamic module reloading """
     module = _get_module(module_name, module, register=False)
     if module_name is None:
@@ -367,7 +383,7 @@ def _profile_module_flag(module_name):
     return _matches_list(module_name, PROF_MOD_PAT_LIST)
 
 
-def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
+def make_module_profile_func(module_name=None, module_prefix='[???]', module=None):
     # FIXME: not injecting right
     module = _get_module(module_name, module)
     if not _profile_module_flag(str(module)):
@@ -448,8 +464,8 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=
     #noinject(module_name, module_prefix, DEBUG, module, N=1)
     noinject(module_name, module_prefix, DEBUG, module, N=N)
     module = _get_module(module_name, module)
-    rrr         = inject_reload_function(None, module_prefix, module)
-    profile_    = inject_profile_function(None, module_prefix, module)
+    rrr         = make_module_reload_func(None, module_prefix, module)
+    profile_    = make_module_profile_func(None, module_prefix, module)
     print_funcs = inject_print_functions(None, module_prefix, DEBUG, module)
     (print, print_, printDBG) = print_funcs
     return (print, print_, printDBG, rrr, profile_)
@@ -459,9 +475,9 @@ def inject2(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N
     """ wrapper that depricates print_ and printDBG """
     noinject(module_name, module_prefix, DEBUG, module, N=N)
     module = _get_module(module_name, module)
-    rrr      = inject_reload_function(None, module_prefix, module)
-    profile_ = inject_profile_function(None, module_prefix, module)
-    print    = inject_print_func2(module)
+    rrr      = make_module_reload_func(None, module_prefix, module)
+    profile_ = make_module_profile_func(None, module_prefix, module)
+    print    = make_module_print_func(module)
     return print, rrr, profile_
 
 

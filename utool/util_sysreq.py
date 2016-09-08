@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import os
 from os.path import split, exists, join, dirname
 from utool import util_inject
 from utool._internal import meta_util_arg
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[sysreq]')
+print, rrr, profile = util_inject.inject2(__name__, '[sysreq]')
 
 
 def in_virtual_env():

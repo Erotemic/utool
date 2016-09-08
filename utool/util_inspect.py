@@ -261,7 +261,7 @@ def get_funcnames_from_modpath(modpath, include_methods=True):
 
 
 #@profile
-def check_module_usage(modpath_partterns):
+def check_module_usage(modpath_patterns):
     """
     FIXME: not fully implmented
 
@@ -271,7 +271,7 @@ def check_module_usage(modpath_partterns):
     other files in the project not in the given set.
 
     Args:
-        modpath_partterns (list):
+        modpath_patterns (list):
 
     CommandLine:
         python -m utool.util_inspect check_module_usage --show
@@ -289,18 +289,20 @@ def check_module_usage(modpath_partterns):
         >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
-        >>> modpath_partterns = ['_grave*']
-        >>> modpath_partterns = ['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']
-        >>> modpath_partterns = ['neighbor_index.py']
-        >>> modpath_partterns = ['manual_chip_funcs.py']
-        >>> modpath_partterns = ut.get_argval('--pat', type_=list, default=['*'])
-        >>> result = check_module_usage(modpath_partterns)
+        >>> modpath_patterns = ['_grave*']
+        >>> modpath_patterns = ['auto*', 'user_dialogs.py', 'special_query.py', 'qt_inc_automatch.py', 'devcases.py']
+        >>> modpath_patterns = ['neighbor_index.py']
+        >>> modpath_patterns = ['manual_chip_funcs.py']
+        >>> modpath_patterns = ut.get_argval('--pat', type_=list, default=['*'])
+        >>> result = check_module_usage(modpath_patterns)
         >>> print(result)
     """
     import utool as ut
     #dpath = '~/code/ibeis/ibeis/algo/hots'
-    modpaths = ut.flatten([ut.glob_projects(pat) for pat in modpath_partterns])
+    modpaths = ut.flatten([ut.glob_projects(pat) for pat in modpath_patterns])
+    modpaths = ut.unique(modpaths)
     modnames = ut.lmap(ut.get_modname_from_modpath, modpaths)
+    print('Checking usage of modules: ' + ut.repr3(modpaths))
 
     # Mark as True is module is always explicitly imported
     restrict_to_importing_modpaths = False
@@ -311,7 +313,7 @@ def check_module_usage(modpath_partterns):
         # Find places where the module was imported
         patterns = ut.possible_import_patterns(modname)
         # do modname grep with all possible import patterns
-        grepres = ut.grep_projects(patterns, new=True, verbose=True, cache=cache)
+        grepres = ut.grep_projects(patterns, new=True, verbose=False, cache=cache)
         return grepres.found_fpath_list
 
     def find_function_callers(funcname, importing_modpaths):
@@ -349,23 +351,26 @@ def check_module_usage(modpath_partterns):
         #ut.delete_keys(numcall_graph_, modnames)
         return numcall_graph_, grepres
 
+    print('Find modules that use this the query modules')
+    # Note: only works for explicit imports
     importing_modpaths_list = [find_where_module_is_imported(modname) for modname in modnames]
+    print('Find members of the query modules')
     funcnames_list = [get_funcnames_from_modpath(modpath) for modpath in modpaths]
 
+    print('Building call graph')
     cache = {}
     func_numcall_graph = ut.ddict(dict)
-
     grep_results = ut.ddict(dict)
-
     # Extract public members from each module
     exclude_self = ut.get_argflag('--exclude-self')
-    progiter = ut.ProgIter(list(zip(modnames, modpaths, importing_modpaths_list, funcnames_list)))
-    for modname, modpath, importing_modpaths, funcname_list in progiter:
+    _iter = list(zip(modnames, modpaths, importing_modpaths_list, funcnames_list))
+    _iter = ut.ProgIter(_iter, lbl='Searching query module', bs=False)
+    for modname, modpath, importing_modpaths, funcname_list in _iter:
         if not restrict_to_importing_modpaths:
             importing_modpaths = None
 
         # Search for each function in modpath
-        for funcname in ut.ProgIter(funcname_list, lbl='funcs'):
+        for funcname in ut.ProgIter(funcname_list, lbl='Searching funcs in query module'):
             numcall_graph_, grepres = find_function_callers(funcname, importing_modpaths)
             grep_results[modname][funcname] = grepres
             if exclude_self:
@@ -376,7 +381,8 @@ def check_module_usage(modpath_partterns):
     # Sort by incidence cardinality
     # func_numcall_graph = ut.odict([(key, ut.sort_dict(val, value_key=len)) for key, val in func_numcall_graph.items()])
     # Sort by weighted degree
-    func_numcall_graph = ut.odict([(key, ut.sort_dict(val, value_key=lambda x: sum(x.values()))) for key, val in func_numcall_graph.items()])
+    func_numcall_graph = ut.odict([(key, ut.sort_dict(val, value_key=lambda x: sum(x.values())))
+                                   for key, val in func_numcall_graph.items()])
     # Print out grep results in order
     print('PRINTING GREP RESULTS IN ORDER')
     for modname, num_callgraph in func_numcall_graph.items():

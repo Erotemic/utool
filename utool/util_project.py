@@ -554,7 +554,9 @@ def glob_projects(pat, user_profile=None):
     """
     import utool as ut  # NOQA
     user_profile = ensure_user_profile(user_profile)
-    glob_results = ut.flatten([ut.glob(dpath, pat, recursive=True) for dpath in user_profile.project_dpaths])
+    glob_results = ut.flatten([ut.glob(dpath, pat, recursive=True,
+                                       exclude_dirs=user_profile.project_exclude_dirs)
+                               for dpath in user_profile.project_dpaths])
     return glob_results
 
 

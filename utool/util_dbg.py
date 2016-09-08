@@ -880,7 +880,6 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
                 childtype = type(child)
                 if not isinstance(childtype, types.ModuleType):
                     if nonmodules:
-                        #print_(depth)
                         fullstr = indent + '    ' + str(aname) + ' = ' + repr(child)
                         truncstr = util_str.truncate_str(fullstr) + '\n'
                         ret +=  truncstr
@@ -898,7 +897,6 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
                 print(repr(ex))
                 pass
         # Print
-        # print_(depth)
         ret += indent + modname + '\n'
         # Recurse
         if maxdepth is not None and depth >= maxdepth:
