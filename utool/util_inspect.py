@@ -37,7 +37,7 @@ class BaronWraper(object):
         import redbaron
         self.baron = redbaron.RedBaron(sourcecode)
 
-    def defined_functions(self, recursive=False):
+    def defined_functions(self, recursive=True):
         found = self.baron.find_all('def', recursive=recursive)
         return found
         #name_list = [node.name for node in found]
@@ -47,11 +47,23 @@ class BaronWraper(object):
         found = self.baron.find_all('NameNode', value=name, recursive=True)
         used_in = []
         for node in found:
-
-            parent_func = node.parent_find('def')
-            assert parent_func.indentation == '', 'fixme'
+            parent_func = self.find_root_function(node)
             used_in.append(parent_func)
         return used_in
+
+    def find_root_function(self, node):
+        par = node.parent_find('def')
+        if par is None:
+            raise ValueError('no parent for node=%r' % (node.name))
+        elif par.indentation == '':
+            # Top level function
+            return par
+        elif par.parent is not None:
+            par2 = par.parent
+            if par2.type == 'class' and par2.indentation == '':
+                return par
+            else:
+                return self.find_root_function(par)
 
     def internal_call_graph(self):
         """
@@ -66,16 +78,17 @@ class BaronWraper(object):
 
         doc_nodes = {}
         for func in functions:
-            if len(func) > 0:
+            if False and len(func) > 0:
                 if func[0].type == 'raw_string':
                     docstr = eval(func[0].value)
                     docblocks = ut.parse_docblocks_from_docstr(
                         ut.unindent(docstr), new=True)
-                    doctest = docblocks['Example:']
-                    docname = '<doctest>' + func.name
-                    doc_nodes[docname] = doctest
-                    G.add_node(docname)
-                    G.node[docname]['color'] = (1, 0, 0)
+                    if 'Example:' in docblocks:
+                        doctest = docblocks['Example:']
+                        docname = '<doctest>' + func.name
+                        doc_nodes[docname] = doctest
+                        G.add_node(docname)
+                        G.node[docname]['color'] = (1, 0, 0)
 
         for func in functions:
             found = self.find_usage(func.name)
@@ -97,16 +110,28 @@ class BaronWraper(object):
 
 def get_internal_call_graph(fpath):
     """
-    >>> from utool.util_inspect import *  # NOQA
-    >>> fpath = ut.truepath('~/code/ibeis/ibeis/init/main_helpers.py')
+    CommandLine:
+        python -m utool.util_inspect get_internal_call_graph --show --modpath=~/code/ibeis/ibeis/init/main_helpers.py --show
+        python -m utool.util_inspect get_internal_call_graph --show --modpath=~/code/dtool/dtool/depcache_table.py --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.get_argval('--modpath', default='.')
+        >>> G = get_internal_call_graph(fpath)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> pt.show_nx(G)
+        >>> ut.show_if_requested()
     """
     import utool as ut
+    fpath = ut.truepath(fpath)
     sourcecode = ut.readfrom(fpath)
     self = ut.BaronWraper(sourcecode)
     G = self.internal_call_graph()
-    import plottool as pt
-    pt.qt4ensure()
-    pt.show_nx(G)
+    return G
 
 
 def check_static_member_vars(fpath, classname):
