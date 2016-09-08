@@ -36,6 +36,7 @@ PHI_B = 1 - PHI_A
 TAU = 2 * math.pi
 # Conversion factors
 KM_PER_MILE = 1.609344
+MM_PER_INCH = 25.4
 FOOT_PER_MILE = 5280
 
 

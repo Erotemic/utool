@@ -35,7 +35,9 @@ LIB_PATH = dirname(os.__file__)
 class BaronWraper(object):
     def __init__(self, sourcecode):
         import redbaron
-        self.baron = redbaron.RedBaron(sourcecode)
+        import utool as ut
+        with ut.Timer('building baron'):
+            self.baron = redbaron.RedBaron(sourcecode)
 
     def defined_functions(self, recursive=True):
         found = self.baron.find_all('def', recursive=recursive)
@@ -64,6 +66,8 @@ class BaronWraper(object):
                 return par
             else:
                 return self.find_root_function(par)
+        else:
+            raise ValueError('unknown error for node=%r' % (node.name))
 
     def internal_call_graph(self):
         """
@@ -74,38 +78,47 @@ class BaronWraper(object):
         import utool as ut
         import networkx as nx
         G = nx.DiGraph()
-        functions = self.defined_functions()
+        with ut.Timer('finding defed funcs'):
+            functions = self.defined_functions()
 
-        doc_nodes = {}
-        for func in functions:
-            if False and len(func) > 0:
-                if func[0].type == 'raw_string':
-                    docstr = eval(func[0].value)
-                    docblocks = ut.parse_docblocks_from_docstr(
-                        ut.unindent(docstr), new=True)
-                    if 'Example:' in docblocks:
-                        doctest = docblocks['Example:']
-                        docname = '<doctest>' + func.name
-                        doc_nodes[docname] = doctest
-                        G.add_node(docname)
-                        G.node[docname]['color'] = (1, 0, 0)
+        with ut.Timer('parsing docstrings'):
+            doc_nodes = {}
+            for func in functions:
+                if False and len(func) > 0:
+                    if func[0].type == 'raw_string':
+                        docstr = eval(func[0].value)
+                        docblocks = ut.parse_docblocks_from_docstr(
+                            ut.unindent(docstr), new=True)
+                        if 'Example:' in docblocks:
+                            doctest = docblocks['Example:']
+                            docname = '<doctest>' + func.name
+                            doc_nodes[docname] = doctest
+                            G.add_node(docname)
+                            G.node[docname]['color'] = (1, 0, 0)
 
-        for func in functions:
-            found = self.find_usage(func.name)
-            used_funcs = [f.name for f in found]
-            callee = func.name
-            G.add_node(callee)
-            #G.node[callee]['color'] = '0x000000'
-            # Check for usage in functions
-            for caller in used_funcs:
-                #G.add_edge(caller, callee)
-                G.add_edge(callee, caller)
-            # Check for usage in doctests
-            for caller, doctest in doc_nodes.items():
-                if func.name in doctest:
-                    #G.add_edge(caller, callee)
-                    G.add_edge(callee, caller)
-        return G
+        with ut.Timer('building function call graph'):
+            func_names = [func.name for func in functions]
+            for callee in func_names:
+                #G.node[callee]['color'] = '0x000000'
+                G.add_node(six.text_type(callee))
+            import re
+            pat = re.compile(ut.regex_or(func_names))
+            found = self.baron.find_all('NameNode', value=pat, recursive=True)
+
+        for node in ut.ProgIter(found, 'Searching for parent funcs'):
+            parent_func = self.find_root_function(node)
+            caller = parent_func.name
+            callee = node.name
+            G.add_edge(six.text_type(callee), six.text_type(caller))
+
+        with ut.Timer('building doctest call graph'):
+            for func in ut.ProgIter(functions, lbl='doctest call graph'):
+                # Check for usage in doctests
+                for caller, doctest in doc_nodes.items():
+                    if func.name in doctest:
+                        #G.add_edge(caller, callee)
+                        G.add_edge(callee, caller)
+            return G
 
 
 def get_internal_call_graph(fpath):
@@ -123,7 +136,7 @@ def get_internal_call_graph(fpath):
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.qt4ensure()
-        >>> pt.show_nx(G)
+        >>> pt.show_nx(G, fontsize=8, as_directed=False)
         >>> ut.show_if_requested()
     """
     import utool as ut
