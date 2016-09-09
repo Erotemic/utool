@@ -558,7 +558,6 @@ class ProgressIter(object):
         msg_fmtstr_time = ''.join((msg_head + msg_tail))
         return msg_fmtstr_time
 
-    @profile
     def iter_rate(self):
         """
         pun not intended

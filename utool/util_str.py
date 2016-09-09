@@ -1760,7 +1760,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
 
     def make_item_str(key, val, indent_):
         if explicit:
-            key_str = key + '='
+            key_str = six.text_type(key) + '='
         else:
             #key_str = reprfunc(key, precision=precision) + ': '
             key_str = repr2(key, precision=precision) + ': '
@@ -2836,6 +2836,9 @@ def autoformat_pep8(sourcecode, **kwargs):
     pep8_options = autopep8._get_options(kwargs, False)
     new_source = autopep8.fix_code(sourcecode, pep8_options)
     return new_source
+
+
+autopep8_format = autoformat_pep8
 
 
 def filtered_infostr(flags, lbl, reason=None):

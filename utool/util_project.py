@@ -438,7 +438,6 @@ def ensure_user_profile(user_profile=None):
     return user_profile
 
 
-@profile
 def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
                   **kwargs):
     r"""

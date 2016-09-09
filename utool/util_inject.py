@@ -324,21 +324,30 @@ def TIMERPROF_FUNC(func):
         #return ret
     return prof_wrapper
 
-try:
-    #KERNPROF_FUNC = TIMERPROF_FUNC
-    # TODO: Fix this in case using memprof instead
-    #raise AttributeError('')
-    KERNPROF_FUNC = getattr(builtins, 'profile')
+
+if '--profile' in sys.argv:
+    import line_profiler
+    KERNPROF_FUNC = line_profiler.LineProfiler()
     PROFILING = True
-except AttributeError:
-    PROFILING = False
-    KERNPROF_FUNC = DUMMYPROF_FUNC
-    #KERNPROF_FUNC = TIMERPROF_FUNC
-
-#PROF_MOD_PAT_LIST = None  # ['spatial']
-# TODO: Add this to command line
-
-#PROF_MOD_PAT_LIST = ['spatial', 'linalg', 'keypoint']
+    if __DEBUG_PROF__:
+        print('[util_inject] PROFILE ON')
+else:
+    try:
+        #KERNPROF_FUNC = TIMERPROF_FUNC
+        # TODO: Fix this in case using memprof instead
+        #raise AttributeError('')
+        import kernprof
+        #KERNPROF_FUNC = getattr(builtins, 'profile')
+        KERNPROF_FUNC = kernprof.ContextualProfile()
+        PROFILING = True
+        if __DEBUG_PROF__:
+            print('[util_inject] PROFILE ON')
+    except AttributeError:
+        PROFILING = False
+        KERNPROF_FUNC = DUMMYPROF_FUNC
+        #KERNPROF_FUNC = TIMERPROF_FUNC
+        if __DEBUG_PROF__:
+            print('[util_inject] PROFILE OFF')
 
 # Look in command line for functions to profile
 PROF_FUNC_PAT_LIST = meta_util_arg.get_argval('--prof-func', type_=str, default=None)
@@ -394,11 +403,12 @@ def make_module_profile_func(module_name=None, module_prefix='[???]', module=Non
     #if not profile_module_flag:
     #    return DUMMYPROF_FUNC
 
-    def profile_withfuncname_filter(func):
-        # Test to see if this function is specified
-        if _profile_func_flag(meta_util_six.get_funcname(func)):
-            return KERNPROF_FUNC(func)
-        return func
+    #def profile_withfuncname_filter(func):
+    #    # Test to see if this function is specified
+    #    if _profile_func_flag(meta_util_six.get_funcname(func)):
+    #        #print('profile func %r' % (func,))
+    #        return KERNPROF_FUNC(func)
+    #    return func
     #profile = KERNPROF_FUNC
     #try:
     #    profile = getattr(builtins, 'profile')
@@ -410,7 +420,8 @@ def make_module_profile_func(module_name=None, module_prefix='[???]', module=Non
     #        return func
     #    if __DEBUG_PROF__:
     #        print('[util_inject] PROFILE OFF: %r' % module)
-    return profile_withfuncname_filter
+    #return profile_withfuncname_filter
+    return KERNPROF_FUNC
 
 
 def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=0, via=None):

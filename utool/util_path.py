@@ -1747,7 +1747,7 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
     return None
 
 
-@profile
+#@profile
 def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     """
     grepfile - greps a specific file
@@ -1901,7 +1901,7 @@ def testgrep():
 
 
 # FIXME: util_test can't find the function if profile is enabled
-@profile
+#@profile
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None, inverse=False,
          verbose=VERBOSE, fpath_list=None, reflags=0, cache=None):

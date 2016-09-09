@@ -423,7 +423,6 @@ def invertible_flatten(unflat_list):
     return flat_list, reverse_list
 
 
-@profile
 def unflatten(flat_list, reverse_list):
     """ Rebuilds unflat list from invertible_flatten
 
@@ -445,7 +444,6 @@ def unflatten(flat_list, reverse_list):
     return unflat_list2
 
 
-@profile
 def accumulate(iterator):
     """
     Notice:
@@ -560,7 +558,6 @@ def total_unflatten(flat_list, invert_levels):
     return unflat_list
 
 
-@profile
 def invertible_flatten2(unflat_list):
     """
     An alternative to invertible_flatten which uses cumsum
@@ -635,7 +632,6 @@ def invertible_flatten2(unflat_list):
     return flat_list, cumlen_list
 
 
-@profile
 def invertible_flatten2_numpy(unflat_arrs, axis=0):
     """ more numpy version
 
@@ -697,7 +693,6 @@ def unflatten2(flat_list, cumlen_list):
     return unflat_list2
 
 
-@profile
 def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
     """
     performs only one call to the underlying func with unique rowids the func

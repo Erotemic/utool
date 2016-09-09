@@ -97,7 +97,6 @@ class Indenter(object):
         >>> ut.util_print._test_indent_print()
     """
     # THIS IS MUCH BETTER
-    #@profile
     def __init__(self, lbl='    ', enabled=True):
         self.enabled = enabled
         if not NO_INDENT or not self.enabled:
@@ -109,7 +108,6 @@ class Indenter(object):
             self.lbl = lbl
             #self.INDENT_PRINT_ = False
 
-    @profile
     def start(self):
         # Chain functions together rather than overwriting stdout
         if NO_INDENT or not self.enabled:
@@ -145,7 +143,6 @@ class Indenter(object):
         #        self.old_printDBG_dict[mod](indent_msg(msg))
         #    setattr(mod, 'printDBG', indent_printDBG)
 
-    @profile
     def stop(self):
         if NO_INDENT or not self.enabled:
             return
@@ -160,12 +157,10 @@ class Indenter(object):
         #    setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
         return builtins.print
 
-    @profile
     def __enter__(self):
         self.start()
         return self
 
-    @profile
     def __exit__(self, type_, value, trace):
         self.stop()
         if trace is not None:
