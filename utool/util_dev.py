@@ -2551,7 +2551,12 @@ class NiceRepr(object):
             devnice = self.__nice__()
             return '<%s(%s)>' % (classname, devnice)
         except AttributeError:
-            return object.__str__(self)
+            warnings.warn('Error in __nice__ for %r' % (self.__class__,),
+                          category=RuntimeWarning)
+            if util_arg.SUPER_STRICT:
+                raise
+            else:
+                return object.__str__(self)
             #return super(NiceRepr, self).__str__()
 
 

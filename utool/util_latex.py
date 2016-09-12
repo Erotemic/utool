@@ -992,7 +992,7 @@ def latex_sanitize_command_name(_cmdname):
     #command_name = to_cammel_case(re.split('[_ ]', command_name)[::2])
     str_list = re.split('[_ ]', command_name)
     #command_name = to_cammel_case(str_list)
-    command_name = ut.to_camel_case(str_list, mixed=True)
+    command_name = ut.to_camel_case('_'.join(str_list), mixed=True)
     return command_name
 
 

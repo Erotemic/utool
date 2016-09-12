@@ -1413,18 +1413,6 @@ def list_dbgstr(list_name, trunc=2):
     return list_str
 
 
-def all_rrr():
-    raise NotImplementedError('!!! STOP !!!')
-    util_inject.inject_all()
-    for mod in util_inject.get_injected_modules():
-        try:
-            if hasattr(mod, 'rrr'):
-                mod.rrr()
-        except Exception as ex:
-            print(ex)
-            print('mod = %r ' % mod)
-
-
 class EmbedOnException(object):
     """
     Context manager which embeds in ipython if an exception is thrown

@@ -1838,6 +1838,32 @@ def depth_atleast(list_, depth):
             return False
 
 
+class DefaultValueDict(dict):
+    """
+    picklable default dictionary that can store scalar values.
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> self = ut.DefaultValueDict(0)
+        >>> print(self[4])
+        0
+        >>> self[4] = 4
+        >>> print(self[4])
+        4
+    """
+    def __init__(self, default, other=None, **kwargs):
+        self.default = default
+        if other:
+            self.update(other)
+        if kwargs:
+            self.update(kwargs)
+
+    def __getitem__(self, item):
+        return self.get(item, self.default)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -879,7 +879,10 @@ def list_all_eq_to(list_, val, strict=True):
     try:
         # FUTURE WARNING
         # FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
-        return all([item == val for item in list_])
+        flags = [item == val for item in list_]
+        return all([np.all(flag) if hasattr(flag, '__array__') else flag
+                    for flag in flags])
+        #return all([item == val for item in list_])
     except ValueError:
         if not strict:
             return all([repr(item) == repr(val) for item in list_])
