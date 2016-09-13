@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import copy
 import six
 from utool import Printable
@@ -53,7 +53,7 @@ class DynStruct(Printable.AbstractPrintable):
         'Adds a dictionary to the prefs'
         if not isinstance(dyn_dict, dict):
             raise Exception('DynStruct.add_dict expects a dictionary.' +
-                            'Recieved: ' + str(type(dyn_dict)))
+                            'Recieved: ' + six.text_type(type(dyn_dict)))
         for (key, val) in six.iteritems(dyn_dict):
             self[key] = val
 

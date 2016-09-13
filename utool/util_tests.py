@@ -37,7 +37,8 @@ from utool._internal.meta_util_six import get_funcname
 print, rrr, profile = util_inject.inject2(__name__, '[tests]')
 
 
-VERBOSE_TEST = util_arg.get_argflag(('--verbtest', '--verb-test', '--verbose-test'))
+VERBOSE_TEST = util_arg.get_module_verbosity_flags('test')
+
 #PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
 DEBUG_SRC = not util_arg.get_argflag('--nodbgsrc')
 PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src', '--show-src', '--showsrc'),
@@ -516,6 +517,20 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
         print('Failed Tests:')
         print('\n'.join(failed_cmd_list))
     #L__________________
+
+    if ut.util_inject.PROFILING:
+        print("Dumping Profile Information")
+        profile = ut.KERNPROF_FUNC
+        #profile.dump_stats('out.lprof')
+        from six.moves import cStringIO
+        file_ = cStringIO()
+        profile.print_stats(stream=file_, stripzeros=True)
+        file_.seek(0)
+        text =  file_.read()
+        output_text, summary_text = ut.clean_line_profile_text(text)
+        print(summary_text)
+        ut.writeto('profile_output.txt', output_text + '\n' + summary_text)
+
     if return_error_report:
         return (nPass, nTotal, failed_cmd_list, error_report_list)
     else:
@@ -1727,6 +1742,9 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         help_='specify a function to doctest')
     if test_funcname is None:
         cmdline_varags = ut.get_cmdline_varargs()
+        if VERBOSE_TEST:
+            print('Checking varargs')
+            print('cmdline_varags = %r' % (cmdline_varags,))
         if len(cmdline_varags) > 0:
             test_funcname = cmdline_varags[0]
     print('test_funcname = %r' % (test_funcname,))

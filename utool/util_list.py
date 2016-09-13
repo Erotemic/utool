@@ -1035,7 +1035,8 @@ def intersect_ordered(list1, list2):
         >>> print(result)
         ['featweight_rowid']
     """
-    return [item for item in list1 if item in set(list2)]
+    set2 = set(list2)
+    return [item for item in list1 if item in set2]
 
 
 def union_ordered(*lists):

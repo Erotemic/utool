@@ -360,7 +360,7 @@ def recombine_nestings(parsed_blocks):
 
 
 class Nesting(object):
-    """
+    r"""
     x = Nesting.from_nestings(nestings)
     list(x.itertype('nonNested'))
     """
@@ -474,7 +474,7 @@ def parse_nestings(string, only_curl=False):
         return (parentTag, out)
 
     def combine_nested(opener, closer, content, name=None):
-        """
+        r"""
         opener, closer, content = '(', ')', nest_body
         """
         import utool as ut  # NOQA
@@ -529,7 +529,7 @@ def parse_nestings(string, only_curl=False):
 
 
 def parse_cfgstr3(string):
-    """
+    r"""
     http://stackoverflow.com/questions/4801403/how-can-i-use-pyparsing-to-parse-nested-expressions-that-have-mutiple-opener-clo
 
     Ignore:
@@ -694,7 +694,7 @@ def parse_cfgstr3(string):
 
 
 def noexpand_parse_cfgstrs(cfgopt_strs, alias_keys=None):
-    """
+    r"""
     alias_keys = None
     cfgopt_strs = 'f=2,c=[(1,2),(3,4)],d=1'
     string  = cfgopt_strs
@@ -874,6 +874,8 @@ def parse_cfgstr_name_options(cfgstr):
     assert match is not None, 'parsing of cfgstr failed'
     groupdict = match.groupdict()
     cfgname = groupdict['cfgname']
+    if cfgname == '':
+        cfgname = 'default'
     cfgopt_strs = groupdict.get('cfgopt', None)
     subx_str = groupdict.get('subx', None)
     if cfgopt_strs is None:

@@ -7,10 +7,6 @@ import operator
 import inspect
 import traceback
 import time
-try:
-    import numpy as np
-except ImportError:
-    pass
 import sys
 import six
 import shelve
@@ -19,6 +15,10 @@ import keyword
 import re
 import types
 import functools
+try:
+    import numpy as np
+except ImportError:
+    pass
 from os.path import splitext, split, basename, dirname
 from utool import util_inject
 from utool import util_arg
@@ -78,7 +78,7 @@ def ipython_execstr():
                 embedded = True
                 IPython.embed()
             except Exception as ex:
-                print('[ipython_execstr]: Error: ' + str(type(ex)) + str(ex))
+                print('[ipython_execstr]: Error: ' + six.text_type(type(ex)) + six.text_type(ex))
                 raise
     ''')
 
@@ -538,7 +538,7 @@ def embed2(**kwargs):
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
-    if num is None or util_arg.get_argflag('--quit' + str(num)):
+    if num is None or util_arg.get_argflag('--quit' + six.text_type(num)):
         if parent_locals is None:
             parent_locals = get_parent_locals()
         if parent_globals is None:
@@ -546,10 +546,10 @@ def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
         exec(execstr_dict(parent_locals, 'parent_locals'))
         exec(execstr_dict(parent_globals, 'parent_globals'))
         if embed_:
-            print('Triggered --quit' + str(num))
+            print('Triggered --quit' + six.text_type(num))
             embed(parent_locals=parent_locals,
                   parent_globals=parent_globals)
-        print('Triggered --quit' + str(num))
+        print('Triggered --quit' + six.text_type(num))
         sys.exit(1)
 
 
@@ -629,15 +629,15 @@ def search_stack_for_localvar(varname):
         None if varname is not found else its value
     """
     curr_frame = inspect.currentframe()
-    print(' * Searching parent frames for: ' + str(varname))
+    print(' * Searching parent frames for: ' + six.text_type(varname))
     frame_no = 0
     while curr_frame.f_back is not None:
         if varname in curr_frame.f_locals.keys():
-            print(' * Found in frame: ' + str(frame_no))
+            print(' * Found in frame: ' + six.text_type(frame_no))
             return curr_frame.f_locals[varname]
         frame_no += 1
         curr_frame = curr_frame.f_back
-    print('... Found nothing in all ' + str(frame_no) + ' frames.')
+    print('... Found nothing in all ' + six.text_type(frame_no) + ' frames.')
     return None
 
 
@@ -653,21 +653,21 @@ def search_stack_for_var(varname, verbose=util_arg.NOT_QUIET):
     """
     curr_frame = inspect.currentframe()
     if verbose:
-        print(' * Searching parent frames for: ' + str(varname))
+        print(' * Searching parent frames for: ' + six.text_type(varname))
     frame_no = 0
     while curr_frame.f_back is not None:
         if varname in curr_frame.f_locals.keys():
             if verbose:
-                print(' * Found local in frame: ' + str(frame_no))
+                print(' * Found local in frame: ' + six.text_type(frame_no))
             return curr_frame.f_locals[varname]
         if varname in curr_frame.f_globals.keys():
             if verbose:
-                print(' * Found global in frame: ' + str(frame_no))
+                print(' * Found global in frame: ' + six.text_type(frame_no))
             return curr_frame.f_globals[varname]
         frame_no += 1
         curr_frame = curr_frame.f_back
     if verbose:
-        print('... Found nothing in all ' + str(frame_no) + ' frames.')
+        print('... Found nothing in all ' + six.text_type(frame_no) + ' frames.')
     return None
 
 # Alias
@@ -873,18 +873,18 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
     def __explore_module(module, indent, seen, depth, maxdepth, nonmodules):
         valid_children = []
         ret = u''
-        modname = str(module.__name__)
+        modname = six.text_type(module.__name__)
         #modname = repr(module)
         for child, aname in __childiter(module):
             try:
                 childtype = type(child)
                 if not isinstance(childtype, types.ModuleType):
                     if nonmodules:
-                        fullstr = indent + '    ' + str(aname) + ' = ' + repr(child)
+                        fullstr = indent + '    ' + six.text_type(aname) + ' = ' + repr(child)
                         truncstr = util_str.truncate_str(fullstr) + '\n'
                         ret +=  truncstr
                     continue
-                childname = str(child.__name__)
+                childname = six.text_type(child.__name__)
                 if seen is not None:
                     if childname in seen:
                         continue
@@ -958,7 +958,7 @@ def debug_hstack(stacktup):
     try:
         return np.hstack(stacktup)
     except ValueError as ex:
-        print('ValueError in debug_hstack: ' + str(ex))
+        print('ValueError in debug_hstack: %s' % (ex,))
         debug_npstack(stacktup)
         raise
 
@@ -967,7 +967,7 @@ def debug_vstack(stacktup):
     try:
         return np.vstack(stacktup)
     except ValueError as ex:
-        print('ValueError in debug_vstack: ' + str(ex))
+        print('ValueError in debug_vstack: %s' % (ex,))
         debug_npstack(stacktup)
         raise
 
@@ -1034,7 +1034,7 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     # get requested print function
     if use_stdout:
         def print_func(*args):
-            msg = ', '.join(list(map(str, args)))
+            msg = ', '.join(list(map(six.text_type, args)))
             sys.stdout.write(msg + '\n')
             sys.stdout.flush()
     else:
@@ -1132,8 +1132,8 @@ def formatex(ex, msg='[!?] Caught exception',
             from utool import util_str
             tbtext = util_str.highlight_text(tbtext, lexer_name='pytb', stripall=True)
         errstr_list.append(tbtext)
-    errstr_list.append(prefix + ' ' + str(msg) + '\n%r: %s' % (type(ex), str(ex)))
-    #errstr_list.append(prefix + ' ' + str(msg) + '\ntype(ex)=%r' % (type(ex),))
+    errstr_list.append(prefix + ' ' + six.text_type(msg) + '\n%r: %s' % (type(ex), six.text_type(ex)))
+    #errstr_list.append(prefix + ' ' + six.text_type(msg) + '\ntype(ex)=%r' % (type(ex),))
     parse_locals_keylist(locals_, key_list, errstr_list, prefix)
     errstr_list.append('</!!! %s !!!>' % ex_tag)
     return '\n'.join(errstr_list)
@@ -1167,7 +1167,7 @@ def get_varname_from_locals(val, locals_, default='varname-not-found',
         for count, val_ in enumerate(six.itervalues(locals_)):
             if cmpfunc_(val, val_):
                 index_ = count
-        varname = str(list(locals_.keys())[index_])
+        varname = six.text_type(list(locals_.keys())[index_])
     except NameError:
         varname = default
         if strict:
@@ -1211,7 +1211,7 @@ def get_varstr(val, pad_stdout=True, locals_=None):
     if pad_stdout:
         varstr_list.append('\n\n+==========')
     varstr_list.append(repr(type(val)) + ' ' + name + ' = ')
-    varstr_list.append(str(val))
+    varstr_list.append(six.text_type(val))
     if pad_stdout:
         varstr_list.append('L==========')
     varstr = '\n'.join(varstr_list)
@@ -1278,7 +1278,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
                 tup = key
                 func, key_ = tup
                 val = get_varval_from_locals(key_, locals_)
-                funcvalstr = str(func(val))
+                funcvalstr = six.text_type(func(val))
                 callname = util_str.get_callable_name(func)
                 strlist_.append('%s %s(%s) = %s' % (prefix, callname, key_, funcvalstr))
             elif isinstance(key, six.string_types):
@@ -1296,7 +1296,7 @@ def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
                 valstr = util_str.truncate_str(util_str.repr2(val), maxlen=200)
                 strlist_.append('%s %s %s = %s' % (prefix, typestr, namestr, valstr))
         except AssertionError as ex:
-            strlist_.append(prefix + ' ' + str(ex) + ' (this likely due to a misformatted printex and is not related to the exception)')
+            strlist_.append(prefix + ' ' + six.text_type(ex) + ' (this likely due to a misformatted printex and is not related to the exception)')
     return strlist_
 
 
@@ -1311,7 +1311,7 @@ def get_reprs(*args, **kwargs):
     var_list = list(args) + kwargs.get('var_list', [])
     for key in var_list:
         var = locals_[key]
-        msg = util_str.horiz_string(str(key) + ' = ', repr(var))
+        msg = util_str.horiz_string(six.text_type(key) + ' = ', repr(var))
         msg_list.append(msg)
 
     reprs = '\n' + util_str.indent('\n##\n'.join(msg_list)) + '\n'
@@ -1336,7 +1336,7 @@ def printvar(locals_, varname, attr='.shape', typepad=0):
         var_ = locals_[varname_]  # NOQA
         var = eval('var_' + dotname_)
     # Print in format
-    typestr = str(util_type.get_type(var)).ljust(typepad)
+    typestr = six.text_type(util_type.get_type(var)).ljust(typepad)
 
     if isinstance(var, np.ndarray):
         varstr = eval('str(var' + attr + ')')

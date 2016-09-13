@@ -378,6 +378,7 @@ class UserProfile(object):
         self.project_dpaths = None
         self.project_include_patterns = None
         self.project_exclude_dirs = None
+        self.project_exclude_patterns = None
 
     # def __str__(self):
     #     return
@@ -404,6 +405,7 @@ def ibeis_user_profile():
         '_graveyard', '_broken', 'CompilerIdCXX', 'CompilerIdC', 'build',
         'old', '_old_qt_hs_matcher',
     ]
+    self.project_exclude_patterns = ['_grave*', '_autogen_explicit_controller*']
     return self
 
 
@@ -472,6 +474,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     grepkw['exclude_dirs'] = user_profile.project_exclude_dirs
     grepkw['dpath_list'] = user_profile.project_dpaths
     grepkw['include_patterns'] = user_profile.project_include_patterns
+    grepkw['exclude_patterns'] = user_profile.project_exclude_patterns
     grepkw.update(kwargs)
 
     msg_list1 = []
@@ -498,7 +501,8 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     reflags = reflags_list[0]
 
     # from utool import util_regex
-    resultstr = ut.make_grep_resultstr(grep_result, extended_regex_list, reflags, colored=colored)
+    resultstr = ut.make_grep_resultstr(grep_result, extended_regex_list,
+                                       reflags, colored=colored)
     msg_list2.append(resultstr)
     print_ = msg_list2.append
     #for fpath, lines, lxs in zip(found_fpath_list, found_lines_list,
@@ -727,7 +731,7 @@ def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, 
     print(' * force: %r' % (force,))
 
     # Walk through each directory recursively
-    for fpath in ut.matching_fnames(sedkw['dpath_list'],
+    for fpath in ut.matching_fpaths(sedkw['dpath_list'],
                                     sedkw['include_patterns'],
                                     sedkw['exclude_dirs'],
                                     recursive=recursive):

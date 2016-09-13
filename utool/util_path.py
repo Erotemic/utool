@@ -1525,11 +1525,6 @@ def assertpath(path_, msg='', **kwargs):
 
 
 assert_exists = assertpath
-#def assert_exists(path, msg='', **kwargs):
-#    if NO_ASSERTS:
-#        return
-#    return assertpath(path, msg, **kwargs)
-#    #assert exists(path), 'path=%r does not exist! %s' % (path, msg)
 
 
 def pathsplit_full(path):
@@ -1546,11 +1541,12 @@ def get_standard_include_patterns():
     return ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim']
 
 
-def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
-                    greater_exclude_dirs=[], recursive=True):
+def matching_fpaths(dpath_list, include_patterns, exclude_dirs=[],
+                    greater_exclude_dirs=[], exclude_patterns=[],
+                    recursive=True):
     r"""
-    matching_fnames. walks dpath lists returning all directories that match the
-    requested pattern.
+    walks dpath lists returning all directories that match the requested
+    pattern.
 
     Args:
         dpath_list       (list):
@@ -1571,7 +1567,7 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
         >>> exclude_dirs = ['_page']
         >>> greater_exclude_dirs = get_standard_exclude_dnames()
         >>> recursive = True
-        >>> fpath_gen = matching_fnames(dpath_list, include_patterns, exclude_dirs,
+        >>> fpath_gen = matching_fpaths(dpath_list, include_patterns, exclude_dirs,
         >>>                             greater_exclude_dirs, recursive)
         >>> result = list(fpath_gen)
         >>> print('\n'.join(result))
@@ -1588,18 +1584,21 @@ def matching_fnames(dpath_list, include_patterns, exclude_dirs=[],
             # Look at one subdir
             if basename(root) in exclude_dirs:
                 continue
+            _match = fnmatch.fnmatch
             for name in fname_list:
-                # For the filesnames which match the patterns
-                if any([fnmatch.fnmatch(name, pat) for pat in include_patterns]):
-                    yield join(root, name)
-                    #fname_list.append((root, name))
+                # yeild filepaths that are included
+                if any(_match(name, pat) for pat in include_patterns):
+                    # ... and not excluded
+                    if not any(_match(name, pat) for pat in exclude_patterns):
+                        fpath = join(root, name)
+                        yield fpath
             if not recursive:
                 break
-    #return fname_list
 
 
 def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
-        fpath_list=None, verbose=None, include_patterns=None):
+        fpath_list=None, verbose=None, include_patterns=None,
+        exclude_patterns=[]):
     """
     Python implementation of sed. NOT FINISHED
 
@@ -1622,10 +1621,10 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
     if fpath_list is None:
         greater_exclude_dirs = get_standard_exclude_dnames()
         exclude_dirs = []
-        fpath_generator = matching_fnames(
-            dpath_list, include_patterns, exclude_dirs, greater_exclude_dirs,
-            recursive=recursive)
-        #fpath_generator = matching_fnames(dpath_list, include_patterns, recursive=recursive)
+        fpath_generator = matching_fpaths(
+            dpath_list, include_patterns, exclude_dirs,
+            greater_exclude_dirs=greater_exclude_dirs,
+            recursive=recursive, exclude_patterns=exclude_patterns)
     else:
         fpath_generator = fpath_list
     if verbose:
@@ -1904,7 +1903,8 @@ def testgrep():
 #@profile
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None, inverse=False,
-         verbose=VERBOSE, fpath_list=None, reflags=0, cache=None):
+         exclude_patterns=[], verbose=VERBOSE, fpath_list=None, reflags=0,
+         cache=None):
     r"""
     greps for patterns
     Python implementation of grep. NOT FINISHED
@@ -1963,9 +1963,11 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     found_lxs_list = []
     # Walk through each directory recursively
     if fpath_list is None:
-        fpath_generator = matching_fnames(dpath_list, include_patterns,
-                                          exclude_dirs, greater_exclude_dirs,
-                                          recursive=recursive)
+        fpath_generator = matching_fpaths(
+            dpath_list=dpath_list, include_patterns=include_patterns,
+            exclude_dirs=exclude_dirs,
+            greater_exclude_dirs=greater_exclude_dirs,
+            exclude_patterns=exclude_patterns, recursive=recursive)
     else:
         fpath_generator = fpath_list
     #     from utool import util_regex

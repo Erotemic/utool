@@ -6,7 +6,7 @@ FIXME:
     the __setattr__ __getattr__ stuff needs to be redone, and
     DynStruct probably needs to go away.
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 from six.moves import cPickle as pickle
 try:
@@ -123,7 +123,8 @@ class Pref(PrefNode):
         """
         super(Pref, self).__init__(child_exclude_list=['_intern', '_tree'])
         # Private internal structure
-        self._intern = PrefInternal(name, doc, default, hidden, fpath, depeq, choices)
+        self._intern = PrefInternal(name, doc, default, hidden, fpath, depeq,
+                                    choices)
         self._tree = PrefTree(parent)
         #if default is PrefNode:
         #    print('----------')
@@ -440,7 +441,7 @@ class Pref(PrefNode):
     def pref_update(self, key, new_val):
         """ Changes a preference value and saves it to disk """
         print('Update and save pref from: %s=%r, to: %s=%r' %
-              (key, str(self[key]), key, str(new_val)))
+              (key, six.text_type(self[key]), key, six.text_type(new_val)))
         self.__setattr__(key, new_val)
         return self.save()
 
@@ -517,7 +518,7 @@ def _qt_set_leaf_data(self, qvar):
         print('[pref.qt_set_leaf_data] _intern.type_=%r' % self._intern.get_type())
         print('[pref.qt_set_leaf_data] type(_intern.value)=%r' % type(self._intern.value))
         print('[pref.qt_set_leaf_data] _intern.value=%r' % self._intern.value)
-        #print('[pref.qt_set_leaf_data] qvar.toString()=%s' % str(qvar.toString()))
+        #print('[pref.qt_set_leaf_data] qvar.toString()=%s' % six.text_type(qvar.toString()))
     if self._tree.parent is None:
         raise Exception('[Pref.qtleaf] Cannot set root preference')
     if self.qt_is_editable():
@@ -526,14 +527,14 @@ def _qt_set_leaf_data(self, qvar):
             raise Exception('[Pref.qtleaf] Qt can only change leafs')
         elif self._intern.value is None:
             # None could be a number of types
-            def cast_order(var, order=[bool, int, float, str]):
+            def cast_order(var, order=[bool, int, float, six.text_type]):
                 for type_ in order:
                     try:
                         ret = type_(var)
                         return ret
                     except Exception:
                         continue
-            new_val = cast_order(str(qvar))
+            new_val = cast_order(six.text_type(qvar))
         self._intern.get_type()
         if isinstance(self._intern.value, bool):
             #new_val = bool(qvar.toBool())
@@ -549,21 +550,21 @@ def _qt_set_leaf_data(self, qvar):
             #new_val = float(qvar.toDouble()[0])
             new_val = float(qvar)
         elif isinstance(self._intern.value, six.string_types):
-            #new_val = str(qvar.toString())
-            new_val = str(qvar)
+            #new_val = six.text_type(qvar.toString())
+            new_val = six.text_type(qvar)
         elif isinstance(self._intern.value, PrefChoice):
             #new_val = qvar.toString()
-            new_val = str(qvar)
+            new_val = six.text_type(qvar)
             if new_val.upper() == 'NONE':
                 new_val = None
         else:
             try:
-                #new_val = str(qvar.toString())
+                #new_val = six.text_type(qvar.toString())
                 type_ = self._intern.get_type()
                 if type_ is not None:
-                    new_val = type_(str(qvar))
+                    new_val = type_(six.text_type(qvar))
                 else:
-                    new_val = str(qvar)
+                    new_val = six.text_type(qvar)
             except Exception:
                 raise NotImplementedError(
                     ('[Pref.qtleaf] Unknown internal type. '
