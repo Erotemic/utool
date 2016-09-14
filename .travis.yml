@@ -5,6 +5,7 @@ python:
 before_install:
   - pip install networkx
   - pip install jedi
+  - pip install delorean
 install:
   - travis_retry python setup.py build develop
 script: 
