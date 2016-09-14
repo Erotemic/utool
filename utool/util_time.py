@@ -304,18 +304,18 @@ def utcnow_tz():
     return dt
 
 
-def parse_timestamp(timestamp, utc=True, timestamp_format=None):
+def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
     r"""
     pip install delorean
 
     Args:
-        timestamp (str): assumed to be in utc unless specified
-        timestamp_format (None): (default = None)
-        utc (bool): if True assumes input is in utc and gives output in utc.
+        timestamp (str): timestampe string
+        zone (bool): assumes input is zone (only if not specified) and gives
+            output in zone.
 
     CommandLine:
-        python -m utool.util_time --test-parse_timestamp --show
-        python -m utool.util_time parse_timestamp --show
+        python -m utool.util_time --test-parse_timestamp
+        python -m utool.util_time parse_timestamp
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -326,10 +326,10 @@ def parse_timestamp(timestamp, utc=True, timestamp_format=None):
         >>> timestamps = [
         >>>     ('2015:04:01 00:00:00',),
         >>>     ('2005-10-27T14:35:20+02:00',),
-        >>>     ('2000-01-01T09:00:00-05:00', True),
-        >>>     ('2000-01-01T09:00:00-05:00', False),
-        >>>     ('2000-01-01T09:00:00', False),
-        >>>     ('2000-01-01T09:00:00', True),
+        >>>     ('2000-01-01T09:00:00-05:00', 'UTC'),
+        >>>     ('2000-01-01T09:00:00-05:00', 'EST'),
+        >>>     ('2000-01-01T09:00:00', 'EST'),
+        >>>     ('2000-01-01T09:00:00', 'UTC'),
         >>>     ('6:35:01\x002006:03:19 1',),
         >>>     ('2016/08/18 10:51:02 EST',),
         >>>     ('2016-08-18T10:51:02-05:00',),
@@ -387,14 +387,18 @@ def parse_timestamp(timestamp, utc=True, timestamp_format=None):
     dt_ = datetime.datetime.strptime(timestamp_, timefmt)
     if use_delorean:
         #if utc and utc_offset is not None:
-        if utc:
-            dn_ = delorean.Delorean(dt_, 'UTC')
-        else:
-            dn_ = delorean.Delorean(dt_, time.tzname[0])
+        #if utc:
+        #    dn_ = delorean.Delorean(dt_, 'UTC')
+        #else:
+        if zone is None:
+            zone = time.tzname[0]
+        if zone == 'local':
+            zone = time.tzname[0]
+        dn_ = delorean.Delorean(dt_, zone)
     else:
         dn_ = dt_
 
-    if utc_offset is not None and utc:
+    if utc_offset is not None and zone == 'UTC':
         if use_delorean:
             # Python 2.7 does not account for timezones
             if ':' in utc_offset:
@@ -414,8 +418,8 @@ def parse_timestamp(timestamp, utc=True, timestamp_format=None):
         dn = dn_
 
     if use_delorean:
-        if not utc:
-            dn.shift(time.tzname[0])
+        if not zone != 'UTC':
+            dn.shift(zone)
         return dn.datetime
     #return dn
 
