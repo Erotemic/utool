@@ -530,6 +530,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
         output_text, summary_text = ut.clean_line_profile_text(text)
         print(summary_text)
         ut.writeto('profile_output.txt', output_text + '\n' + summary_text)
+        ut.writeto('profile_output.%s.txt' % (ut.get_timestamp()),
+                   output_text + '\n' + summary_text)
 
     if return_error_report:
         return (nPass, nTotal, failed_cmd_list, error_report_list)

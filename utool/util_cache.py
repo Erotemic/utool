@@ -695,7 +695,31 @@ def get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_cache import *  # NOQA
+        >>> import utool as ut
         >>> use_hash = None
+        >>> func = consensed_cfgstr
+        >>> args = ('a', 'b', 'c', 'd')
+        >>> kwargs = {}
+        >>> key_argx = [0, 1, 2]
+        >>> key_kwds = []
+        >>> kwdefaults = ut.util_inspect.get_kwdefaults(func)
+        >>> argnames   = ut.util_inspect.get_argnames(func)
+        >>> get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cache import *  # NOQA
+        >>> import utool as ut
+        >>> self = ut.LazyList
+        >>> use_hash = None
+        >>> func = self.append
+        >>> args = ('a', 'b')
+        >>> kwargs = {}
+        >>> key_argx = [1]
+        >>> key_kwds = []
+        >>> kwdefaults = ut.util_inspect.get_kwdefaults(func)
+        >>> argnames   = ut.util_inspect.get_argnames(func)
+        >>> get_cfgstr_from_args(func, args, kwargs, key_argx, key_kwds, kwdefaults, argnames)
     """
     #try:
     #fmt_str = '%s(%s)'
@@ -778,9 +802,13 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
         verbose = VERBOSE_CACHE
     def cached_closure(func):
         from utool import util_decor
+        import utool as ut
         fname_ = util_inspect.get_funcname(func) if fname is None else fname
         kwdefaults = util_inspect.get_kwdefaults(func)
         argnames   = util_inspect.get_argnames(func)
+        if ut.is_method(func):
+            # ignore self for methods
+            argnames = argnames[1:]
         cacher = Cacher(fname_, cache_dir=cache_dir, appname=appname,
                         verbose=verbose)
         if use_cache is None:
