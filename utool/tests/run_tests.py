@@ -100,7 +100,7 @@ def run_tests():
     # Write to py.test / nose format
     if ut.get_argflag('--tonose'):
         convert_tests_from_utool_to_nose(module_list)
-        return 1
+        return 0
 
     nPass, nTotal, failed_cmd_list = ut.doctest_module_list(module_list)
     if nPass != nTotal:
