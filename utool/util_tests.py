@@ -37,7 +37,7 @@ from utool._internal.meta_util_six import get_funcname
 print, rrr, profile = util_inject.inject2(__name__, '[tests]')
 
 
-VERBOSE_TEST = util_arg.get_module_verbosity_flags('test')
+VERBOSE_TEST = util_arg.get_module_verbosity_flags('test')[0]
 
 #PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
 DEBUG_SRC = not util_arg.get_argflag('--nodbgsrc')

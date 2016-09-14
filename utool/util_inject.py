@@ -461,8 +461,10 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=
     return (print, print_, printDBG, rrr, profile_)
 
 
-def inject2(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=1):
+def inject2(module_name=None, module_prefix=None, DEBUG=False, module=None, N=1):
     """ wrapper that depricates print_ and printDBG """
+    if module_prefix is None:
+        module_prefix = '[%s]' % (module_name,)
     noinject(module_name, module_prefix, DEBUG, module, N=N)
     module = _get_module(module_name, module)
     rrr      = make_module_reload_func(None, module_prefix, module)

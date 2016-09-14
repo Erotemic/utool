@@ -1538,7 +1538,7 @@ def get_standard_exclude_dnames():
 
 
 def get_standard_include_patterns():
-    return ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim']
+    return ['*.py', '*.pyx', '*.pxi', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim']
 
 
 def matching_fpaths(dpath_list, include_patterns, exclude_dirs=[],
@@ -1613,7 +1613,7 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
     """
     #_grep(r, [repl], dpath_list=dpath_list, recursive=recursive)
     if include_patterns is None:
-        include_patterns = ['*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.html', '*.tex']
+        include_patterns = ['*.py', '*.pyx', '*.pxi', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.html', '*.tex']
     if dpath_list is None:
         dpath_list = [os.getcwd()]
     if verbose is None:
