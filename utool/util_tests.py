@@ -519,19 +519,7 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
     #L__________________
 
     if ut.util_inject.PROFILING:
-        print("Dumping Profile Information")
-        profile = ut.KERNPROF_FUNC
-        #profile.dump_stats('out.lprof')
-        from six.moves import cStringIO
-        file_ = cStringIO()
-        profile.print_stats(stream=file_, stripzeros=True)
-        file_.seek(0)
-        text =  file_.read()
-        output_text, summary_text = ut.clean_line_profile_text(text)
-        print(summary_text)
-        ut.writeto('profile_output.txt', output_text + '\n' + summary_text)
-        ut.writeto('profile_output.%s.txt' % (ut.get_timestamp()),
-                   output_text + '\n' + summary_text)
+        ut.dump_profile_text()
 
     if return_error_report:
         return (nPass, nTotal, failed_cmd_list, error_report_list)
@@ -1782,12 +1770,12 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                 pass
             retcode = 0
             print('Finished function test.')
-            print('...exiting')
-            sys.exit(retcode)
         else:
             print('Did not find any function named %r ' % (test_funcname,))
-            print('...exiting')
-            sys.exit(0)
+        if ut.util_inject.PROFILING:
+            ut.dump_profile_text()
+        print('...exiting')
+        sys.exit(retcode)
 
 
 def execute_doctest(func, testnum=0, module=None):

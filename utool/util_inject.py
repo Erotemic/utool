@@ -327,34 +327,17 @@ def TIMERPROF_FUNC(func):
 
 if '--profile' in sys.argv:
     import line_profiler
-    KERNPROF_FUNC = line_profiler.LineProfiler()
+    PROFILE_FUNC = line_profiler.LineProfiler()
     PROFILING = True
     if __DEBUG_PROF__:
         print('[util_inject] PROFILE ON')
 else:
     PROFILING = False
-    KERNPROF_FUNC = DUMMYPROF_FUNC
-    #KERNPROF_FUNC = TIMERPROF_FUNC
+    PROFILE_FUNC = DUMMYPROF_FUNC
+    #PROFILE_FUNC = TIMERPROF_FUNC
     if __DEBUG_PROF__:
         print('[util_inject] PROFILE OFF')
 
-#else:
-#    try:
-#        #KERNPROF_FUNC = TIMERPROF_FUNC
-#        # TODO: Fix this in case using memprof instead
-#        #raise AttributeError('')
-#        import kernprof
-#        #KERNPROF_FUNC = getattr(builtins, 'profile')
-#        KERNPROF_FUNC = kernprof.ContextualProfile()
-#        PROFILING = True
-#        if __DEBUG_PROF__:
-#            print('[util_inject] PROFILE ON')
-#    except AttributeError:
-#        PROFILING = False
-#        KERNPROF_FUNC = DUMMYPROF_FUNC
-#        #KERNPROF_FUNC = TIMERPROF_FUNC
-#        if __DEBUG_PROF__:
-#            print('[util_inject] PROFILE OFF')
 
 # Look in command line for functions to profile
 PROF_FUNC_PAT_LIST = meta_util_arg.get_argval('--prof-func', type_=str, default=None)
@@ -413,11 +396,11 @@ def make_module_profile_func(module_name=None, module_prefix='[???]', module=Non
     def profile_withfuncname_filter(func):
         # Test to see if this function is specified
         if _profile_func_flag(meta_util_six.get_funcname(func)):
-            #print('profile func %r' % (func,))
-            return KERNPROF_FUNC(func)
+            if __DEBUG_PROF__:
+                print('profile func %r' % (func,))
+            return PROFILE_FUNC(func)
         return func
     return profile_withfuncname_filter
-    #return KERNPROF_FUNC
 
 
 def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=0, via=None):

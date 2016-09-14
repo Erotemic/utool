@@ -6,7 +6,7 @@ Cleaning script for the output of utool profiling
 Removes profiled output of code that never ran
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import range
+from six.moves import range, cStringIO
 import six
 import operator
 import utool as ut
@@ -15,6 +15,22 @@ import utool as ut
 input_fname = 'raw_profile.dev.py.2014-09-23_18-28-57.raw.prof'
 input_fname = 'raw_profile.qt_inc_automatch.py.2014-12-23_11-31-53.raw.prof'
 """
+
+
+def dump_profile_text():
+    import utool as ut
+    print("Dumping Profile Information")
+    profile = ut.PROFILE_FUNC
+    #profile.dump_stats('out.lprof')
+    file_ = cStringIO()
+    profile.print_stats(stream=file_, stripzeros=True)
+    file_.seek(0)
+    text =  file_.read()
+    output_text, summary_text = ut.clean_line_profile_text(text)
+    print(summary_text)
+    ut.writeto('profile_output.txt', output_text + '\n' + summary_text)
+    ut.writeto('profile_output.%s.txt' % (ut.get_timestamp()),
+               output_text + '\n' + summary_text)
 
 
 def __dbg_list(profile_block_list):

@@ -2217,6 +2217,7 @@ def longest_common_substring(s1, s2):
     return s1[x_longest - longest: x_longest]
 
 
+@profile
 def expensive_task_gen(num=8700):
     r"""
     Runs a task that takes some time
