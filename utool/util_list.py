@@ -1014,7 +1014,7 @@ def filter_Nones(item_list):
 # --- List combinations --- #
 
 
-def intersect_ordered(list1, list2):
+def isect(list1, list2):
     """
     returns list1 elements that are also in list2. preserves order of list1
 
@@ -1034,6 +1034,75 @@ def intersect_ordered(list1, list2):
         >>> result = intersect_ordered(list1, list2)
         >>> print(result)
         ['featweight_rowid']
+
+    Timeit:
+        def timeit_func(func, *args):
+            niter = 10
+            times = []
+            for count in range(niter):
+                with ut.Timer(verbose=False) as t:
+                    _ = func(*args)
+                times.append(t.ellapsed)
+            return sum(times) / niter
+
+        grid = {
+            'size1': [1, 10, 100, 1000, 10000, 100000],
+            #'size2': [1, 10, 100, 1000, 10000, 100000],
+            #'overlap': [0, 1],
+        }
+        data = []
+        for kw in ut.all_dict_combinations(grid):
+            pool = np.arange(kw['size1'] * 2)
+            size2 = size1 = kw['size1']
+            #size2 = kw['size2']
+            #list1 = (np.random.rand(size1) * size1).astype(np.int32).tolist()
+            #if overlap:
+            #    list2 = list1.
+            #else:
+            #    list2 = (np.random.rand(size2) * size2).astype(np.int32).tolist()
+            list1 = ut.random_sample(pool, size1).tolist()
+            list2 = ut.random_sample(pool, size2).tolist()
+            kw['ut'] = timeit_func(ut.isect, list1, list2)
+            kw['np1'] = timeit_func(np.intersect1d, list1, list2)
+            kw['py1'] = timeit_func(lambda a, b: set.intersection(set(a), set(b)), list1, list2)
+            #kw['np2'] = timeit_func(lambda a, b: sorted(np.intersect1d(a, b)), list1, list2)
+            #kw['py2'] = timeit_func(lambda a, b: sorted(set.intersection(set(a), set(b))), list1, list2)
+            data.append(kw)
+
+        import pandas as pd
+        pd.options.display.max_rows = 1000
+        pd.options.display.width = 1000
+        df = pd.DataFrame.from_dict(data)
+        data_keys = list(grid.keys())
+        other_keys = ut.setdiff(df.columns, data_keys)
+        df = df.reindex_axis(data_keys + other_keys, axis=1)
+        #print(df.sort('absolute_change', ascending=False))
+
+        print(str(df).split('\n')[0])
+        for row in df.values:
+            argmin = row[len(data_keys):].argmin() + len(data_keys)
+            print('    ' + ', '.join([
+            '%6d' % (r) if x < len(data_keys) else (
+                ut.color_text('%8.6f' % (r,), 'blue')
+                    if x == argmin else '%8.6f' % (r,))
+            for x, r in enumerate(row)
+            ]))
+
+        %timeit ut.isect(list1, list2)
+        %timeit np.intersect1d(list1, list2, assume_unique=True)
+        %timeit set.intersection(set(list1), set(list2))
+
+        #def highlight_max(s):
+        #    '''
+        #    highlight the maximum in a Series yellow.
+        #    '''
+        #    is_max = s == s.max()
+        #    return ['background-color: yellow' if v else '' for v in is_max]
+        #df.style.apply(highlight_max)
+
+
+
+
     """
     set2 = set(list2)
     return [item for item in list1 if item in set2]
@@ -1063,7 +1132,7 @@ def list_union(*lists):
     return set.union(*[set(list_) for list_ in lists])
 
 
-isect = intersect_ordered
+intersect_ordered = isect
 
 is_subset = list_issubset
 is_superset = list_issuperset

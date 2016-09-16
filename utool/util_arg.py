@@ -7,12 +7,11 @@ import sys
 import six
 import os
 import itertools
-#import six
 import argparse
 from utool import util_inject
 from utool import util_type
 from utool._internal import meta_util_six, meta_util_arg, meta_util_iter
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[arg]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 #STRICT = '--nostrict' not in sys.argv
 DEBUG2       = meta_util_arg.DEBUG2
@@ -132,7 +131,6 @@ def autogen_argparse_block(extra_args=[]):
         print(ut.list_str(multi_groups, newlines=2))
 
 
-#@profile
 def get_argflag(argstr_, default=False, help_='', return_specified=None,
                 need_prefix=True, return_was_specified=False, argv=None,
                 debug=None,
@@ -360,10 +358,11 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
     if debug is None:
         debug = DEBUG
         # debug = VERYVERBOSE
-        pass
 
     if argv is None:
         argv = sys.argv
+
+    #verbose = 1
 
     if verbose:
         print('[get_argval] Searching Commandline for argstr_=%r' % (argstr_,))
@@ -474,8 +473,22 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                         # HACK FOR LIST. TODO INTEGRATE
                         if verbose:
                             print('[get_argval] ... Found equal list')
+
+                        #import IPython
+                        #IPython.embed()
                         val_after_ = val_after.rstrip(']').lstrip('[')
-                        arg_after = val_after_.split(',')
+                        if True:
+                            # Hacker way to be less hacky about parsing lists
+                            from utool import util_gridsearch
+                            blocks = util_gridsearch.parse_nestings(val_after_)
+                            sentinal = '##COM&&'
+                            changed = [(block[0], block[1].replace(',', sentinal))
+                                       if block[0] == 'nonNested' else block
+                                       for block in blocks]
+                            val_after2 = util_gridsearch.recombine_nestings(changed)
+                            arg_after = val_after2.split(sentinal)
+                        else:
+                            arg_after = val_after_.split(',')
                         if smartcast:
                             arg_after = list(map(util_type.smart_cast2, arg_after))
                     else:

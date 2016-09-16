@@ -264,28 +264,28 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         >>> result = str(data)
         >>> print(result)
     """
+    if verbose is None:
+        verbose = VERBOSE_CACHE
     if not USE_CACHE:
-        if verbose:
+        if verbose > 1:
             print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
                     (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
-    if verbose is None:
-        verbose = VERBOSE_CACHE
     fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
     if not exists(fpath):
-        if verbose:
+        if verbose > 0:
             print('[util_cache] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
                 basename(dpath), fname, cfgstr,))
         raise IOError(2, 'No such file or directory: %r' % (fpath,))
     else:
-        if verbose:
+        if verbose > 2:
             print('[util_cache] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
                 basename(dpath), fname, cfgstr,))
     try:
         data = util_io.load_cPkl(fpath, verbose)
     except (EOFError, IOError, ImportError) as ex:
         print('CORRUPTED? fpath = %s' % (fpath,))
-        if verbose:
+        if verbose > 1:
             print('[util_cache] ... cache miss dpath=%s cfgstr=%r' % (
                 basename(dpath), cfgstr,))
         raise IOError(str(ex))
@@ -293,7 +293,7 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         print('CORRUPTED? fpath = %s' % (fpath,))
         raise
     else:
-        if verbose:
+        if verbose > 1:
             print('[util_cache] ... cache hit')
     return data
 
@@ -374,20 +374,20 @@ class Cacher(object):
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
         data = load_cache(self.dpath, self.fname, cfgstr, verbose=self.verbose)
-        if self.verbose:
+        if self.verbose > 1:
             print('... ' + self.fname + ' Cacher hit')
         return data
 
     def tryload(self, cfgstr=None):
         try:
-            if self.verbose:
+            if self.verbose > 1:
                 assert cfgstr is not None or self.cfgstr is not None, (
                     'must specify cfgstr in constructor or call')
                 print('[cache] tryload fname=' + self.fname)
                 print('[cache] cfgstr= ' + self.cfgstr if cfgstr is None else cfgstr)
             return self.load(cfgstr)
         except IOError:
-            if self.verbose:
+            if self.verbose > 0:
                 print('... ' + self.fname + ' Cacher miss')
 
     def save(self, data, cfgstr=None):
@@ -395,7 +395,7 @@ class Cacher(object):
         assert cfgstr is not None, 'must specify cfgstr in constructor or call'
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
-        if self.verbose:
+        if self.verbose > 0:
             print('... ' + self.fname + ' Cacher save')
         save_cache(self.dpath, self.fname, cfgstr, data)
 
@@ -826,7 +826,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                 use_cache (bool) : enables cache
             """
             try:
-                if verbose:
+                if verbose > 2:
                     print('[util_cache] computing cached function fname_=%s' %
                           ( fname_,))
                 # Implicitly adds use_cache to kwargs

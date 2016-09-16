@@ -24,6 +24,7 @@ from utool import util_progress
 from utool._internal import meta_util_path
 from utool import util_inject
 from utool import util_arg
+from utool import util_str
 from utool._internal.meta_util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[util_path]')
 
@@ -1478,6 +1479,7 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
     #    print(ignore_list)
     if full is not None:
         fullpath = fullpath or full
+    img_dpath_ = util_str.ensure_unicode(img_dpath_)
     img_dpath = realpath(img_dpath_)
     ignore_set = set(ignore_list)
     gname_list_ = []
@@ -1485,11 +1487,13 @@ def list_images(img_dpath_, ignore_list=[], recursive=False, fullpath=False,
     # Get all the files in a directory recursively
     true_imgpath = truepath(img_dpath)
     for root, dlist, flist in os.walk(true_imgpath):
+        root = util_str.ensure_unicode(root)
         rel_dpath = relpath(root, img_dpath)
         # Ignore directories
         if any([dname in ignore_set for dname in dirsplit(rel_dpath)]):
             continue
         for fname in iter(flist):
+            fname = util_str.ensure_unicode(fname)
             gname = join(rel_dpath, fname).replace('\\', '/')
             if gname.startswith('./'):
                 gname = gname[2:]

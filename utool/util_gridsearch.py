@@ -417,9 +417,30 @@ def parse_nestings(string, only_curl=False):
     References:
         http://stackoverflow.com/questions/4801403/pyparsing-nested-mutiple-opener-clo
 
+    CommandLine:
+        python -m utool.util_gridsearch parse_nestings:1 --show
 
     Example:
         >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> string = r'lambda u: sign(u) * abs(u)**3.0 * greater(u, 0)'
+        >>> parsed_blocks = parse_nestings(string)
+        >>> recombined = recombine_nestings(parsed_blocks)
+        >>> print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+        >>> print('recombined = %r' % (recombined,))
+        >>> print('orig       = %r' % (string,))
+        PARSED_BLOCKS = [
+            ('nonNested', 'lambda u: sign'),
+            ('paren', [('ITEM', '('), ('nonNested', 'u'), ('ITEM', ')')]),
+            ('nonNested', '* abs'),
+            ('paren', [('ITEM', '('), ('nonNested', 'u'), ('ITEM', ')')]),
+            ('nonNested', '**3.0 * greater'),
+            ('paren', [('ITEM', '('), ('nonNested', 'u, 0'), ('ITEM', ')')]),
+        ]
+
+    Example:
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> string = r'\chapter{Identification \textbf{foobar} workflow}\label{chap:application}'
         >>> parsed_blocks = parse_nestings(string)
         >>> print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
@@ -433,7 +454,7 @@ def parse_nestings(string, only_curl=False):
     import utool as ut  # NOQA
     import pyparsing as pp
 
-    def as_tagged(parent, doctag=None, namedItemsOnly=False):
+    def as_tagged(parent, doctag=None):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
         namedItems = dict((v[1], k) for (k, vlist) in parent._ParseResults__tokdict.items()
                           for v in vlist)
@@ -445,19 +466,14 @@ def parse_nestings(string, only_curl=False):
             if parent._ParseResults__name:
                 parentTag = parent._ParseResults__name
         if not parentTag:
-            if namedItemsOnly:
-                return ""
-            else:
-                parentTag = "ITEM"
+            parentTag = "ITEM"
         out = []
         for i, res in enumerate(parent._ParseResults__toklist):
             if isinstance(res, pp.ParseResults):
                 if i in namedItems:
-                    child = as_tagged(
-                        res, namedItems[i], namedItemsOnly and doctag is None)
+                    child = as_tagged(res, namedItems[i])
                 else:
-                    child = as_tagged(
-                        res, None, namedItemsOnly and doctag is None)
+                    child = as_tagged(res, None)
                 out.append(child)
             else:
                 # individual token, see if there is a name for it
@@ -465,10 +481,7 @@ def parse_nestings(string, only_curl=False):
                 if i in namedItems:
                     resTag = namedItems[i]
                 if not resTag:
-                    if namedItemsOnly:
-                        continue
-                    else:
-                        resTag = "ITEM"
+                    resTag = "ITEM"
                 child = (resTag, pp._ustr(res))
                 out += [child]
         return (parentTag, out)
@@ -479,12 +492,12 @@ def parse_nestings(string, only_curl=False):
         """
         import utool as ut  # NOQA
         ret1 = pp.Forward()
-        _SUP = ut.identity
-        #_SUP = pp.Suppress
-        opener_ = _SUP(opener)
-        closer_ = _SUP(closer)
-        # ret1 <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
-        ret2 = ret1 << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        _NEST = ut.identity
+        #_NEST = pp.Suppress
+        opener_ = _NEST(opener)
+        closer_ = _NEST(closer)
+        group = pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        ret2 = ret1 << group
         if ret2 is None:
             ret2 = ret1
         else:
@@ -505,13 +518,18 @@ def parse_nestings(string, only_curl=False):
 
     nonBracePrintables = ''.join(c for c in pp.printables if c not in '(){}[]') + ' '
     nonNested = pp.Word(nonBracePrintables).setResultsName('nonNested')
+    nonNested = nonNested.leaveWhitespace()
+
     # if with_curl and not with_paren and not with_brak:
     if only_curl:
         # TODO figure out how to chain |
         nest_body << (nonNested | nestedCurlies)
     else:
         nest_body << (nonNested | nestedParens | nestedBrackets | nestedCurlies)
+
+    nest_body = nest_body.leaveWhitespace()
     parser = pp.ZeroOrMore(nest_body)
+
     debug_ = ut.VERBOSE
 
     if len(string) > 0:
@@ -601,10 +619,10 @@ def parse_cfgstr3(string):
         """
         import utool as ut  # NOQA
         ret1 = pp.Forward()
-        _SUP = ut.identity
-        #_SUP = pp.Suppress
-        opener_ = _SUP(opener)
-        closer_ = _SUP(closer)
+        _NEST = ut.identity
+        #_NEST = pp.Suppress
+        opener_ = _NEST(opener)
+        closer_ = _NEST(closer)
         # ret1 <<= pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
         ret2 = ret1 << pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
         if ret2 is None:

@@ -268,42 +268,42 @@ def timeit_grid(stmt_list, setup='', iterations=10000, input_sizes=None,
     Timeit::
         import utool as ut
         setup = ut.codeblock(
-        '''
-        import utool as ut
-        from six.moves import range, zip
-        import time
-        def time_append(size):
-            start_time    = time.time()
-            last_time     = start_time
-            list2 = []
-            for x in range(size):
-                now_time    = time.time()
-                between = now_time - last_time
-                last_time   = now_time
-                list2.append(between)
+            '''
+            import utool as ut
+            from six.moves import range, zip
+            import time
+            def time_append(size):
+                start_time    = time.time()
+                last_time     = start_time
+                list2 = []
+                for x in range(size):
+                    now_time    = time.time()
+                    between = now_time - last_time
+                    last_time   = now_time
+                    list2.append(between)
 
-        def time_assign(size):
-            start_time    = time.time()
-            last_time     = start_time
-            list1 = ut.alloc_nones(size)
-            for x in range(size):
-                now_time    = time.time()
-                between = now_time - last_time
-                last_time   = now_time
-                list1[x] = between
+            def time_assign(size):
+                start_time    = time.time()
+                last_time     = start_time
+                list1 = ut.alloc_nones(size)
+                for x in range(size):
+                    now_time    = time.time()
+                    between = now_time - last_time
+                    last_time   = now_time
+                    list1[x] = between
 
-        def time_baseline(size):
-            start_time    = time.time()
-            last_time     = start_time
-            for x in range(size):
-                now_time    = time.time()
-                between = now_time - last_time
-                last_time   = now_time
+            def time_baseline(size):
+                start_time    = time.time()
+                last_time     = start_time
+                for x in range(size):
+                    now_time    = time.time()
+                    between = now_time - last_time
+                    last_time   = now_time
 
-        def time_null(size):
-            for x in range(size):
-                pass
-        ''')
+            def time_null(size):
+                for x in range(size):
+                    pass
+            ''')
 
         input_sizes = [2 ** count for count in range(7, 12)]
         stmt_list = ['time_assign', 'time_append', 'time_baseline', 'time_null']
@@ -685,13 +685,13 @@ class MemoryTracker(object):
         print('reporting largets ndarrays')
         ndarray_list = [obj for obj in obj_list if isinstance(obj, np.ndarray)]
         ndarray_list = [obj for obj in obj_list if str(type(obj)).find('array') > -1]
-        size_list = np.array([utool.get_object_size(obj) for obj in ndarray_list])
+        size_list = np.array([utool.get_object_nbytes(obj) for obj in ndarray_list])
         sortx = size_list.argsort()[::-1]
         ndarray_sorted = [ndarray_list[x] for x in sortx]
         for obj, size in zip(ndarray_sorted, size_list):
             print('size = %r, type(obj) = %r' % (utool.byte_str2(size), type(obj)))
 
-        #size_list = [utool.get_object_size(obj) for obj in obj_list]
+        #size_list = [utool.get_object_nbytes(obj) for obj in obj_list]
         pass
 
 
@@ -1751,11 +1751,11 @@ def garbage_collect():
     gc.collect()
 
 
-def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modules=True, listoverhead=False):
+def get_object_nbytes(obj, fallback_type=None, follow_pointers=False, exclude_modules=True, listoverhead=False):
     """
     CommandLine:
-        python -m utool.util_dev --test-get_object_size
-        python -m utool.util_dev --test-get_object_size:1
+        python -m utool.util_dev --test-get_object_nbytes
+        python -m utool.util_dev --test-get_object_nbytes:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1763,7 +1763,7 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
         >>> import numpy as np
         >>> import utool as ut
         >>> obj = [np.empty(1, dtype=np.uint8) for _ in range(8)]
-        >>> nBytes = ut.get_object_size(obj)
+        >>> nBytes = ut.get_object_nbytes(obj)
         >>> result = ('nBytes = %s' % (nBytes,))
         >>> print(result)
         nBytes = 8
@@ -1778,7 +1778,7 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
         >>> qaids = ibs.get_valid_aids(species=species)
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True)
-        >>> nBytes = ut.get_object_size(qreq_)
+        >>> nBytes = ut.get_object_nbytes(qreq_)
         >>> result = (ut.byte_str2(nBytes))
         >>> print('result = %r' % (result,))
 
@@ -1798,11 +1798,13 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
     import utool as ut
     import types
     seen = set([])
-    def _get_object_size(obj):
+    def _object_nbytes(obj):
         object_id = id(obj)
         if object_id in seen:
             return 0
-        if (obj is None or isinstance(obj, (str, int, bool, float))):
+        if (obj is None or isinstance(obj, (int, bool, float))):
+            return sys.getsizeof(obj)
+        elif isinstance(obj, six.string_types):
             return sys.getsizeof(obj)
         seen.add(object_id)
 
@@ -1829,26 +1831,32 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
                 totalsize = obj.nbytes
             elif (isinstance(obj, (tuple, list, set, frozenset))):
                 for item in obj:
-                    totalsize += _get_object_size(item)
+                    totalsize += _object_nbytes(item)
             elif isinstance(obj, dict):
                 try:
                     for key, val in six.iteritems(obj):
-                        totalsize += _get_object_size(key)
-                        totalsize += _get_object_size(val)
-                except RuntimeError:
-                    print(key)
-                    print(type(obj))
+                        totalsize += _object_nbytes(key)
+                        totalsize += _object_nbytes(val)
+                except RuntimeError as dictex:
+                    ut.printex(dictex, 'RuntimeError in parsing dict nbytes',
+                               keys=['key', (type, 'obj')], iswarning=True)
                     raise
             elif isinstance(obj, object) and hasattr(obj, '__dict__'):
                 if hasattr(obj, 'used_memory') and not isinstance(obj, type):
                     # hack for flann objects
                     totalsize += obj.used_memory()
-                totalsize += _get_object_size(obj.__dict__)
+                totalsize += _object_nbytes(obj.__dict__)
                 return totalsize
+            elif isinstance(obj, type):
+                # use zero for class definitions
+                return 0
+            else:
+                print('Unknown type %r for parsing size' % (type(obj),))
+                return 0
         #except TypeError as ex:
         except Exception as ex:
-            print(type(obj))
-            ut.printex(ex, 'may be an error in _get_object_size')
+            ut.printex(ex, 'may be an error in _object_nbytes',
+                       keys=[(type, 'obj')], iswarning=True, tb=True)
             pass
             #import utool as ut
             #print('obj = %r' % (obj,))
@@ -1856,18 +1864,25 @@ def get_object_size(obj, fallback_type=None, follow_pointers=False, exclude_modu
             #ut.embed()
             #raise RuntimeError(str(ex))  # from ex
         return totalsize
-    return _get_object_size(obj)
+    return _object_nbytes(obj)
 
 
-def print_object_size_tree(obj, lbl='obj'):
+def print_object_size_tree(obj, lbl='obj', maxdepth=None):
     """ Needs work """
     from utool import util_str
     from utool import util_type
 
     byte_str2 = util_str.byte_str2
 
-    def _get_object_size_tree(obj, indent='', lbl='obj', seen=None):
-        if (obj is None or isinstance(obj, (str, int, bool, float))):
+    def _get_object_size_tree(obj, depth=0, lbl='obj', seen=None):
+        indent = ' ' * (depth * 4)
+        if maxdepth is not None and depth >= maxdepth:
+            size_list = [get_object_nbytes(obj)]
+            print(indent + str(size_list[0]))
+            return size_list
+        if (obj is None or isinstance(obj, (int, bool, float))):
+            return [sys.getsizeof(obj)]
+        elif isinstance(obj, six.string_types):
             return [sys.getsizeof(obj)]
         object_id = id(obj)
         if object_id in seen:
@@ -1877,32 +1892,35 @@ def print_object_size_tree(obj, lbl='obj'):
         size_list = [(lbl, sys.getsizeof(obj))]
         if isinstance(obj, np.ndarray):
             size_list.append(obj.nbytes)
-            print(indent + '%s = %s ' % ('(ndarray) ' + lbl, byte_str2(obj.nbytes)))
+            print('%s%s = %s ' % (indent, '(ndarray) %s' % (lbl,), byte_str2(obj.nbytes)))
         elif (isinstance(obj, (tuple, list, set, frozenset))):
             typestr = util_type.type_str(type(obj))
-            print(indent + '(%s) %s = %s ' % (typestr, lbl, byte_str2(sys.getsizeof(obj))))
+            print('%s(%s) %s = %s ' % (indent, typestr, lbl, byte_str2(sys.getsizeof(obj))))
             for item in obj:
-                size_list += _get_object_size_tree(item, indent + '   ', 'item', seen)
+                size_list += _get_object_size_tree(item, depth + 1, 'item', seen)
         elif isinstance(obj, dict):
-            print(indent + '(dict) %s = %s ' % (lbl, byte_str2(sys.getsizeof(obj))))
+            print('%s(dict) %s = %s ' % (indent, lbl, byte_str2(sys.getsizeof(obj))))
             try:
                 for key, val in six.iteritems(obj):
-                    size_list += _get_object_size_tree(key, indent + '   ', key, seen)
-                    size_list += _get_object_size_tree(val, indent + '   ', key, seen)
-            except RuntimeError:
-                print(key)
+                    size_list += _get_object_size_tree(key, depth + 1, key, seen)
+                    size_list += _get_object_size_tree(val, depth + 1, key, seen)
+            except RuntimeError as dictex:
+                ut.printex(dictex, 'RuntimeError in parsing dict nbytes',
+                           keys=['key', (type, 'obj')], iswarning=True)
                 raise
         elif isinstance(obj, object) and hasattr(obj, '__dict__'):
             if hasattr(obj, 'used_memory'):
                 size_ = obj.used_memory()
-                print(indent + '(flann?) %s = %s ' % (lbl, byte_str2(size_)))
+                print('(%sflann?) %s = %s ' % (indent, lbl, byte_str2(size_)))
                 size_list += [size_]
             else:
-                print(indent + '(object) %s = %s ' % (lbl, byte_str2(sys.getsizeof(obj))))
-            size_list += _get_object_size_tree(obj.__dict__, indent + '   ', '__dict__', seen)
+                print('%s(object) %s = %s ' % (indent, lbl, byte_str2(sys.getsizeof(obj))))
+            size_list += _get_object_size_tree(obj.__dict__,
+                                               depth=depth + 1,
+                                               lbl='__dict__', seen=seen)
         return size_list
     seen = set([])
-    _get_object_size_tree(obj, indent='', lbl=lbl, seen=seen)
+    _get_object_size_tree(obj, depth=0, lbl=lbl, seen=seen)
     del seen
 
 
@@ -1925,7 +1943,7 @@ def get_object_size_str(obj, lbl='', unit=None):
     """
 
     from utool import util_str
-    nBytes = get_object_size(obj)
+    nBytes = get_object_nbytes(obj)
     if len(lbl) > 0 and not lbl.endswith(' '):
         lbl_ = lbl + ' '
     else:
