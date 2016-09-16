@@ -281,6 +281,8 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         if verbose > 2:
             print('[util_cache] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
                 basename(dpath), fname, cfgstr,))
+        import utool as ut
+        print('About to read file of size %s' % (ut.get_file_nBytes_str(fpath),))
     try:
         data = util_io.load_cPkl(fpath, verbose)
     except (EOFError, IOError, ImportError) as ex:
@@ -389,6 +391,13 @@ class Cacher(object):
         except IOError:
             if self.verbose > 0:
                 print('... ' + self.fname + ' Cacher miss')
+
+    def ensure(self, func, cfgstr=None):
+        data = self.tryload(cfgstr=cfgstr)
+        if data is None:
+            data = func()
+            self.save(data, cfgstr=cfgstr)
+        return data
 
     def save(self, data, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr

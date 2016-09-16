@@ -1046,27 +1046,24 @@ def isect(list1, list2):
             return sum(times) / niter
 
         grid = {
-            'size1': [1, 10, 100, 1000, 10000, 100000],
-            #'size2': [1, 10, 100, 1000, 10000, 100000],
+            'size1': [1000, 5000, 10000, 50000],
+            'size2': [1000, 5000, 10000, 50000],
             #'overlap': [0, 1],
         }
         data = []
         for kw in ut.all_dict_combinations(grid):
             pool = np.arange(kw['size1'] * 2)
             size2 = size1 = kw['size1']
-            #size2 = kw['size2']
-            #list1 = (np.random.rand(size1) * size1).astype(np.int32).tolist()
-            #if overlap:
-            #    list2 = list1.
-            #else:
-            #    list2 = (np.random.rand(size2) * size2).astype(np.int32).tolist()
+            size2 = kw['size2']
+            list1 = (np.random.rand(size1) * size1).astype(np.int32).tolist()
             list1 = ut.random_sample(pool, size1).tolist()
             list2 = ut.random_sample(pool, size2).tolist()
+            list1 = set(list1)
+            list2 = set(list2)
             kw['ut'] = timeit_func(ut.isect, list1, list2)
-            kw['np1'] = timeit_func(np.intersect1d, list1, list2)
-            kw['py1'] = timeit_func(lambda a, b: set.intersection(set(a), set(b)), list1, list2)
-            #kw['np2'] = timeit_func(lambda a, b: sorted(np.intersect1d(a, b)), list1, list2)
-            #kw['py2'] = timeit_func(lambda a, b: sorted(set.intersection(set(a), set(b))), list1, list2)
+            #kw['np1'] = timeit_func(np.intersect1d, list1, list2)
+            #kw['py1'] = timeit_func(lambda a, b: set.intersection(set(a), set(b)), list1, list2)
+            kw['py2'] = timeit_func(lambda a, b: sorted(set.intersection(set(a), set(b))), list1, list2)
             data.append(kw)
 
         import pandas as pd
@@ -1076,11 +1073,13 @@ def isect(list1, list2):
         data_keys = list(grid.keys())
         other_keys = ut.setdiff(df.columns, data_keys)
         df = df.reindex_axis(data_keys + other_keys, axis=1)
-        #print(df.sort('absolute_change', ascending=False))
+        df['abs_change'] = df['ut'] - df['py2']
+        df['pct_change'] = df['abs_change'] / df['ut'] * 100
+        #print(df.sort('abs_change', ascending=False))
 
         print(str(df).split('\n')[0])
         for row in df.values:
-            argmin = row[len(data_keys):].argmin() + len(data_keys)
+            argmin = row[len(data_keys):len(data_keys) + len(other_keys)].argmin() + len(data_keys)
             print('    ' + ', '.join([
             '%6d' % (r) if x < len(data_keys) else (
                 ut.color_text('%8.6f' % (r,), 'blue')
@@ -1099,10 +1098,6 @@ def isect(list1, list2):
         #    is_max = s == s.max()
         #    return ['background-color: yellow' if v else '' for v in is_max]
         #df.style.apply(highlight_max)
-
-
-
-
     """
     set2 = set(list2)
     return [item for item in list1 if item in set2]
