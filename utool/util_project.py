@@ -471,6 +471,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     colored = kwargs.pop('colored', True)
 
     grepkw = {}
+    grepkw['greater_exclude_dirs'] = user_profile.project_exclude_dirs
     grepkw['exclude_dirs'] = user_profile.project_exclude_dirs
     grepkw['dpath_list'] = user_profile.project_dpaths
     grepkw['include_patterns'] = user_profile.project_include_patterns
