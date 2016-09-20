@@ -24,9 +24,14 @@ def pypi_publish():
          echo $UTVERSION
          git tag $UTVERSION -m "tarball tag $UTVERSION"
          git push --tags origin master
-         python setup.py register -r pypitest
+         git push --tags Erotemic next
+         git push --tags Erotemic master
 
+         # Register on Pypi test
+         python setup.py register -r pypitest
          python setup.py sdist upload -r pypitest
+
+         # Register on Pypi live
          python setup.py register -r pypi
          python setup.py sdist upload -r pypi
      Notes:
