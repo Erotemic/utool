@@ -597,7 +597,10 @@ class MemoryTracker(object):
         print('[memtrack] +----')
         if self.prev_available_nBytes is not None:
             diff_avail = self.prev_available_nBytes - available_nBytes
-            print('[memtrack] | [%s] diff(avail) = %s' % (lbl, byte_str2(diff_avail)))
+            if lbl:
+                print('[memtrack] | [%s] diff(avail) = %s' % (lbl, byte_str2(diff_avail)))
+            else:
+                print('[memtrack] | diff(avail) = %s' % (byte_str2(diff_avail)))
         else:
             print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
         if self.prev_used_nBytes is not None:
@@ -606,8 +609,10 @@ class MemoryTracker(object):
 
         total_diff_avail = self.init_available_nBytes - available_nBytes
         total_diff_used = self.init_available_nBytes - available_nBytes
-        print('[memtrack] | Total diff(avail) = %s' % (byte_str2(total_diff_avail)))
-        print('[memtrack] | Total diff(used) = %s' % (byte_str2(total_diff_used)))
+        with_total = False
+        if with_total:
+            print('[memtrack] | Total diff(avail) = %s' % (byte_str2(total_diff_avail)))
+            print('[memtrack] | Total diff(used) = %s' % (byte_str2(total_diff_used)))
         print('[memtrack] | Available Memory = %s' %  (byte_str2(available_nBytes),))
         print('[memtrack] | Used Memory      = %s' %  (byte_str2(used_nBytes),))
         self.report_objs()
@@ -1850,6 +1855,8 @@ def get_object_nbytes(obj, fallback_type=None, follow_pointers=False, exclude_mo
             elif isinstance(obj, type):
                 # use zero for class definitions
                 return 0
+            elif isinstance(obj, np.int32):
+                return obj.nbytes
             else:
                 print('Unknown type %r for parsing size' % (type(obj),))
                 return 0
@@ -3092,6 +3099,56 @@ def fix_super_reload_error(this_class, self):
     assert isinstance(self, this_class_now), (
         'Failed to fix %r, %r, %r' % (self, this_class, this_class_now))
     return this_class_now
+
+
+class Shortlist(NiceRepr):
+    """
+    Keeps an ordered collection of items.
+    Removes smallest items if size grows to large.
+
+    Example:
+        >>> shortsize = 3
+        >>> shortlist = Shortlist(shortsize)
+        >>> print('shortlist = %r' % (shortlist,))
+        >>> item = (10, 1)
+        >>> shortlist.insert(item)
+        >>> print('shortlist = %r' % (shortlist,))
+        >>> item = (9, 1)
+        >>> shortlist.insert(item)
+        >>> print('shortlist = %r' % (shortlist,))
+        >>> item = (4, 1)
+        >>> shortlist.insert(item)
+        >>> print('shortlist = %r' % (shortlist,))
+        >>> item = (14, 1)
+        >>> shortlist.insert(item)
+        >>> print('shortlist = %r' % (shortlist,))
+        >>> item = (1, 1)
+        >>> shortlist.insert(item)
+        >>> print('shortlist = %r' % (shortlist,))
+    """
+    def __init__(self, maxsize=None):
+        self._items = []
+        self._keys = []
+        self.maxsize = maxsize
+
+    def __iter__(self):
+        return iter(self._items)
+
+    def __len__(self):
+        return len(self._items)
+
+    def __nice__(self):
+        return str(self._items)
+
+    def insert(self, item):
+        import bisect
+        k = item[0]
+        idx = bisect.bisect_left(self._keys, k)
+        self._keys.insert(idx, k)
+        self._items.insert(idx, item)
+        if self.maxsize is not None and len(self._keys) > self.maxsize:
+            self._keys = self._keys[-self.maxsize:]
+            self._items = self._items[-self.maxsize:]
 
 
 if __name__ == '__main__':

@@ -323,6 +323,9 @@ def colorprint(text, color=None):
     print(util_str.color_text(text, color))
 
 
+cprint = colorprint
+
+
 def print_locals(*args, **kwargs):
     """
     Prints local variables in function.

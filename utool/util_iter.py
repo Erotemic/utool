@@ -66,13 +66,16 @@ def evaluate_generator(iter_):
     #    pass
 
 
-def iget_list_column(list_, colx):
+def itake_column(list_, colx):
     """ iterator version of get_list_column """
     if isinstance(colx, list):
         # multi select
         return ([row[colx_] for colx_ in colx] for row in list_)
     else:
         return (row[colx] for row in list_)
+
+
+iget_list_column = itake_column
 
 
 def iget_list_column_slice(list_, start=None, stop=None, stride=None):

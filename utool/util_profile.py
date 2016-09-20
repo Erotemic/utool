@@ -17,16 +17,27 @@ input_fname = 'raw_profile.qt_inc_automatch.py.2014-12-23_11-31-53.raw.prof'
 """
 
 
-def dump_profile_text():
-    import utool as ut
-    print("Dumping Profile Information")
-    profile = ut.PROFILE_FUNC
-    #profile.dump_stats('out.lprof')
+def make_profiler():
+    import line_profiler
+    profile = line_profiler.LineProfiler()
+    return profile
+
+
+def get_profile_text(profile):
     file_ = cStringIO()
     profile.print_stats(stream=file_, stripzeros=True)
     file_.seek(0)
     text =  file_.read()
     output_text, summary_text = ut.clean_line_profile_text(text)
+    return output_text, summary_text
+
+
+def dump_profile_text():
+    import utool as ut
+    print("Dumping Profile Information")
+    profile = ut.PROFILE_FUNC
+    output_text, summary_text = get_profile_text(profile)
+    #profile.dump_stats('out.lprof')
     print(summary_text)
     ut.writeto('profile_output.txt', output_text + '\n' + summary_text)
     ut.writeto('profile_output.%s.txt' % (ut.get_timestamp()),

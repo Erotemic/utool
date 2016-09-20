@@ -261,6 +261,73 @@ def load_cPkl(fpath, verbose=None, n=None):
     """
     Loads a pickled file with optional verbosity.
     Aims for compatibility between python2 and python3.
+
+
+    TestPickleExtentsSimple:
+        >>> def makedata_simple():
+        >>>     data = np.empty((500, 2 ** 20), dtype=np.uint8) + 1
+        >>>     return data
+        >>> memtrack = ut.MemoryTracker()
+        >>> # create a large amount of data
+        >>> data = makedata_simple()
+        >>> memtrack.report()
+        >>> print(ut.get_object_size_str(data))
+        >>> fpath = 'tmp.pkl'
+        >>> ut.save_cPkl(fpath, data)
+        >>> print(ut.get_file_nBytes_str('tmp.pkl'))
+        >>> #del data
+        >>> memtrack.collect()
+        >>> memtrack.report()
+        >>> data = ut.load_cPkl(fpath)
+        >>> memtrack.report()
+
+    TestPickleExtentsComplex:
+        >>> def makedata_complex():
+        >>>     rng = np.random.RandomState(42)
+        >>>     item1 = np.empty((100, 2 ** 20), dtype=np.uint8) + 1
+        >>>     item2 = [np.empty((10, 2 ** 10), dtype=np.uint8) + 1
+        >>>              for a in range(1000)]
+        >>>     item3 = {a: np.empty(int(rng.rand() * 10), dtype=np.int16) + 1
+        >>>                  for a in range(100)}
+        >>>     item4 = {np.int32(a): np.empty((int(rng.rand() * 10), 2), dtype=np.float64) + 1
+        >>>                  for a in range(200)}
+        >>>     data = {'item1': item1, 'item2': item2,
+        >>>             'item3': item3, 'item4': item4}
+        >>>     return data
+        >>> memtrack = ut.MemoryTracker()
+        >>> # create a large amount of data
+        >>> data = makedata_complex()
+        >>> memtrack.report()
+        >>> print(ut.get_object_size_str(data))
+        >>> fpath = 'tmp.pkl'
+        >>> ut.save_cPkl(fpath, data)
+        >>> print(ut.get_file_nBytes_str('tmp.pkl'))
+        >>> #del data
+        >>> memtrack.collect()
+        >>> memtrack.report()
+        >>> data2 = ut.load_cPkl(fpath)
+        >>> memtrack.report()
+
+    TestPickleCacher:
+        >>> memtrack = ut.MemoryTracker()
+        >>> cacher = ut.Cacher('tmp', cache_dir='.', cfgstr='foo')
+        >>> data3 = cacher.ensure(makedata_complex)
+        >>> memtrack.report()
+        >>> data4 = cacher.ensure(makedata_complex)
+        >>> memtrack.report()
+
+
+        >>> memtrack = ut.MemoryTracker()
+        >>> fpath = '/home/joncrall/Desktop/smkcache/inva_PZ_Master1VUUIDS((5616)vxihbjwtggyovrto)_vpgwpcafbjkkpjdf.cPkl'
+        >>> print(ut.get_file_nBytes_str(fpath))
+        >>> data = ut.load_cPkl(fpath)
+        >>> memtrack.report()
+
+
+        def makedata_complex():
+            data = np.empty((1000, 2 ** 20), dtype=np.uint8)
+            data[:] = 0
+            return data
     """
     verbose = _rectify_verb_read(verbose)
     if verbose:

@@ -282,9 +282,13 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
             print('[util_cache] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
                 basename(dpath), fname, cfgstr,))
         import utool as ut
-        print('About to read file of size %s' % (ut.get_file_nBytes_str(fpath),))
+        nbytes = ut.get_file_nBytes(fpath)
+        big_verbose = nbytes > 1E6 or verbose > 2
+        if nbytes > 1E6:
+            print('About to read file of size %s' % (ut.byte_str2(nbytes),))
     try:
-        data = util_io.load_cPkl(fpath, verbose)
+        with ut.Timer(verbose=big_verbose):
+            data = util_io.load_cPkl(fpath, verbose)
     except (EOFError, IOError, ImportError) as ex:
         print('CORRUPTED? fpath = %s' % (fpath,))
         if verbose > 1:

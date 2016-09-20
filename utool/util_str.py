@@ -716,6 +716,7 @@ def byte_str(nBytes, unit='bytes', precision=2):
     Returns:
         str
     """
+    #return (nBytes * ureg.byte).to(unit.upper())
     if unit.lower().startswith('b'):
         nUnit = nBytes
     elif unit.lower().startswith('k'):
@@ -731,6 +732,14 @@ def byte_str(nBytes, unit='bytes', precision=2):
     return scalar_str(nUnit, precision) + ' ' + unit
     #fmtstr = ('%.'
     #return ('%.' + str(precision) + 'f %s') % (nUnit, unit)
+
+
+def second_str(nsecs, unit='ms'):
+    import pint
+    ureg = pint.UnitRegistry()
+    sec_quant = nsecs * ureg.s
+    unit_quant = sec_quant.to(unit)
+    return str(unit_quant)
 
 
 def file_megabytes_str(fpath):

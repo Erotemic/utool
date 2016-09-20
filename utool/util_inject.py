@@ -326,6 +326,7 @@ def TIMERPROF_FUNC(func):
 
 
 if '--profile' in sys.argv:
+    #util_profile.make_profiler()
     import line_profiler
     PROFILE_FUNC = line_profiler.LineProfiler()
     PROFILING = True

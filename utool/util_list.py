@@ -185,7 +185,8 @@ def take_column(list_, colx):
         >>> print(result)
         [['EGGS'], ['JAM']]
     """
-    return list(util_iter.iget_list_column(list_, colx))
+    #return list(util_iter.iget_list_column(list_, colx))
+    return list(util_iter.itake_column(list_, colx))
     #if isinstance(colx, list):
     #    # multi select
     #    return [[row[colx_] for colx_ in colx] for row in list_]
