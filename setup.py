@@ -31,9 +31,16 @@ def pypi_publish():
          python setup.py register -r pypitest
          python setup.py sdist upload -r pypitest
 
+         # Check the url to make sure everything worked
+         https://testpypi.python.org/pypi?:action=display&name=utool
+
          # Register on Pypi live
          python setup.py register -r pypi
          python setup.py sdist upload -r pypi
+
+         # Check the url to make sure everything worked
+         https://pypi.python.org/pypi?:action=display&name=utool
+
      Notes:
          this file needs to be in my home directory apparently
          ~/.pypirc
