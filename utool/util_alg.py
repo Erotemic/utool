@@ -2024,6 +2024,7 @@ def standardize_boolexpr(boolexpr_, parens=False):
         str: final_expr
 
     CommandLine:
+        sudo pip install git+https://github.com/tpircher/quine-mccluskey.git
         python -m utool.util_alg standardize_boolexpr --show
 
     Example:
