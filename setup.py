@@ -11,7 +11,7 @@ from setuptools import setup
 import sys
 
 
-version = '1.6.0.dev1'
+version = '1.6.1.dev1'
 
 
 def pypi_publish():
