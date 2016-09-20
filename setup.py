@@ -20,7 +20,9 @@ def pypi_publish():
         https://packaging.python.org/en/latest/distributing.html#uploading-your-project-to-pypi
         http://peterdowns.com/posts/first-time-with-pypi.html
      CommandLine:
-         git tag 1.5.0.dev1 -m "tarball tag 1.5.0.dev1"
+         UTVERSION=$(python -c "import setup; print(setup.version)")
+         echo $UTVERSION
+         git tag $UTVERSION -m "tarball tag $UTVERSION"
          git push --tags origin master
          python setup.py register -r pypitest
 
