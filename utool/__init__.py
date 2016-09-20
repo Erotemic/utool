@@ -8,7 +8,6 @@ TODO: INSERT APACHE VERSION 2.0 LICENCE IN ALL FILES
 that licence.)
 
 pip install git+https://github.com/Erotemic/utool.git@next
-sudo pip install git+https://github.com/tpircher/quine-mccluskey.git
 """
 # Utool is released under the Apache License Version 2.0
 

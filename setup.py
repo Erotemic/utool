@@ -11,7 +11,7 @@ from setuptools import setup
 import sys
 
 
-version = '1.1.0.dev1'
+version = '1.5.0.dev1'
 
 
 def pypi_publish():
@@ -20,7 +20,7 @@ def pypi_publish():
         https://packaging.python.org/en/latest/distributing.html#uploading-your-project-to-pypi
         http://peterdowns.com/posts/first-time-with-pypi.html
      CommandLine:
-         git tag 1.1.0.dev1 -m "tarball tag 1.1.0.dev1"
+         git tag 1.5.0.dev1 -m "tarball tag 1.5.0.dev1"
          git push --tags origin master
          python setup.py register -r pypitest
 
