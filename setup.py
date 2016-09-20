@@ -5,13 +5,13 @@ pip install git+https://github.com/Erotemic/utool.git@next
 # -*- coding: utf-8 -*-
 # Utool is released under the Apache License Version 2.0
 # no warenty liability blah blah blah blah legal blah
-# just use the software, don't be a jerk, and write kickass code.
+# just use the software, don't be a jerk.
 from __future__ import absolute_import, division, print_function
 from setuptools import setup
 import sys
 
 
-version = '1.5.0.dev1'
+version = '1.6.0.dev1'
 
 
 def pypi_publish():
