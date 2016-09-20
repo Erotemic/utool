@@ -2,8 +2,7 @@
 |-------------------|
 |[![Travis](https://img.shields.io/travis/Erotemic/utool.svg)](https://travis-ci.org/Erotemic/utool)|
 
-.. image:: https://img.shields.io/pypi/v/utool.svg
-        :target: https://pypi.python.org/pypi/utool
+|[![Pypi](https://img.shields.io/pypi/v/utool.svg)](https://pypi.python.org/pypi/utool)|
 
 
 utool
