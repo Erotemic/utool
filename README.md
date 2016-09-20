@@ -27,6 +27,7 @@ The most useful functions in this library are:
 * ut.get_argflag
 * ut.get_argval
 * ut.ProgIter
+* ut.Timer
 * ut.MemoryTracker
 * ut.InteractiveIter
 * ut.color_print
