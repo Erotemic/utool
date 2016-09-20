@@ -1,8 +1,5 @@
-|  **`Travis CI Status`**   |
-|-------------------|
-|[![Travis](https://img.shields.io/travis/Erotemic/utool.svg)](https://travis-ci.org/Erotemic/utool)|
-
-|[![Pypi](https://img.shields.io/pypi/v/utool.svg)](https://pypi.python.org/pypi/utool)|
+[![Travis](https://img.shields.io/travis/Erotemic/utool.svg)](https://travis-ci.org/Erotemic/utool)
+[![Pypi](https://img.shields.io/pypi/v/utool.svg)](https://pypi.python.org/pypi/utool)
 
 
 utool
