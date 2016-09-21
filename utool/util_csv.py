@@ -14,11 +14,16 @@ print, rrr, profile = util_inject.inject2(__name__, '[csv]')
 
 class CSV(util_dev.NiceRepr):
 
-    def __init__(self, row_data):
+    def __init__(self, row_data, row_headers=None, col_headers=None):
         self.row_data = row_data
-        self.header = row_data[0]
+        if col_headers is None:
+            self.header = row_data[0]
+        else:
+            self.header = col_headers
         self.header_tags = [[x] for x in self.header]
         self.short_header = None
+        # FIXME: finish row/col header integration
+        self.row_headers = row_headers
 
     def __nice__(self):
         import utool as ut
@@ -45,6 +50,17 @@ class CSV(util_dev.NiceRepr):
         self.row_data = [[c.strip(' ') for c in r] for r in self.row_data]
         self.header = self.row_data[0]
         self.header_tags = [[x] for x in self.header]
+
+    def tabulate(self):
+        import tabulate
+        import utool as ut
+        tabular_data = [ut.flatten([[r], d]) for r, d in zip(self.row_headers, self.row_data)]
+        return tabulate.tabulate(tabular_data, [''] + self.header, 'fancy_grid')
+
+    def transpose(self):
+        import utool as ut
+        row_dataT = ut.listT(self.row_data)
+        return CSV(row_dataT, row_headers=self.header, col_headers=self.row_headers)
 
     def nice_table(self):
         import utool as ut

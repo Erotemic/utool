@@ -568,7 +568,8 @@ class MemoryTracker(object):
         >>> memtrack.report('[DELETE]')
         #>>> memtrack.report_largest()
     """
-    def __init__(self, lbl='Memtrack Init', disable=None):
+    def __init__(self, lbl='Memtrack Init', disable=None,
+                 avail=True, used=True, total_diff=True, abs_mag=True):
         if disable is None:
             disable = ENABLE_MEMTRACK
         self.disabled = disable  # disable by default
@@ -578,47 +579,95 @@ class MemoryTracker(object):
         self.prev_used_nBytes = None
         self.weakref_dict = {}  # weakref.WeakValueDictionary()
         self.weakref_dict2 = {}
+        self.avail = avail
+        self.used = used
+        self.total_diff = total_diff
+        self.abs_mag = abs_mag
+        from collections import defaultdict
+        self.records = defaultdict(list)
         self.report(lbl)
 
     @_disableable
     def __call__(self, lbl=''):
         self.report(lbl=lbl)
 
-    @_disableable
-    def collect(self):
-        gc.collect()
+    def record(self):
+        import time
+        self.collect()
+        available_nBytes = self.get_available_memory()
+        used_nBytes = self.get_used_memory()
+        if self.prev_available_nBytes is not None:
+            diff_avail = self.prev_available_nBytes - available_nBytes
+        else:
+            diff_avail = None
+        if self.prev_used_nBytes is not None:
+            diff_used = used_nBytes - self.prev_used_nBytes
+        else:
+            diff_used = None
+        total_diff_avail = self.init_available_nBytes - available_nBytes
+        total_diff_used = self.init_available_nBytes - available_nBytes
+
+        self.records['diff_avail'].append(diff_avail)
+        self.records['diff_used'].append(diff_used)
+        self.records['total_diff_avail'].append(total_diff_avail)
+        self.records['total_diff_used'].append(total_diff_used)
+        self.records['available_nBytes'].append(available_nBytes)
+        self.records['used_nBytes'].append(used_nBytes)
+        self.records['time'].append(time.time())
+
+        self.prev_available_nBytes = available_nBytes
+        self.prev_used_nBytes = used_nBytes
 
     @_disableable
     def report(self, lbl=''):
         from utool.util_str import byte_str2
-        self.collect()
-        available_nBytes = self.get_available_memory()
-        used_nBytes = self.get_used_memory()
-        print('[memtrack] +----')
-        if self.prev_available_nBytes is not None:
-            diff_avail = self.prev_available_nBytes - available_nBytes
-            if lbl:
-                print('[memtrack] | [%s] diff(avail) = %s' % (lbl, byte_str2(diff_avail)))
-            else:
-                print('[memtrack] | diff(avail) = %s' % (byte_str2(diff_avail)))
-        else:
-            print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
-        if self.prev_used_nBytes is not None:
-            diff_used = used_nBytes - self.prev_used_nBytes
-            print('[memtrack] | [%s] diff(used) = %s' % (lbl, byte_str2(diff_used)))
+        self.record()
+        diff_avail = self.records['diff_avail'][-1]
+        diff_used = self.records['diff_used'][-1]
+        total_diff_avail = self.records['total_diff_avail'][-1]
+        total_diff_used = self.records['total_diff_used'][-1]
+        available_nBytes = self.records['available_nBytes'][-1]
+        used_nBytes = self.records['used_nBytes'][-1]
 
-        total_diff_avail = self.init_available_nBytes - available_nBytes
-        total_diff_used = self.init_available_nBytes - available_nBytes
-        with_total = False
-        if with_total:
-            print('[memtrack] | Total diff(avail) = %s' % (byte_str2(total_diff_avail)))
-            print('[memtrack] | Total diff(used) = %s' % (byte_str2(total_diff_used)))
-        print('[memtrack] | Available Memory = %s' %  (byte_str2(available_nBytes),))
-        print('[memtrack] | Used Memory      = %s' %  (byte_str2(used_nBytes),))
-        self.report_objs()
-        print('[memtrack] L----')
-        self.prev_available_nBytes = available_nBytes
-        self.prev_used_nBytes = used_nBytes
+        def _byte(num):
+            return 'None' if num is None else ut.byte_str2(num)
+        try:
+            import utool as ut
+            row_data = [
+                [_byte(diff_avail), _byte(diff_used)],
+                [_byte(total_diff_avail), _byte(total_diff_used)],
+                [_byte(available_nBytes), _byte(used_nBytes)],
+            ]
+            row_headers = ['prev_diff', 'total_diff', 'absolute']
+            col_headers = ['avail', 'used']
+            table = ut.CSV(row_data, row_headers, col_headers)
+            print(table.transpose().tabulate())
+            self.report_objs()
+        except ImportError:
+            print('[memtrack] +----')
+            lbl_ = '[%s] ' % (lbl,) if lbl else ''
+
+            if diff_avail is not None:
+                if self.avail:
+                    print('[memtrack] | %sdiff(avail) = %s' % (lbl_, byte_str2(diff_avail)))
+            else:
+                print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
+            if diff_used is not None:
+                if self.used:
+                    print('[memtrack] | %sdiff(used) = %s' % (lbl_, byte_str2(diff_used)))
+
+            if self.total_diff:
+                if self.avail:
+                    print('[memtrack] | Total diff(avail) = %s' % (byte_str2(total_diff_avail)))
+                if self.used:
+                    print('[memtrack] | Total diff(used) = %s' % (byte_str2(total_diff_used)))
+            if self.abs_mag:
+                if self.avail:
+                    print('[memtrack] | Available Memory = %s' %  (byte_str2(available_nBytes),))
+                if self.used:
+                    print('[memtrack] | Used Memory      = %s' %  (byte_str2(used_nBytes),))
+            self.report_objs()
+            print('[memtrack] L----')
 
     @_disableable
     def get_available_memory(self):
@@ -698,6 +747,10 @@ class MemoryTracker(object):
 
         #size_list = [utool.get_object_nbytes(obj) for obj in obj_list]
         pass
+
+    @_disableable
+    def collect(self):
+        gc.collect()
 
 
 def report_memsize(obj, name=None, verbose=True):
