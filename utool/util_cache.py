@@ -51,7 +51,8 @@ class CacheMissException(Exception):
 
 
 #class YACacher(object):
-@six.add_metaclass(util_class.ReloadingMetaclass)
+# @six.add_metaclass(util_class.ReloadingMetaclass)
+@util_class.reloadable_class
 class ShelfCacher(object):
     """ yet another cacher """
     def __init__(self, fpath, enabled=True):
@@ -396,11 +397,11 @@ class Cacher(object):
             if self.verbose > 0:
                 print('... ' + self.fname + ' Cacher miss')
 
-    def ensure(self, func, cfgstr=None):
-        data = self.tryload(cfgstr=cfgstr)
+    def ensure(self, func, *args, **kwargs):
+        data = self.tryload()
         if data is None:
-            data = func()
-            self.save(data, cfgstr=cfgstr)
+            data = func(*args, **kwargs)
+            self.save(data)
         return data
 
     def save(self, data, cfgstr=None):
@@ -1395,7 +1396,8 @@ class KeyedDefaultDict(util_dict.DictLike):
         return self._internal.values()
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
+# @six.add_metaclass(util_class.ReloadingMetaclass)
+@util_class.reloadable_class
 class LazyDict(object):
     #class LazyDict(collections.Mapping):
     """
@@ -1598,6 +1600,14 @@ class LazyDict(object):
 
     def __getitem__(self, key):
         return self.get(key)
+
+    def __delitem__(self, key):
+        if key not in self.keys():
+            raise KeyError(key)
+        if key in self._eval_funcs:
+            del self._eval_funcs[key]
+        if key in self._stored_results:
+            del self._stored_results[key]
 
     def __iter__(self):
         return iter(self.keys())

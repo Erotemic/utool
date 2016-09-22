@@ -21,48 +21,69 @@ except ImportError:
 print, rrr, profile = util_inject.inject2(__name__, '[dict]')
 
 
-def dict_map_apply_vals(dict_, func):
-    """ applies a function to each of the vals in dict_
+def map_dict_vals(func, dict_):
+    """ applies a function to each of the keys in a dictionary
 
     Args:
-        dict_ (dict_):  a dictionary
-        func (function):
+        func (callable): a function
+        dict_ (dict): a dictionary
 
     Returns:
-        dict_:
+        newdict: transformed dictionary
 
     CommandLine:
-        python -m utool.util_dict --test-dict_map_apply_vals
+        python -m utool.util_dict --test-map_dict_vals
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {'a': [1, 2, 3], 'b': []}
         >>> func = len
-        >>> result = dict_map_apply_vals(dict_, func)
+        >>> newdict = map_dict_vals(func, dict_)
+        >>> result = ut.repr2(newdict)
         >>> print(result)
         {'a': 3, 'b': 0}
     """
-    return {key: func(val) for key, val in six.iteritems(dict_)}
-
-# Figure out good name for thsi
-dict_val_map = dict_map_apply_vals
-
-
-def map_dict_vals(func, dict_):
-    """ probably a better version of dict_map_apply_vals """
-    if isinstance(dict_, OrderedDict):
-        keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
-        return OrderedDict(keyval_list)
-    else:
-        return {key: func(val) for key, val in six.iteritems(dict_)}
+    keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
+    newdict = type(dict_)(keyval_list)
+    return newdict
 
 
 def map_dict_keys(func, dict_):
-    r"""
-    a better version of dict_map_apply_vals
+    """ applies a function to each of the keys in a dictionary
+
+    Args:
+        func (callable): a function
+        dict_ (dict): a dictionary
+
+    Returns:
+        newdict: transformed dictionary
+
+    CommandLine:
+        python -m utool.util_dict --test-map_dict_keys
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_ = {'a': [1, 2, 3], 'b': []}
+        >>> func = ord
+        >>> newdict = map_dict_keys(func, dict_)
+        >>> result = ut.repr2(newdict)
+        >>> print(result)
+        >>> ut.assert_raises(AssertionError, map_dict_keys, len, dict_)
+        {'a': 3, 'b': 0}
     """
-    return {func(key): val for key, val in six.iteritems(dict_)}
+    keyval_list = [(func(key), val) for key, val in six.iteritems(dict_)]
+    newdict = type(dict_)(keyval_list)
+    assert len(newdict) == len(dict_), (
+        'multiple input keys were mapped to the same output key')
+    return newdict
+
+
+map_vals = map_dict_vals
+map_keys = map_dict_keys
 
 
 class AutoVivification(dict):

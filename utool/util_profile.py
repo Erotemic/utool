@@ -17,6 +17,25 @@ input_fname = 'raw_profile.qt_inc_automatch.py.2014-12-23_11-31-53.raw.prof'
 """
 
 
+class Profiler(object):
+    def __init__(self):
+        import line_profiler
+        self._lineprof = line_profiler.LineProfiler()
+
+    def __call__(self, func):
+        wrapper = self._lineprof(func)
+        # wrapper = ut.preserve_sig(wrapper, func)
+        return wrapper
+
+    def get_output(self):
+        file_ = cStringIO()
+        self._lineprof.print_stats(stream=file_, stripzeros=True)
+        file_.seek(0)
+        text =  file_.read()
+        output_text, summary_text = ut.clean_line_profile_text(text)
+        return output_text
+
+
 def make_profiler():
     import line_profiler
     profile = line_profiler.LineProfiler()

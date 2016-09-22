@@ -24,11 +24,35 @@ def get_first_None_position(list_):
 
 
 def assert_raises(ex_type, func, *args, **kwargs):
+    r"""
+    Checks that a function raises an error when given specific arguments.
+
+    Args:
+        ex_type (Exception): exception type
+        func (callable): live python function
+
+    CommandLine:
+        python -m utool.util_assert assert_raises --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_assert import *  # NOQA
+        >>> import utool as ut
+        >>> ex_type = AssertionError
+        >>> func = len
+        >>> # Check that this raises an error when something else does not
+        >>> assert_raises(ex_type, assert_raises, ex_type, func, [])
+        >>> # Check this does not raise an error when something else does
+        >>> assert_raises(ValueError, [].index, 0)
+    """
     try:
         func(*args, **kwargs)
     except Exception as ex:
-        assert isinstance(ex, ex_type), 'Should have raised an error'
+        assert isinstance(ex, ex_type), (
+            'Raised %r but type should have been %r' % (ex, ex_type))
         return True
+    else:
+        raise AssertionError('No error was raised')
 
 
 def assert_unique(item_list, ignore=[], name='list', verbose=None):
