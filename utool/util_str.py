@@ -19,7 +19,7 @@ from utool import util_cplat
 from utool._internal import meta_util_six
 from utool._internal import meta_util_arg
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[str]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 ENABLE_COLORS = (not util_cplat.WIN32 and
                  not meta_util_arg.get_argflag('--nopygments'))
@@ -2968,15 +2968,22 @@ def color_text(text, color):
     r"""
     SeeAlso:
         highlight_text
+        lexer_shortnames = sorted(ut.flatten(ut.take_column(pygments.lexers.LEXERS.values(), 2)))
     """
     import utool as ut
     if color is None or not ENABLE_COLORS:
         return text
-    if color == 'python':
+    elif color == 'python':
         return highlight_text(text, color)
+    elif color == 'sql':
+        return highlight_text(text, 'sql')
     try:
         import pygments
         import pygments.console
+        # if color == 'guess':
+        #     import linguist  # NOQA
+        #     pygments.lexers.guess_lexer(text)
+        #     return highlight_text(text, color)
         ansi_text = pygments.console.colorize(color, text)
         if ut.WIN32:
             import colorama

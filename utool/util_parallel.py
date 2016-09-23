@@ -364,15 +364,6 @@ def ensure_pool(warn=False, quiet=QUIET):
         return init_pool(quiet=quiet)
 
 
-def futures_generate(func, args_list):
-    # Requries python2.7
-    # pip install futures
-    from concurrent import futures
-    with futures.ProcessPoolExecutor() as executor:
-        result_generator = executor.map(func, args_list)
-    return result_generator
-
-
 def generate(func, args_list, ordered=True, force_serial=None,
              chunksize=None, prog=True, verbose=True, quiet=QUIET, nTasks=None,
              freq=None, **kwargs):
@@ -1193,6 +1184,40 @@ def spawn_background_daemon_thread(func, *args, **kwargs):
 def _spawn_background_thread0(func, *args, **kwargs):
     thread_id = _thread.start_new_thread(func, args, kwargs)
     return thread_id
+
+
+def futures_map(func, args_list):
+    # Requries python2.7
+    # pip install futures
+    from concurrent import futures
+    with futures.ProcessPoolExecutor() as executor:
+        result_generator = executor.map(func, args_list)
+    return result_generator
+
+
+def futures_generate(worker, args_gen):
+    import utool as ut
+    from concurrent import futures
+    nprocs = ut.num_unused_cpus(thresh=10) - 1
+    executor = futures.ProcessPoolExecutor(nprocs)
+    try:
+        fs_chunk = [executor.submit(worker, args) for args in args_gen]
+        for fs in fs_chunk:
+            yield fs.result()
+    except Exception:
+        raise
+    finally:
+        executor.shutdown(wait=True)
+
+
+def futures_generate_(worker, args_gen):
+    import utool as ut
+    from concurrent import futures
+    nprocs = ut.num_unused_cpus(thresh=10) - 1
+    with futures.ProcessPoolExecutor(nprocs) as executor:
+        fs_chunk = [executor.submit(worker, args) for args in args_gen]
+        for fs in fs_chunk:
+            yield fs.result()
 
 
 if __name__ == '__main__':

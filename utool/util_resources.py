@@ -179,7 +179,16 @@ def get_matching_process_ids(cmd_pattern, user_pattern):
 
 def num_cpus():
     import psutil
-    return psutil.NUM_CPUS
+    return psutil.cpu_count(logical=True)
+
+
+def num_unused_cpus(thresh=10):
+    """
+    Returns the number of cpus with utilization less than `thresh` percent
+    """
+    import psutil
+    cpu_usage = psutil.cpu_percent(percpu=True)
+    return sum([p < thresh for p in cpu_usage])
 
 
 def available_memory():
