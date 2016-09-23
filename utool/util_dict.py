@@ -46,7 +46,9 @@ def map_dict_vals(func, dict_):
         {'a': 3, 'b': 0}
     """
     keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
-    newdict = type(dict_)(keyval_list)
+    dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
+    newdict = dictclass(keyval_list)
+    # newdict = type(dict_)(keyval_list)
     return newdict
 
 
@@ -73,10 +75,12 @@ def map_dict_keys(func, dict_):
         >>> result = ut.repr2(newdict)
         >>> print(result)
         >>> ut.assert_raises(AssertionError, map_dict_keys, len, dict_)
-        {'a': 3, 'b': 0}
+        {97: [1, 2, 3], 98: []}
     """
     keyval_list = [(func(key), val) for key, val in six.iteritems(dict_)]
-    newdict = type(dict_)(keyval_list)
+    # newdict = type(dict_)(keyval_list)
+    dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
+    newdict = dictclass(keyval_list)
     assert len(newdict) == len(dict_), (
         'multiple input keys were mapped to the same output key')
     return newdict

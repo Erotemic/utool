@@ -4,7 +4,7 @@ Module to executes the same function with different arguments in parallel.
 """
 from __future__ import absolute_import, division, print_function
 import multiprocessing
-import atexit
+# import atexit
 #import sys
 import signal
 import ctypes
@@ -26,6 +26,8 @@ elif six.PY3:
     import queue
 util_inject.noinject('[parallel]')
 
+
+FUTURE_ON = False
 QUIET   = util_arg.QUIET
 SILENT  = util_arg.SILENT
 VERBOSE_PARALLEL, VERYVERBOSE_PARALLEL = util_arg.get_module_verbosity_flags('par', 'parallel')
@@ -45,7 +47,7 @@ __NUM_PROCS__       = util_arg.get_argval('--num-procs', int, default=None)
 __FORCE_SERIAL__    = util_arg.get_argflag(
     ('--utool-force-serial', '--force-serial', '--serial'))
 #__FORCE_SERIAL__    = True
-__SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
+# __SERIAL_FALLBACK__ = not util_arg.get_argflag('--noserial-fallback')
 __TIME_GENERATE__   = VERBOSE_PARALLEL or util_arg.get_argflag('--time-generate')
 
 # Maybe global pooling is not correct?
@@ -89,6 +91,8 @@ elif BACKEND == 'multiprocessing':
     from multiprocessing.pool import ThreadPool
     """
     def new_pool(num_procs, init_worker, maxtasksperchild):
+        if FUTURE_ON:
+            raise AssertionError('USE FUTURES')
         return multiprocessing.Pool(processes=num_procs,
                                     initializer=init_worker,
                                     maxtasksperchild=maxtasksperchild)
@@ -133,6 +137,8 @@ def init_worker():
 def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
     """ warning this might not be the right hting to do """
     global __POOL__
+    if FUTURE_ON:
+        raise AssertionError('USE FUTURES')
     if VERBOSE_PARALLEL:
         print('[util_parallel] init_pool()')
     if num_procs is None:
@@ -160,9 +166,11 @@ def init_pool(num_procs=None, maxtasksperchild=None, quiet=QUIET, **kwargs):
     return __POOL__
 
 
-@atexit.register
+# @atexit.register
 def close_pool(terminate=False, quiet=QUIET):
     global __POOL__
+    if FUTURE_ON:
+        raise AssertionError('USE FUTURES')
 
     if VERBOSE_PARALLEL:
         print('[util_parallel] close_pool()')
@@ -211,6 +219,8 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET, p
 
     Use generate instead
     """
+    if FUTURE_ON:
+        raise AssertionError('USE FUTURES')
     # Define progress observers
     if nTasks is None:
         nTasks = len(args_list)
@@ -248,6 +258,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
     Parallel process generator
     """
     global __POOL__
+    if FUTURE_ON:
+        raise AssertionError('USE FUTURES')
     if USE_GLOBAL_POOL:
         global __POOL__
         pool = __POOL__
@@ -314,16 +326,18 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
             else:
                 pool.close()
                 pool.join()
-        print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
-        if __SERIAL_FALLBACK__:
-            print('Trying to handle error by falling back to serial')
-            serial_generator = _generate_serial(
-                func, args_list, prog=prog, verbose=verbose, nTasks=nTasks,
-                **kwargs)
-            for result in serial_generator:
-                yield result
-        else:
-            raise
+        # DONT DO SERIAL FALLBACK IN GENERATOR CAN CAUSE ERRORS
+        raise
+        # print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
+        # if __SERIAL_FALLBACK__:
+        #     print('Trying to handle error by falling back to serial')
+        #     serial_generator = _generate_serial(
+        #         func, args_list, prog=prog, verbose=verbose, nTasks=nTasks,
+        #         **kwargs)
+        #     for result in serial_generator:
+        #         yield result
+        # else:
+        #     raise
     if __TIME_GENERATE__:
         util_time.toc(tt)
 
@@ -356,6 +370,8 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, **kw
 
 def ensure_pool(warn=False, quiet=QUIET):
     global __POOL__
+    if FUTURE_ON:
+        raise AssertionError('USE FUTURES')
     try:
         assert __POOL__ is not None, 'must init_pool() first'
     except AssertionError as ex:
@@ -527,6 +543,81 @@ def generate(func, args_list, ordered=True, force_serial=None,
                                   chunksize=chunksize, prog=prog,
                                   verbose=verbose, quiet=quiet, nTasks=nTasks,
                                   freq=freq, **kwargs)
+
+
+def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
+                     force_serial=False, verbose=True, prog=True, **kwargs):
+    from utool import util_resources
+    if force_serial is None:
+        force_serial = __FORCE_SERIAL__
+    if nTasks is None:
+        nTasks = len(args_gen)
+    if nTasks == 0:
+        if VERBOSE_PARALLEL or verbose:
+            print('[util_parallel.generate] submitted 0 tasks')
+        raise StopIteration
+    if VERYVERBOSE_PARALLEL:
+        print('[util_parallel.generate] ordered=%r' % ordered)
+        print('[util_parallel.generate] force_serial=%r' % force_serial)
+
+    # nprocs = util_resources.num_unused_cpus(thresh=10) - 1
+    nprocs = max(1, util_resources.num_cpus() - 1)
+    # Check conditions under which we force serial
+    force_serial_ = nTasks == 1 or nTasks < MIN_PARALLEL_TASKS or force_serial or nprocs < 1
+
+    if force_serial_:
+        if VERBOSE_PARALLEL or verbose:
+            print('[util_parallel.generate] generate_serial')
+        for result in _generate_serial(worker, args_gen, prog=prog,
+                                       nTasks=nTasks, freq=freq, **kwargs):
+            yield result
+    else:
+        from concurrent import futures
+
+        func = worker
+
+        prog = prog and verbose
+        if verbose or VERBOSE_PARALLEL:
+            prefix = '[util_parallel._generate_parallel]'
+            fmtstr = (prefix +
+                      'executing %d %s tasks using %d processes')
+            print(fmtstr % (nTasks, get_funcname(func), nprocs))
+
+        # executor = futures.ProcessPoolExecutor(nprocs)
+        # try:
+        with futures.ProcessPoolExecutor(nprocs) as executor:
+            if prog:
+                args_gen = util_progress.ProgIter(
+                    args_gen, nTotal=nTasks, lbl='submitting process',
+                    freq=kwargs.get('freq', None), bs=kwargs.get('bs', True),
+                    adjust=kwargs.get('adjust', False)
+                )
+            fs_chunk = [executor.submit(worker, args) for args in args_gen]
+            if prog:
+                lbl = '(pargen) %s: ' % (get_funcname(func),)
+                fs_chunk = util_progress.ProgIter(
+                    fs_chunk, nTotal=nTasks, lbl=lbl,
+                    freq=kwargs.get('freq', None), bs=kwargs.get('bs', True),
+                    adjust=kwargs.get('adjust', False)
+                )
+            for fs in fs_chunk:
+                yield fs.result()
+        # except Exception:
+        #     raise
+        # finally:
+        #     print('pool shutdown')
+        #     executor.shutdown(wait=True)
+        print('EXECUTOR SHUTDOWN')
+
+
+# def futures_generate_(worker, args_gen):
+#     import utool as ut
+#     from concurrent import futures
+#     nprocs = ut.num_unused_cpus(thresh=10) - 1
+#     with futures.ProcessPoolExecutor(nprocs) as executor:
+#         fs_chunk = [executor.submit(worker, args) for args in args_gen]
+#         for fs in fs_chunk:
+#             yield fs.result()
 
 
 def __testwarp(tup):
@@ -998,6 +1089,8 @@ def process(func, args_list, args_dict={}, force_serial=None,
     """
     if force_serial is None:
         force_serial = __FORCE_SERIAL__
+    if FUTURE_ON:
+        raise AssertionError('USE FUTURES')
 
     if USE_GLOBAL_POOL:
         ensure_pool(quiet=quiet)
@@ -1193,31 +1286,6 @@ def futures_map(func, args_list):
     with futures.ProcessPoolExecutor() as executor:
         result_generator = executor.map(func, args_list)
     return result_generator
-
-
-def futures_generate(worker, args_gen):
-    import utool as ut
-    from concurrent import futures
-    nprocs = ut.num_unused_cpus(thresh=10) - 1
-    executor = futures.ProcessPoolExecutor(nprocs)
-    try:
-        fs_chunk = [executor.submit(worker, args) for args in args_gen]
-        for fs in fs_chunk:
-            yield fs.result()
-    except Exception:
-        raise
-    finally:
-        executor.shutdown(wait=True)
-
-
-def futures_generate_(worker, args_gen):
-    import utool as ut
-    from concurrent import futures
-    nprocs = ut.num_unused_cpus(thresh=10) - 1
-    with futures.ProcessPoolExecutor(nprocs) as executor:
-        fs_chunk = [executor.submit(worker, args) for args in args_gen]
-        for fs in fs_chunk:
-            yield fs.result()
 
 
 if __name__ == '__main__':
