@@ -11,7 +11,7 @@ import weakref
 import itertools
 import functools
 from collections import OrderedDict
-from six.moves import input, zip, range, map  # NOQA
+from six.moves import input, zip, range, map
 from utool import util_progress
 from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
@@ -26,7 +26,9 @@ except ImportError as ex:
     HAVE_NUMPY = False
     pass
 # TODO: remove print_, or grab it dynamically from util_logger
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dev]')
+print, rrr, profile = util_inject.inject2(__name__)
+print_ = util_inject.make_module_write_func(__name__)
+
 
 if HAVE_NUMPY:
     INDEXABLE_TYPES = (list, tuple, np.ndarray)
@@ -47,34 +49,6 @@ def overrideable_partial(func, *args, **default_kwargs):
         return func(*(args + given_args), **kwargs)
     return partial_wrapper
 
-
-def DEPRICATED(func):
-    """ deprication decorator """
-    warn_msg = 'Deprecated call to: %s' % func.__name__
-
-    def __DEP_WRAPPER(*args, **kwargs):
-        raise Exception('dep')
-        warnings.warn(warn_msg, category=DeprecationWarning)
-        #warnings.warn(warn_msg, category=DeprecationWarning)
-        return func(*args, **kwargs)
-    __DEP_WRAPPER.__name__ = func.__name__
-    __DEP_WRAPPER.__doc__ = func.__doc__
-    __DEP_WRAPPER.__dict__.update(func.__dict__)
-    return __DEP_WRAPPER
-
-
-#def ensure_vararg_list(varargs):
-#    """
-#    It is useful to have a function take a list of objects to act upon.
-#    But sometimes you want just one. Varargs lets you pass in as many as you
-#    want, and it lets you have just one if needbe.
-#    But sometimes the function caller explicitly passes in the list. In that
-#    case we parse it out
-#    """
-#    if len(varargs) == 1:
-#        if isinstance(varargs[0], INDEXABLE_TYPES):
-#            return varargs[0]
-#    return varargs
 
 def ensure_str_list(input_):
     return [input_] if isinstance(input_, six.string_types) else input_
@@ -165,7 +139,8 @@ def get_nonconflicting_path_old(base_fmtstr, dpath, offset=0):
                                with_files=True, with_dirs=True)
     conflict_set = set([basename(dname) for dname in dname_list])
 
-    newname = ut.get_nonconflicting_string(base_fmtstr, conflict_set, offset=offset)
+    newname = ut.get_nonconflicting_string(base_fmtstr, conflict_set,
+                                           offset=offset)
     newpath = join(dpath, newname)
     return newpath
 
@@ -192,7 +167,8 @@ def get_nonconflicting_path(path_, dpath=None, offset=0, suffix=None):
                                with_files=True, with_dirs=True)
     conflict_set = set([basename(dname) for dname in dname_list])
 
-    newname = ut.get_nonconflicting_string(base_fmtstr, conflict_set, offset=offset)
+    newname = ut.get_nonconflicting_string(base_fmtstr, conflict_set,
+                                           offset=offset)
     newpath = join(dpath, newname)
     return newpath
 

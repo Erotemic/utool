@@ -518,6 +518,8 @@ def generate(func, args_list, ordered=True, force_serial=None,
     """
     if force_serial is None:
         force_serial = __FORCE_SERIAL__
+    if nTasks == 1 or nTasks < MIN_PARALLEL_TASKS:
+        force_serial = True
     if nTasks is None:
         nTasks = len(args_list)
     if nTasks == 0:
@@ -528,11 +530,10 @@ def generate(func, args_list, ordered=True, force_serial=None,
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
     # Check conditions under which we force serial
-    force_serial_ = nTasks == 1 or nTasks < MIN_PARALLEL_TASKS or force_serial
     if USE_GLOBAL_POOL:
-        if not force_serial_:
+        if not force_serial:
             ensure_pool(quiet=quiet)
-    if force_serial_ or isinstance(__POOL__, int):
+    if force_serial or isinstance(__POOL__, int):
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
         return _generate_serial(func, args_list, prog=prog, nTasks=nTasks, freq=freq, **kwargs)
@@ -546,26 +547,34 @@ def generate(func, args_list, ordered=True, force_serial=None,
 
 
 def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
-                     force_serial=False, verbose=True, prog=True, **kwargs):
+                     force_serial=False, verbose=None, prog=True, **kwargs):
     from utool import util_resources
+    # Check conditions under which we force serial
+    if force_serial is None:
+        force_serial = __FORCE_SERIAL__
+    if nTasks == 1 or nTasks < MIN_PARALLEL_TASKS:
+        force_serial = True
+    if verbose is None:
+        verbose = True
+    if VERBOSE_PARALLEL:
+        verbose = 1
+    if VERYVERBOSE_PARALLEL:
+        verbose = 2
     if force_serial is None:
         force_serial = __FORCE_SERIAL__
     if nTasks is None:
         nTasks = len(args_gen)
     if nTasks == 0:
-        if VERBOSE_PARALLEL or verbose:
+        if verbose:
             print('[util_parallel.generate] submitted 0 tasks')
         raise StopIteration
-    if VERYVERBOSE_PARALLEL:
+    if verbose > 1:
         print('[util_parallel.generate] ordered=%r' % ordered)
         print('[util_parallel.generate] force_serial=%r' % force_serial)
 
-    # nprocs = util_resources.num_unused_cpus(thresh=10) - 1
     nprocs = max(1, util_resources.num_cpus() - 1)
-    # Check conditions under which we force serial
-    force_serial_ = nTasks == 1 or nTasks < MIN_PARALLEL_TASKS or force_serial or nprocs < 1
 
-    if force_serial_:
+    if force_serial:
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
         for result in _generate_serial(worker, args_gen, prog=prog,
@@ -583,18 +592,18 @@ def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
                       'executing %d %s tasks using %d processes')
             print(fmtstr % (nTasks, get_funcname(func), nprocs))
 
+        if prog:
+            lbl = '(pargen) %s: ' % (get_funcname(func),)
+            args_gen = util_progress.ProgIter(
+                args_gen, nTotal=nTasks, lbl='submitting process',
+                freq=kwargs.get('freq', None), bs=kwargs.get('bs', True),
+                adjust=kwargs.get('adjust', False)
+            )
         # executor = futures.ProcessPoolExecutor(nprocs)
         # try:
         with futures.ProcessPoolExecutor(nprocs) as executor:
-            if prog:
-                args_gen = util_progress.ProgIter(
-                    args_gen, nTotal=nTasks, lbl='submitting process',
-                    freq=kwargs.get('freq', None), bs=kwargs.get('bs', True),
-                    adjust=kwargs.get('adjust', False)
-                )
             fs_chunk = [executor.submit(worker, args) for args in args_gen]
             if prog:
-                lbl = '(pargen) %s: ' % (get_funcname(func),)
                 fs_chunk = util_progress.ProgIter(
                     fs_chunk, nTotal=nTasks, lbl=lbl,
                     freq=kwargs.get('freq', None), bs=kwargs.get('bs', True),

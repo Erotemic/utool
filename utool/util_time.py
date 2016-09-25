@@ -17,7 +17,8 @@ import datetime
 from utool import util_inject
 from utool import util_cplat
 from utool import util_arg
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[time]')
+print, rrr, profile = util_inject.inject2(__name__)
+print_ = util_inject.make_module_write_func(__name__)
 
 
 if util_cplat.WIN32:
