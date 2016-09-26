@@ -893,7 +893,7 @@ def __argv_flag_dec(func, default=False, quiet=QUIET, indent=False):
                       any([get_argflag(_) for _ in alias_flags]))
         if is_flagged:
             func_label = flags[0].replace('--', '').replace('print-', '')
-            print('')
+            # print('')
             print('\n+ --- ' + func_label + ' ___')
             use_indent = indent is not False
             if indent is True:

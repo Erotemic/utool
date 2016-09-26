@@ -1247,7 +1247,7 @@ class ParamInfo(util_dev.NiceRepr):
 
     def is_hidden(pi, cfg):
         for hideif in pi.hideif_list:
-            if hasattr(hideif, '__call__'):
+            if callable(hideif):
                 hide = hideif(cfg)
             else:
                 hide = getattr(cfg,  pi.varname) == hideif
@@ -1259,7 +1259,7 @@ class ParamInfo(util_dev.NiceRepr):
             another config hides you. self hiding is ok """
         enabled = True
         for hideif in pi.hideif_list:
-            if hasattr(hideif, '__call__'):
+            if callable(hideif):
                 # FIXME: just because it is a function doesnt mean it isn't self-hidden
                 enabled = not hideif(cfg)
             if not enabled:
@@ -1839,7 +1839,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                                       precision=3, scorelbl='score',
                                       onclick_func=None):
     """ helper function for visualizing results of gridsearch """
-    assert hasattr(show_result_func, '__call__'), 'NEED FUNCTION GOT: %r' % (show_result_func,)
+    assert callable(show_result_func), 'NEED FUNCTION GOT: %r' % (show_result_func,)
 
     import utool as ut
     import plottool as pt

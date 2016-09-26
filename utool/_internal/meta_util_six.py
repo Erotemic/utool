@@ -53,7 +53,20 @@ if six.PY2:
         return setattr(func, 'func_name', str(newname))
     #
     def get_funcglobals(func):
+        """
+        TODO: change all of these to work for classes and change the name to
+        reflect that.
+        """
         return getattr(func, 'func_globals')
+        # try:
+        #     return getattr(func, 'func_globals')
+        # except AttributeError:
+        #     if hasattr(func, '__class__'):
+        #         # mod = sys.modules[func.__module__]
+        #         # return {k: getattr(mod, k) for k in dir(mod)}
+        #         return {}
+        #     else:
+        #         raise
     #
     def get_funcdoc(func):
         return getattr(func, 'func_doc')

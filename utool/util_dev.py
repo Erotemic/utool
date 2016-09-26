@@ -793,6 +793,59 @@ def report_memsize(obj, name=None, verbose=True):
 LIVE_INTERACTIVE_ITER = None
 
 
+class InteractivePrompt(object):
+    def __init__(self, actions={}):
+        """
+        Args:
+            actions (dict): mapping from function to
+                tuple of keys / help dictionary
+        """
+        # for func in list(actions.keys()):
+        #     val = actions[func]
+        #     if isinstance(val
+        self.actions = actions
+
+    def handle_ans(self, ans_):
+        """
+        preforms an actionm based on a user answer
+        """
+        ans = ans_.strip(' ')
+        def chack_if_answer_was(valid_keys):
+            return any([ans == key or ans.startswith(key + ' ')
+                        for key in valid_keys])
+        # Custom interactions
+        for func, tup in self.actions.items():
+            valid_keys = tup[0]
+            if chack_if_answer_was(valid_keys):
+                func()
+
+    def prompt(self):
+        import utool as ut
+        def _or_phrase(list_):
+            return ut.conj_phrase(ut.lmap(repr, map(str, list_)), 'or')
+        msg_list = ['enter %s to %s' % (_or_phrase(tup[0]), tup[1])
+                    for tup in self.actions.values()]
+        msg = ut.indentjoin(msg_list, '\n | * ')
+        msg = ''.join([' +-----------', msg, '\n L-----------\n'])
+        # TODO: timeout, help message
+        print(msg)
+        ans = input().strip()
+        return ans
+
+    def register(self, tup):
+        def _wrp(func):
+            self.actions[func] = tup
+        return _wrp
+
+    def loop(self):
+        @self.register((['quit', 'q'], ''))
+        def quit_action():
+            raise StopIteration
+        while True:
+            ans = self.prompt()
+            self.handle_ans(ans)
+
+
 class InteractiveIter(object):
     """
     Choose next value interactively

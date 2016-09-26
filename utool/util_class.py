@@ -21,7 +21,7 @@ from utool import util_inject
 from utool import util_set
 from utool import util_arg
 from utool._internal.meta_util_six import get_funcname, get_funcglobals
-print, rrr, profile = util_inject.inject2(__name__, '[class]', DEBUG=False)
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 # Registers which classes have which attributes

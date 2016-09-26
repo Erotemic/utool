@@ -32,9 +32,9 @@ from utool import util_time
 from utool import util_inject
 from utool import util_dbg
 from utool import util_dev
-from utool._internal import meta_util_six
+# from utool._internal import meta_util_six
 from utool._internal.meta_util_six import get_funcname
-print, rrr, profile = util_inject.inject2(__name__, '[tests]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 VERBOSE_TEST = util_arg.get_module_verbosity_flags('test')[0]
@@ -1753,13 +1753,18 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
 
         if test_func is not None:
             globals_ = {}
-            func_globals = meta_util_six.get_funcglobals(test_func)
+            func_globals = ut.get_funcglobals(test_func)
             globals_.update(func_globals)
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
             if ut.get_argflag(('--cmd', '--embed')):
                 testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
             doctest_src = ut.indent(testsrc, '>>> ')
-            doctest_src = '\n'.join(['%3d %s' % (count, line_) for count, line_ in enumerate(doctest_src.splitlines(), start=1)])
+            # Add line numbers
+            doctest_src = '\n'.join([
+                '%3d %s' % (count, line_)
+                for count, line_ in
+                enumerate(doctest_src.splitlines(), start=1)
+            ])
             colored_src = ut.highlight_code(doctest_src)
             print('testsrc = \n%s' % (colored_src,))
             try:
