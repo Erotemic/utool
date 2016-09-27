@@ -103,6 +103,9 @@ class OrderedSet(collections.MutableSet):
         lists_ = ut.flatten([list(s) for s in sets])
         return cls(lists_)
 
+    def __getitem__(self, index):
+        return list(self)[index]
+
 
 # alias
 oset = OrderedSet

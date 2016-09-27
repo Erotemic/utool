@@ -2,7 +2,8 @@
 from __future__ import absolute_import, division, print_function
 from utool import util_inject
 import six
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[sqlite]')
+import collections
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def get_tablenames(cur):
@@ -12,7 +13,6 @@ def get_tablenames(cur):
     tablename_list = [str(tablename[0]) for tablename in tablename_list_ ]
     return tablename_list
 
-import collections
 SQLColumnRichInfo = collections.namedtuple('SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
 

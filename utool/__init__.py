@@ -68,7 +68,6 @@ IMPORT_TUPLES = [
     ('util_decor',     ['ignores_exc_tb', 'indent_func', 'accepts_numpy',
                         'accepts_scalar_input_vector_output',
                         'accepts_scalar_input']),
-    ('util_distances', ['nearest_point',]),
     ('util_dict',      None),
     ('util_func',      None),
     ('util_grabdata',  None),

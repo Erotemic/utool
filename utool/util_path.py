@@ -26,7 +26,8 @@ from utool import util_inject
 from utool import util_arg
 from utool import util_str
 from utool._internal.meta_util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
-print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[util_path]')
+print, rrr, profile = util_inject.inject2(__name__)
+print_ = util_inject.make_module_write_func(__name__)
 
 
 PRINT_CALLER = util_arg.get_argflag('--print-caller')  # FIXME: name

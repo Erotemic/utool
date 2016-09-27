@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import builtins
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[test_logging]')
+print, rrr, profile = utool.inject2(__name__)
 
 
 @utool.indent_func

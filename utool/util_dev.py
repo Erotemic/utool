@@ -3041,7 +3041,14 @@ class ColumnLists(NiceRepr):
 
     def merge_rows(self, key, merge_scalars=True):
         """
-        Uses key as a unique index an merges all duplicates rows
+        Uses key as a unique index an merges all duplicates rows.  Use
+        cast_column to modify types of columns before merging to affect
+        behavior of duplicate rectification.
+
+        Args:
+            key: row to merge on
+            merge_scalars: if True, scalar values become lists
+
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -3103,9 +3110,21 @@ class ColumnLists(NiceRepr):
                             # Values become lists if they are different
                             val_ = val
                         else:
-                            # If merging scalars is not ok, then
-                            # we must raise an error
-                            raise ValueError('tried to merge a scalar in %r' % (key_,))
+                            if True:
+                                # If there is only one non-none value then use that.
+                                other_vals = ut.filter_Nones(val)
+                                if len(other_vals) == 1:
+                                    val_ = val[0]
+                                else:
+                                    raise ValueError(
+                                        'tried to merge a scalar in %r, val=%r' % (
+                                            key_, val))
+                            else:
+                                # If merging scalars is not ok, then
+                                # we must raise an error
+                                raise ValueError(
+                                    'tried to merge a scalar in %r, val=%r' % (
+                                        key_, val))
                 newgroup[key_] = [val_]
             merged_groups.append(ut.ColumnLists(newgroup))
         merged_multi = self.__class__.flatten(merged_groups)
