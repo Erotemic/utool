@@ -1753,8 +1753,11 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
 
         if test_func is not None:
             globals_ = {}
-            func_globals = ut.get_funcglobals(test_func)
-            globals_.update(func_globals)
+            try:
+                func_globals = ut.get_funcglobals(test_func)
+                globals_.update(func_globals)
+            except AttributeError:
+                pass
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
             if ut.get_argflag(('--cmd', '--embed')):
                 testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
