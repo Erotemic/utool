@@ -903,7 +903,7 @@ if DOELSE:
     from utool.DynamicStruct import (DynStruct,)
     from utool.Preferences import (Pref, PrefChoice, PrefInternal, PrefNode,
                                    PrefTree, VERBOSE_PREF, test_Preferences,)
-    print, rrr, profile = util_inject.inject2(__name__, '[utool]')
+    print, rrr, profile = util_inject.inject2(__name__)
 
 
     def reassign_submodule_attributes(verbose=True):

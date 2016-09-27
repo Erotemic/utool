@@ -10,7 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from utool import util_inject
 from utool import util_arg
 import sys
-print, rrr, profile = util_inject.inject2(__name__, '[import]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def possible_import_patterns(modname):

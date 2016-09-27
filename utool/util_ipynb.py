@@ -4,7 +4,7 @@ Utils for IPython/Jupyter Notebooks
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[ipynb]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def make_autogen_str():

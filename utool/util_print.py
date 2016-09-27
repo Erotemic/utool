@@ -11,7 +11,7 @@ from six.moves import builtins
 from utool._internal import meta_util_arg
 from utool import util_str
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[print]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 QUIET        = meta_util_arg.QUIET
 VERBOSE      = meta_util_arg.VERBOSE

@@ -12,7 +12,7 @@ import operator
 from six.moves import reduce, map, zip
 import re
 import six
-print, rrr, profile = util_inject.inject2(__name__, '[gridsearch]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_point_list'))

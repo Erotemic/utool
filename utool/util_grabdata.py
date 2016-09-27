@@ -14,7 +14,7 @@ from utool import util_path
 from utool import util_cplat
 from utool import util_arg
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[grabdata]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 QUIET = util_arg.QUIET

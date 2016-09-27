@@ -21,7 +21,7 @@ try:
 except ImportError:
     HAS_H5PY = False
 
-print, rrr, profile = util_inject.inject2(__name__, '[io]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 __PRINT_IO__ = True

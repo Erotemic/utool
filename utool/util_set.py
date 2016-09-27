@@ -4,7 +4,7 @@ from six.moves import zip, map, range  # NOQA
 import collections
 import weakref
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[set]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 class _Link(object):

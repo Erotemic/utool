@@ -17,7 +17,7 @@ from utool import util_arg
 from utool import util_inject
 from utool import util_class
 from utool._internal import meta_util_six
-print, rrr, profile = util_inject.inject2(__name__, '[inspect]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 VERBOSE_INSPECT, VERYVERB_INSPECT = util_arg.get_module_verbosity_flags('inspect')

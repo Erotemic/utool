@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[web]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def is_local_port_open(port):

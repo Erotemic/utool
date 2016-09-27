@@ -18,7 +18,7 @@ try:
 except ImportError:
     HAVE_NUMPY = False
     pass
-print, rrr, profile = util_inject.inject2(__name__, '[dict]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def map_dict_vals(func, dict_):

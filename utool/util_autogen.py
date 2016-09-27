@@ -6,7 +6,7 @@ import six
 from collections import deque  # NOQA
 from os.path import exists, dirname, join, expanduser, normpath
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[autogen]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 class PythonStatement(object):

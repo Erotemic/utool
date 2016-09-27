@@ -5,7 +5,7 @@ import os
 from os.path import split, exists, join, dirname
 from utool import util_inject
 from utool._internal import meta_util_arg
-print, rrr, profile = util_inject.inject2(__name__, '[sysreq]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def in_virtual_env():

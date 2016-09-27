@@ -7,7 +7,7 @@ from os.path import dirname, join
 from utool import util_class  # NOQA
 from utool import util_dev
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[util_project]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 __GLOBAL_PROFILE__ = None

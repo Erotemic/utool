@@ -18,7 +18,7 @@ from utool import util_class
 from utool import util_path
 from utool import util_decor
 from utool import util_list
-print, rrr, profile = util_inject.inject2(__name__, '[git]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def _syscmd(cmdstr):

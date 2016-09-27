@@ -12,7 +12,7 @@ from six.moves import zip
 from utool import util_iter
 from utool import util_alg
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[util_assert]')
+print, rrr, profile = util_inject.inject2(__name__)
 from utool import util_arg  # NOQA
 
 

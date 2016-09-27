@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 from utool import util_inject
 from utool import util_str
-print, rrr, profile = util_inject.inject2(__name__, '[resource]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 try:
     # Resource does not exist in win32

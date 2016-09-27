@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 import re
 import six
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[str]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def convert_text_to_varname(text):

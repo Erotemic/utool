@@ -9,7 +9,7 @@ from utool import util_inject
 from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
 from utool._internal import meta_util_six
 #import warnings
-print, rrr, profile = util_inject.inject2(__name__, '[type]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 __STR__ = meta_util_six.__STR__

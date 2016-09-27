@@ -4,7 +4,7 @@ import six
 import re
 import operator
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[util_tags]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def modify_tags(tags_list, direct_map=None, regex_map=None, regex_aug=None,

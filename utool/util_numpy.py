@@ -7,7 +7,7 @@ try:
 except ImportError as ex:
     pass
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[util_numpy]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def tiled_range(range_, cols):

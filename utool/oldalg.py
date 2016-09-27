@@ -21,7 +21,7 @@ try:
     HAVE_SCIPY = True
 except ImportError:
     HAVE_SCIPY = False
-print, rrr, profile = util_inject.inject2(__name__, '[alg]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 PHI = 1.61803398875

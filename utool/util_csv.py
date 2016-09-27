@@ -9,7 +9,7 @@ import six
 from utool import util_type
 from utool import util_inject
 from utool import util_dev
-print, rrr, profile = util_inject.inject2(__name__, '[csv]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 class CSV(util_dev.NiceRepr):

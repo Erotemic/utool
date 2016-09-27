@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join, splitext, basename
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[ubuntu]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):

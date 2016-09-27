@@ -20,7 +20,7 @@ from utool import util_dev
 from utool import util_io
 from utool import util_dbg
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__, '[latex]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 #def ensure_latex_environ():
 #    paths = os.environ['PATH'].split(os.pathsep)

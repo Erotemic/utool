@@ -10,7 +10,7 @@ from utool import util_inject
 from utool import util_str
 from utool import util_type
 from utool._internal.meta_util_six import get_funcname, set_funcname
-print, rrr, profile = util_inject.inject2(__name__, '[list]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 if util_type.HAVE_NUMPY:
     import numpy as np

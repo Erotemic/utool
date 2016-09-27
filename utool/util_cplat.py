@@ -14,7 +14,7 @@ from utool import util_inject
 from utool._internal import meta_util_cplat
 from utool._internal.meta_util_path import unixpath, truepath
 from six.moves import zip
-print, rrr, profile = util_inject.inject2(__name__, '[cplat]')
+print, rrr, profile = util_inject.inject2(__name__)
 print_ = util_inject.make_module_write_func(__name__)
 
 COMPUTER_NAME = platform.node()

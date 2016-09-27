@@ -19,7 +19,7 @@ from utool import util_cplat
 from six.moves import range, zip
 import collections
 import six  # NOQA
-print, rrr, profile = util_inject.inject2(__name__, '[progress]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 default_timer = util_time.default_timer
 

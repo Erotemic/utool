@@ -34,7 +34,7 @@ from utool import util_type
 from utool import util_decor   # NOQA
 from utool import util_dict
 from utool._internal import meta_util_constants
-print, rrr, profile = util_inject.inject2(__name__, '[cache]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 
 # TODO: Remove globalness

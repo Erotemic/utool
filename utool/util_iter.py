@@ -8,7 +8,7 @@ from six.moves import zip, range, zip_longest, reduce
 from itertools import chain, cycle
 from utool import util_inject
 from utool._internal import meta_util_iter
-print, rrr, profile = util_inject.inject2(__name__, '[iter]')
+print, rrr, profile = util_inject.inject2(__name__)
 
 ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable
