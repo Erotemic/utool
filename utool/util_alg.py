@@ -716,11 +716,15 @@ def get_prime_index(prime):
         guess += 1
 
 
-def generate_primes(start_guess=2):
+def generate_primes(stop=None, start_guess=2):
     guess = start_guess
+    num_generated = 0
     while True:
         if is_prime(guess):
+            num_generated += 1
             yield guess
+            if num_generated >= stop:
+                break
         guess += 1
 
 
