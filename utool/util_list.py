@@ -2942,6 +2942,14 @@ def insert_values(list_, index, values, inplace=False):
     return new_list
 
 
+def aslist(listlike):
+    if isinstance(listlike, np.ndarray):
+        list_ = listlike.tolist()
+    else:
+        list_ = list(listlike)
+    return list_
+
+
 #def partition2(list_, idxs1, idxs2):
 #    list1_ = ut.take(list_, idxs1)
 #    list2_ = list(zip(ut.take(list_, idxs2)))
