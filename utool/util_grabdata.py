@@ -277,7 +277,8 @@ def get_prefered_browser(pref_list=[], fallback=True):
                              (pref_list, error_list,))
 
 
-def download_url(url, filename=None, spoof=False, iri_fallback=True, verbose=True):
+def download_url(url, filename=None, spoof=False, iri_fallback=True,
+                 verbose=True, new=False, chunk_size=None):
     r""" downloads a url to a filename.
 
     Args:
@@ -288,6 +289,8 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True, verbose=Tru
 
     References:
         http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
+        http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
+        http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
 
     TODO:
         Delete any partially downloaded files
@@ -299,12 +302,6 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True, verbose=Tru
         >>> print(fpath)
         ispack.exe
     """
-    # Weird that we seem to need this here for tests
-    import urllib  # NOQA
-    if filename is None:
-        filename = basename(url)
-    if verbose:
-        print('[utool] Downloading url=%r to filename=%r' % (url, filename))
     def reporthook_(num_blocks, block_nBytes, total_nBytes, start_time=0):
         total_seconds = time.time() - start_time + 1E-9
         num_kb_down   = int(num_blocks * block_nBytes) / 1024
@@ -319,6 +316,39 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True, verbose=Tru
         reporthook = functools.partial(reporthook_, start_time=time.time())
     else:
         reporthook = None
+    if filename is None:
+        filename = basename(url)
+    if verbose:
+        print('[utool] Downloading url=%r to filename=%r' % (url, filename))
+    if new:
+        import requests
+        #from contextlib import closing
+        con = requests.get(url, stream=True)
+        try:
+            #import math
+            content_length = con.headers.get('content-length', None)
+            if content_length is None:
+                # No progress available
+                with open(filename, 'wb') as file_:
+                    file_.write(con.content)
+            else:
+                if chunk_size is None:
+                    chunk_size = 2 ** 20  # one megabyte at a time
+                content_length = int(content_length)
+                #nTotal = int(math.ceil(content_length / chunk_size))
+                with open(filename, 'wb') as file_:
+                    chunk_iter = con.iter_content(chunk_size=chunk_size)
+                    #chunk_iter = ut.ProgIter(chunk_iter, nTotal=nTotal, lbl='downloading', freq=1)
+                    for count, chunk in enumerate(chunk_iter):
+                        if chunk:
+                            if reporthook:
+                                reporthook(count, chunk_size, content_length)
+                            file_.write(chunk)
+        finally:
+            con.close()
+        return filename
+    # Weird that we seem to need this here for tests
+    import urllib  # NOQA
     try:
         if spoof:
             # Different agents that can be used for spoofing
