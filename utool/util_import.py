@@ -208,20 +208,20 @@ def tryimport(modname, pipiname=None, ensure=False):
         module = __import__(modname)
         return module
     except ImportError as ex:
-        import utool
+        import utool as ut
         base_pipcmd = 'pip install %s' % pipiname
-        if not utool.WIN32:
+        sudo  = not ut.WIN32 and not ut.in_virtual_env()
+        if sudo:
             pipcmd = 'sudo ' + base_pipcmd
-            sudo = True
         else:
             pipcmd = base_pipcmd
-            sudo = False
         msg = 'unable to find module %s. Please install: %s' % ((modname), (pipcmd))
         print(msg)
-        utool.printex(ex, msg, iswarning=True)
+        ut.printex(ex, msg, iswarning=True)
         if ensure:
+            raise AssertionError('Ensure is dangerous behavior and is is no longer supported.')
             #raise NotImplementedError('not ensuring')
-            utool.cmd(base_pipcmd, sudo=sudo)
+            ut.cmd(base_pipcmd, sudo=sudo)
             module = tryimport(modname, pipiname, ensure=False)
             if module is None:
                 raise AssertionError('Cannot ensure modname=%r please install using %r'  % (modname, pipcmd))

@@ -2628,7 +2628,6 @@ def format_text_as_docstr(text):
 
 def unformat_text_as_docstr(formated_text):
     r"""
-
     CommandLine:
         python  ~/local/vim/rc/pyvim_funcs.py  --test-unformat_text_as_docstr
 
@@ -2651,7 +2650,8 @@ def unformat_text_as_docstr(formated_text):
 
 
 def lorium_ipsum():
-    ipsum_str = """
+    """ Standard testing string """
+    ipsum_str = '''
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
     do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
     minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
@@ -2659,16 +2659,17 @@ def lorium_ipsum():
     velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
     cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
     est laborum.
-    """
+    '''
     return ipsum_str
 
 
 def bubbletext(text, font='cybermedium'):
     r"""
-    Other fonts include: cybersmall, cybermedium, and cyberlarge
+    Uses pyfiglet to create bubble text.
 
-    import pyfiglet
-    TODO move elsewhere
+    Args:
+        font (str): default=cybermedium, other fonts include: cybersmall and
+            cyberlarge.
 
     References:
         http://www.figlet.org/
@@ -2676,12 +2677,9 @@ def bubbletext(text, font='cybermedium'):
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
-        >>> bubble_text1 = ut.bubbletext('TESTING', font='cyberlarge')
-        >>> bubble_text2 = ut.bubbletext('BUBBLE', font='cybermedium')
-        >>> bubble_text3 = ut.bubbletext('TEXT', font='cyberlarge')
-        >>> print('\n'.join([bubble_text1, bubble_text2, bubble_text3]))
+        >>> bubble_text = ut.bubbletext('TESTING BUBBLE TEXT', font='cybermedium')
+        >>> print(bubble_text)
     """
-    # TODO: move this function elsewhere
     import utool as ut
     pyfiglet = ut.tryimport('pyfiglet', 'git+https://github.com/pwaller/pyfiglet')
     if pyfiglet is None:

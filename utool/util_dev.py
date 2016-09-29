@@ -56,6 +56,8 @@ def ensure_str_list(input_):
 
 def set_clipboard(text):
     """
+    Copies text to the clipboard
+
     References:
         http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
         http://stackoverflow.com/questions/579687/how-do-i-copy-a-string-to-the-clipboard-on-windows-using-python
@@ -74,7 +76,7 @@ def set_clipboard(text):
 
 
 def copy_text_to_clipboard(text):
-    """ alias """
+    """ alias for set_clipboard """
     return set_clipboard(text)
 
 

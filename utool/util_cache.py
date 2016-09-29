@@ -1199,9 +1199,7 @@ def get_lru_cache(max_size=5):
     """
     USE_C_LRU = False
     if USE_C_LRU:
-        #import utool as ut
         import lru
-        #lru = ut.tryimport('lru', 'git+https://github.com/amitdev/lru-dict', ensure=True)
         cache_obj = lru.LRU(max_size)
     else:
         cache_obj = LRUDict(max_size)

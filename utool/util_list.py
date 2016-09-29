@@ -1109,6 +1109,17 @@ def union_ordered(*lists):
 
 
 def union(*lists, **kwargs):
+    """
+    Ignore:
+        %timeit len(reduce(set.union, map(set, x)))
+        %timeit len(ut.union(*x))
+        %timeit len(ut.unique(ut.flatten(ut.lmap(np.unique, x))))
+        %timeit len(ut.unique(ut.flatten(x)))
+        %timeit len(ut.union(*x))
+        %timeit len(ut.list_union(*x))
+        %timeit len(set.union(*[set(list_) for list_ in lists]))
+        %timeit len(set.union(*(set(list_) for list_ in lists)))
+    """
     if kwargs.get('ordered', True):
         return union_ordered(*lists)
     else:
@@ -1132,7 +1143,8 @@ def list_isdisjoint(list1, list2):
 
 
 def list_union(*lists):
-    return set.union(*[set(list_) for list_ in lists])
+    return set.union(*(set(list_) for list_ in lists))
+    # return set.union(*[set(list_) for list_ in lists])
 
 
 intersect_ordered = isect

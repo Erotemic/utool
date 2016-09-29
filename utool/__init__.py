@@ -665,7 +665,7 @@ if DOELSE:
                                  type_profile, type_profile2, 
                                  type_sequence_factory, unflat_map, 
                                  unflat_take, unflat_unique_rowid_map, 
-                                 unflat_vecmap, unflatten, unflatten2, 
+                                 unflat_vecmap, unflatten, unflatten2, union, 
                                  union_ordered, unique, unique_ordered, 
                                  unique_unordered, unpack_iterables, where, 
                                  where_not_None, xor_lists, zipcompress, 

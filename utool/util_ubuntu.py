@@ -200,17 +200,52 @@ class XCtrl(object):
     """
     xdotool key ctrl+shift+i
 
-    List current windows:
+    References:
+        http://superuser.com/questions/382616/detecting-currently-active-window
+        http://askubuntu.com/questions/455762/xbindkeys-wont-work-properly
+
+    Ignore:
+        xdotool keyup --window 0 7 type --clearmodifiers ---window 0 '%paste'
+
+        # List current windows:
         wmctrl  -l
 
+        # Get current window
+        xdotool getwindowfocus getwindowname
+
+    CommandLine:
+        python -m utool.util_ubuntu XCtrl
+
     Example:
+        >>> # Script
+        >>> import utool as ut
+        >>> from utool import util_ubuntu
         >>> orig_window = []
+        >>> ut.copy_text_to_clipboard(ut.lorium_ipsum())
         >>> doscript = [
         >>>     ('focus', 'x-terminal-emulator.X-terminal-emulator'),
         >>>     ('type', '%paste'),
         >>>     ('key', 'KP_Enter'),
-        >>>     ('focus', 'GVIM')
+        >>>    # ('focus', 'GVIM')
         >>> ]
+        >>> util_ubuntu.XCtrl.do(*doscript, sleeptime=.01)
+
+    Ignore:
+        >>> ut.copy_text_to_clipboard(text)
+        >>> if '\n' in text or len(text) > 20:
+        >>>     text = '\'%paste\''
+        >>> else:
+        >>>     import pipes
+        >>>     text = pipes.quote(text.lstrip(' '))
+        >>>     ('focus', 'GVIM'),
+        >>> #
+        >>> doscript = [
+        >>>     ('focus', 'x-terminal-emulator.X-terminal-emulator'),
+        >>>     ('type', text),
+        >>>     ('key', 'KP_Enter'),
+        >>> ]
+        >>> ut.util_ubuntu.XCtrl.do(*doscript, sleeptime=.01)
+
 
     """
     # @staticmethod
@@ -224,10 +259,10 @@ class XCtrl(object):
     def do(*cmd_list, **kwargs):
         import utool as ut
         import time
-        verbose = False
+        verbose = kwargs.get('verbose', False)
         # print('Running xctrl.do script')
         if verbose:
-            print('Executing x do: %r' % (cmd_list,))
+            print('Executing x do: %s' % (ut.repr3(cmd_list),))
         cmdkw = dict(verbose=False, quiet=True, silence=True)
 
         # http://askubuntu.com/questions/455762/xbindkeys-wont-work-properly
@@ -236,6 +271,7 @@ class XCtrl(object):
         sleeptime = kwargs.get('sleeptime', defaultsleep)
         time.sleep(.05)
         ut.cmd('xset r off', **cmdkw)
+        memory = {}
 
         for item in cmd_list:
             # print('item = %r' % (item,))
@@ -248,7 +284,24 @@ class XCtrl(object):
                 sleeptime = float(item[2])
 
             if xcmd == 'focus':
-                args = ['wmctrl', '-xa', str(key_)]
+                key_ = str(key_)
+                if key_.startswith('$'):
+                    key_ = memory[key_[1:]]
+                args = ['wmctrl', '-xa', key_]
+            elif xcmd == 'focus_id':
+                key_ = str(key_)
+                if key_.startswith('$'):
+                    key_ = memory[key_[1:]]
+                args = ['wmctrl', '-ia', key_]
+            elif xcmd == 'remember_window_id':
+                out, err, ret = ut.cmd('xdotool getwindowfocus', **cmdkw)
+                memory[key_] = out.strip()
+                continue
+            elif xcmd == 'remember_window_name':
+                out, err, ret = ut.cmd('xdotool getwindowfocus getwindowname', **cmdkw)
+                import pipes
+                memory[key_] = pipes.quote(out.strip())
+                continue
             elif xcmd == 'type':
                 args = [
                     'xdotool',
@@ -261,6 +314,7 @@ class XCtrl(object):
 
             if verbose:
                 print('args = %r' % (args,))
+                print('Exec: %s' % (' '.join(args),))
             # print('args = %r' % (args,))
             ut.cmd(*args, **cmdkw)
             if sleeptime > 0:
