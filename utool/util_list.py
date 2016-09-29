@@ -1108,6 +1108,13 @@ def union_ordered(*lists):
     return unique_ordered(flatten(lists))
 
 
+def union(*lists, **kwargs):
+    if kwargs.get('ordered', True):
+        return union_ordered(*lists)
+    else:
+        return list_union(*lists)
+
+
 def list_intersection(list1, list2):
     return set(list1).intersection(set(list2))
 

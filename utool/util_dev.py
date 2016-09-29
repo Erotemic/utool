@@ -2741,20 +2741,25 @@ def make_instancelist(obj_list, check=True, shared_attrs=None):
 
                 if shared_attrs is None:
                     if check:
-                        shared_attrs = list(reduce(set.intersection, [set(dir(obj)) for obj in obj_list]))
+                        attrsgen = [set(dir(obj)) for obj in obj_list]
+                        shared_attrs = list(reduce(set.intersection, attrsgen))
                     else:
                         shared_attrs = dir(example_obj)
 
                 #allowed = ['__getitem__']  # TODO, put in metaclass
                 allowed = []
-                self._shared_public_attrs = [a for a in shared_attrs if a in allowed or not a.startswith('_')]
+                self._shared_public_attrs = [
+                    a for a in shared_attrs
+                    if a in allowed or not a.startswith('_')
+                ]
 
                 for attrname in self._shared_public_attrs:
                     attrtype = getattr(example_type, attrname, None)
                     print('attrtype = %r' % (attrtype,))
                     if attrtype is not None and isinstance(attrtype, property):
                         # need to do this as metaclass
-                        setattr(InstanceList_, attrname, property(self._define_prop(attrname)))
+                        setattr(InstanceList_, attrname,
+                                property(self._define_prop(attrname)))
                     else:
                         func = self._define_func(attrname)
                         print('func = %r' % (func,))
@@ -2775,7 +2780,8 @@ def make_instancelist(obj_list, check=True, shared_attrs=None):
             return _wrapper
 
         def _map_method(self, attrname, *args, **kwargs):
-            mapped_vals = [getattr(obj, attrname)(*args, **kwargs) for obj in self._obj_list]
+            mapped_vals = [getattr(obj, attrname)(*args, **kwargs)
+                           for obj in self._obj_list]
             return mapped_vals
 
         def _define_prop(self, attrname):
