@@ -440,6 +440,12 @@ def ichunks_list(list_, chunksize):
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
     """
     return (list_[ix:ix + chunksize] for ix in range(0, len(list_), chunksize))
+    #return (list_[sl] for sl in ichunk_slices(len(list_), chunksize))
+
+
+def ichunk_slices(total, chunksize):
+    for ix in range(0, total, chunksize):
+        yield slice(ix, ix + chunksize)
 
 
 def interleave(args):
