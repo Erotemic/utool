@@ -2273,6 +2273,25 @@ def expensive_task_gen(num=8700):
     #return time_list
 
 
+def factors(n):
+    """
+    Computes all the integer factors of the number `n`
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> result = ut.factors(10)
+        >>> print(result)
+        (1, 2, 5, 10)
+
+    References:
+        http://stackoverflow.com/questions/6800193/finding-all-the-factors
+    """
+    return set(reduce(list.__add__,
+                      ([i, n // i] for i in range(1, int(n ** 0.5) + 1) if n % i == 0)))
+
+
 if __name__ == '__main__':
     """
     CommandLine:

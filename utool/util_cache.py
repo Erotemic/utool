@@ -374,12 +374,18 @@ class Cacher(object):
         self.fname = fname
         self.cfgstr = cfgstr
         self.verbose = verbose
+        self.ext = '.cPkl'
+
+    def get_fpath(self):
+        fpath = _args2_fpath(self.dpath, self.fname, self.cfgstr, self.ext)
+        return fpath
 
     def load(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
         assert cfgstr is not None, 'must specify cfgstr in constructor or call'
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
+        # TODO: use the computed fpath from this object instead
         data = load_cache(self.dpath, self.fname, cfgstr, verbose=self.verbose)
         if self.verbose > 1:
             print('... ' + self.fname + ' Cacher hit')
