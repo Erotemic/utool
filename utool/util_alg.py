@@ -2282,9 +2282,9 @@ def factors(n):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
-        >>> result = ut.factors(10)
+        >>> result = sorted(ut.factors(10))
         >>> print(result)
-        (1, 2, 5, 10)
+        [1, 2, 5, 10]
 
     References:
         http://stackoverflow.com/questions/6800193/finding-all-the-factors
