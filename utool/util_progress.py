@@ -671,119 +671,111 @@ class ProgressIter(object):
         measure_between_time = collections.deque([], maxlen=self.est_window)
         measure_est_seconds = collections.deque([], maxlen=self.est_window)
 
-        try:
-            # Wrap the for loop with a generator
-            for self.count, item in enumerate(self.iterable, start=start):
-                # GENERATE
-                yield item
-                # DO PROGRESS INFO
-                if (self.count) % freq == 0:
-                    # UPDATE INFO
-                    now_time          = default_timer()
-                    between_time      = (now_time - last_time)
-                    between_count     = self.count - last_count
-                    total_seconds     = (now_time - start_time)
+        # Wrap the for loop with a generator
+        for self.count, item in enumerate(self.iterable, start=start):
+            # GENERATE
+            yield item
+            # DO PROGRESS INFO
+            if (self.count) % freq == 0:
+                # UPDATE INFO
+                now_time          = default_timer()
+                between_time      = (now_time - last_time)
+                between_count     = self.count - last_count
+                total_seconds     = (now_time - start_time)
+                if USE_RECORD:
+                    measure_between_time.append(between_count / (float(between_time) + 1E-9))
+                    iters_per_second = sum(measure_between_time) / len(measure_between_time)
+                else:
+                    iters_per_second = between_count / (float(between_time) + 1E-9)
+                # If the future is known
+                if nTotal is None:
+                    est_seconds_left = -1
+                else:
+                    iters_left = nTotal - self.count
+                    est_etr = iters_left / (iters_per_second + 1E-9)
                     if USE_RECORD:
-                        measure_between_time.append(between_count / (float(between_time) + 1E-9))
-                        iters_per_second = sum(measure_between_time) / len(measure_between_time)
+                        measure_est_seconds.append(est_etr)
+                        est_seconds_left = sum(measure_est_seconds) / len(measure_est_seconds)
                     else:
-                        iters_per_second = between_count / (float(between_time) + 1E-9)
-                    # If the future is known
-                    if nTotal is None:
-                        est_seconds_left = -1
-                    else:
-                        iters_left = nTotal - self.count
-                        est_etr = iters_left / (iters_per_second + 1E-9)
-                        if USE_RECORD:
-                            measure_est_seconds.append(est_etr)
-                            est_seconds_left = sum(measure_est_seconds) / len(measure_est_seconds)
-                        else:
-                            est_seconds_left = est_etr
+                        est_seconds_left = est_etr
 
-                    # /future
-                    last_count        = self.count
-                    last_time         = now_time
-                    # ADJUST FREQ IF NEEDED
-                    # Adjust frequency if printing too quickly
-                    # so progress doesnt slow down actual function
-                    # TODO: better adjust algorithm
-                    time_thresh *= time_thresh_growth
-                    if adjust and (between_time < time_thresh or between_time > time_thresh * 2.0):
-                        max_between_time = max(max(max_between_time, between_time), 1E-9)
-                        max_between_count = max(max_between_count, between_count)
-                        # If progress was uniform and all time estimates were
-                        # perfect this would be the new freq to achieve time_thresh
-                        new_freq = max(int(time_thresh * max_between_count / max_between_time), 1)
-                        if DEBUG_FREQ_ADJUST:
-                            print('\n+---')
-                            print('[prog] between_count = %r' % between_count)
-                            print('[prog] between_time = %.8r' % between_time)
-                            print('[prog] time_thresh = %r' % time_thresh)
-                            print('[prog] max_between_count = %r' % max_between_count)
-                            print('[prog] max_between_time = %.8r' % max_between_time)
-                            print('[prog] Adusting frequency from: %r' % freq)
-                            print('[prog] Adusting frequency to: %r' % new_freq)
-                            print('L___')
-                        # But things are not perfect. So, don't make drastic changes
-                        max_freq_change_up = max(256, freq * 2)
-                        max_freq_change_down = freq // 2
-                        if (new_freq - freq) > max_freq_change_up:
-                            freq += max_freq_change_up
-                        elif (freq - new_freq) > max_freq_change_down:
-                            freq -= max_freq_change_down
-                        else:
-                            freq = new_freq
-                    #msg = msg_fmtstr % (
-                    #    self.count,
-                    #    1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                    #    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-                    #    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-                    #    time.strftime('%H:%M'),
-                    #)
-                    msg = msg_fmtstr.format(
-                        count=self.count,
-                        rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                        etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-                        ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-                        wall=time.strftime('%H:%M'),
-                    )
-                    #est_timeunit_left,
-                    #total_timeunit)
-                    if print_sep:
-                        print('---------')
-                    PROGRESS_WRITE(msg)
-                    #if force_newlines:
-                    #    PROGRESS_WRITE('\n')
-                    #if not self.backspace:
-                    try:
-                        PROGRESS_FLUSH()
-                    except IOError as ex:
-                        if util_arg.VERBOSE:
-                            print('IOError flushing %s' % (ex,))
-                    # DO PROGRESS INFO
-                    if self.prog_hook is not None:
-                        # From the point of view of the progress iter, we are
-                        # about to enter the body of a for loop. (But we may have executed
-                        # the body implicitly in the yeild....
-                        # so it is ambiguous. In the second case 0 will be executed twice.
-                        self.prog_hook(self.count, nTotal)
-        except KeyboardInterrupt:
-            # print a line to avoid losing progress
-            print('progress was interrupted')
-            raise
+                # /future
+                last_count        = self.count
+                last_time         = now_time
+                # ADJUST FREQ IF NEEDED
+                # Adjust frequency if printing too quickly
+                # so progress doesnt slow down actual function
+                # TODO: better adjust algorithm
+                time_thresh *= time_thresh_growth
+                if adjust and (between_time < time_thresh or between_time > time_thresh * 2.0):
+                    max_between_time = max(max(max_between_time, between_time),
+                                           1E-9)
+                    max_between_count = max(max_between_count, between_count)
+                    # If progress was uniform and all time estimates were
+                    # perfect this would be the new freq to achieve time_thresh
+                    new_freq = max(int(time_thresh * max_between_count /
+                                       max_between_time), 1)
+                    if DEBUG_FREQ_ADJUST:
+                        print('\n+---')
+                        print('[prog] between_count = %r' % between_count)
+                        print('[prog] between_time = %.8r' % between_time)
+                        print('[prog] time_thresh = %r' % time_thresh)
+                        print('[prog] max_between_count = %r' % max_between_count)
+                        print('[prog] max_between_time = %.8r' % max_between_time)
+                        print('[prog] Adusting frequency from: %r' % freq)
+                        print('[prog] Adusting frequency to: %r' % new_freq)
+                        print('L___')
+                    # But things are not perfect. So, don't make drastic changes
+                    max_freq_change_up = max(256, freq * 2)
+                    max_freq_change_down = freq // 2
+                    if (new_freq - freq) > max_freq_change_up:
+                        freq += max_freq_change_up
+                    elif (freq - new_freq) > max_freq_change_down:
+                        freq -= max_freq_change_down
+                    else:
+                        freq = new_freq
+                #msg = msg_fmtstr % (
+                #    self.count,
+                #    1.0 / iters_per_second if self.invert_rate else iters_per_second,
+                #    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+                #    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
+                #    time.strftime('%H:%M'),
+                #)
+                msg = msg_fmtstr.format(
+                    count=self.count,
+                    rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
+                    etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
+                    ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
+                    wall=time.strftime('%H:%M'),
+                )
+                #est_timeunit_left,
+                #total_timeunit)
+                if print_sep:
+                    print('---------')
+                PROGRESS_WRITE(msg)
+                #if force_newlines:
+                #    PROGRESS_WRITE('\n')
+                #if not self.backspace:
+                try:
+                    PROGRESS_FLUSH()
+                except IOError as ex:
+                    if util_arg.VERBOSE:
+                        print('IOError flushing %s' % (ex,))
+                # DO PROGRESS INFO
+                if self.prog_hook is not None:
+                    # From the point of view of the progress iter, we are about
+                    # to enter the body of a for loop. (But we may have
+                    # executed the body implicitly in the yeild....  so it is
+                    # ambiguous. In the second case 0 will be executed twice.
+                    self.prog_hook(self.count, nTotal)
         # --- end of main loop
         # cleanup
         if (self.count) % freq != 0:
-            # If the final line of progress was not written in the loop, write it here
+            # If the final line of progress was not written in the loop, write
+            # it here
             est_seconds_left = 0
             now_time = default_timer()
             total_seconds = (now_time - start_time)
-            #msg = msg_fmtstr % (
-            #    self.count, 1.0 / iters_per_second if self.invert_rate else iters_per_second,
-            #    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-            #    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-            #    time.strftime('%H:%M'),
-            #)
             msg = msg_fmtstr.format(
                 count=self.count,
                 rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
@@ -800,10 +792,10 @@ class ProgressIter(object):
                     print('IOError flushing %s' % (ex,))
             #PROGRESS_WRITE('\nComplete(2)\n')
             if self.prog_hook is not None:
-                # From the point of view of the progress iter, we are
-                # about to enter the body of a for loop. (But we may have executed
-                # the body implicitly in the yeild....
-                # so it is ambiguous. In the second case 0 will be executed twice.
+                # From the point of view of the progress iter, we are about to
+                # enter the body of a for loop. (But we may have executed the
+                # body implicitly in the yeild....  so it is ambiguous. In the
+                # second case 0 will be executed twice.
                 self.prog_hook(self.count, nTotal)
         if not self.backspace:
             PROGRESS_WRITE('\n')
@@ -888,7 +880,8 @@ class ProgIter(ProgressIter):
                                           freq=freq, bs=bs, **kwargs)
 
 
-def progress_str(max_val, lbl='Progress: ', repl=False, approx=False, backspace=PROGGRESS_BACKSPACE):
+def progress_str(max_val, lbl='Progress: ', repl=False, approx=False,
+                 backspace=PROGGRESS_BACKSPACE):
     r""" makes format string that prints progress: %Xd/MAX_VAL with backspaces
 
     NOTE: \r can be used instead of backspaces. This function is not very
