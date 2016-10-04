@@ -601,12 +601,13 @@ def is_prime(num):
         >>> print(result)
         primes = [2, 3, 5, 7]
     """
-    if num < 2:
-        return False
-    for j in range(2, num):
-        if (num % j) == 0:
-            return False
-    return True
+    return num >= 2 and not any(num % j == 0 for j in range(2, num))
+    # if num < 2:
+    #     return False
+    # for j in range(2, num):
+    #     if (num % j) == 0:
+    #         return False
+    # return True
 
 
 def fibonacci_recursive(n):
