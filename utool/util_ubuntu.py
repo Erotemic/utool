@@ -213,6 +213,25 @@ class XCtrl(object):
         # Get current window
         xdotool getwindowfocus getwindowname
 
+
+        #====
+        # Get last opened window
+        #====
+
+        win_title=x-terminal-emulator.X-terminal-emulator
+        key_ = 'x-terminal-emulator.X-terminal-emulator'
+
+        # Get all windows in current workspace
+        workspace_number=`wmctrl -d | grep '\*' | cut -d' ' -f 1`
+        win_list=`wmctrl -lx | grep $win_title | grep " $workspace_number " | awk '{print $1}'`
+
+        # Get stacking order of windows in current workspace
+        win_order=$(xprop -root|grep "^_NET_CLIENT_LIST_STACKING" | tr "," " ")
+
+        echo $win_list
+
+
+
     CommandLine:
         python -m utool.util_ubuntu XCtrl
 
@@ -256,6 +275,38 @@ class XCtrl(object):
     #     ut.cmd(*args, quiet=True, silence=True)
 
     @staticmethod
+    def findall_window_ids(pattern):
+        import utool as ut
+        cmdkw = dict(verbose=False, quiet=True, silence=True)
+        winid_list = ut.cmd(
+            "wmctrl -lx | grep %s | awk '{print $1}'" % (pattern,),
+            **cmdkw)[0].strip().split('\n')
+        winid_list = [h for h in winid_list if h]
+        return winid_list
+
+    @staticmethod
+    def find_window_id(pattern, method='mru'):
+        import utool as ut
+        cmdkw = dict(verbose=False, quiet=True, silence=True)
+        winid_candidates = XCtrl.findall_window_ids(pattern)
+        if len(winid_candidates) == 0:
+            win_id = None
+        elif len(winid_candidates) == 1:
+            win_id = winid_candidates[0]
+        else:
+            if method == 'mru':
+                # Find most recently used window with the focus name.
+                winid_order_str = ut.cmd(
+                    'xprop -root|grep "^_NET_CLIENT_LIST_STACKING"', **cmdkw)[0]
+                winid_order = winid_order_str.split('#')[1].strip().split(', ')[::-1]
+                winid_order_ = [int(h, 16) for h in winid_order]
+                winid_candidates_ = [int(h, 16) for h in winid_candidates]
+                win_id = hex(ut.isect(winid_order_, winid_candidates_)[0])
+            else:
+                raise NotImplementedError(method)
+        return win_id
+
+    @staticmethod
     def do(*cmd_list, **kwargs):
         import utool as ut
         import time
@@ -263,8 +314,8 @@ class XCtrl(object):
         # print('Running xctrl.do script')
         if verbose:
             print('Executing x do: %s' % (ut.repr3(cmd_list),))
-        cmdkw = dict(verbose=False, quiet=True, silence=True)
 
+        cmdkw = dict(verbose=False, quiet=True, silence=True)
         # http://askubuntu.com/questions/455762/xbindkeys-wont-work-properly
         # Make things work even if other keys are pressed
         defaultsleep = 0.0
@@ -287,7 +338,13 @@ class XCtrl(object):
                 key_ = str(key_)
                 if key_.startswith('$'):
                     key_ = memory[key_[1:]]
-                args = ['wmctrl', '-xa', key_]
+                pattern = key_
+                win_id = XCtrl.find_window_id(pattern, method='mru')
+                if win_id is None:
+                    args = ['wmctrl', '-xa', pattern]
+                else:
+                    args = ['wmctrl', '-ia', win_id]
+
             elif xcmd == 'focus_id':
                 key_ = str(key_)
                 if key_.startswith('$'):
