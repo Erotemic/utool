@@ -288,7 +288,7 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
         if nbytes > 1E6:
             print('About to read file of size %s' % (ut.byte_str2(nbytes),))
     try:
-        with ut.Timer(verbose=big_verbose):
+        with ut.Timer(fpath, verbose=big_verbose):
             data = util_io.load_cPkl(fpath, verbose)
     except (EOFError, IOError, ImportError) as ex:
         print('CORRUPTED? fpath = %s' % (fpath,))
