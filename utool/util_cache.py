@@ -213,7 +213,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
     return fpath
 
 
-def save_cache(dpath, fname, cfgstr, data, verbose=None):
+def save_cache(dpath, fname, cfgstr, data, ext='.cPkl', verbose=None):
     """
     save_cache
 
@@ -238,8 +238,8 @@ def save_cache(dpath, fname, cfgstr, data, verbose=None):
         >>> result = str(fpath)
         >>> print(result)
     """
-    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl', write_hashtbl=False)
-    util_io.save_cPkl(fpath, data, verbose)
+    fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False)
+    util_io.save_data(fpath, data, verbose)
     return fpath
 
 
@@ -386,7 +386,8 @@ class Cacher(object):
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
         # TODO: use the computed fpath from this object instead
-        data = load_cache(self.dpath, self.fname, cfgstr, verbose=self.verbose)
+        data = load_cache(self.dpath, self.fname, cfgstr, self.ext,
+                          verbose=self.verbose)
         if self.verbose > 1:
             print('... ' + self.fname + ' Cacher hit')
         return data
@@ -417,7 +418,7 @@ class Cacher(object):
         assert self.dpath is not None, 'no dpath'
         if self.verbose > 0:
             print('... ' + self.fname + ' Cacher save')
-        save_cache(self.dpath, self.fname, cfgstr, data)
+        save_cache(self.dpath, self.fname, cfgstr, data, self.ext)
 
 
 @util_decor.memoize
