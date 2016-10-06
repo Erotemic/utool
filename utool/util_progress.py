@@ -339,8 +339,7 @@ class ProgressIter(object):
         >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
         >>>                            time_thresh=.1, adjust=True)
-        >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
-        >>> print(ut.truncate_str(ut.repr2(results1), 70))
+        >>> [ut.get_nth_prime_bruteforce(29) for x in progiter]
 
     Example2:
         >>> # SLOW_DOCTEST
@@ -349,9 +348,8 @@ class ProgressIter(object):
         >>> num2 = 100001
         >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
-        >>>                            time_thresh=3, adjust=True)
-        >>> results1 = [ut.get_nth_prime_bruteforce(29) for x in progiter]
-        >>> print(ut.truncate_str(ut.repr2(results1), 70))
+        >>>                            time_thresh=3, adjust=True, bs=True)
+        >>> [ut.get_nth_prime_bruteforce(29) for x in progiter]
 
     Example3:
         >>> # SLOW_DOCTEST
@@ -499,13 +497,9 @@ class ProgressIter(object):
     #    return msg_fmtstr
 
     @staticmethod
-    def build_msg_fmtstr_head_cols(nTotal, lbl, backspace=True):
+    def build_msg_fmtstr_head_cols(nTotal, lbl):
         nTotal_ = '?' if nTotal == 0 else six.text_type(nTotal)
-        if backspace:
-            #msg_head_columns = ['\r', lbl, ' {count:4d}/', nTotal_ , '...  ']
-            msg_head_columns = ['', lbl, ' {count:4d}/', nTotal_ , '...  ']
-        else:
-            msg_head_columns = ['', lbl, ' {count:4d}/', nTotal_ , '...  ']
+        msg_head_columns = ['', lbl, ' {count:4d}/', nTotal_ , '...  ']
         return msg_head_columns
 
     @staticmethod
@@ -539,21 +533,20 @@ class ProgressIter(object):
         tzname = time.tzname[0]
         if util_cplat.WIN32:
             tzname = tzname.replace('Eastern Standard Time', 'EST')
-        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl, backspace)
+        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl)
+        # ansii/vt100 code for clearline
+        # CLEARLINE_L2 = '\33[2K'
+        BEFORE_PROG = '\r\033[?25l'
+
         msg_tail = [
             ('rate={rate:3.3f} seconds/iter, '
              if invert_rate else 'rate={rate:4.2f} Hz,'),
             ('' if nTotal == 0 else ' etr={etr},'),
             ' ellapsed={ellapsed},',
             (' wall={wall} ' + tzname if with_wall else ''),
-            #'' if backspace else '\n',
             # backslash-r is a carrage return and undoes all previous output on
             # a written line
-            #'\r' if backspace else '\n',
-            #'\r' if backspace else '\n',
-            '\r' if backspace else '\n',
-            #'' if backspace else '\n',
-            #'\n' if backspace else '',
+            BEFORE_PROG if backspace else '\n',
         ]
         msg_fmtstr_time = ''.join((msg_head + msg_tail))
         return msg_fmtstr_time
@@ -616,7 +609,7 @@ class ProgressIter(object):
         print_sep = self.separate
         if print_sep:
             print('---------')
-        start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl, backspace=self.backspace))
+        start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl))
         # Prepare for iteration
         msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
                                             self.invert_rate, self.backspace)
@@ -797,60 +790,9 @@ class ProgressIter(object):
                 # body implicitly in the yeild....  so it is ambiguous. In the
                 # second case 0 will be executed twice.
                 self.prog_hook(self.count, nTotal)
-        if not self.backspace:
-            PROGRESS_WRITE('\n')
-        else:
-            PROGRESS_WRITE('\n')
-            #PROGRESS_WRITE('\nComplete(1)\n')
-        #import sys
-        #sys.stdout.write('\nCOMPLETE@@@\n')
-        #print('COMPLETE45')
-        #cumrate = 1E-9
-        #self.nTotal = len(self.iterable)
-        # for:
-        #    if:
-        #         if:
-        #            print('')
-        #            freq = max(int(1.3 * between_count * time_thresh / between_time), 1)
-        #            # There has to be a standard way to do this.
-        #            # Refer to: https://github.com/verigak/progress/blob/master/progress/__init__.py
-        #            freq = max(int((between_count * between_time) / time_thresh), 1)
-        #            freq = max(int((between_count) / time_thresh), 1)
-        #            freq = max(int((between_time) / time_thresh), 1)
-        #            freq = max(int(time_thresh / between_count), 1)
-        #            print('[prog] Adusting frequency to: %r' % freq)
-        #            print('')
-        #        cumrate += between_time
-        #        rate = (self.count + 1.0) / float(cumrate)
-        #        if False and __debug__:
-        #            print('<!!!!!!!!!!!!!>')
-        #            print('iters_left = %r' % iters_left)
-        #            print('between_time = %r' % between_time)
-        #            print('between_count = %r' % between_count)
-        #            print('est_seconds_left = %r' % est_seconds_left)
-        #            print('iters_per_second = %r' % iters_per_second)
-        #            print('</!!!!!!!!!!!!!>')
-        #PROGRESS_WRITE('\n')
-        #msg = msg_fmtstr % (self.count + 1, iters_per_second, est_timeunit_left)
-        #print('freq = %r' % freq)
+        AFTER_BAR = '\033[?25h\n'
+        PROGRESS_WRITE(AFTER_BAR)
         #self.end(self.count + 1)
-
-    #def make_substep_progiters():
-
-    #def iter_without_rate(self):
-    #    if self.mark is None:
-    #        # Continuation of hacking
-    #        self.mark, self.end = log_progress(*self.args, **self.kwargs)
-    #    mark = self.mark
-    #    # Wrap the for loop with a generator
-    #    self.count = -1
-    #    for self.count, item in enumerate(self.iterable):
-    #        mark(self.count)
-    #        yield item
-    #    self.end(self.count + 1)
-
-    #def mark_current(self):
-    #    self.mark(self.count)
 
     def _get_timethresh_heuristics(self):
         """

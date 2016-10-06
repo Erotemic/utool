@@ -243,7 +243,7 @@ def save_cache(dpath, fname, cfgstr, data, verbose=None):
     return fpath
 
 
-def load_cache(dpath, fname, cfgstr, verbose=None):
+def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None):
     """
     load_cache
 
@@ -272,7 +272,7 @@ def load_cache(dpath, fname, cfgstr, verbose=None):
             print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
                     (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
-    fpath = _args2_fpath(dpath, fname, cfgstr, '.cPkl')
+    fpath = _args2_fpath(dpath, fname, cfgstr, ext)
     if not exists(fpath):
         if verbose > 0:
             print('[util_cache] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
@@ -364,7 +364,7 @@ class Cacher(object):
     old non inhertable version of cachable
     """
     def __init__(self, fname, cfgstr=None, cache_dir='default',
-                 appname='utool', verbose=None):
+                 appname='utool', ext='.cPkl', verbose=None):
         if verbose is None:
             verbose = VERBOSE
         if cache_dir == 'default':
@@ -374,7 +374,7 @@ class Cacher(object):
         self.fname = fname
         self.cfgstr = cfgstr
         self.verbose = verbose
-        self.ext = '.cPkl'
+        self.ext = ext
 
     def get_fpath(self):
         fpath = _args2_fpath(self.dpath, self.fname, self.cfgstr, self.ext)
