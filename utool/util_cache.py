@@ -202,7 +202,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
 
     """
     if len(ext) > 0 and ext[0] != '.':
-        raise Exception('Fatal Error: Please be explicit and use a dot in ext')
+        raise ValueError('Please be explicit and use a dot in ext')
     max_len = 128
     cfgstr_hashlen = 16  # TODO: make bigger before production
     prefix = fname
@@ -215,55 +215,16 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
 
 def save_cache(dpath, fname, cfgstr, data, ext='.cPkl', verbose=None):
     """
-    save_cache
-
-    Args:
-        dpath  (str)
-        fname  (str):
-        cfgstr (str):
-        data   (pickleable):
-
-    Returns:
-        str: fpath
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_cache import *  # NOQA
-        >>> import utool as ut
-        >>> dpath = ut.get_app_resource_dir('utool')
-        >>> fname = 'foo'
-        >>> cfgstr = 'bar'
-        >>> data = object()
-        >>> fpath = save_cache(dpath, fname, cfgstr, data)
-        >>> result = str(fpath)
-        >>> print(result)
+    Saves data using util_io, but smartly constructs a filename
     """
     fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False)
-    util_io.save_data(fpath, data, verbose)
+    util_io.save_data(fpath, data, verbose=verbose)
     return fpath
 
 
 def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None):
     """
-    load_cache
-
-    Args:
-        dpath  (str):
-        fname  (str):
-        cfgstr (str):
-
-    Returns:
-        pickleable: data
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_cache import *  # NOQA
-        >>> dpath = '?'
-        >>> fname = '?'
-        >>> cfgstr = '?'
-        >>> data = load_cache(dpath, fname, cfgstr)
-        >>> result = str(data)
-        >>> print(result)
+    Loads data using util_io, but smartly constructs a filename
     """
     if verbose is None:
         verbose = VERBOSE_CACHE
@@ -289,7 +250,7 @@ def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None):
             print('About to read file of size %s' % (ut.byte_str2(nbytes),))
     try:
         with ut.Timer(fpath, verbose=big_verbose):
-            data = util_io.load_cPkl(fpath, verbose)
+            data = util_io.load_data(fpath, verbose)
     except (EOFError, IOError, ImportError) as ex:
         print('CORRUPTED? fpath = %s' % (fpath,))
         if verbose > 1:
@@ -1083,14 +1044,14 @@ class Cachable(object):
                          for (key, val) in six.iteritems(statedict)
                          if key not in ignore_keys}
 
-        util_io.save_cPkl(fpath, save_dict)
+        util_io.save_data(fpath, save_dict)
         return fpath
         #save_cache(cachedir, '', cfgstr, self.__dict__)
         #with open(fpath, 'wb') as file_:
         #    pickle.dump(self.__dict__, file_)
 
     def _unsafe_load(self, fpath, ignore_keys=None):
-        loaded_dict = util_io.load_cPkl(fpath)
+        loaded_dict = util_io.load_data(fpath)
         if ignore_keys is not None:
             for key in ignore_keys:
                 if key in loaded_dict:
