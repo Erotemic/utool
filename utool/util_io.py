@@ -63,8 +63,7 @@ def save_data(fpath, data, **kwargs):
     elif ext in ['.txt']:
         return save_text(fpath, **kwargs)
     elif HAS_NUMPY and ext in ['.npz', '.npy']:
-        # TODO save_numpy
-        return np.save(fpath, data, **kwargs)
+        return save_numpy(fpath, data, **kwargs)
     else:
         assert False, 'unknown ext=%r for fpath=%r' % (ext, fpath)
 
@@ -677,7 +676,7 @@ def load_numpy(fpath, mmap_mode=None, verbose=None):
     return np.load(fpath, mmap_mode=mmap_mode)
 
 
-def save_numpy(fpath, data, verbose=None):
+def save_numpy(fpath, data, verbose=None, **kwargs):
     verbose = _rectify_verb_write(verbose)
     if verbose:
         print('[util_io] * save_numpy(%r, data)' % util_path.tail(fpath))
