@@ -271,7 +271,7 @@ def tryload_cache(dpath, fname, cfgstr, verbose=None):
     returns None if cache cannot be loaded
     """
     try:
-        return load_cache(dpath, fname, cfgstr, verbose)
+        return load_cache(dpath, fname, cfgstr, verbose=verbose)
     except IOError:
         return None
 
