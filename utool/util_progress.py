@@ -533,10 +533,21 @@ class ProgressIter(object):
         tzname = time.tzname[0]
         if util_cplat.WIN32:
             tzname = tzname.replace('Eastern Standard Time', 'EST')
-        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl)
         # ansii/vt100 code for clearline
         # CLEARLINE_L2 = '\33[2K'
-        BEFORE_PROG = '\r\033[?25l'
+        # BEFORE_PROG = '\r\033[?25l'
+
+        CLEARLINE_EL0 = '\33[0K'  # clear line to right
+        # CLEARLINE_EL1 = '\33[1K'  # clear line to left
+        CLEARLINE_EL2 = '\33[2K'  # clear line
+        DECTCEM_HIDE = '\033[?25l'  # hide cursor
+
+        CLEAR_BEFORE = '\r' + CLEARLINE_EL2 + DECTCEM_HIDE
+        CLEAR_AFTER = CLEARLINE_EL0
+
+        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl)
+        if backspace:
+            msg_head = [CLEAR_BEFORE] + msg_head
 
         msg_tail = [
             ('rate={rate:3.3f} seconds/iter, '
@@ -546,7 +557,7 @@ class ProgressIter(object):
             (' wall={wall} ' + tzname if with_wall else ''),
             # backslash-r is a carrage return and undoes all previous output on
             # a written line
-            BEFORE_PROG if backspace else '\n',
+            CLEAR_AFTER if backspace else '\n',
         ]
         msg_fmtstr_time = ''.join((msg_head + msg_tail))
         return msg_fmtstr_time
@@ -790,8 +801,10 @@ class ProgressIter(object):
                 # body implicitly in the yeild....  so it is ambiguous. In the
                 # second case 0 will be executed twice.
                 self.prog_hook(self.count, nTotal)
-        AFTER_BAR = '\033[?25h\n'
-        PROGRESS_WRITE(AFTER_BAR)
+        # AFTER_BAR = '\033[?25h\n'
+        DECTCEM_SHOW = '\033[?25h'  # show cursor
+        AT_END = DECTCEM_SHOW + '\n'
+        PROGRESS_WRITE(AT_END)
         #self.end(self.count + 1)
 
     def _get_timethresh_heuristics(self):

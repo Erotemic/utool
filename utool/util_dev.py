@@ -547,23 +547,48 @@ class MemoryTracker(object):
         #>>> memtrack.report_largest()
     """
     def __init__(self, lbl='Memtrack Init', disable=None,
-                 avail=True, used=True, total_diff=True, abs_mag=True):
+                 avail=True, used=True, total_diff=True, abs_mag=True, peak=True):
         if disable is None:
             disable = ENABLE_MEMTRACK
         self.disabled = disable  # disable by default
-        self.init_available_nBytes = self.get_available_memory()
-        self.prev_available_nBytes = None
-        self.init_used_nBytes = self.get_used_memory()
-        self.prev_used_nBytes = None
+        # self.init_peak_nBytes = self.get_peak_memory()
+        # self.init_available_nBytes = self.get_available_memory()
+        # self.init_used_nBytes = self.get_used_memory()
+
+        self.keys = []
+        if avail:
+            self.keys.append('avail')
+        if used:
+            self.keys.append('used')
+        if peak:
+            self.keys.append('peak')
+
+        # self.prev_available_nBytes = None
+        # self.prev_peak_nBytes = None
+        # self.prev_used_nBytes = None
+
         self.weakref_dict = {}  # weakref.WeakValueDictionary()
         self.weakref_dict2 = {}
+
         self.avail = avail
         self.used = used
         self.total_diff = total_diff
         self.abs_mag = abs_mag
+
+        self.init_measures = self.measure_memory()
+        self.prev_measures = None
+
         from collections import defaultdict
         self.records = defaultdict(list)
         self.report(lbl)
+
+    def measure_memory(self):
+        funcs = {
+            'peak': self.get_peak_memory,
+            'avail': self.get_available_memory,
+            'used': self.get_used_memory,
+        }
+        return {key: funcs[key]() for key in self.keys}
 
     @_disableable
     def __call__(self, lbl=''):
@@ -572,56 +597,61 @@ class MemoryTracker(object):
     def record(self):
         import time
         self.collect()
-        available_nBytes = self.get_available_memory()
-        used_nBytes = self.get_used_memory()
-        if self.prev_available_nBytes is not None:
-            diff_avail = self.prev_available_nBytes - available_nBytes
-        else:
-            diff_avail = None
-        if self.prev_used_nBytes is not None:
-            diff_used = used_nBytes - self.prev_used_nBytes
-        else:
-            diff_used = None
-        total_diff_avail = self.init_available_nBytes - available_nBytes
-        total_diff_used = self.init_available_nBytes - available_nBytes
 
-        self.records['diff_avail'].append(diff_avail)
-        self.records['diff_used'].append(diff_used)
-        self.records['total_diff_avail'].append(total_diff_avail)
-        self.records['total_diff_used'].append(total_diff_used)
-        self.records['available_nBytes'].append(available_nBytes)
-        self.records['used_nBytes'].append(used_nBytes)
+        measures = self.measure_memory()
+        for key in self.keys:
+            now_nBytes = measures[key]
+            if self.prev_measures is not None:
+                diff = now_nBytes - self.init_measures[key]
+            else:
+                diff = None
+            total_diff = now_nBytes - self.init_measures[key]
+            self.records['diff_' + key].append(diff)
+            self.records['total_diff_' + key].append(total_diff)
+            self.records['nBytes_' + key].append(now_nBytes)
+
+        # self.records['diff_avail'].append(diff_avail)
+        # self.records['diff_used'].append(diff_used)
+        # self.records['total_diff_avail'].append(total_diff_avail)
+        # self.records['total_diff_used'].append(total_diff_used)
+        # self.records['available_nBytes'].append(available_nBytes)
+        # self.records['used_nBytes'].append(used_nBytes)
         self.records['time'].append(time.time())
 
-        self.prev_available_nBytes = available_nBytes
-        self.prev_used_nBytes = used_nBytes
+        self.prev_measures = measures
+        # self.prev_available_nBytes = available_nBytes
+        # self.prev_used_nBytes = used_nBytes
 
     @_disableable
     def report(self, lbl=''):
+        if self.disabled:
+            return
         from utool.util_str import byte_str2
         self.record()
-        diff_avail = self.records['diff_avail'][-1]
-        diff_used = self.records['diff_used'][-1]
-        total_diff_avail = self.records['total_diff_avail'][-1]
-        total_diff_used = self.records['total_diff_used'][-1]
-        available_nBytes = self.records['available_nBytes'][-1]
-        used_nBytes = self.records['used_nBytes'][-1]
 
         def _byte(num):
             return 'None' if num is None else ut.byte_str2(num)
         try:
             import utool as ut
             row_data = [
-                [_byte(diff_avail), _byte(diff_used)],
-                [_byte(total_diff_avail), _byte(total_diff_used)],
-                [_byte(available_nBytes), _byte(used_nBytes)],
+                [_byte(self.records['diff_' + key][-1]) for key in self.keys],
+                [_byte(self.records['total_diff_' + key][-1]) for key in self.keys],
+                [_byte(self.records['nBytes_' + key][-1]) for key in self.keys],
             ]
             row_headers = ['prev_diff', 'total_diff', 'absolute']
-            col_headers = ['avail', 'used']
+            col_headers = self.keys
             table = ut.CSV(row_data, row_headers, col_headers)
+            if lbl:
+                print(lbl)
             print(table.transpose().tabulate())
             self.report_objs()
         except ImportError:
+            diff_avail = self.records['diff_avail'][-1]
+            diff_used = self.records['diff_used'][-1]
+            total_diff_avail = self.records['total_diff_avail'][-1]
+            total_diff_used = self.records['total_diff_used'][-1]
+            available_nBytes = self.records['nBytes_avail'][-1]
+            used_nBytes = self.records['nBytes_used'][-1]
             print('[memtrack] +----')
             lbl_ = '[%s] ' % (lbl,) if lbl else ''
 
@@ -646,6 +676,11 @@ class MemoryTracker(object):
                     print('[memtrack] | Used Memory      = %s' %  (byte_str2(used_nBytes),))
             self.report_objs()
             print('[memtrack] L----')
+
+    @_disableable
+    def get_peak_memory(self):
+        from utool import util_resources
+        return util_resources.peak_memory()
 
     @_disableable
     def get_available_memory(self):
