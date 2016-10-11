@@ -66,6 +66,10 @@ class CSV(util_dev.NiceRepr):
         import utool as ut
         return ut.make_csv_table(ut.listT(self.row_data), raw=True)
 
+    def nice_table2(self, **kwargs):
+        import utool as ut
+        return ut.make_csv_table(ut.listT(self.row_data), column_lbls=self.header, row_lbls=self.row_headers, **kwargs)
+
     def raw_table(self):
         return '\n'.join([','.join([y for y in x]) for x in self.row_data])
 

@@ -2220,8 +2220,11 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
 
 
 def strip_ansi(text):
-    # Remove ansi from length calculation
-    # References: http://stackoverflow.com/questions/14693701remove-ansi
+    """
+    Removes all ansi directives from the string
+    Helper to remove ansi from length calculation
+    References: http://stackoverflow.com/questions/14693701remove-ansi
+    """
     ansi_escape = re.compile(r'\x1b[^m]*m')
     return ansi_escape.sub('', text)
 

@@ -1430,17 +1430,17 @@ class EmbedOnException(object):
         if trace is not None:
             print('!!! EMBED ON EXCEPTION !!!')
             print('[util_dbg] %r in context manager!: %s ' % (type_, str(value)))
-            import utool
+            import utool as ut
             import traceback
-            #traceback.print_stack(type_, value, trace)
             traceback.print_exception(type_, value, trace)
-            #parent_locals = utool.get_parent_locals()
-            #execstr_parent = utool.execstr_dict(parent_locals, 'parent_locals')
-            #exec(execstr_parent)
+            # Grab the context of the frame where the failure occurred
+            trace_globals = trace.tb_frame.f_globals
             trace_locals = trace.tb_frame.f_locals
-            execstr_trace = utool.execstr_dict(trace_locals, 'trace_locals')
+            execstr_trace_g = ut.execstr_dict(trace_globals, 'trace_globals')
+            execstr_trace_l = ut.execstr_dict(trace_locals, 'trace_locals')
+            execstr_trace = execstr_trace_g + '\n' + execstr_trace_l
             exec(execstr_trace)
-            utool.embed()
+            ut.embed()
 
 # maybe this will be easier to type?
 embed_on_exception_context = EmbedOnException()
