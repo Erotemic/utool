@@ -324,7 +324,7 @@ def ichunks(iterable, chunksize, bordermode=None):
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 
     SeeAlso:
-        util_progress.get_nTotalChunks
+        util_progress.get_num_chunks
 
     CommandLine:
         python -m utool.util_iter --exec-ichunks --show

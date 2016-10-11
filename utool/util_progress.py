@@ -123,8 +123,8 @@ def test_progress():
             time.sleep(sleeptime2)
 
 
-def get_nTotalChunks(nTotal, chunksize):
-    """
+def get_num_chunks(nTotal, chunksize):
+    r"""
     Returns the number of chunks that a list will be split into given a
     chunksize.
 
@@ -135,47 +135,15 @@ def get_nTotalChunks(nTotal, chunksize):
     Returns:
         int: nTotalChunks
 
-    SeeAlso    from ibeis.algo.hots import graph_iden
-    infr_list = []
-    for annots in ut.ProgIter(flagged_annots, lbl='creating inference', freq=1, bs=True):
-        aids = annots.aids
-        nids = [1] * len(aids)
-        infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=False)
-        infr.initialize_graph()
-        infr.reset_feedback()
-        infr.apply_feedback()
-        infr_list.append(infr)
-
-    for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', freq=1, bs=True):
-        annots = ibs.annots(infr.aids)
-        edge_to_speeds = annots.get_speeds()
-        for (aid1, aid2), speed in edge_to_speeds.items():
-            if speed > MAX_SPEED:
-                if infr.graph.has_edge(aid1, aid2):
-                    pass
-                infr.add_feedback(aid1, aid2, 'nomatch')
-        infr.apply_feedback()
-
     CommandLine:
-        python -m utool.util_progress --exec-get_nTotalChunks:0
-        python -m utool.util_progress --exec-get_nTotalChunks:1
+        python -m utool.util_progress --exec-get_num_chunks:0
 
     Example0:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_progress import *  # NOQA
         >>> nTotal = 2000
         >>> chunksize = 256
-        >>> nTotalChunks = get_nTotalChunks(nTotal, chunksize)
-        >>> result = ('nTotalChunks = %s' % (six.text_type(nTotalChunks),))
-        >>> print(result)
-        nTotalChunks = 8
-
-    Example1:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_progress import *  # NOQA
-        >>> nTotal = 256
-        >>> chunksize = 32
-        >>> nTotalChunks = get_nTotalChunks(nTotal, chunksize)
+        >>> nTotalChunks = get_num_chunks(nTotal, chunksize)
         >>> result = ('nTotalChunks = %s' % (six.text_type(nTotalChunks),))
         >>> print(result)
         nTotalChunks = 8
@@ -219,7 +187,7 @@ def ProgChunks(list_, chunksize, nInput=None, **kwargs):
     """
     if nInput is None:
         nInput = len(list_)
-    nTotalChunks = get_nTotalChunks(nInput, chunksize)
+    nTotalChunks = get_num_chunks(nInput, chunksize)
     kwargs['nTotal'] = nTotalChunks
     if 'freq' not in kwargs:
         kwargs['freq'] = 1

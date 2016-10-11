@@ -729,7 +729,7 @@ if DOELSE:
                                      PROGGRESS_BACKSPACE, PROGRESS_FLUSH, 
                                      PROGRESS_WRITE, ProgChunks, ProgIter, 
                                      ProgPartial, ProgressIter, 
-                                     VALID_PROGRESS_TYPES, get_nTotalChunks, 
+                                     VALID_PROGRESS_TYPES, get_num_chunks, 
                                      log_progress, progiter, progress_str, 
                                      simple_progres_func, test_progress,) 
     from utool.util_profile import (Profiler, clean_line_profile_text, 
