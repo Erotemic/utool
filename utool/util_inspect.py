@@ -1737,7 +1737,7 @@ def parse_return_type(sourcecode):
 
 
 def exec_func_src(func, globals_=None, locals_=None, key_list=None,
-                  sentinal=None, update=None):
+                  sentinal=None, update=None, keys=None):
     """
     execs a func and returns requested local vars.
 
@@ -1746,6 +1746,8 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
     SeeAlso:
         ut.execstr_funckw
     """
+    if keys is not None:
+        key_list = keys
     import utool as ut
     sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
     if update is None:
