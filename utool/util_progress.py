@@ -369,6 +369,8 @@ class ProgressIter(object):
         self.est_window         = kwargs.pop('est_window', 64)
         #self.start_offset       = self.substep_min
 
+        self.stream      = kwargs.pop('stream', None)
+
         if FORCE_ALL_PROGRESS:
             self.freq = 1
             self.autoadjust = False
@@ -549,8 +551,12 @@ class ProgressIter(object):
         adjust = self.autoadjust
         # SETUP VARIABLES
         # HACK: reaquire logging print funcs in case they have changed
-        PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
-        PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
+        if self.stream is None:
+            PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
+            PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
+        else:
+            PROGRESS_WRITE = lambda msg: self.stream.write(msg)  # NOQA
+            PROGRESS_FLUSH = lambda: self.stream.flush()  # NOQA
         #import sys
         #PROGRESS_WRITE = sys.stdout.write
         #PROGRESS_FLUSH = sys.stdout.flush
