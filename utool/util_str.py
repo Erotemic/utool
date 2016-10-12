@@ -2229,6 +2229,14 @@ def strip_ansi(text):
     return ansi_escape.sub('', text)
 
 
+# def strip_non_ansi(text):
+#     """ keeps only ansii """
+#     def invert_regex(pat):
+#         return '^(.(?!(' + pat + ')))*$'
+#     non_ansi_escape = re.compile(invert_regex(r'\x1b[^m]*m'))
+#     return non_ansi_escape.sub('', text)
+
+
 def get_freespace_str(dir_='.'):
     """ returns string denoting free disk space in a directory """
     from utool import util_cplat
@@ -2339,7 +2347,7 @@ def multi_replace(str_, search_list, repl_list):
     return newstr
 
 
-def replace_nonquoted_text(text, search_list, repl_list):
+def replace_nonquoted_text(tlext, search_list, repl_list):
     """
     replace_nonquoted_text
 
