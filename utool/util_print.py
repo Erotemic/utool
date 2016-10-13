@@ -268,7 +268,7 @@ def print_difftext(text, other=None):
     if other is not None:
         # hack
         text = util_str.difftext(text, other)
-    colortext = util_str.get_colored_diff(text)
+    colortext = util_str.color_diff_text(text)
     try:
         print(colortext)
     except UnicodeEncodeError as ex:  # NOQA

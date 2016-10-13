@@ -39,6 +39,35 @@ class BaronWraper(object):
         with ut.Timer('building baron'):
             self.baron = redbaron.RedBaron(sourcecode)
 
+    def print_diff(self, fpath=None):
+        import utool as ut
+        fpath = getattr(self, 'fpath', fpath)
+        assert fpath is not None, 'specify original file'
+        old_text = ut.readfrom(fpath)
+        new_text = self.to_string()
+        diff_text = ut.difftext(old_text, new_text, 1)
+        colored_diff_text = ut.color_diff_text(diff_text)
+        print(colored_diff_text)
+
+    def write(self, fpath=None):
+        import utool as ut
+        fpath = getattr(self, 'fpath', fpath)
+        assert fpath is not None, 'specify original file'
+        new_text = self.to_string()
+        ut.write_to(fpath, new_text)
+
+    @classmethod
+    def from_fpath(cls, fpath):
+        import utool as ut
+        sourcecode = ut.readfrom(fpath)
+        self = cls(sourcecode)
+        self.fpath = fpath
+        return self
+
+    def to_string(self):
+        text = self.baron.dumps()
+        return text
+
     def defined_functions(self, recursive=True):
         found = self.baron.find_all('def', recursive=recursive)
         return found

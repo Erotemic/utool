@@ -2929,7 +2929,7 @@ def chr_range(*args, **kw):
     return list_
 
 
-def get_colored_diff(text):
+def color_diff_text(text):
     return highlight_text(text, lexer_name='diff')
 
 
