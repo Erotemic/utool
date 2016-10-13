@@ -362,10 +362,14 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
     return True
 
 
-def delete(path, dryrun=False, recursive=True, verbose=VERBOSE,
+def delete(path, dryrun=False, recursive=True, verbose=None,
            print_exists=True, ignore_errors=True, **kwargs):
     """ Removes a file, directory, or symlink """
-    if not QUIET:
+    if verbose is None:
+        verbose = VERBOSE
+        if not QUIET:
+            verbose = 1
+    if verbose > 0:
         print('[util_path] Deleting path=%r' % path)
     exists_flag = exists(path)
     link_flag = islink(path)
@@ -374,7 +378,7 @@ def delete(path, dryrun=False, recursive=True, verbose=VERBOSE,
             print('..does not exist!')
         flag = False
     else:
-        rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
+        rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose > 1,
                       ignore_errors=ignore_errors, **kwargs)
         if islink(path):
             os.unlink(path)
@@ -388,7 +392,7 @@ def delete(path, dryrun=False, recursive=True, verbose=VERBOSE,
             flag = remove_file(path, **rmargs)
         else:
             raise ValueError('Unknown type of path=%r' % (path,))
-        if not QUIET:
+        if verbose > 0:
             print('[util_path] Finished deleting path=%r' % path)
     return flag
 
