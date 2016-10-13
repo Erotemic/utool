@@ -1113,8 +1113,8 @@ def get_argv_tail(scriptname, prefer_main=None, argv=None):
 
 def get_cmdline_varargs(argv=None):
     """
-    Returns positional args specified directly after the scriptname on the
-    commandline.
+    Returns positional args specified directly after the scriptname
+    and before any args starting with '-' on the commandline.
     """
     if argv is None:
         argv = sys.argv

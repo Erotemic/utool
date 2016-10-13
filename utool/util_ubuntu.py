@@ -227,8 +227,7 @@ class XCtrl(object):
 
         # Get stacking order of windows in current workspace
         win_order=$(xprop -root|grep "^_NET_CLIENT_LIST_STACKING" | tr "," " ")
-
-        echo $win_list
+        echo $win_order
 
 
 
@@ -276,34 +275,92 @@ class XCtrl(object):
 
     @staticmethod
     def findall_window_ids(pattern):
+        """
+        CommandLine:
+            wmctrl  -l
+            python -m utool.util_ubuntu XCtrl.findall_window_ids gvim --src
+        """
         import utool as ut
         cmdkw = dict(verbose=False, quiet=True, silence=True)
         winid_list = ut.cmd(
             "wmctrl -lx | grep %s | awk '{print $1}'" % (pattern,),
             **cmdkw)[0].strip().split('\n')
         winid_list = [h for h in winid_list if h]
+        winid_list = [int(h, 16) for h in winid_list]
         return winid_list
 
     @staticmethod
-    def find_window_id(pattern, method='mru'):
+    def sort_window_ids(winid_list, order='mru'):
+        """
+        Orders window ids by most recently used
+        """
+        import utool as ut
+        winid_order = XCtrl.sorted_window_ids(order)
+        sorted_win_ids = ut.isect(winid_order, winid_list)
+        return sorted_win_ids
+
+    @staticmethod
+    def killold(pattern, num=4):
+        """
+        CommandLine:
+            python -m utool.util_ubuntu XCtrl.killold gvim 2
+
+        >>> import utool as ut
+        >>> from utool import util_ubuntu
+        >>> XCtrl = util_ubuntu.XCtrl
+        >>> pattern = 'gvim'
+        >>> num = 2
+
+        """
         import utool as ut
         cmdkw = dict(verbose=False, quiet=True, silence=True)
+        num = int(num)
+        winid_list = XCtrl.findall_window_ids(pattern)
+        winid_list = XCtrl.sort_window_ids(winid_list, 'mru')[num:]
+        output_lines = ut.cmd(
+            """wmctrl -lxp | awk '{print $1 " " $3}'""",
+            **cmdkw)[0].strip().split('\n')
+        output_fields = [line.split(' ') for line in output_lines]
+        output_fields = [(int(wid, 16), int(pid)) for wid, pid in output_fields]
+        pid_list = [pid for wid, pid in output_fields if wid in winid_list]
+        import psutil
+        for pid in pid_list:
+            proc = psutil.Process(pid=pid)
+            proc.kill()
+
+    @staticmethod
+    def sorted_window_ids(order='mru'):
+        """
+        Returns window ids orderd by criteria
+        default is mru (most recently used)
+
+        CommandLine:
+            xprop -root | grep "^_NET_CLIENT_LIST_STACKING" | tr "," " "
+            python -m utool.util_ubuntu XCtrl.sorted_window_ids
+        """
+        import utool as ut
+        if order in ['mru', 'lru']:
+            cmdkw = dict(verbose=False, quiet=True, silence=True)
+            winid_order_str = ut.cmd(
+                'xprop -root | grep "^_NET_CLIENT_LIST_STACKING"', **cmdkw)[0]
+            winid_order = winid_order_str.split('#')[1].strip().split(', ')[::-1]
+            winid_order = [int(h, 16) for h in winid_order]
+            if order == 'lru':
+                winid_order = winid_order[::-1]
+        else:
+            raise NotImplementedError(order)
+        return winid_order
+
+    @staticmethod
+    def find_window_id(pattern, method='mru'):
         winid_candidates = XCtrl.findall_window_ids(pattern)
         if len(winid_candidates) == 0:
             win_id = None
         elif len(winid_candidates) == 1:
             win_id = winid_candidates[0]
         else:
-            if method == 'mru':
-                # Find most recently used window with the focus name.
-                winid_order_str = ut.cmd(
-                    'xprop -root|grep "^_NET_CLIENT_LIST_STACKING"', **cmdkw)[0]
-                winid_order = winid_order_str.split('#')[1].strip().split(', ')[::-1]
-                winid_order_ = [int(h, 16) for h in winid_order]
-                winid_candidates_ = [int(h, 16) for h in winid_candidates]
-                win_id = hex(ut.isect(winid_order_, winid_candidates_)[0])
-            else:
-                raise NotImplementedError(method)
+            # Find most recently used window with the focus name.
+            win_id = XCtrl.sort_window_ids(winid_candidates, method)[0]
         return win_id
 
     @staticmethod
@@ -343,7 +400,7 @@ class XCtrl(object):
                 if win_id is None:
                     args = ['wmctrl', '-xa', pattern]
                 else:
-                    args = ['wmctrl', '-ia', win_id]
+                    args = ['wmctrl', '-ia', hex(win_id)]
 
             elif xcmd == 'focus_id':
                 key_ = str(key_)

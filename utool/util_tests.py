@@ -1358,8 +1358,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                         ut.isdisjoint(nametup, force_enable_testnames))
                 if not skip:
                     if VERBOSE_TEST:
-                        print(' * HACK adding testname=%r to local_testtup_list' % (full_testname,))
-                    local_testtup = (nametup, testno, src_, want, test_namespace, short_testname, total_examples)
+                        print(' * HACK adding testname=%r to local_testtup_list' % (
+                            full_testname,))
+                    local_testtup = (nametup, testno, src_, want,
+                                     test_namespace, short_testname,
+                                     total_examples)
                     local_testtup_list.append(local_testtup)
                 else:
                     if VERBOSE_TEST:
@@ -1485,6 +1488,47 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             if VERBOSE_TEST:
                 print('... disabling test')
             distabled_testflags.append(flag1)
+
+    if len(force_enable_testnames_) > 0 and len(enabled_testtup_list) == 0:
+        if VERBOSE_TEST:
+            print('Forced test did not have a doctest example')
+            print('Maybe it can be run without any context')
+        import utool as ut
+        # assert len(force_enable_testnames) == 1
+        test_funcname_ = force_enable_testnames[0]
+        if test_funcname_.find('.') != -1:
+            test_classname, test_funcname = test_funcname_.split('.')
+            class_ = getattr(module, test_classname, None)
+            assert class_ is not None
+            func_ = getattr(class_, test_funcname, None)
+        else:
+            test_funcname = test_funcname_
+            func_ = getattr(module, test_funcname, None)
+        assert func_ is not None
+        # varargs = ut.get_cmdline_varargs()
+        varargs = force_enable_testnames[1:]
+        # assert len(ut.get_unbound_args(func_)) == len(varargs), (
+        #     'arg support is extremely limited without an explicit doctest.')
+        testno = 0
+        modpath = ut.get_modname_from_modpath(module.__file__)
+        # Create dummy doctest
+        src = ut.codeblock(
+            '''
+            # DUMMY_DOCTEST
+            from {modpath} import *  # NOQA
+            args = {varargs}
+            result = {test_funcname_}(*args)
+            print(result)
+            ''').format(
+                modpath=modpath,
+                test_funcname_=test_funcname_,
+                varargs=repr(varargs))
+        testtup = TestTuple(test_funcname_, testno, src, want=None,
+                            flag='--exec-' + test_funcname_,
+                            frame_fpath=frame_fpath, mode='exec', total=1,
+                            nametup=[test_funcname_])
+        enabled_testtup_list.append(testtup)
+
     if VERBOSE_TEST:
         indenter.stop()
 
