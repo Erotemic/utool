@@ -527,7 +527,8 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     import_lines = [top_import]
     if modname.startswith('utool'):
         import_lines += ['import utool as ut']
-    is_show_func = not modname.startswith('utool') and not modname.startswith('mtgmonte')
+    # is_show_func = not modname.startswith('utool') and not modname.startswith('mtgmonte')
+    is_show_func = modname.startswith('plottool')
 
     # TODO: Externally register these
     default_argval_map = {
@@ -680,7 +681,7 @@ def make_cmdline_docstr(funcname, modname):
         return cmdline_fmtstr.format(**locals())
     else:
         # TODO: infer this
-        is_show_func = True
+        is_show_func = 'draw' in funcname or 'show' in funcname
         if is_show_func:
             cmdline_fmtstr = 'python -m {modname} {funcname} --show'
         else:

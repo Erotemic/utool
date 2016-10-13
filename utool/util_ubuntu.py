@@ -302,6 +302,9 @@ class XCtrl(object):
     @staticmethod
     def killold(pattern, num=4):
         """
+        Leaves no more than `num` instances of a program alive.  Ordering is
+        determined by most recent usage.
+
         CommandLine:
             python -m utool.util_ubuntu XCtrl.killold gvim 2
 
