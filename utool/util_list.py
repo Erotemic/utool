@@ -28,12 +28,12 @@ def lmap(func, iter_, **kwargs):
     # return list(map(func, iter_))
 
 
-def lzip(func, iter_, **kwargs):
+def lzip(*args):
     """
     list zip - eagerly evaulates zip like in python2
     (but you aren't using that right?)
     """
-    return [func(arg, **kwargs) for arg in iter_]
+    return list(zip(*args))
 
 
 def maplen(iter_):
