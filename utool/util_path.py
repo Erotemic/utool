@@ -1110,7 +1110,7 @@ def dirsplit(path):
         path (str):
 
     Returns:
-        list: compoments of the path
+        list: components of the path
 
     CommandLine:
         python -m utool.util_path --exec-dirsplit
