@@ -54,30 +54,46 @@ def ensure_str_list(input_):
     return [input_] if isinstance(input_, six.string_types) else input_
 
 
-def set_clipboard(text):
+def copy_text_to_clipboard(text):
     """
     Copies text to the clipboard
+
+    CommandLine:
+        pip install pyperclip
+        sudo apt-get install xclip
+        sudo apt-get install xsel
 
     References:
         http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
         http://stackoverflow.com/questions/579687/how-do-i-copy-a-string-to-the-clipboard-on-windows-using-python
     """
-    import utool as ut
-    pyperclip = ut.tryimport('pyperclip', ensure=True)
-    if pyperclip is not None:
-        pyperclip.copy(text)
-    else:
-        from Tkinter import Tk
-        tk_inst = Tk()
-        tk_inst.withdraw()
-        tk_inst.clipboard_clear()
-        tk_inst.clipboard_append(text)
-        tk_inst.destroy()
+    # import utool as ut
+    # pyperclip = ut.tryimport('pyperclip', ensure=True)
+    # if pyperclip is not None:
+    #     pyperclip.copy(text)
+    import sys
+    if 'pyperclip' not in sys.modules:
+        import pyperclip
+        # UGG SO MUCH BUGS
+        if pyperclip._executable_exists('xsel'):
+            pyperclip.set_clipboard('xsel')
+
+    try:
+        import pyperclip
+        text = pyperclip.copy(text)
+    except ImportError:
+        raise
+        # from Tkinter import Tk
+        # tk_inst = Tk()
+        # tk_inst.withdraw()
+        # tk_inst.clipboard_clear()
+        # tk_inst.clipboard_append(text)
+        # tk_inst.destroy()
 
 
-def copy_text_to_clipboard(text):
-    """ alias for set_clipboard """
-    return set_clipboard(text)
+def set_clipboard(text):
+    """ alias for copy_text_to_clipboard """
+    return copy_text_to_clipboard(text)
 
 
 def get_clipboard():
@@ -85,16 +101,18 @@ def get_clipboard():
     References:
         http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
     """
-    import utool as ut
-    pyperclip = ut.tryimport('pyperclip', ensure=True)
-    if pyperclip is not None:
+    # import utool as ut
+    try:
+        # pyperclip.set_clipboard('xsel')
+        import pyperclip
         text = pyperclip.paste()
-    else:
-        from Tkinter import Tk
-        tk_inst = Tk()
-        tk_inst.withdraw()
-        text = tk_inst.clipboard_get()
-        tk_inst.destroy()
+    except ImportError:
+        raise
+        # from Tkinter import Tk
+        # tk_inst = Tk()
+        # tk_inst.withdraw()
+        # text = tk_inst.clipboard_get()
+        # tk_inst.destroy()
     return text
 
 

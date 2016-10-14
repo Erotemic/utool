@@ -367,13 +367,78 @@ class XCtrl(object):
         return win_id
 
     @staticmethod
+    def current_gvim_edit(op='e', fpath=''):
+        r"""
+        CommandLine:
+            python -m utool.util_ubuntu XCtrl.current_gvim_edit sp ~/.bashrc
+        """
+        import utool as ut
+        fpath = ut.unexpanduser(ut.truepath(fpath))
+        # print('fpath = %r' % (fpath,))
+        ut.copy_text_to_clipboard(fpath)
+        # print(ut.get_clipboard())
+        doscript = [
+            ('focus', 'gvim'),
+            ('key', 'Escape'),
+            # ('type2', ';' + op + ' ' + fpath),
+            ('type2', ';' + op + ' '),
+            ('key', 'ctrl+v'),
+            ('key', 'KP_Enter'),
+        ]
+        XCtrl.do(*doscript, verbose=0, sleeptime=.001)
+
+    @staticmethod
+    def copy_gvim_to_terminal_script(text, return_to_win="1", verbose=0, sleeptime=.02):
+        """
+        import utool.util_ubuntu
+        utool.util_ubuntu.XCtrl.copy_gvim_to_terminal_script('print("hi")', verbose=1)
+        python -m utool.util_ubuntu XCtrl.copy_gvim_to_terminal_script "echo hi" 1 1
+
+        If this doesn't work make sure pyperclip is installed and set to xsel
+
+        print('foobar')
+        echo hi
+        """
+        # Prepare to send text to xdotool
+        import utool as ut
+        import utool.util_ubuntu
+        ut.copy_text_to_clipboard(text)
+
+        if verbose:
+            print('text = %r' % (text,))
+            print(ut.get_clipboard())
+
+        # Build xdtool script
+        doscript = [
+            ('remember_window_id', 'ACTIVE_WIN'),
+            ('focus', 'x-terminal-emulator.X-terminal-emulator'),
+            ('key', 'ctrl+shift+v'),
+            ('key', 'KP_Enter'),
+        ]
+        if '\n' in text:
+            # Press enter twice for multiline texts
+            doscript += [
+                ('key', 'KP_Enter'),
+            ]
+
+        if return_to_win == "1":
+            doscript += [
+                ('focus_id', '$ACTIVE_WIN'),
+            ]
+        # execute script
+        # verbose = 1
+        utool.util_ubuntu.XCtrl.do(*doscript, sleeptime=sleeptime, verbose=verbose)
+
+    @staticmethod
     def do(*cmd_list, **kwargs):
         import utool as ut
         import time
+        import six
         verbose = kwargs.get('verbose', False)
         # print('Running xctrl.do script')
         if verbose:
-            print('Executing x do: %s' % (ut.repr3(cmd_list),))
+            print('Executing x do: %s' % (ut.repr4(cmd_list),))
+        debug = False
 
         cmdkw = dict(verbose=False, quiet=True, silence=True)
         # http://askubuntu.com/questions/455762/xbindkeys-wont-work-properly
@@ -381,18 +446,36 @@ class XCtrl(object):
         defaultsleep = 0.0
         sleeptime = kwargs.get('sleeptime', defaultsleep)
         time.sleep(.05)
-        ut.cmd('xset r off', **cmdkw)
+        out, err, ret = ut.cmd('xset r off', **cmdkw)
+        if debug:
+            print('----------')
+            print('xset r off')
+            print('ret = %r' % (ret,))
+            print('err = %r' % (err,))
+            print('out = %r' % (out,))
+
         memory = {}
 
-        for item in cmd_list:
+        tmpverbose = 0
+        for count, item in enumerate(cmd_list):
             # print('item = %r' % (item,))
             sleeptime = kwargs.get('sleeptime', defaultsleep)
+            if tmpverbose:
+                print('moving on')
+            tmpverbose = 0
+            nocommand = 0
 
             assert isinstance(item, tuple)
             assert len(item) >= 2
             xcmd, key_ = item[0:2]
             if len(item) >= 3:
-                sleeptime = float(item[2])
+                if isinstance(item[2], six.string_types) and item[2].endswith('?'):
+                    sleeptime = float(item[2][:-1])
+                    tmpverbose = 1
+                    print('special command sleep')
+                    print('sleeptime = %r' % (sleeptime,))
+                else:
+                    sleeptime = float(item[2])
 
             if xcmd == 'focus':
                 key_ = str(key_)
@@ -404,21 +487,22 @@ class XCtrl(object):
                     args = ['wmctrl', '-xa', pattern]
                 else:
                     args = ['wmctrl', '-ia', hex(win_id)]
-
             elif xcmd == 'focus_id':
                 key_ = str(key_)
                 if key_.startswith('$'):
                     key_ = memory[key_[1:]]
-                args = ['wmctrl', '-ia', key_]
+                args = ['wmctrl', '-ia', hex(key_)]
             elif xcmd == 'remember_window_id':
                 out, err, ret = ut.cmd('xdotool getwindowfocus', **cmdkw)
-                memory[key_] = out.strip()
-                continue
+                memory[key_] = int(out.strip())
+                nocommand = True
+                args = []
             elif xcmd == 'remember_window_name':
                 out, err, ret = ut.cmd('xdotool getwindowfocus getwindowname', **cmdkw)
                 import pipes
                 memory[key_] = pipes.quote(out.strip())
-                continue
+                nocommand = True
+                args = []
             elif xcmd == 'type':
                 args = [
                     'xdotool',
@@ -426,18 +510,44 @@ class XCtrl(object):
                     'type', '--clearmodifiers',
                     '--window', '0', str(key_)
                 ]
+            elif xcmd == 'type2':
+                import pipes
+                args = [
+                    'xdotool', 'type', pipes.quote(str(key_))
+                ]
+            elif xcmd == 'xset-r-on':
+                args = ['xset', 'r', 'on']
+            elif xcmd == 'xset-r-off':
+                args = ['xset', 'r', 'off']
             else:
                 args = ['xdotool', str(xcmd), str(key_)]
 
-            if verbose:
-                print('args = %r' % (args,))
-                print('Exec: %s' % (' '.join(args),))
+            if verbose or tmpverbose:
+                print('\n\n# Step %d' % (count,))
+                print(args, ' '.join(args))
+
+            if nocommand:
+                continue
+                # print('args = %r -> %s' % (args, ' '.join(args),))
             # print('args = %r' % (args,))
-            ut.cmd(*args, **cmdkw)
+            out, err, ret = ut.cmd(*args, **cmdkw)
+            if debug:
+                print('---- ' + xcmd + ' ------')
+                print(' '.join(args))
+                print('ret = %r' % (ret,))
+                print('err = %r' % (err,))
+                print('out = %r' % (out,))
+
             if sleeptime > 0:
                 time.sleep(sleeptime)
 
-        ut.cmd('xset r on', verbose=False, quiet=True, silence=True)
+        out, err, ret = ut.cmd('xset r on', verbose=False, quiet=True, silence=True)
+        if debug:
+            print('----------')
+            print('xset r on')
+            print('ret = %r' % (ret,))
+            print('err = %r' % (err,))
+            print('out = %r' % (out,))
 
     @staticmethod
     def focus_window(winhandle, path=None, name=None, sleeptime=.01):
