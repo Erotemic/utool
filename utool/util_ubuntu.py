@@ -380,9 +380,9 @@ class XCtrl(object):
         doscript = [
             ('focus', 'gvim'),
             ('key', 'Escape'),
-            # ('type2', ';' + op + ' ' + fpath),
-            ('type2', ';' + op + ' '),
-            ('key', 'ctrl+v'),
+            ('type2', ';' + op + ' ' + fpath),
+            # ('type2', ';' + op + ' '),
+            # ('key', 'ctrl+v'),
             ('key', 'KP_Enter'),
         ]
         XCtrl.do(*doscript, verbose=0, sleeptime=.001)
