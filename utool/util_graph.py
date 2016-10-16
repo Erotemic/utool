@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    pass
 from utool import util_inject
-(print, rrr, profile) = util_inject.inject2(__name__, '[depgraph_helpers]')
+(print, rrr, profile) = util_inject.inject2(__name__)
 
 
 def nx_topsort_nodes(graph, nodes):
@@ -1477,6 +1480,91 @@ def translate_graph(graph, t_xy):
             for node, pos in attrdict.items()
         }
         nx.set_edge_attributes(graph, attr, attrdict)
+
+
+def approx_min_num_components(nodes, negative_edges):
+    """
+    Find approximate minimum number of connected components possible
+    Each edge represents that two nodes must be separated
+
+    This code doesn't solve the problem. The problem is NP-complete and
+    reduces to minimum clique cover (MCC). This is only an approximate
+    solution.
+
+    CommandLine:
+        python -m utool.util_graph approx_min_num_components --show
+
+    Example:
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> import networkx as nx
+        >>> nodes = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> edges = [(1, 2), (2, 3), (3, 1),
+        >>>          (4, 5), (5, 6), (6, 4),
+        >>>          (7, 8), (8, 9), (9, 7),
+        >>>          (1, 4), (4, 7), (7, 1),
+        >>>         ]
+        >>> g_pos = nx.Graph()
+        >>> g_pos.add_edges_from(edges)
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> g_neg = nx.complement(g_pos)
+        >>> pt.show_nx(g_neg)
+        >>> negative_edges = g_neg.edges()
+        >>> nodes = [1, 2, 3, 4, 5, 6, 7]
+        >>> negative_edges = [(1, 2), (2, 3), (4, 5)]
+        >>> approx_min_num_components(nodes, negative_edges)
+        2
+    """
+    import utool as ut
+    import networkx as nx
+    num = 0
+    g_neg = nx.Graph()
+    g_neg.add_nodes_from(nodes)
+    g_neg.add_edges_from(negative_edges)
+
+    # Collapse all nodes with degree 0
+    deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
+    for u, v in ut.itertwo(deg0_nodes):
+        g_neg = nx.contracted_nodes(g_neg, v, u)
+
+    # Initialize unused nodes to be everything
+    unused = list(g_neg.nodes())
+    # complement of the graph contains all possible positive edges
+    g_pos = nx.complement(g_neg)
+
+    if False:
+        from networkx.algorithms.approximation import clique
+        maxiset, cliques = clique.clique_removal(g_pos)
+        num = len(cliques)
+        return num
+
+    # Iterate until we have used all nodes
+    while len(unused) > 0:
+        # Seed a new "minimum component"
+        num += 1
+        # Grab a random unused node n1
+        #idx1 = np.random.randint(0, len(unused))
+        idx1 = 0
+        n1 = unused[idx1]
+        unused.remove(n1)
+        neigbs = list(g_pos.neighbors(n1))
+        neigbs = ut.isect(neigbs, unused)
+        while len(neigbs) > 0:
+            # Find node n2, that n1 could be connected to
+            #idx2 = np.random.randint(0, len(neigbs))
+            idx2 = 0
+            n2 = neigbs[idx2]
+            unused.remove(n2)
+            # Collapse negative information of n1 and n2
+            g_neg = nx.contracted_nodes(g_neg, n1, n2)
+            # Compute new possible positive edges
+            g_pos = nx.complement(g_neg)
+            # Iterate until n1 has no more possible connections
+            neigbs = list(g_pos.neighbors(n1))
+            neigbs = ut.isect(neigbs, unused)
+    print('num = %r' % (num,))
+    return num
 
 
 if __name__ == '__main__':

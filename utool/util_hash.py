@@ -397,6 +397,53 @@ def augment_uuid(uuid_, *hashables):
     return augmented_uuid_
 
 
+def combine_uuids(uuids, ordered=True, salt=''):
+    """
+    Creates a uuid that specifies a group of UUIDS
+
+    Args:
+        uuids (list): list of uuid objects
+        ordered (bool): if False uuid order changes the resulting combined uuid
+            otherwise the uuids are considered an orderless set
+
+    Returns:
+        uuid.UUID: combined uuid
+
+    CommandLine:
+        python -m utool.util_hash combine_uuids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> import utool as ut
+        >>> uuids = [hashable_to_uuid('one'), hashable_to_uuid('two'), hashable_to_uuid('three')]
+        >>> combo1 = combine_uuids(uuids, ordered=True)
+        >>> combo2 = combine_uuids(uuids[::-1], ordered=True)
+        >>> combo3 = combine_uuids(uuids, ordered=False)
+        >>> combo4 = combine_uuids(uuids[::-1], ordered=False)
+        >>> result = ut.repr4([combo1, combo2, combo3, combo4])
+        >>> print(result)
+        [
+            UUID('ce60fdb8-6b94-c77b-108c-1ff9579dde0d'),
+            UUID('57f6e6c8-7ddc-162d-42bf-29013fe399ed'),
+            UUID('2b8c46b7-8d0d-23c6-a81e-3eb453b2eb04'),
+            UUID('2b8c46b7-8d0d-23c6-a81e-3eb453b2eb04'),
+        ]
+    """
+    if len(uuids) == 0:
+        return get_zero_uuid()
+    elif len(uuids) == 1:
+        return uuids[0]
+    else:
+        if not ordered:
+            uuids = sorted(uuids)
+        sep = six.b(str('-'))
+        pref = six.b(str(salt) + str(sep) + str(len(uuids)))
+        combined_bytes = pref + sep.join([u.bytes for u in uuids])
+        combined_uuid = hashable_to_uuid(combined_bytes)
+        return combined_uuid
+
+
 def hashable_to_uuid(hashable_):
     """
     TODO: ensure that python2 and python3 agree on hashes of the same

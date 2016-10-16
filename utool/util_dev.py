@@ -77,7 +77,6 @@ def copy_text_to_clipboard(text):
         # UGG SO MUCH BUGS
         if pyperclip._executable_exists('xsel'):
             pyperclip.set_clipboard('xsel')
-
     try:
         import pyperclip
         text = pyperclip.copy(text)
@@ -102,6 +101,12 @@ def get_clipboard():
         http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
     """
     # import utool as ut
+    import sys
+    if 'pyperclip' not in sys.modules:
+        import pyperclip
+        # UGG SO MUCH BUGS
+        if pyperclip._executable_exists('xsel'):
+            pyperclip.set_clipboard('xsel')
     try:
         # pyperclip.set_clipboard('xsel')
         import pyperclip

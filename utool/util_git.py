@@ -564,6 +564,8 @@ class Repo(util_dev.NiceRepr):
         import utool as ut
         if ut.WIN32:
             assert not sudo, 'cant sudo on windows'
+        if command == 'short_status':
+            return repo.short_status()
         command_list = ut.ensure_iterable(command)
         cmdstr = '\n        '.join([cmd_ for cmd_ in command_list])
         print('+--- *** repocmd(%s) *** ' % (cmdstr,))
@@ -581,6 +583,32 @@ class Repo(util_dev.NiceRepr):
                 if ret != 0:
                     raise Exception('Failed command %r' % (cmd,))
         print('L____')
+
+    def short_status(repo):
+        r"""
+        CommandLine:
+            python -m utool.util_git short_status
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from utool.util_git import *  # NOQA
+            >>> import utool as ut
+            >>> repo = Repo(dpath=ut.truepath('.'))
+            >>> result = repo.short_status()
+            >>> print(result)
+        """
+        import utool as ut
+        prefix = ut.color_text(repo.dpath, 'yellow')
+        with ut.ChdirContext(repo.dpath, verbose=False):
+            out, err, ret = ut.cmd('git status', verbose=False, quiet=True)
+            # parse git status
+            msg1 = 'nothing to commit, working directory clean'
+            msg2 = 'nothing added to commit but untracked files present'
+            if msg1 in out or msg2 in out:
+                suffix = ut.color_text('looks good', 'blue')
+            else:
+                suffix = ut.color_text('needs commit', 'red')
+        print(prefix + ' ' + suffix)
 
     def python_develop(repo):
         import utool as ut
