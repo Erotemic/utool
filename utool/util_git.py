@@ -598,16 +598,29 @@ class Repo(util_dev.NiceRepr):
             >>> print(result)
         """
         import utool as ut
-        prefix = ut.color_text(repo.dpath, 'yellow')
+        prefix = repo.dpath
         with ut.ChdirContext(repo.dpath, verbose=False):
             out, err, ret = ut.cmd('git status', verbose=False, quiet=True)
             # parse git status
-            msg1 = 'nothing to commit, working directory clean'
+            is_clean_msgs = [
+                'Your branch is up-to-date with',
+                'nothing to commit, working directory clean',
+            ]
             msg2 = 'nothing added to commit but untracked files present'
-            if msg1 in out or msg2 in out:
-                suffix = ut.color_text('looks good', 'blue')
-            else:
-                suffix = ut.color_text('needs commit', 'red')
+
+            needs_commit_msgs = [
+                'Changes to be committed',
+                'Changes not staged for commit',
+                'Your branch is ahead of',
+            ]
+
+            suffix = ''
+            if all(msg in out for msg in is_clean_msgs):
+                suffix += ut.color_text('is clean', 'blue')
+            if msg2 in out:
+                suffix += ut.color_text('has untracked files', 'yellow')
+            if any(msg in out for msg in needs_commit_msgs):
+                suffix += ut.color_text('has changes', 'red')
         print(prefix + ' ' + suffix)
 
     def python_develop(repo):
