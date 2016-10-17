@@ -602,9 +602,10 @@ class Repo(util_dev.NiceRepr):
         with ut.ChdirContext(repo.dpath, verbose=False):
             out, err, ret = ut.cmd('git status', verbose=False, quiet=True)
             # parse git status
+            is_clean_msg1 = 'Your branch is up-to-date with'
             is_clean_msgs = [
-                'Your branch is up-to-date with',
                 'nothing to commit, working directory clean',
+                'nothing to commit, working tree clean',
             ]
             msg2 = 'nothing added to commit but untracked files present'
 
@@ -615,7 +616,7 @@ class Repo(util_dev.NiceRepr):
             ]
 
             suffix = ''
-            if all(msg in out for msg in is_clean_msgs):
+            if out in is_clean_msg1 and any(msg in out for msg in is_clean_msgs):
                 suffix += ut.color_text('is clean', 'blue')
             if msg2 in out:
                 suffix += ut.color_text('has untracked files', 'yellow')
