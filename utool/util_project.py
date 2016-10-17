@@ -452,12 +452,37 @@ def setup_repo():
 
 
 #@util_class.ReloadingMetaclass
-class UserProfile(object):
-    def __init__(self):
+class UserProfile(util_dev.NiceRepr):
+    def __nice__(self):
+        num_repos = 0 if self.project_dpaths is None else len(self.project_dpaths)
+        return str(self.project_name) + ' %d repos' % (num_repos,)
+
+    def __init__(self, name=None):
+        self.project_name = name
         self.project_dpaths = None
         self.project_include_patterns = None
         self.project_exclude_dirs = None
         self.project_exclude_patterns = None
+
+    def grep(self, *args, **kwargs):
+        return grep_projects(user_profile=self, *args, **kwargs)
+
+    def glob(self, *args, **kwargs):
+        """
+        # Ensure that .gitignore has certain lines
+        git_ignore_lines = [
+            'timeings.txt'
+        ]
+        fpath_list = profile.glob('.gitignore', recursive=False)
+        for fpath in fpath_list:
+            lines = ut.readfrom(fpath, verbose=False).split('\n')
+            lines = [line.strip() for line in lines]
+            missing = ut.setdiff(git_ignore_lines, lines)
+            if missing:
+                print('fpath = %r' % (fpath,))
+                ut.writeto(fpath, '\n'.join(lines + missing))
+        """
+        return glob_projects(user_profile=self, *args, **kwargs)
 
     # def __str__(self):
     #     return
@@ -472,7 +497,7 @@ def ibeis_user_profile():
         module_dpath = dirname(module_fpath)
         sys.path.append(module_dpath)
     REPOS1 = ut.import_module_from_fpath(module_fpath)
-    self = UserProfile()
+    self = UserProfile(name='ibeis')
     #self.project_dpaths = REPOS1.PROJECT_REPOS
     self.project_dpaths = REPOS1.IBEIS_REPOS
     self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
@@ -622,7 +647,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
         return msg_list
 
 
-def glob_projects(pat, user_profile=None):
+def glob_projects(pat, user_profile=None, recursive=True):
     """
 
     def testenv(modname, funcname):
@@ -637,7 +662,7 @@ def glob_projects(pat, user_profile=None):
     """
     import utool as ut  # NOQA
     user_profile = ensure_user_profile(user_profile)
-    glob_results = ut.flatten([ut.glob(dpath, pat, recursive=True,
+    glob_results = ut.flatten([ut.glob(dpath, pat, recursive=recursive,
                                        exclude_dirs=user_profile.project_exclude_dirs)
                                for dpath in user_profile.project_dpaths])
     return glob_results
