@@ -18,21 +18,17 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-#from six.moves import builtins
 from collections import namedtuple
 import inspect
 import types
 import traceback  # NOQA
 import sys
 from os.path import basename
-from utool import util_print  # NOQA
 from utool import util_arg
-#from utool import util_path
 from utool import util_time
 from utool import util_inject
 from utool import util_dbg
 from utool import util_dev
-# from utool._internal import meta_util_six
 from utool._internal.meta_util_six import get_funcname
 print, rrr, profile = util_inject.inject2(__name__)
 
@@ -605,15 +601,6 @@ def run_test(func_or_testtup, *args, **kwargs):
             if True or DEBUG_SRC:
                 src_with_lineno = ut.number_text_lines(src)
                 print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
-            #print('\n... test error. sys.exit(1)\n')
-            #sys.exit(1)
-            #failed_execline = traceback.format_tb(tb)[-1]
-            #parse_str = 'File {fname}, line {lineno}, in {modname}'
-            #parse_dict = parse.parse('{prefix_}' + parse_str + '{suffix_}', failed_execline)
-            #if parse_dict['fname'] == '<string>':
-            #    lineno = int(parse_dict['lineno'])
-            #    failed_line = src.splitlines()[lineno - 1]
-            #    print('Failed on line: %s' % failed_line)
         if util_arg.SUPER_STRICT:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             if not func_is_testtup:
@@ -641,7 +628,7 @@ def run_test(func_or_testtup, *args, **kwargs):
         if SYSEXIT_ON_FAIL:
             print('[util_test] SYSEXIT_ON_FAIL = True')
             print('[util_test] exiting with sys.exit(1)')
-            sys.exit(1)
+            sys.exit(ut.EXIT_FAILURE)
         #raise
         error_report = '\n'.join(error_report_lines)
         return False, error_report
@@ -1758,7 +1745,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         ut.writeto(bash_completer, line)
         print('ADD TO BASHRC\nsource %s' % (bash_completer,))
         #print(line)
-        sys.exit(0)
+        sys.exit(ut.EXIT_SUCCESS)
 
     if ut.get_argflag('--make-bashcomplete'):
         # http://stackoverflow.com/questions/427472/line-completion-with-custom-commands
@@ -1768,7 +1755,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         line = 'complete -W "%s" "%s"' % (' '.join(testnames), modname)
         print('add the following line to your bashrc')
         print(line)
-        sys.exit(0)
+        sys.exit(ut.EXIT_SUCCESS)
 
     test_funcname = ut.get_argval(
         ('--test-func', '--tfunc', '--tf', '--testfunc'),
@@ -1818,11 +1805,12 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                 code = compile(testsrc, '<string>', 'exec')
                 exec(code, globals_)  # , locals_)
             except ExitTestException:
-                print('Test exited before show')
+                print('Test exited before srthow')
                 pass
-            retcode = 0
+            retcode = ut.EXIT_SUCCESS
             print('Finished function test.')
         else:
+            retcode = ut.EXIT_FAILURE
             print('Did not find any function named %r ' % (test_funcname,))
         if ut.util_inject.PROFILING:
             ut.dump_profile_text()

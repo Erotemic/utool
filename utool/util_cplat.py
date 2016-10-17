@@ -23,6 +23,22 @@ OS_TYPE = meta_util_cplat.OS_TYPE
 WIN32  = meta_util_cplat.WIN32
 LINUX  = meta_util_cplat.LINUX
 DARWIN = meta_util_cplat.DARWIN
+UNIX = not WIN32
+
+
+# class Win32Err(object):
+#     """
+#     References:
+#         https://msdn.microsoft.com/en-us/library/cc231199.aspx
+#         https://docs.python.org/3/library/os.html#os.EX_OK
+#     """
+#     ERROR_SUCCESS = 0x0
+#     ERROR_INVALID_FUNCTION = 0x1
+#     ERROR_FATAL_APP_EXIT = 0x2C9
+
+# Define standarized exit codes
+EXIT_SUCCESS = 0
+EXIT_FAILURE = 1
 
 LIB_EXT_LIST = ['.so', '.dll', '.dylib', '.pyd']
 

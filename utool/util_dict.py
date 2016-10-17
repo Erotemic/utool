@@ -669,7 +669,7 @@ def is_dicteq(dict1_, dict2_, almosteq_ok=True, verbose_err=True):
     return True
 
 
-def dict_subset(dict_, keys, *d):
+def dict_subset(dict_, keys, default=util_const.NoParam):
     r"""
     Args:
         dict_ (dict):
@@ -690,7 +690,10 @@ def dict_subset(dict_, keys, *d):
         >>> print(result)
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
-    items = dict_take(dict_, keys, *d)
+    if default is util_const.NoParam:
+        items = dict_take(dict_, keys)
+    else:
+        items = dict_take(dict_, keys, default)
     subdict_ = OrderedDict(list(zip(keys, items)))
     #item_sublist = [(key, dict_[key]) for key in keys]
     ##subdict_ = type(dict_)(item_sublist)  # maintain old dict format
