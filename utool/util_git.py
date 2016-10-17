@@ -616,7 +616,7 @@ class Repo(util_dev.NiceRepr):
             ]
 
             suffix = ''
-            if out in is_clean_msg1 and any(msg in out for msg in is_clean_msgs):
+            if is_clean_msg1 in out and any(msg in out for msg in is_clean_msgs):
                 suffix += ut.color_text('is clean', 'blue')
             if msg2 in out:
                 suffix += ut.color_text('has untracked files', 'yellow')
