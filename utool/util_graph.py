@@ -333,23 +333,22 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
 
 def nx_delete_node_attr(graph, key, nodes=None):
     removed = 0
-    if nodes is None:
-        nodes = list(graph.nodes())
-    for node in nodes:
-        try:
-            del graph.node[node][key]
-            removed += 1
-        except KeyError:
-            pass
+    keys = [key] if not isinstance(key, list) else key
+    for key in keys:
+        if nodes is None:
+            nodes = list(graph.nodes())
+        for node in nodes:
+            try:
+                del graph.node[node][key]
+                removed += 1
+            except KeyError:
+                pass
     return removed
 
 
 def nx_delete_edge_attr(graph, key, edges=None):
     removed = 0
-    if not isinstance(key, list):
-        keys = [key]
-    else:
-        keys = key
+    keys = [key] if not isinstance(key, list) else key
     for key in keys:
         if graph.is_multigraph():
             if edges is None:
@@ -429,6 +428,16 @@ def nx_set_default_node_attributes(graph, key, val):
     else:
         values = {n: val for n in unset_nodes}
     nx.set_node_attributes(graph, key, values)
+
+
+def nx_set_default_edge_attributes(graph, key, val):
+    import networkx as nx
+    unset_edges = [(u, v) for u, v, d in graph.edges(data=True) if key not in d]
+    if isinstance(val, dict):
+        values = {e: val[e] for e in unset_edges if e in val}
+    else:
+        values = {e: val for e in unset_edges}
+    nx.set_edge_attributes(graph, key, values)
 
 
 def nx_get_default_node_attributes(graph, key, default=None):
@@ -1336,10 +1345,14 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
     """
     from collections import deque
     from functools import partial
-    if reverse:
+    if reverse and hasattr(G, 'reverse'):
         G = G.reverse()
     #edges_iter = partial(G.edges_iter, keys=keys, data=data)
-    edges_iter = partial(G.edges, keys=keys, data=data)
+    import networkx as nx
+    if isinstance(G, nx.Graph):
+        edges_iter = partial(G.edges, data=data)
+    else:
+        edges_iter = partial(G.edges, keys=keys, data=data)
 
     #list(G.edges_iter('multitest', keys=True, data=True))
 
@@ -1596,6 +1609,18 @@ def approx_min_num_components(nodes, negative_edges):
             neigbs = ut.isect(neigbs, unused)
     print('num = %r' % (num,))
     return num
+
+
+def nx_mincut_edges_weighted(G, s, t, capacity='weight'):
+    # http://stackoverflow.com/questions/33332462/minimum-s-t-edge-cut-which-takes-edge-weight-into-consideration
+    import networkx as nx
+    cut_weight, partitions = nx.minimum_cut(G, s, t, capacity=capacity)
+    edge_cut_list = []
+    for p1_node in partitions[0]:
+        for p2_node in partitions[1]:
+            if G.has_edge(p1_node, p2_node):
+                edge_cut_list.append((p1_node, p2_node))
+    return edge_cut_list
 
 
 if __name__ == '__main__':
