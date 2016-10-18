@@ -1394,7 +1394,7 @@ def bzip(*args):
     return bc
 
 
-def color_nodes(graph, labelattr='label'):
+def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):
     """ Colors edges and nodes by nid """
     import plottool as pt
     import utool as ut
@@ -1405,7 +1405,12 @@ def color_nodes(graph, labelattr='label'):
     if (ncolors) == 1:
         unique_colors = [pt.NEUTRAL_BLUE]
     else:
-        unique_colors = pt.distinct_colors(ncolors)
+        unique_colors = pt.distinct_colors(ncolors, brightness=brightness)
+    if sat_adjust:
+        unique_colors = [
+            pt.color_funcs.adjust_hsv_of_rgb(c, sat_adjust=sat_adjust)
+            for c in unique_colors
+        ]
     # Find edges and aids strictly between two nids
     lbl_to_color = dict(zip(unique_lbls, unique_colors))
     node_to_color = {node:  lbl_to_color[lbl] for node, lbl in node_to_lbl.items()}
@@ -1413,12 +1418,38 @@ def color_nodes(graph, labelattr='label'):
     ut.nx_ensure_agraph_color(graph)
 
 
-def graph_info(graph, verbose=False):
+def graph_info(graph, ignore=None, stats=False, verbose=False):
     import utool as ut
     node_attrs = list(graph.node.values())
     edge_attrs = list(ut.take_column(graph.edges(data=True), 2))
-    node_attr_hist = ut.dict_hist(ut.flatten([attr.keys() for attr in node_attrs]))
-    edge_attr_hist = ut.dict_hist(ut.flatten([attr.keys() for attr in edge_attrs]))
+
+    if stats:
+        import utool
+        with utool.embed_on_exception_context:
+            import pandas as pd
+            node_df = pd.DataFrame(node_attrs)
+            edge_df = pd.DataFrame(edge_attrs)
+            if ignore is not None:
+                ut.delete_dict_keys(node_df, ignore)
+                ut.delete_dict_keys(edge_df, ignore)
+            # Not really histograms anymore
+            try:
+                node_attr_hist = node_df.describe().to_dict()
+            except ValueError:
+                node_attr_hist
+            try:
+                edge_attr_hist = edge_df.describe().to_dict()
+            except ValueError:
+                edge_attr_hist = {}
+            key_order = ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max']
+            node_attr_hist = ut.map_dict_vals(lambda x: ut.order_dict_by(x, key_order), node_attr_hist)
+            edge_attr_hist = ut.map_dict_vals(lambda x: ut.order_dict_by(x, key_order), edge_attr_hist)
+    else:
+        node_attr_hist = ut.dict_hist(ut.flatten([attr.keys() for attr in node_attrs]))
+        edge_attr_hist = ut.dict_hist(ut.flatten([attr.keys() for attr in edge_attrs]))
+        if ignore is not None:
+            ut.delete_dict_keys(edge_attr_hist, ignore)
+            ut.delete_dict_keys(node_attr_hist, ignore)
     node_type_hist = ut.dict_hist(list(map(type, graph.nodes())))
     info_dict = ut.odict([
         ('directed', graph.is_directed()),

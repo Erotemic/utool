@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import operator
 from collections import defaultdict, OrderedDict
 from itertools import product as iprod
+import itertools
 from functools import partial
 from six.moves import zip, range, reduce, filter, map  # NOQA
 from utool import util_inject
@@ -535,16 +536,13 @@ def build_conflict_dict(key_list, val_list):
         python -m utool.util_dict --test-build_conflict_dict
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
-        >>> # build test data
         >>> key_list = [  1,   2,   2,   3,   1]
         >>> val_list = ['a', 'b', 'c', 'd', 'e']
-        >>> # execute function
         >>> key_to_vals = build_conflict_dict(key_list, val_list)
-        >>> # verify results
-        >>> result = ut.dict_str(key_to_vals)
+        >>> result = ut.repr4(key_to_vals)
         >>> print(result)
         {
             1: ['a', 'e'],
@@ -721,11 +719,12 @@ def dict_setdiff(dict_, negative_keys):
 
 def delete_dict_keys(dict_, key_list):
     r"""
-    in place deletion if keys exist
+    Removes items from a dictionary inplace. Keys that do not exist are
+    ignored.
 
     Args:
-        dict_ (?):
-        key_list (list):
+        dict_ (dict): dict like object with a __del__ attribute
+        key_list (list): list of keys that specify the items to remove
 
     CommandLine:
         python -m utool.util_dict --test-delete_dict_keys
@@ -734,18 +733,15 @@ def delete_dict_keys(dict_, key_list):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
-        >>> # build test data
         >>> dict_ = {'bread': 1, 'churches': 1, 'cider': 2, 'very small rocks': 2}
         >>> key_list = ['duck', 'bread', 'cider']
-        >>> # execute function
         >>> delete_dict_keys(dict_, key_list)
-        >>> # verify results
         >>> result = ut.dict_str(dict_, nl=False)
         >>> print(result)
         {'churches': 1, 'very small rocks': 2}
 
     """
-    invalid_keys = set(key_list) - set(six.iterkeys(dict_))
+    invalid_keys = set(key_list) - set(dict_.keys())
     valid_keys = set(key_list) - invalid_keys
     for key in valid_keys:
         del dict_[key]
@@ -910,21 +906,22 @@ def dict_where_len0(dict_):
 def get_dict_column(dict_, colx):
     r"""
     Args:
-        dict_ (dict_):  a dictionary
-        colx (?):
+        dict_ (dict_): a dictionary of lists
+        colx (int):
 
     CommandLine:
         python -m utool.util_dict --test-get_dict_column
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_ = {'a': [0, 1, 2], 'b': [3, 4, 5], 'c': [6, 7, 8]}
         >>> colx = [2, 0]
         >>> retdict_ = get_dict_column(dict_, colx)
-        >>> result = str(retdict_)
+        >>> result = ut.repr2(retdict_)
         >>> print(result)
-        {'a': [2, 0], 'c': [8, 6], 'b': [5, 3]}
+        {'a': [2, 0], 'b': [5, 3], 'c': [8, 6]}
     """
     retdict_ = {key: util_list.list_take(val, colx)
                 for key, val in six.iteritems(dict_)}
@@ -1025,17 +1022,15 @@ def dict_find_keys(dict_, val_list):
         python -m utool.util_dict --test-dict_find_keys
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
-        >>> # build test data
+        >>> import utool as ut
         >>> dict_ = {'default': 1, 'hierarchical': 5, 'linear': 0, 'kdtree': 1,
         ...          'composite': 3, 'autotuned': 255, 'saved': 254, 'kmeans': 2,
         ...          'lsh': 6, 'kdtree_single': 4}
         >>> val_list = [1]
-        >>> # execute function
         >>> found_dict = dict_find_keys(dict_, val_list)
-        >>> # verify results
-        >>> result = str(found_dict)
+        >>> result = ut.repr2(found_dict)
         >>> print(result)
         {1: ['kdtree', 'default']}
     """
@@ -1052,12 +1047,10 @@ def dict_find_other_sameval_keys(dict_, key):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
-        >>> # build test data
         >>> dict_ = {'default': 1, 'hierarchical': 5, 'linear': 0, 'kdtree': 1,
         ...          'composite': 3, 'autotuned': 255, 'saved': 254, 'kmeans': 2,
         ...          'lsh': 6, 'kdtree_single': 4}
         >>> key = 'default'
-        >>> # execute function
         >>> found_dict = dict_find_keys(dict_, val_list)
     """
     value = dict_[key]
@@ -1082,20 +1075,17 @@ def dict_hist(item_list, weight_list=None, ordered=False):
         python -m utool.util_dict --test-dict_hist
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
-        >>> # build test data
+        >>> import utool as ut
         >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
-        >>> # execute function
         >>> hist_ = dict_hist(item_list)
-        >>> result = hist_
-        >>> # verify results
+        >>> result = ut.repr2(hist_)
         >>> print(result)
-        {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
+        {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
     """
     hist_ = defaultdict(lambda: 0)
     if weight_list is None:
-        import itertools
         weight_list = itertools.repeat(1)
     for item, weight in zip(item_list, weight_list):
         hist_[item] += weight
@@ -1313,11 +1303,12 @@ def groupby_tags(item_list, tags_list):
         dict: groupid2_items
 
     CommandLine:
-        python -m utool.util_dict --exec-groupby_tags
+        python -m utool.util_dict --test-groupby_tags
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> tagged_item_list = {
         >>>     'spam': ['meat', 'protein', 'food'],
         >>>     'eggs': ['protein', 'food'],
@@ -1328,7 +1319,7 @@ def groupby_tags(item_list, tags_list):
         >>> item_list = list(tagged_item_list.keys())
         >>> tags_list = list(tagged_item_list.values())
         >>> groupid2_items = groupby_tags(item_list, tags_list)
-        >>> result = ('groupid2_items = %s' % (ut.dict_str(groupid2_items),))
+        >>> result = ('groupid2_items = %s' % (ut.repr4(groupid2_items),))
         >>> print(result)
         groupid2_items = {
             'dairy': ['cheese'],
@@ -1876,9 +1867,9 @@ class DefaultValueDict(dict):
         >>> import utool as ut
         >>> self = ut.DefaultValueDict(0)
         >>> print(self[4])
-        0
         >>> self[4] = 4
         >>> print(self[4])
+        0
         4
     """
     def __init__(self, default, other=None, **kwargs):
