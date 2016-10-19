@@ -448,8 +448,8 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod,
         >>> kw_keys = ['']
         >>> ismethod = False
         >>> arg_docstr = make_args_docstr(argname_list, argtype_list,
-        >>>                               argdesc_list, ismethod, kw_name,
-        >>>                               kw_keys)
+        >>>                               argdesc_list, ismethod, va_name,
+        >>>                               kw_name, kw_keys)
         >>> result = str(arg_docstr)
         >>> print(result)
         argname_list (list): names
@@ -473,14 +473,14 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod,
     # References:
     # http://www.sphinx-doc.org/en/stable/ext/example_google.html#example-google
     if va_name is not None:
-        argdoc_list += ['*' + va_name + ':']
+        argdoc_list.append('*' + va_name + ':')
     if kw_name is not None:
         import textwrap
         prefix = '**' + kw_name + ': '
         wrapped_lines = textwrap.wrap(', '.join(kw_keys), width=70 - len(prefix))
         sep = '\n' + (' ' * len(prefix))
         kw_keystr = sep.join(wrapped_lines)
-        argdoc_list += [prefix + kw_keystr]
+        argdoc_list.append((prefix + kw_keystr).strip())
 
     # align?
     align_args = False
@@ -526,7 +526,6 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
-        >>> # build test data
         >>> funcname = 'make_example_docstr'
         >>> modname = 'utool.util_autogen'
         >>> argname_list = ['qaids', 'qreq_']
@@ -534,9 +533,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         >>> return_type = tuple
         >>> return_name = 'foo'
         >>> ismethod = False
-        >>> # execute function
         >>> examplecode = make_example_docstr(funcname, modname, argname_list, defaults, return_type, return_name, ismethod)
-        >>> # verify results
         >>> result = str(examplecode)
         >>> print(result)
         # DISABLE_DOCTEST
@@ -656,7 +653,6 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         examplecode_lines.append('# DISABLE_DOCTEST')
 
     examplecode_lines.extend(import_lines)
-    #examplecode_lines.append('# build test data')
     examplecode_lines.extend(argdef_lines)
     # Default example result assignment
     result_assign = ''
@@ -678,9 +674,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
         tup = (funcname, '(', funcargs, ')')
         example_call = ''.join(tup)
     # Append call line
-    #examplecode_lines.append('# execute function')
     examplecode_lines.append(result_assign + example_call)
-    #examplecode_lines.append('# verify results')
     if result_print is not None:
         if return_name != 'result':
             #examplecode_lines.append('result = str(' + return_name + ')')
