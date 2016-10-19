@@ -287,6 +287,27 @@ def fix_embed_globals():
     globals_.update(locals_)
     globals_['wasfixed'] = True
 
+    """
+    def fix_embed_globals(N=0):
+        # Get the parent frame
+        import inspect
+        frame_level0 = inspect.currentframe()
+        frame_cur = frame_level0
+        N = 2
+        for _ix in range(N + 1):
+            frame_next = frame_cur.f_back
+            if frame_next is None:
+                if strict:
+                    raise AssertionError('Frame level %r is root' % _ix)
+                else:
+                    break
+            frame_cur = frame_next
+        parent_frame = frame_cur
+        # Add locals to parent globals
+        parent_frame.f_locals.update(parent_frame.f_globals)
+        parent_frame.f_globals['_didfixipyglobals'] = True
+    """
+
 
 def embed(parent_locals=None, parent_globals=None, exec_lines=None,
           remove_pyqt_hook=True, N=0):
