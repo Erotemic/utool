@@ -417,7 +417,8 @@ def print_auto_docstr(modname, funcname):
 
 # <INVIDIAL DOCSTR COMPONENTS>
 
-def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
+def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod,
+                     va_name=None, kw_name=None, kw_keys=[]):
     r"""
     Builds the argument docstring
 
@@ -425,9 +426,16 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
         argname_list (list): names
         argtype_list (list): types
         argdesc_list (list): descriptions
+        ismethod (bool): if generating docs for a method
+        va_name (Optional[str]): varargs name
+        kw_name (Optional[str]): kwargs name
+        kw_keys (Optional[list]): accepted kwarg keys
 
     Returns:
         str: arg_docstr
+
+    CommandLine:
+        python -m utool.util_autogen make_args_docstr
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -435,22 +443,45 @@ def make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod):
         >>> argname_list = ['argname_list', 'argtype_list', 'argdesc_list']
         >>> argtype_list = ['list', 'list', 'list']
         >>> argdesc_list = ['names', 'types', 'descriptions']
+        >>> va_name = 'args'
+        >>> kw_name = 'kwargs'
+        >>> kw_keys = ['']
         >>> ismethod = False
-        >>> arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod)
+        >>> arg_docstr = make_args_docstr(argname_list, argtype_list,
+        >>>                               argdesc_list, ismethod, kw_name,
+        >>>                               kw_keys)
         >>> result = str(arg_docstr)
         >>> print(result)
         argname_list (list): names
         argtype_list (list): types
         argdesc_list (list): descriptions
+        *args:
+        **kwargs:
 
     """
     import utool as ut
     if ismethod:
+        # Remove self from the list
         argname_list = argname_list[1:]
         argtype_list = argtype_list[1:]
         argdesc_list = argdesc_list[1:]
+
     argdoc_list = [arg + ' (%s): %s' % (_type, desc)
                    for arg, _type, desc in zip(argname_list, argtype_list, argdesc_list)]
+
+    # Add in varargs and kwargs
+    # References:
+    # http://www.sphinx-doc.org/en/stable/ext/example_google.html#example-google
+    if va_name is not None:
+        argdoc_list += ['*' + va_name + ':']
+    if kw_name is not None:
+        import textwrap
+        prefix = '**' + kw_name + ': '
+        wrapped_lines = textwrap.wrap(', '.join(kw_keys), width=70 - len(prefix))
+        sep = '\n' + (' ' * len(prefix))
+        kw_keystr = sep.join(wrapped_lines)
+        argdoc_list += [prefix + kw_keystr]
+
     # align?
     align_args = False
     if align_args:
@@ -698,14 +729,9 @@ def make_docstr_block(header, block):
     return docstr_block
 
 
-def make_default_docstr(func,
-                        with_args=True,
-                        with_ret=True,
-                        with_commandline=True,
-                        with_example=True,
-                        with_header=False,
-                        with_debug=False,
-                        ):
+def make_default_docstr(func, with_args=True, with_ret=True,
+                        with_commandline=True, with_example=True,
+                        with_header=False, with_debug=False):
     r"""
     Tries to make a sensible default docstr so the user
     can fill things in without typing too much
@@ -736,7 +762,8 @@ def make_default_docstr(func,
         >>> import utool as ut
         >>> func = ut.make_default_docstr
         >>> #func = ut.make_args_docstr
-        >>> func = PythonStatement
+        >>> #func = PythonStatement
+        >>> func = auto_docstr
         >>> default_docstr = make_default_docstr(func)
         >>> result = str(default_docstr)
         >>> print(result)
@@ -760,7 +787,9 @@ def make_default_docstr(func,
     needs_surround = funcinfo.needs_surround
     funcname       = funcinfo.funcname
     ismethod       = funcinfo.ismethod
-    kwarg_keys     = funcinfo.kwarg_keys
+    va_name        = funcinfo.va_name
+    kw_name        = funcinfo.kw_name
+    kw_keys        = funcinfo.kw_keys
 
     docstr_parts = []
     # Header part
@@ -771,18 +800,21 @@ def make_default_docstr(func,
     # Args part
     if with_args and len(argname_list) > 0:
         argheader = 'Args'
-        arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list, ismethod)
+        arg_docstr = make_args_docstr(argname_list, argtype_list, argdesc_list,
+                                      ismethod, va_name, kw_name, kw_keys)
         argsblock = make_docstr_block(argheader, arg_docstr)
+
         docstr_parts.append(argsblock)
 
-    with_kw = with_args
-    if with_kw and len(kwarg_keys) > 0:
-        #ut.embed()
-        import textwrap
-        kwargs_docstr = ', '.join(kwarg_keys)
-        kwargs_docstr = '\n'.join(textwrap.wrap(kwargs_docstr))
-        kwargsblock = make_docstr_block('Kwargs', kwargs_docstr)
-        docstr_parts.append(kwargsblock)
+    # if False:
+    #     with_kw = with_args
+    #     if with_kw and len(kwarg_keys) > 0:
+    #         #ut.embed()
+    #         import textwrap
+    #         kwargs_docstr = ', '.join(kwarg_keys)
+    #         kwargs_docstr = '\n'.join(textwrap.wrap(kwargs_docstr))
+    #         kwargsblock = make_docstr_block('Kwargs', kwargs_docstr)
+    #         docstr_parts.append(kwargsblock)
 
     # Return / Yeild part
     if with_ret and return_header is not None:

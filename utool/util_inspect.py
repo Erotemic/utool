@@ -2637,8 +2637,14 @@ def infer_function_info(func):
     funcinfo.argdefault_list = argdefault_list
     funcinfo.hasdefault_list = hasdefault_list
     funcinfo.kwarg_keys = kwarg_keys
+    # if new
+    funcinfo.va_name = varargs
+    funcinfo.kw_name = varkw
+    funcinfo.kw_keys = kwarg_keys
+    # else
     funcinfo.varargs = varargs
     funcinfo.varkw = varkw
+    # fi
     funcinfo.defaults = defaults
     funcinfo.num_indent = num_indent
     funcinfo.return_type = return_type
