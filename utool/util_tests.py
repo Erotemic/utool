@@ -228,39 +228,6 @@ def get_package_testables(module=None, **tagkw):
     return test_tuples
 
 
-def test_jedi_can_read_googlestyle():
-    import jedi
-    import utool as ut
-    source = ut.codeblock(
-        '''
-        def spam(ibs, bar):
-            r"""
-            Args:
-                ibs (ibeis.IBEISController): an object
-            """
-            import jedi
-            jedi.n
-            x = ''
-            x.l
-            ibs.d
-            bar.d
-        '''
-    )
-    script = jedi.Script(source, line=9)
-    script.completions()
-    # Find the variable type of argument
-    self = script = jedi.Script(source, line=10, column=7)  # NOQA
-    completions = script.completions()  # NOQA
-    vartype = script.goto_definitions()
-
-    self = script = jedi.Script(source, line=11, column=7)  # NOQA
-    vartype = script.goto_definitions()  # NOQA
-    vardefs = script.goto_assignments()  # NOQA
-    # foodef, = jedi.names(source)
-    # foomems = foodef.defined_names()
-    # xdef = foomems[2]
-
-
 def doctest_module_list(module_list):
     """
     Runs many module tests
