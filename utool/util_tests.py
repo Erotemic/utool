@@ -228,7 +228,7 @@ def get_package_testables(module=None, **tagkw):
     return test_tuples
 
 
-def test_jedistuff():
+def test_jedi_can_read_googlestyle():
     import jedi
     import utool as ut
     source = ut.codeblock(
