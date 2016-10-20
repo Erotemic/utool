@@ -631,8 +631,9 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     # EXEC FUNC
     #six.exec_(src, test_globals, test_locals)  # adds stack to debug trace
     import utool as ut
+    # TODO RECTIFY WITH TF
     if ut.get_argflag(('--cmd', '--embed')):
-        src += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH TF
+        src = _cmd_modify_src(src)
     code = compile(src, '<string>', 'exec')
     try:
         # IN EXEC CONTEXT THERE IS NO DIFF BETWEEN LOCAL / GLOBALS.  ONLY PASS
@@ -1443,6 +1444,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 print('... disabling test')
             distabled_testflags.append(flag1)
 
+    # Attempt to run test without any context
+    # This will only work if the function exist and is self contained
     if len(force_enable_testnames_) > 0 and len(enabled_testtup_list) == 0:
         if VERBOSE_TEST:
             print('Forced test did not have a doctest example')
@@ -1458,30 +1461,30 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         else:
             test_funcname = test_funcname_
             func_ = getattr(module, test_funcname, None)
-        assert func_ is not None
-        # varargs = ut.get_cmdline_varargs()
-        varargs = force_enable_testnames[1:]
-        # assert len(ut.get_unbound_args(func_)) == len(varargs), (
-        #     'arg support is extremely limited without an explicit doctest.')
-        testno = 0
-        modpath = ut.get_modname_from_modpath(module.__file__)
-        # Create dummy doctest
-        src = ut.codeblock(
-            '''
-            # DUMMY_DOCTEST
-            from {modpath} import *  # NOQA
-            args = {varargs}
-            result = {test_funcname_}(*args)
-            print(result)
-            ''').format(
-                modpath=modpath,
-                test_funcname_=test_funcname_,
-                varargs=repr(varargs))
-        testtup = TestTuple(test_funcname_, testno, src, want=None,
-                            flag='--exec-' + test_funcname_,
-                            frame_fpath=frame_fpath, mode='exec', total=1,
-                            nametup=[test_funcname_])
-        enabled_testtup_list.append(testtup)
+        if func_ is not None:
+            # varargs = ut.get_cmdline_varargs()
+            varargs = force_enable_testnames[1:]
+            testno = 0
+            modpath = ut.get_modname_from_modpath(module.__file__)
+            # Create dummy doctest
+            src = ut.codeblock(
+                '''
+                # DUMMY_DOCTEST
+                from {modpath} import *  # NOQA
+                args = {varargs}
+                result = {test_funcname_}(*args)
+                print(result)
+                ''').format(
+                    modpath=modpath,
+                    test_funcname_=test_funcname_,
+                    varargs=repr(varargs))
+            testtup = TestTuple(test_funcname_, testno, src, want=None,
+                                flag='--exec-' + test_funcname_,
+                                frame_fpath=frame_fpath, mode='exec', total=1,
+                                nametup=[test_funcname_])
+            enabled_testtup_list.append(testtup)
+        else:
+            print('function %r was not found in %r' % (test_funcname_, module))
 
     if VERBOSE_TEST:
         indenter.stop()
@@ -1757,22 +1760,20 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             except AttributeError:
                 pass
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
+            # _exec_doctest(doctest_src)
             if ut.get_argflag(('--cmd', '--embed')):
-                testsrc += '\nimport utool as ut; ut.embed()'  # TODO RECTIFY WITH EXEC DOCTEST
-            doctest_src = ut.indent(testsrc, '>>> ')
+                # TODO RECTIFY WITH EXEC DOCTEST
+                testsrc = _cmd_modify_src(testsrc)
+            # doctest_src = ut.indent(testsrc, '>>> ')
             # Add line numbers
-            doctest_src = '\n'.join([
-                '%3d %s' % (count, line_)
-                for count, line_ in
-                enumerate(doctest_src.splitlines(), start=1)
-            ])
+            doctest_src = ut.number_text_lines(testsrc)
             colored_src = ut.highlight_code(doctest_src)
             print('testsrc = \n%s' % (colored_src,))
             try:
                 code = compile(testsrc, '<string>', 'exec')
                 exec(code, globals_)  # , locals_)
             except ExitTestException:
-                print('Test exited before srthow')
+                print('Test exited before show')
                 pass
             retcode = ut.EXIT_SUCCESS
             print('Finished function test.')
@@ -1783,6 +1784,17 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             ut.dump_profile_text()
         print('...exiting')
         sys.exit(retcode)
+
+
+def _cmd_modify_src(testsrc):
+    # testsrc = 'import IPython; import utool as ut; ut.qt4ensure()\n' + testsrc
+    # testsrc += '\nimport IPython; IPython.embed()'
+    # testsrc += '\nimport utool as ut; ut.embed()'
+    import utool as ut
+    pline = 'print(%r)' % ut.highlight_code(ut.indent(testsrc, '>>> '))
+    testsrc += '\nimport utool as ut; ' + pline + '; ut.qt4ensure(); ut.embed()'
+    # testsrc += '\nimport utool as ut; ut.qt4ensure(); ut.embed()'
+    return testsrc
 
 
 def execute_doctest(func, testnum=0, module=None):
