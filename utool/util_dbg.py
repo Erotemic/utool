@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+TODO: rectify name difference between parent and caller
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
-#import six
 from six.moves import range, zip, map, filter  # NOQA
 import fnmatch
 import operator
@@ -84,14 +86,11 @@ def ipython_execstr():
 
 
 def execstr_parent_locals():
-    parent_locals = get_parent_locals()
+    parent_locals = get_parent_frame().f_locals
     return execstr_dict(parent_locals, 'parent_locals')
 
 
 def execstr_attr_list(obj_name, attr_list=None):
-    #if attr_list is None:
-        #exec(execstr_parent_locals())
-        #exec('attr_list = dir('+obj_name+')')
     execstr_list = [obj_name + '.' + attr for attr in attr_list]
     return execstr_list
 
@@ -176,12 +175,11 @@ def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
             assert isinstance(key, six.string_types), 'keys must be strings'
             expr_list.append('%s = %s' % (key, ut.repr2(val),))
         execstr = '\n'.join(expr_list)
-        #print(execstr)
         return execstr
     else:
         if local_name is None:
             # Magic way of getting the local name of dict_
-            local_name = get_varname_from_locals(dict_, get_parent_locals())
+            local_name = get_varname_from_locals(dict_, get_parent_frame().f_locals)
         try:
             if exclude_list is None:
                 exclude_list = []
@@ -197,7 +195,6 @@ def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
                     expr = '%s = %s[%s]' % (key, local_name, ut.repr2(key))
                     expr_list.append(expr)
             execstr = '\n'.join(expr_list)
-            #print(execstr)
             return execstr
         except Exception as ex:
             locals_ = locals()
@@ -211,7 +208,8 @@ def execstr_func(func):
     execstr = textwrap.dedent(_src[_src.find(':') + 1:])
     # Remove return statments
     while True:
-        stmtx = execstr.find('return')  # Find first 'return'
+        # Find first 'return'
+        stmtx = execstr.find('return')
         if stmtx == -1:
             break  # Fail condition
         # The characters which might make a return not have its own line
@@ -237,7 +235,7 @@ def save_testdata(*args, **kwargs):
     uid = kwargs.get('uid', '')
     shelf_fname = 'test_data_%s.shelf' % uid
     shelf = shelve.open(shelf_fname)
-    locals_ = get_parent_locals()
+    locals_ = get_parent_frame().f_locals
     print('save_testdata(%r)' % (args,))
     for key in args:
         shelf[key] = locals_[key]
@@ -281,31 +279,24 @@ def fix_embed_globals():
     HACK adds current locals() to globals().
     Can be dangerous.
     """
-    import utool as ut
-    globals_ = ut.get_parent_globals()
-    locals_ = ut.get_parent_locals()
-    globals_.update(locals_)
-    globals_['wasfixed'] = True
-
+    frame = get_stack_frame(N=1)
+    frame.f_globals.update(frame.f_locals)
+    frame.f_globals['_did_embed_fix'] = True
     """
     def fix_embed_globals(N=0):
-        # Get the parent frame
         import inspect
-        frame_level0 = inspect.currentframe()
-        frame_cur = frame_level0
-        N = 2
+        # Get the parent frame
+        frame_cur = inspect.currentframe()
         for _ix in range(N + 1):
+            # always skip the frame of this function
             frame_next = frame_cur.f_back
             if frame_next is None:
-                if strict:
-                    raise AssertionError('Frame level %r is root' % _ix)
-                else:
-                    break
+                break
             frame_cur = frame_next
-        parent_frame = frame_cur
         # Add locals to parent globals
-        parent_frame.f_locals.update(parent_frame.f_globals)
-        parent_frame.f_globals['_didfixipyglobals'] = True
+        frame = frame_cur
+        frame.f_globals.update(frame.f_locals)
+        frame.f_globals['_did_embed_fix'] = True
     """
 
 
@@ -395,14 +386,12 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     import IPython
 
     if parent_globals is None:
-        parent_globals = get_parent_globals(N=N)
-        #parent_globals1 = get_parent_globals(N=0)
-        #exec(execstr_dict(parent_globals1, 'parent_globals1'))
+        parent_globals = get_parent_frame(N=N).f_globals
     if parent_locals is None:
-        parent_locals = get_parent_locals(N=N)
+        parent_locals = get_parent_frame(N=N).f_locals
 
     stackdepth = N  # NOQA
-    getframe = partial(ut.get_caller_stack_frame, N=N)  # NOQA
+    getframe = partial(ut.get_parent_frame, N=N)  # NOQA
 
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
@@ -438,13 +427,13 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
         exec_lines_ = [
             '%pylab qt4',
             'print("Entered IPYTHON via utool")',
-            'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=11).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=10).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=9).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=8).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=7).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=6).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_caller_stack_frame(N=5).f_code.co_name,))',
+            'print("Entry Point: %r" % (ut.get_parent_frame(N=11).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_parent_frame(N=10).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_parent_frame(N=9).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_parent_frame(N=8).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_parent_frame(N=7).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_parent_frame(N=6).f_code.co_name,))',
+            #'print("Entry Point: %r" % (ut.get_parent_frame(N=5).f_code.co_name,))',
             #execstr_dict(parent_locals)
         ] + ut.ensure_str_list(exec_lines if exec_lines is not None else [])
         config.InteractiveShellApp.exec_lines = exec_lines_
@@ -463,7 +452,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
         #    config_dict['exec_lines'] = exec_lines
         #IPython.embed(**config_dict)
         print('[util]  Get stack location with: ')
-        print('[util] ut.get_caller_stack_frame(N=8).f_code.co_name')
+        print('[util] ut.get_parent_frame(N=8).f_code.co_name')
         print('[util] set EXIT_NOW or qqq to True(ish) to hard exit on unembed')
         #print('set iup to True to draw plottool stuff')
         print('[util] call %pylab qt4 to get plottool stuff working')
@@ -561,9 +550,9 @@ def embed2(**kwargs):
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
     if num is None or util_arg.get_argflag('--quit' + six.text_type(num)):
         if parent_locals is None:
-            parent_locals = get_parent_locals()
+            parent_locals = get_parent_frame().f_locals
         if parent_globals is None:
-            parent_globals = get_parent_globals()
+            parent_globals = get_parent_frame().f_globals
         exec(execstr_dict(parent_locals, 'parent_locals'))
         exec(execstr_dict(parent_globals, 'parent_globals'))
         if embed_:
@@ -575,15 +564,17 @@ def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
 
 
 def qflag(num=None, embed_=True):
+    frame = get_parent_frame()
     return quitflag(num, embed_=embed_,
-                    parent_locals=get_parent_locals(),
-                    parent_globals=get_parent_globals())
+                    parent_locals=frame.f_locals,
+                    parent_globals=frame.f_globals)
 
 
 def quit(num=None, embed_=False):
+    frame = get_parent_frame()
     return quitflag(num, embed_=embed_,
-                    parent_locals=get_parent_locals(),
-                    parent_globals=get_parent_globals())
+                    parent_locals=frame.f_globals,
+                    parent_globals=frame.f_locals)
 
 
 def in_jupyter_notebook():
@@ -697,9 +688,15 @@ get_localvar_from_stack = search_stack_for_localvar
 
 
 def get_stack_frame(N=0, strict=True):
-    frame_level0 = inspect.currentframe()
-    frame_cur = frame_level0
+    """
+    Args:
+        N (int): N=0 means the frame you called this function in.
+                 N=1 is the parent frame.
+        strict (bool): (default = True)
+    """
+    frame_cur = inspect.currentframe()
     for _ix in range(N + 1):
+        # always skip the frame of this function
         frame_next = frame_cur.f_back
         if frame_next is None:
             if strict:
@@ -710,54 +707,14 @@ def get_stack_frame(N=0, strict=True):
     return frame_cur
 
 
-def get_caller_stack_frame(N=0):
-    return get_stack_frame(N=N + 2)
-
-
 def get_parent_frame(N=0):
     parent_frame = get_stack_frame(N=N + 2)
     return parent_frame
 
 
-def get_parent_locals(N=0):
-    """
-    returns the locals of the function that called you
-
-    Args:
-        N (int): (defaults to 0) number of levels up in the stack
-
-    Returns:
-        dict : locals_
-    """
-    parent_frame = get_parent_frame(N=N + 1)
-    locals_ = parent_frame.f_locals
-    return locals_
-
-
-def get_parent_globals(N=0):
-    parent_frame = get_parent_frame(N=N + 1)
-    globals_ = parent_frame.f_globals
-    return globals_
-
-
-def get_caller_locals(N=0):
-    """
-    returns the locals of the function that called you
-    alias for get_parent_locals
-
-    Args:
-        N (int): (defaults to 0) number of levels up in the stack
-
-    Returns:
-        dict : locals_
-    """
-
-    locals_ = get_parent_locals(N=N + 1)
-    return locals_
-
-
 def quasiquote(string):
-    return string.format(**get_caller_locals())
+    """ mimics lisp quasi quote functionality """
+    return string.format(**get_parent_frame().f_locals)
 
 
 fmtlocals = quasiquote  # non-lispy alias for quasiquote
@@ -770,7 +727,7 @@ def get_caller_prefix(N=0, aserror=False):
 
 
 def get_caller_lineno(N=0, strict=True):
-    parent_frame = get_parent_frame(N=N + 1)
+    parent_frame = get_stack_frame(N=N + 2)
     lineno =  parent_frame.f_lineno
     return lineno
 
@@ -810,7 +767,7 @@ def get_caller_name(N=0, allow_genexpr=True):
             except AssertionError:
                 name_list.append('X')
         return '[' + ']['.join(name_list) + ']'
-    parent_frame = get_parent_frame(N=N + 1)
+    parent_frame = get_stack_frame(N=N + 2)
     caller_name = parent_frame.f_code.co_name
     co_filename = parent_frame.f_code.co_filename
 
@@ -819,7 +776,7 @@ def get_caller_name(N=0, allow_genexpr=True):
         while True:
             count += 1
             if caller_name == '<genexpr>':
-                parent_frame = get_parent_frame(N=N + count)
+                parent_frame = get_stack_frame(N=N + 1 + count)
                 caller_name = parent_frame.f_code.co_name
             else:
                 break
@@ -1046,10 +1003,10 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     if prefix is None:
         prefix = get_caller_prefix(aserror=True, N=N)
     if locals_ is None:
-        locals_ = get_caller_locals(N=N)
+        locals_ = get_parent_frame(N=N).f_locals
     # build exception message
     if msg is True:
-        key_list = get_caller_locals()
+        key_list = get_parent_frame().f_locals
         msg = msg_
     exstr = formatex(ex, msg, prefix, key_list, locals_, iswarning, tb=tb, colored=colored)
     # get requested print function
@@ -1139,7 +1096,7 @@ def formatex(ex, msg='[!?] Caught exception',
     if prefix is None:
         prefix = get_caller_prefix(aserror=True, N=N)
     if locals_ is None:
-        locals_ = get_caller_locals(N=N)
+        locals_ = get_parent_frame(N=N).f_locals
     if keys is not None:
         # shorthand for key_list
         key_list = keys
@@ -1161,7 +1118,7 @@ def formatex(ex, msg='[!?] Caught exception',
 
 
 def get_varname_from_stack(var, N=0, **kwargs):
-    return get_varname_from_locals(var, get_caller_locals(N=N), **kwargs)
+    return get_varname_from_locals(var, get_parent_frame(N=N).f_locals, **kwargs)
 
 
 def get_varname_from_locals(val, locals_, default='varname-not-found',
@@ -1226,7 +1183,7 @@ def get_varval_from_locals(key, locals_, strict=False):
 def get_varstr(val, pad_stdout=True, locals_=None):
     # TODO: combine with printex functionality
     if locals_ is None:
-        locals_ = get_parent_locals()
+        locals_ = get_parent_frame().f_locals
     name = get_varname_from_locals(val, locals_)
     varstr_list = []
     if pad_stdout:
@@ -1241,13 +1198,13 @@ def get_varstr(val, pad_stdout=True, locals_=None):
 
 def super_print(val, locals_=None):
     if locals_ is None:
-        locals_ = get_parent_locals()
+        locals_ = get_parent_frame().f_locals
     print(get_varstr(val, locals_=locals_))
 
 
 def print_keys(key_list, locals_=None):
     if locals_ is None:
-        locals_ = get_parent_locals()
+        locals_ = get_parent_frame().f_locals
     strlist_ = parse_locals_keylist(locals_, key_list)
     print('\n'.join(strlist_))
 
@@ -1326,7 +1283,7 @@ def get_reprs(*args, **kwargs):
         locals_ = kwargs['locals_']
     else:
         locals_ = locals()
-        locals_.update(get_caller_locals())
+        locals_.update(get_parent_frame().f_locals)
 
     msg_list = []
     var_list = list(args) + kwargs.get('var_list', [])
@@ -1340,7 +1297,7 @@ def get_reprs(*args, **kwargs):
 
 
 def printvar2(varstr, attr='', typepad=0):
-    locals_ = get_parent_locals()
+    locals_ = get_parent_frame().f_locals
     printvar(locals_, varstr, attr, typepad=typepad)
 
 
@@ -1383,7 +1340,7 @@ def printvar(locals_, varname, attr='.shape', typepad=0):
 
 def dict_dbgstr(dict_name, locals_=None):
     if locals_ is None:
-        locals_ = get_parent_locals()
+        locals_ = get_parent_frame().f_locals
     lenstr = len_dbgstr(dict_name, locals_)
     keystr = keys_dbgstr(dict_name, locals_)
     return keystr + ' ' + lenstr
@@ -1392,7 +1349,7 @@ def dict_dbgstr(dict_name, locals_=None):
 
 def keys_dbgstr(dict_name, locals_=None):
     if locals_ is None:
-        locals_ = get_parent_locals()
+        locals_ = get_parent_frame().f_locals
     dict_ = locals_[dict_name]
     key_str = dict_name + '.keys() = ' + repr(dict_.keys())
     return key_str
@@ -1401,7 +1358,7 @@ def keys_dbgstr(dict_name, locals_=None):
 
 def print_varlen(name_, locals_=None):
     if locals_ is None:
-        locals_ = get_parent_locals()
+        locals_ = get_parent_frame().f_locals
     prefix = get_caller_prefix()
     print(prefix + ' ' + len_dbgstr(name_, locals_))
 
@@ -1409,7 +1366,7 @@ def print_varlen(name_, locals_=None):
 def len_dbgstr(lenable_name, locals_=None):
     try:
         if locals_ is None:
-            locals_ = get_parent_locals()
+            locals_ = get_parent_frame().f_locals
         lenable_ = locals_[lenable_name]
     except Exception:
         exec(execstr_dict(locals_, 'locals_'))
@@ -1424,7 +1381,7 @@ def len_dbgstr(lenable_name, locals_=None):
 
 
 def list_dbgstr(list_name, trunc=2):
-    locals_ = get_parent_locals()
+    locals_ = get_parent_frame().f_locals
     list_   = locals_[list_name]
     if trunc is None:
         pos = len(list_)

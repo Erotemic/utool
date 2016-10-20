@@ -1782,9 +1782,9 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
     if update is None:
         update = ut.inIPython()
     if globals_ is None:
-        globals_ = ut.get_parent_globals()
+        globals_ = ut.get_parent_frame().f_globals
     if locals_ is None:
-        locals_ = ut.get_parent_locals()
+        locals_ = ut.get_parent_frame().f_locals
     if sentinal is not None:
         sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
     globals_new = globals_.copy()
@@ -1846,9 +1846,9 @@ def exec_func_doctest(func, start_sentinal=None, end_sentinal=None, num=0, globa
     import utool as ut
     docsrc_part = execstr_func_doctest(func, num, start_sentinal, end_sentinal)
     if globals_ is None:
-        globals_ = ut.get_parent_globals()
+        globals_ = ut.get_parent_frame().f_globals
     if locals_ is None:
-        locals_ = ut.get_parent_locals()
+        locals_ = ut.get_parent_frame().f_locals
     globals_new = globals_.copy()
     if locals_ is not None:
         globals_new.update(locals_)

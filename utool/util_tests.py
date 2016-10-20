@@ -1158,7 +1158,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         try:
             # This is a bit finky. Need to be exactly N frames under the main
             # module
-            frame = ut.get_caller_stack_frame(N=N)
+            frame = ut.get_parent_frame(N=N)
             main_modname = '__main__'
             frame_name  = frame.f_globals['__name__']
             frame_fpath = frame.f_globals['__file__']

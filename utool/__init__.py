@@ -340,12 +340,10 @@ if DOELSE:
                                 execstr_attr_list, execstr_dict, execstr_func, 
                                 execstr_parent_locals, explore_module, 
                                 explore_stack, fix_embed_globals, fmtlocals, 
-                                formatex, get_caller_lineno, get_caller_locals, 
+                                formatex, get_caller_lineno, 
                                 get_caller_modname, get_caller_name, 
-                                get_caller_prefix, get_caller_stack_frame, 
-                                get_current_stack_depth, 
+                                get_caller_prefix, get_current_stack_depth, 
                                 get_localvar_from_stack, get_parent_frame, 
-                                get_parent_globals, get_parent_locals, 
                                 get_reprs, get_stack_frame, get_var_from_stack, 
                                 get_varname_from_locals, 
                                 get_varname_from_stack, get_varstr, 
@@ -907,8 +905,7 @@ if DOELSE:
                                   parse_docblocks_from_docstr, 
                                   parse_doctest_from_docstr, qt4ensure, 
                                   quit_if_noshow, read_exampleblock, run_test, 
-                                  show_if_requested, show_was_requested, 
-                                  test_jedi_can_read_googlestyle,) 
+                                  show_if_requested, show_was_requested,) 
     from utool.util_web import (get_localhost, is_local_port_open, render_html, 
                                 start_simple_webserver,) 
     from utool.DynamicStruct import (DynStruct,) 

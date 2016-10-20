@@ -2069,7 +2069,8 @@ def debug_duplicate_items(items, *args, **kwargs):
     if pad_stdout:
         print('')
 
-    print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % ut.get_varname_from_locals(items, ut.get_caller_locals()))
+    varname = ut.get_varname_from_locals(items, ut.get_parent_frame().f_locals)
+    print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % (varname,))
     def printfn(msg):
         print('[util_list] |' + msg)
     #with ut.Indenter('[util_list] | '):

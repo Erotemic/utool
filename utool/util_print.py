@@ -339,7 +339,7 @@ def print_locals(*args, **kwargs):
     from utool import util_str
     from utool import util_dbg
     from utool import util_dict
-    locals_ = util_dbg.get_caller_locals()
+    locals_ = util_dbg.get_parent_frame().f_locals
     keys = kwargs.get('keys', None if len(args) == 0 else [])
     to_print = {}
     for arg in args:
