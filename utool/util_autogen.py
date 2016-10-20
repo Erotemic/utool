@@ -70,8 +70,8 @@ def makeinit(mod_dpath, exclude_modnames=[], use_star=False):
     r"""
     Args:
         mod_dpath (str):
-        exclude_modnames (list): (default = [])
-        use_star (bool): (default = False)
+        exclude_modnames (list): (Defaults to [])
+        use_star (bool): (Defaults to False)
 
     Returns:
         str: init_codeblock
@@ -223,8 +223,8 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
     Args:
         modname (str):  module name
         funcname (str):  function name
-        verbose (bool):  verbosity flag(default = True)
-        moddir (None): (default = None)
+        verbose (bool):  verbosity flag(Defaults to True)
+        moddir (None): (Defaults to None)
 
     CommandLine:
         python -m utool.util_autogen load_func_from_module
@@ -735,11 +735,11 @@ def make_default_docstr(func, with_args=True, with_ret=True,
     Args:
         func (function): live python function
         with_args (bool):
-        with_ret (bool): (default = True)
-        with_commandline (bool): (default = True)
-        with_example (bool): (default = True)
-        with_header (bool): (default = False)
-        with_debug (bool): (default = False)
+        with_ret (bool): (Defaults to True)
+        with_commandline (bool): (Defaults to True)
+        with_example (bool): (Defaults to True)
+        with_header (bool): (Defaults to False)
+        with_debug (bool): (Defaults to False)
 
     Returns:
         tuple: (argname, val)

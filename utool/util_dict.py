@@ -1713,7 +1713,7 @@ class DictLike(object):
             return default
 
 
-def sort_dict(dict_, part='keys', key=None):
+def sort_dict(dict_, part='keys', key=None, reverse=False):
     """
     sorts a dictionary by its values or its keys
 
@@ -1722,6 +1722,8 @@ def sort_dict(dict_, part='keys', key=None):
         part (str): specifies to sort by keys or values
         key (Optional[func]): a function that takes specified part
             and returns a sortable value
+        reverse (bool): (Defaults to False) - True for descinding order. False
+            for ascending order.
 
     Returns:
         OrderedDict: sorted dictionary
@@ -1753,9 +1755,11 @@ def sort_dict(dict_, part='keys', key=None):
     else:
         raise ValueError('Unknown method part=%r' % (part,))
     if key is None:
-        sorted_items = sorted(six.iteritems(dict_), key=lambda item: item[index])
+        _key = operator.itemgetter(index)
     else:
-        sorted_items = sorted(six.iteritems(dict_), key=lambda item: key(item[index]))
+        def _key(item):
+            return key(item[index])
+    sorted_items = sorted(six.iteritems(dict_), key=_key, reverse=reverse)
     sorted_dict = OrderedDict(sorted_items)
     return sorted_dict
 
