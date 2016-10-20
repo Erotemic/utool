@@ -438,7 +438,6 @@ if DOELSE:
                                  groupby_tags, hierarchical_group_items, 
                                  hierarchical_map_vals, hmap_vals, 
                                  iflatten_dict_values, invert_dict, is_dicteq, 
-                                 items_sorted_by_value, 
                                  iter_all_dict_combinations_ordered, 
                                  iteritems_sorted, keys_sorted_by_value, 
                                  map_dict_keys, map_dict_vals, map_keys, 

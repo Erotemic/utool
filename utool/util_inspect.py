@@ -408,9 +408,9 @@ def check_module_usage(modpath_patterns):
             func_numcall_graph[modname][funcname] = numcall_graph_
 
     # Sort by incidence cardinality
-    # func_numcall_graph = ut.odict([(key, ut.sort_dict(val, value_key=len)) for key, val in func_numcall_graph.items()])
+    # func_numcall_graph = ut.odict([(key, ut.sort_dict(val, 'vals', len)) for key, val in func_numcall_graph.items()])
     # Sort by weighted degree
-    func_numcall_graph = ut.odict([(key, ut.sort_dict(val, value_key=lambda x: sum(x.values())))
+    func_numcall_graph = ut.odict([(key, ut.sort_dict(val, 'vals', lambda x: sum(x.values())))
                                    for key, val in func_numcall_graph.items()])
     # Print out grep results in order
     print('PRINTING GREP RESULTS IN ORDER')

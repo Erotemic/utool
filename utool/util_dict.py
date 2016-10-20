@@ -1713,41 +1713,63 @@ class DictLike(object):
             return default
 
 
-def sort_dict(dict_, value_key=None):
+def sort_dict(dict_, part='keys', key=None):
     """
-    enforces ordering on dict
+    sorts a dictionary by its values or its keys
 
     Args:
         dict_ (dict_):  a dictionary
-        value_key (func): if None then keys are used to sort else values are used to sort.
+        part (str): specifies to sort by keys or values
+        key (Optional[func]): a function that takes specified part
+            and returns a sortable value
 
+    Returns:
+        OrderedDict: sorted dictionary
+
+    CommandLine:
+        python -m utool.util_dict sort_dict
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> dict_ = {'a': 3, 'c': 2, 'b': 1}
+        >>> results = []
+        >>> results.append(sort_dict(dict_, 'keys'))
+        >>> results.append(sort_dict(dict_, 'vals'))
+        >>> results.append(sort_dict(dict_, 'vals', lambda x: -x))
+        >>> result = ut.repr4(results)
+        >>> print(result)
+        [
+            {'a': 3, 'b': 1, 'c': 2},
+            {'b': 1, 'c': 2, 'a': 3},
+            {'a': 3, 'c': 2, 'b': 1},
+        ]
     """
-    import utool as ut
-    if value_key is None:
-        keys = list(dict_.keys())
-        items = list(dict_.items())
-        sortx = ut.argsort(keys)
-        return ut.odict(ut.take(items, sortx))
+    if part == 'keys':
+        index = 0
+    elif part == 'vals':
+        index = 1
     else:
-        return ut.odict(ut.items_sorted_by_value(dict_, value_key))
-
-
-def items_sorted_by_value(dict_, key=None):
+        raise ValueError('Unknown method part=%r' % (part,))
     if key is None:
-        sorted_items = sorted(six.iteritems(dict_), key=lambda k, v: v[1])
+        sorted_items = sorted(six.iteritems(dict_), key=lambda item: item[index])
     else:
-        sorted_items = sorted(six.iteritems(dict_), key=lambda item: key(item[1]))
-    return sorted_items
+        sorted_items = sorted(six.iteritems(dict_), key=lambda item: key(item[index]))
+    sorted_dict = OrderedDict(sorted_items)
+    return sorted_dict
 
 
 def order_dict_by(dict_, key_order):
     r"""
+    Reorders items in a dictionary according to a custom key order
+
     Args:
         dict_ (dict_):  a dictionary
-        key_order (list):
+        key_order (list): custom key order
 
     Returns:
-        dict: sorted_dict
+        OrderedDict: sorted_dict
 
     CommandLine:
         python -m utool.util_dict --exec-order_dict_by
