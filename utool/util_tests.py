@@ -705,129 +705,340 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
     return testcmd_list
 
 
-def parse_docblocks_from_docstr(docstr, new=False):
-    """
-    parse_docblocks_from_docstr
-    Depth 5)
+def _docblock_tester1():
+    """testting docblocks
+        foo
+    # Depth 5)
+    call:
+        foo
+    the next call is:
+        bar
     called by parse_doctest_from_docstr
     TODO: move to util_inspect
+        test what happens with weird indentation
+    bla
 
     Args:
-        docstr (str):
+        docstr (str): a documentation string formatted in google style.
+            Remember indentation matters.
+              whoo
+            this
+              .. params
+        new (Optional[bool]): does a new style of parsing
+        **kwargs:
 
     Returns:
         list: docstr_blocks tuples
             [(blockname, blockstr, offset)]
 
     Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
+        >>> print('example1')
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+        >>> import utool as ut
+        >>> print('dummy')
+    """
+
+
+def _docblock_tester2():
+    """
+    Args:
+    Returns:
+    Example:
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+    """
+
+
+def _docblock_tester3():
+    """
+    foo
+    Args:
+
+    Returns:
+
+    Example:
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+    """
+
+
+def _docblock_tester4():
+    """foobar
+
+    Args:
+        *args:
+        **kwargs:
+
+    Returns:
+        bool
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_tests import *  # NOQA
+    """
+
+
+def _test_docblock_parser():
+    import utool as ut
+    basis = {
+        'n_args': [None, 0, 1],
+        'n_return': [None, 0, 1, 2, 3],
+        'spacing': [1, 2],
+        # 'example_lines': [0, 1, 2],
+        'doc_lines': [0, 1, 2],
+        'doc_indent': [0, 1, 4],
+    }
+    for config in ut.all_dict_combinations(basis):
+        print('---')
+        print(config)
+        print('=====')
+        docstr =  _make_test_docstr(config)
+        docparts = ut.parse_docblocks_from_docstr(docstr)
+        print(docstr)
+        print('=====')
+        if config['n_args']:
+            assert 'Args:' in ut.take_column(docparts, 0)
+        if config['n_return']:
+            assert 'Returns:' in ut.take_column(docparts, 0)
+
+
+def _make_test_docstr(config):
+    import utool as ut
+
+    blocks = []
+
+    docpart = '\n'.join(ut.lorium_ipsum().strip().split('\n')[0:config['doc_lines']])
+    docpart = (' ' * config['doc_indent']) + docpart
+    blocks.append(docpart)
+
+    if config['n_args'] is not None:
+        argheader = 'Args'
+        argname_list = ut.chr_range(config['n_args'])
+        argtype_list = ['bool'] * config['n_args']
+        argdesc_list = [''] * config['n_args']
+        arg_docstr = ut.make_args_docstr(argname_list, argtype_list,
+                                         argdesc_list, ismethod=False)
+        argsblock = ut.make_docstr_block(argheader, arg_docstr)
+    else:
+        argsblock = ''
+
+    if config['n_return'] is not None:
+        if config['n_return'] == 0:
+            returnblock = 'Returns:'
+        else:
+            return_name = 'outvar'
+            return_type = 'int'
+            return_desc = '\n'.join(ut.lorium_ipsum().strip().split('\n')[0:config['n_return']])
+            return_doctr = ut.make_returns_or_yeilds_docstr(return_type, return_name, return_desc)
+            returnblock = ut.make_docstr_block('Returns', return_doctr)
+        blocks.append(returnblock)
+
+    blocks.append(argsblock)
+
+    docstr = ('\n' * config['spacing']).join(blocks)
+    return docstr
+
+
+def parse_docblocks_from_docstr(docstr, offsets=False):
+    """
+    # Depth 5)
+    called by parse_doctest_from_docstr
+
+    TODO: move to util_inspect
+
+    Args:
+        docstr (str): a documentation string formatted in google style.
+
+    Returns:
+        list: docstr_blocks tuples
+            [(blockname, blockstr)]
+
+    CommandLine:
+        python -m utool.util_tests parse_docblocks_from_docstr
+
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
-        >>> func_or_class = ut.parse_docblocks_from_docstr
+        >>> #func_or_class = ut.flatten2
+        >>> #func_or_class = ut.list_depth
+        >>> func_or_class = ut.iter_module_doctestable
+        >>> func_or_class = ut.all_multi_paths
         >>> docstr = ut.get_docstr(func_or_class)
         >>> docstr_blocks = parse_docblocks_from_docstr(docstr)
-        >>> result = str(docstr_blocks)
+        >>> result = str(ut.repr4(docstr_blocks))
         >>> print(result)
     """
-    # FIXME Requires tags to be separated by two spaces
     if docstr is None:
         return []
-    import parse
+    # import parse
     import utool as ut
-    import itertools as it
+    import re
+    # import itertools as it
     docstr = ut.ensure_unicode(docstr)
+    docstr = ut.unindent(docstr)
 
-    if new:
-        # TODO: Finish this
-        # Parse out initial documentation lines
-        # Then parse out the blocked lines.
+    # Parse out initial documentation lines
+    # Then parse out the blocked lines.
+    docstr_lines = docstr.split('\n')
+    line_indent = [ut.get_indentation(line) for line in docstr_lines]
+    line_len = [len(line) for line in docstr_lines]
+
+    # The first line may not have the correct indentation if it starts
+    # right after the triple quotes. Adjust it in this case to ensure that
+    # base indent is always 0
+    adjusted = False
+    is_nonzero = [len_ > 0 for len_ in line_len]
+    if len(line_indent) >= 2:
+        if line_len[0] != 0:
+            indents = ut.compress(line_indent, is_nonzero)
+            if len(indents) >= 2:
+                indent_adjust = min(indents[1:])
+                line_indent[0] += indent_adjust
+                line_len[0] += indent_adjust
+                docstr_lines[0] = (' ' * indent_adjust) + docstr_lines[0]
+                adjusted = True
+    if adjusted:
+        # Redo prepreocessing, but this time on a rectified input
+        docstr = ut.unindent('\n'.join(docstr_lines))
         docstr_lines = docstr.split('\n')
         line_indent = [ut.get_indentation(line) for line in docstr_lines]
         line_len = [len(line) for line in docstr_lines]
 
-        # Group blocks together
-        true_indent = []
-        prev_indent = None
-        for indent_, len_ in zip(line_indent, line_len):
-            if len_ == 0:
-                indent_ = prev_indent
-            true_indent.append(indent_)
-            prev_indent = indent_
+    indents = ut.compress(line_indent, is_nonzero)
+    if len(indents) >= 1:
+        if indents[0] != 0:
+            print('ERROR IN PARSING')
+            print('adjusted = %r' % (adjusted,))
+            print(docstr)
+            raise AssertionError('Google Style Docstring Missformat')
 
-        groupnum = 0
-        previndent = 0
-        group_list = []
-        for indent_ in true_indent:
-            if indent_ != previndent and indent_ == 0:
-                groupnum += 1
-            group_list.append(groupnum)
-            previndent = indent_
+    base_indent = 0
+    # We will group lines by their indentation.
+    # Rectify empty lines by giving them their parent's indentation.
+    true_indent = []
+    prev_indent = None
+    for indent_, len_ in zip(line_indent, line_len):
+        if len_ == 0:
+            # Empty lines take on their parents indentation
+            indent_ = prev_indent
+        true_indent.append(indent_)
+        prev_indent = indent_
 
-        groups_ = ut.group_items(docstr_lines, group_list)
-        groups = []
-        for k, lines in groups_.items():
-            if len(lines) == 0 or (len(lines) == 1 and len(lines[0]) == 0):
-                continue
-            import re
-            if len(lines) > 1 and ut.get_indentation(lines[0]) < ut.get_indentation(lines[1]) and re.match('[^\s]*:', lines[0]):
-                # An encoded google sub-block
-                key = lines[0]
-                val = lines[1:]
-                subblock = ut.unindent('\n'.join(val))
-                groups.append((key, subblock))
+    # tag_pattern = ut.regex_or(['Args:', 'Return:', 'CommandLine':])
+    tag_pattern = '[^\s]+: *$'
+
+    group_id = 0
+    prev_indent = 0
+    group_list = []
+    in_tag = False
+    for line_num, (line, indent_) in enumerate(zip(docstr_lines, true_indent)):
+        if re.match(tag_pattern, line):
+            # Check if we can look ahead
+            if line_num + 1 < len(docstr_lines):
+                # A tag is only valid if its next line is properly indented,
+                # empty, or is a tag itself.
+                if true_indent[line_num + 1] > base_indent or line_len[line_num + 1] == 0 or re.match(tag_pattern, docstr_lines[line_num + 1]):
+                    group_id += 1
+                    in_tag = True
             else:
-                # A top level text documentation block
-                key = '__DOC__'
-                val = lines[:]
-                subblock = '\n'.join(val)
-                groups.append((key, subblock))
-        # Ensure that no keys are duplicated
-        try:
-            assert len(ut.find_duplicate_items(ut.take_column(groups, 0))) == 0, ('Duplicate google docblock keys are not allowed')
-        except Exception as ex:
-            ut.printex(ex, iswarning=True)
-        groups = dict(groups)
-        return groups
-    else:
-        initial_docblocks = docstr.split('\n\n')
-        docblock_len_list = [str_.count('\n') + 2 for str_ in initial_docblocks]
-        offset_iter = it.chain([0], ut.cumsum(docblock_len_list)[:-1])
-        initial_line_offsets = [offset for offset in offset_iter]
+                group_id += 1
+                in_tag = True
+        # Check if this line belongs to a new group
+        elif in_tag and indent_ != prev_indent and indent_ == base_indent:
+            group_id += 1
+            in_tag = False
+        group_list.append(group_id)
+        prev_indent = indent_
 
-        if VERBOSE_TEST:
-            if ut.VERBOSE:
-                print('__________')
-                print('__Initial Docblocks__')
-                print('\n---\n'.join(initial_docblocks))
-        docstr_blocks = []
-        for docblock, line_offset in zip(initial_docblocks, initial_line_offsets):
-            docblock = docblock.strip('\n')
-            indent = ' ' * ut.get_indentation(docblock)
-            parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
-            if parse_result is not None:
-                header = parse_result['tag']
-            else:
-                header = ''
-            docstr_blocks.append((header, docblock, line_offset))
-        #print(docstr_blocks)
+    groups_ = ut.group_items(docstr_lines, group_list)
+    groups = []
+    line_offset = 0
+    for k, lines in groups_.items():
+        if len(lines) == 0 or (len(lines) == 1 and len(lines[0]) == 0):
+            continue
+        elif len(lines) >= 1 and re.match(tag_pattern, lines[0]):
+            # An encoded google sub-block
+            key = lines[0]
+            val = lines[1:]
+            subblock = ut.unindent('\n'.join(val))
+        else:
+            # A top level text documentation block
+            key = '__DOC__'
+            val = lines[:]
+            subblock = '\n'.join(val)
 
-        docblock_headers = ut.take_column(docstr_blocks, 0)
-        docblock_bodys = ut.take_column(docstr_blocks, 1)
-        docblock_offsets = ut.take_column(docstr_blocks, 2)
+        if offsets:
+            groups.append((key, subblock, line_offset))
+        else:
+            groups.append((key, subblock))
+        line_offset += len(lines)
+    # Ensure that no keys are duplicated
+    # try:
+    #     assert len(ut.find_duplicate_items(ut.take_column(groups, 0))) == 0, (
+    #         'Duplicate google docblock keys are not allowed')
+    # except Exception as ex:
+    #     ut.printex(ex, iswarning=True)
+    return groups
+    # else:
+    #     initial_docblocks = docstr.split('\n\n')
+    #     docblock_len_list = [str_.count('\n') + 2 for str_ in initial_docblocks]
+    #     offset_iter = it.chain([0], ut.cumsum(docblock_len_list)[:-1])
+    #     initial_line_offsets = [offset for offset in offset_iter]
 
-        if VERBOSE_TEST:
-            print('[util_test]   * found %d docstr_blocks' % (len(docstr_blocks),))
-            print('[util_test]   * docblock_headers = %r' % (docblock_headers,))
-            print('[util_test]   * docblock_offsets = %r' % (docblock_offsets,))
-            if ut.VERBOSE:
-                print('[util_test]  * docblock_bodys:')
-                print('\n-=-\n'.join(docblock_bodys))
-        return docstr_blocks
+    #     if VERBOSE_TEST:
+    #         if ut.VERBOSE:
+    #             print('__________')
+    #             print('__Initial Docblocks__')
+    #             print('\n---\n'.join(initial_docblocks))
+    #     docstr_blocks = []
+    #     for docblock, line_offset in zip(initial_docblocks, initial_line_offsets):
+    #         docblock = docblock.strip('\n')
+    #         indent = ' ' * ut.get_indentation(docblock)
+    #         parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
+    #         if parse_result is not None:
+    #             header = parse_result['tag']
+    #         else:
+    #             header = ''
+    #         docstr_blocks.append((header, docblock, line_offset))
+    #     #print(docstr_blocks)
+
+    #     docblock_headers = ut.take_column(docstr_blocks, 0)
+    #     docblock_bodys = ut.take_column(docstr_blocks, 1)
+    #     docblock_offsets = ut.take_column(docstr_blocks, 2)
+
+    #     if VERBOSE_TEST:
+    #         print('[util_test]   * found %d docstr_blocks' % (len(docstr_blocks),))
+    #         print('[util_test]   * docblock_headers = %r' % (docblock_headers,))
+    #         print('[util_test]   * docblock_offsets = %r' % (docblock_offsets,))
+    #         if ut.VERBOSE:
+    #             print('[util_test]  * docblock_bodys:')
+    #             print('\n-=-\n'.join(docblock_bodys))
+    #     return docstr_blocks
 
 
 def read_exampleblock(docblock):
-    import utool as ut
-    nonheader_src = ut.unindent('\n'.join(docblock.splitlines()[1:]))
+    # if False:
+    #     no longer needed with new parser
+    #     import utool as ut
+    #     nonheader_src = ut.unindent('\n'.join(docblock.splitlines()[1:]))
+    nonheader_src = docblock
     nonheader_lines = nonheader_src.splitlines()
     reversed_src_lines = []
     reversed_want_lines = []
@@ -841,6 +1052,8 @@ def read_exampleblock(docblock):
                 finished_want = True
             else:
                 reversed_want_lines.append(line)
+                if len(line.strip()) == 0:
+                    reversed_want_lines = []
                 continue
         reversed_src_lines.append(line[4:])
     test_src = '\n'.join(reversed_src_lines[::-1])
@@ -869,13 +1082,17 @@ def parse_doctest_from_docstr(docstr):
         >>> #from ibeis.algo.hots import score_normalization
         >>> #func_or_class = score_normalization.cached_ibeis_score_normalizer
         >>> func_or_class = parse_doctest_from_docstr
+        >>> func_or_class = ut.list_depth
+        >>> #func_or_class = ut.util_depricated.cartesian
+        >>> func_or_class = ut.iter_module_doctestable
         >>> docstr = ut.get_docstr(func_or_class)
         >>> testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr = get_doctest_examples(func_or_class)
         >>> print('\n\n'.join(testsrc_list))
         >>> assert len(testsrc_list) == len(testwant_list)
     """
     import utool as ut
-    docstr_blocks = parse_docblocks_from_docstr(docstr)
+    docstr_blocks = parse_docblocks_from_docstr(docstr, offsets=True)
+    # print('docstr_blocks = %r' % (docstr_blocks,))
 
     example_docblocks = []
     example_setups = []
@@ -1202,6 +1419,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 if docstr is not None and docstr.find('Example') >= 0:
                     testable_name_list.append(key)
                     testable_list.append(val)
+                    if VERBOSE_TEST and ut.NOT_QUIET:
+                        print('[ut.test] Testable: %s' % (key,))
                 else:
                     if VERBOSE_TEST and ut.NOT_QUIET:
                         if docstr.find('Example') >= 0:

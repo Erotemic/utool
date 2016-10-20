@@ -197,7 +197,7 @@ def make_application_icon(exe_fpath, dry=True, props={}):
 
 
 class XCtrl(object):
-    """
+    r"""
     xdotool key ctrl+shift+i
 
     References:
@@ -228,8 +228,6 @@ class XCtrl(object):
         # Get stacking order of windows in current workspace
         win_order=$(xprop -root|grep "^_NET_CLIENT_LIST_STACKING" | tr "," " ")
         echo $win_order
-
-
 
     CommandLine:
         python -m utool.util_ubuntu XCtrl

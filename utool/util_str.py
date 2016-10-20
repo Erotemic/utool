@@ -244,7 +244,7 @@ def get_indentation(line_):
 
 
 def get_minimum_indentation(text):
-    """
+    r"""
     returns the number of preceding spaces
 
     Args:
@@ -341,7 +341,7 @@ def textblock(multiline_text):
 
 
 def indent(str_, indent='    '):
-    """
+    r"""
     Indents a block of text
 
     Args:
@@ -2347,8 +2347,8 @@ def multi_replace(str_, search_list, repl_list):
     return newstr
 
 
-def replace_nonquoted_text(tlext, search_list, repl_list):
-    """
+def replace_nonquoted_text(text, search_list, repl_list):
+    r"""
     replace_nonquoted_text
 
     WARNING: this function is not safely implemented. It can break of searching
@@ -2356,7 +2356,7 @@ def replace_nonquoted_text(tlext, search_list, repl_list):
     which is also unsafely implemented
 
     Args:
-        text (?):
+        text (str):
         search_list (list):
         repl_list (list):
 

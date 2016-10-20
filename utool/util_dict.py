@@ -154,10 +154,6 @@ def get_dict_hashid(dict_):
         >>> result = str(hashid)
         >>> print(result)
         oegknoalkrkojumi
-
-        fprzgbpsdzfqueqh
-
-        5127623379007436803
     """
     import utool as ut
     raw_text = ut.dict_str(dict_, sorted_=True, strvals=True)

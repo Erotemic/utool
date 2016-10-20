@@ -679,7 +679,6 @@ def unflatten2(flat_list, cumlen_list):
     Returns:
         unflat_list2: original nested list
 
-
     SeeAlso:
         invertible_flatten
         invertible_flatten2
@@ -1024,7 +1023,7 @@ def filter_Nones(item_list):
 
 
 def isect(list1, list2):
-    """
+    r"""
     returns list1 elements that are also in list2. preserves order of list1
 
     intersect_ordered

@@ -287,7 +287,7 @@ class LazyModule(object):
 
 
 def import_module_from_fpath(module_fpath):
-    """ imports module from a file path
+    r""" imports module from a file path
 
     Args:
         module_fpath (str):

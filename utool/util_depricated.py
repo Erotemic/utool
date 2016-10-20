@@ -8,7 +8,7 @@ def find_std_inliers(data, m=2):
 
 
 def cartesian(arrays, out=None):
-    """
+    r"""
     Generate a cartesian product of input arrays.
 
     Args:

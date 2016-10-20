@@ -115,15 +115,18 @@ class BaronWraper(object):
             for func in functions:
                 if False and len(func) > 0:
                     if func[0].type == 'raw_string':
-                        docstr = eval(func[0].value)
-                        docblocks = ut.parse_docblocks_from_docstr(
-                            ut.unindent(docstr), new=True)
-                        if 'Example:' in docblocks:
-                            doctest = docblocks['Example:']
-                            docname = '<doctest>' + func.name
-                            doc_nodes[docname] = doctest
-                            G.add_node(docname)
-                            G.node[docname]['color'] = (1, 0, 0)
+                        docstr_ = eval(func[0].value)
+                        docstr = ut.unindent(docstr_)
+                        docblocks = ut.parse_docblocks_from_docstr(docstr)
+                        count = 0
+                        for key, block in docblocks:
+                            if key.startswith('Example'):
+                                doctest = docblocks['Example:']
+                                docname = '<doctest%d>' % (count,) + func.name
+                                doc_nodes[docname] = doctest
+                                G.add_node(docname)
+                                G.node[docname]['color'] = (1, 0, 0)
+                                count += 1
 
         with ut.Timer('building function call graph'):
             func_names = [func.name for func in functions]
@@ -855,7 +858,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
             --modname=utool.util_progress --debug-key=build_msg_fmtstr_time2
             --modname=utool.util_progress --debug-key=ProgressIter
 
-   Debug:
+    Debug:
        # fix profile with doctest
        utprof.py -m utool --tf iter_module_doctestable --modname=utool.util_inspect --debugkey=zzz_profiled_is_yes
        utprof.py -m utool --tf iter_module_doctestable --modname=ibeis.algo.hots.chip_match --debugkey=to_json
@@ -1292,7 +1295,7 @@ def get_docstr(func_or_class):
 def get_func_docblocks(func_or_class):
     import utool as ut
     docstr = ut.get_docstr(func_or_class)
-    docblocks = ut.parse_docblocks_from_docstr(docstr, new=True)
+    docblocks = ut.parse_docblocks_from_docstr(docstr)
     return docblocks
 
 
@@ -2511,61 +2514,60 @@ def infer_function_info(func):
 
         known_arginfo = ut.ddict(dict)
 
-        if True:
-            current_doc = inspect.getdoc(func)
-            docstr_blocks = ut.parse_docblocks_from_docstr(current_doc)
-            docblock_types = ut.get_list_column(docstr_blocks, 0)
-            docblock_types = [re.sub('Example[0-9]', 'Example', type_)
-                              for type_ in docblock_types]
-            docblock_dict = ut.group_items(docstr_blocks, docblock_types)
+        current_doc = inspect.getdoc(func)
+        docstr_blocks = ut.parse_docblocks_from_docstr(current_doc)
+        docblock_types = ut.get_list_column(docstr_blocks, 0)
+        docblock_types = [re.sub('Example[0-9]', 'Example', type_)
+                          for type_ in docblock_types]
+        docblock_dict = ut.group_items(docstr_blocks, docblock_types)
 
-            if '' in docblock_dict:
-                docheaders = docblock_dict['']
-                docheaders_lines = ut.get_list_column(docheaders, 1)
-                docheaders_order = ut.get_list_column(docheaders, 2)
-                docheaders_lines = ut.sortedby(docheaders_lines, docheaders_order)
-                doc_shortdesc = '\n'.join(docheaders_lines)
+        if '' in docblock_dict:
+            docheaders = docblock_dict['']
+            docheaders_lines = ut.get_list_column(docheaders, 1)
+            docheaders_order = ut.get_list_column(docheaders, 2)
+            docheaders_lines = ut.sortedby(docheaders_lines, docheaders_order)
+            doc_shortdesc = '\n'.join(docheaders_lines)
 
-            if 'Args' in docblock_dict:
-                argblocks = docblock_dict['Args']
-                if len(argblocks) != 1:
-                    print('Warning: should only be one args block')
-                else:
-                    argblock = argblocks[0][1]
+        if 'Args' in docblock_dict:
+            argblocks = docblock_dict['Args']
+            if len(argblocks) != 1:
+                print('Warning: should only be one args block')
+            else:
+                argblock = argblocks[0][1]
 
-                    assert argblock.startswith('Args:\n')
-                    argsblock_ = argblock[len('Args:\n'):]
-                    arglines = re.split(r'^    \b', argsblock_, flags=re.MULTILINE)
-                    arglines = [line for line in arglines if len(line) > 0]
+                assert argblock.startswith('Args:\n')
+                argsblock_ = argblock[len('Args:\n'):]
+                arglines = re.split(r'^    \b', argsblock_, flags=re.MULTILINE)
+                arglines = [line for line in arglines if len(line) > 0]
 
-                    esc = re.escape
+                esc = re.escape
 
-                    def escparen(pat):
-                        return esc('(')  + pat + esc(')')
-                    argname = ut.named_field('argname', ut.REGEX_VARNAME)
-                    argtype_ = ut.named_field('argtype', '.' + ut.REGEX_NONGREEDY)
-                    argtype = escparen(argtype_)
-                    argdesc = ut.named_field('argdesc', '.*')
-                    WS = ut.REGEX_WHITESPACE
-                    argpattern = (
-                        WS + argname + WS + argtype + WS + ':' + WS + argdesc)
+                def escparen(pat):
+                    return esc('(')  + pat + esc(')')
+                argname = ut.named_field('argname', ut.REGEX_VARNAME)
+                argtype_ = ut.named_field('argtype', '.' + ut.REGEX_NONGREEDY)
+                argtype = escparen(argtype_)
+                argdesc = ut.named_field('argdesc', '.*')
+                WS = ut.REGEX_WHITESPACE
+                argpattern = (
+                    WS + argname + WS + argtype + WS + ':' + WS + argdesc)
 
-                    for argline in arglines:
-                        m = re.match(argpattern, argline, flags=re.MULTILINE | re.DOTALL)
-                        try:
-                            groupdict_ = m.groupdict()
-                        except Exception as ex:
-                            print('---')
-                            print('argline = \n%s' % (argline,))
-                            print('---')
-                            raise Exception('Unable to parse argline=%s' % (argline,))
-                        #print('groupdict_ = %s' % (ut.dict_str(groupdict_),))
-                        argname = groupdict_['argname']
-                        known_arginfo[argname]['argdesc'] = groupdict_['argdesc'].rstrip('\n')
-                        # TODO: record these in a file for future reference
-                        # and potential guessing
-                        if groupdict_['argtype'] != '?':
-                            known_arginfo[argname]['argtype'] = groupdict_['argtype']
+                for argline in arglines:
+                    m = re.match(argpattern, argline, flags=re.MULTILINE | re.DOTALL)
+                    try:
+                        groupdict_ = m.groupdict()
+                    except Exception as ex:
+                        print('---')
+                        print('argline = \n%s' % (argline,))
+                        print('---')
+                        raise Exception('Unable to parse argline=%s' % (argline,))
+                    #print('groupdict_ = %s' % (ut.dict_str(groupdict_),))
+                    argname = groupdict_['argname']
+                    known_arginfo[argname]['argdesc'] = groupdict_['argdesc'].rstrip('\n')
+                    # TODO: record these in a file for future reference
+                    # and potential guessing
+                    if groupdict_['argtype'] != '?':
+                        known_arginfo[argname]['argtype'] = groupdict_['argtype']
 
         is_class = isinstance(func, six.class_types)
 

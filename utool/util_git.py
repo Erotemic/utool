@@ -677,7 +677,7 @@ class Repo(util_dev.NiceRepr):
 
 
 def git_sequence_editor_squash(fpath):
-    """
+    r"""
     squashes wip messages
 
     CommandLine:

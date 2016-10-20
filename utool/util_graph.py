@@ -1203,7 +1203,7 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
 
 
 def all_multi_paths(graph, source, target, data=False):
-    """
+    r"""
     Returns specific paths along multi-edges from the source to this table.
     Multipaths are identified by edge keys.
 
