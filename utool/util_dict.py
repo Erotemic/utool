@@ -22,6 +22,44 @@ except ImportError:
 print, rrr, profile = util_inject.inject2(__name__)
 
 
+def dzip(list1, list2):
+    r"""
+    Broadcast elementwise relationships between a and b into a dictionary
+
+    Args:
+        list1 (sequence): full sequence
+        list2 (sequence): can either be a sequence of one item or a sequence of
+            equal length to `list1`
+
+    Returns:
+        dict: similar to dict(zip(list1, list2))
+
+    CommandLine:
+        python -m utool.util_dict dzip
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
+        >>> assert dzip([1, 2, 3], [4]) == {1: 4, 2: 4, 3: 4}
+        >>> assert dzip([1, 2, 3], [4, 4, 4]) == {1: 4, 2: 4, 3: 4}
+        >>> ut.assert_raises(ValueError, dzip, [1, 2, 3], [])
+        >>> ut.assert_raises(ValueError, dzip, [], [4, 5, 6])
+        >>> ut.assert_raises(ValueError, dzip, [], [4])
+        >>> ut.assert_raises(ValueError, dzip, [1, 2], [4, 5, 6])
+        >>> ut.assert_raises(ValueError, dzip, [1, 2, 3], [4, 5])
+    """
+    # if len(list1) == 0 and len(list2) == 1:
+    #     # This introduces list1 corner case
+    #     list2 = []
+    if len(list2) == 1 and len(list1) > 1:
+        list2 = list2 * len(list1)
+    if len(list1) != len(list2):
+        raise ValueError('out of alignment len(list1)=%r, len(list2)=%r' % (
+            len(list1), len(list2)))
+    return dict(zip(list1, list2))
+
+
 def map_dict_vals(func, dict_):
     """ applies a function to each of the keys in a dictionary
 
