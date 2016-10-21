@@ -233,6 +233,7 @@ class Repo(util_dev.NiceRepr):
         remotes = repo.as_gitpython().remotes
         remote_dict = {}
         for remote in remotes:
+            pass
             remote_info = repo._remote_info(remote)
             if remote_info is not None:
                 name = remote_info.pop('name')
@@ -240,7 +241,11 @@ class Repo(util_dev.NiceRepr):
         return remote_dict
 
     def _remote_info(repo, remote):
-        urls = list(remote.urls)
+        remote_details = remote.repo.git.remote("get-url", remote.name, '--push')
+        # TODO push into gitpython
+        urls = [line for line in remote_details.split('\n')]
+
+        # urls = list(remote.urls)
         if len(urls) == 0:
             print('[git] WARNING: repo %r has no remote urls' % (repo,))
             remote_info = None
@@ -261,7 +266,35 @@ class Repo(util_dev.NiceRepr):
                 remote_info['username'] = username
         return remote_info
 
-    def _new_repo_url(repo, host=None, user=None, reponame=None, fmt=None):
+    def _ensure_remote_exists(repo, remote_name, remote_url, fmt=None):
+        # Remote the remote if it is not in the correct format
+        if fmt is None:
+            if remote_url.startswith('git@'):
+                fmt = 'ssh'
+            elif remote_url.startswith('https://'):
+                fmt = 'https'
+            else:
+                raise ValueError('bad format')
+        gitrepo = repo.as_gitpython()
+        remotes = repo.remotes
+        incorrect_version = False
+        if remote_url in remotes:
+            # Check correct version (SSH or HTTPS)
+            wildme_remote_ = remotes[remote_url]
+            wildme_url_ = wildme_remote_['url']
+            is_ssh = '@' in wildme_url_
+            incorrect_version = (is_ssh and fmt == 'https') or (not is_ssh and fmt == 'ssh')
+            if incorrect_version:
+                print('  * Deleting bad version remote %r: %r' % (remote_name, remote_url))
+                gitrepo.delete_remote(remote_name)
+
+        # Ensure there is a remote under the wildme name
+        if remote_name not in repo.remotes or incorrect_version:
+            print('  * Create remote %r: %r' % (remote_name, remote_url))
+            gitrepo.create_remote(remote_name, remote_url)
+        return incorrect_version
+
+    def _new_remote_url(repo, host=None, user=None, reponame=None, fmt=None):
         import utool as ut
         if reponame is None:
             reponame = repo.reponame
@@ -269,14 +302,15 @@ class Repo(util_dev.NiceRepr):
             host = 'github.com'
         if fmt is None:
             fmt = 'ssh'
-        if host is not None:
+        if host == 'github.com':
             assert user is not None, 'github needs a user'
         url_fmts = {
             'https': ('https://', '/'),
             'ssh':   ('git@', ':'),
         }
         prefix, sep = url_fmts[fmt]
-        parts = [prefix, host, sep, user, '/', reponame, '.git']
+        user_ = '' if user is None else user + '/'
+        parts = [prefix, host, sep, user_, reponame, '.git']
         parts = ut.filter_Nones(parts)
         url = ''.join(parts)
         return url
@@ -291,6 +325,7 @@ class Repo(util_dev.NiceRepr):
         tracking_branch = branch.tracking_branch()
         remote_info = None
         for remote in repo.as_gitpython().remotes:
+            pass
             if remote.name == tracking_branch.remote_name:
                 remote_info = repo._remote_info(remote)
                 break
