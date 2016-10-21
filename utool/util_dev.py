@@ -54,6 +54,45 @@ def ensure_str_list(input_):
     return [input_] if isinstance(input_, six.string_types) else input_
 
 
+def _ensure_clipboard_backend():
+    import pyperclip
+    import utool as ut
+    if ut.UNIX:
+        backend_order = ['xclip', 'xsel', 'qt', 'gtk']
+        for backend in backend_order:
+            if getattr(pyperclip, '_ut_clipboard', 'no') == backend:
+                break
+            elif _check_clipboard_backend(backend):
+                pyperclip.set_clipboard(backend)
+                pyperclip._ut_clipboard = backend
+                break
+            else:
+                print('warning %r not installed' % (backend,))
+
+
+def _check_clipboard_backend(backend):
+    import pyperclip
+    if backend == 'qt':
+        try:
+            import PyQt4  # NOQA
+            return True
+        except ImportError:
+            return False
+    elif backend == 'gtk':
+        try:
+            import gtk  # NOQA
+            return True
+        except ImportError:
+            return False
+    else:
+        return pyperclip._executable_exists(backend)
+
+
+def set_clipboard(text):
+    """ alias for copy_text_to_clipboard """
+    return copy_text_to_clipboard(text)
+
+
 def copy_text_to_clipboard(text):
     """
     Copies text to the clipboard
@@ -66,33 +105,28 @@ def copy_text_to_clipboard(text):
     References:
         http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
         http://stackoverflow.com/questions/579687/how-do-i-copy-a-string-to-the-clipboard-on-windows-using-python
+
+    Ignore:
+        import pyperclip
+        # Qt is by far the fastest, followed by xsel, and then xclip
+        #
+        backend_order = ['xclip', 'xsel', 'qt', 'gtk']
+        backend_order = ['qt', 'xsel', 'xclip', 'gtk']
+        for be in backend_order:
+            print('be = %r' % (be,))
+            pyperclip.set_clipboard(be)
+            %timeit pyperclip.copy('a line of reasonable length text')
+            %timeit pyperclip.paste()
     """
-    # import utool as ut
-    # pyperclip = ut.tryimport('pyperclip', ensure=True)
-    # if pyperclip is not None:
-    #     pyperclip.copy(text)
-    import sys
-    if 'pyperclip' not in sys.modules:
-        import pyperclip
-        # UGG SO MUCH BUGS
-        if pyperclip._executable_exists('xsel'):
-            pyperclip.set_clipboard('xsel')
-    try:
-        import pyperclip
-        text = pyperclip.copy(text)
-    except ImportError:
-        raise
-        # from Tkinter import Tk
-        # tk_inst = Tk()
-        # tk_inst.withdraw()
-        # tk_inst.clipboard_clear()
-        # tk_inst.clipboard_append(text)
-        # tk_inst.destroy()
-
-
-def set_clipboard(text):
-    """ alias for copy_text_to_clipboard """
-    return copy_text_to_clipboard(text)
+    import pyperclip
+    _ensure_clipboard_backend()
+    pyperclip.copy(text)
+    # from Tkinter import Tk
+    # tk_inst = Tk()
+    # tk_inst.withdraw()
+    # tk_inst.clipboard_clear()
+    # tk_inst.clipboard_append(text)
+    # tk_inst.destroy()
 
 
 def get_clipboard():
@@ -101,23 +135,14 @@ def get_clipboard():
         http://stackoverflow.com/questions/11063458/python-script-to-copy-text-to-clipboard
     """
     # import utool as ut
-    import sys
-    if 'pyperclip' not in sys.modules:
-        import pyperclip
-        # UGG SO MUCH BUGS
-        if pyperclip._executable_exists('xsel'):
-            pyperclip.set_clipboard('xsel')
-    try:
-        # pyperclip.set_clipboard('xsel')
-        import pyperclip
-        text = pyperclip.paste()
-    except ImportError:
-        raise
-        # from Tkinter import Tk
-        # tk_inst = Tk()
-        # tk_inst.withdraw()
-        # text = tk_inst.clipboard_get()
-        # tk_inst.destroy()
+    import pyperclip
+    _ensure_clipboard_backend()
+    text = pyperclip.paste()
+    # from Tkinter import Tk
+    # tk_inst = Tk()
+    # tk_inst.withdraw()
+    # text = tk_inst.clipboard_get()
+    # tk_inst.destroy()
     return text
 
 
