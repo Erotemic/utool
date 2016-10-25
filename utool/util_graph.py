@@ -1334,7 +1334,7 @@ def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
 
 def bfs_conditional(G, source, reverse=False, keys=True, data=False,
                     yield_nodes=True, yield_condition=None,
-                    continue_condition=None):
+                    continue_condition=None, visited_nodes=None):
     """
     Produce edges in a breadth-first-search starting at source, but only return
     nodes that satisfiy a condition, and only iterate past a node if it
@@ -1342,49 +1342,66 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
 
     conditions are callables that take (G, child, edge) and return true or false
 
+    Example:
+        >>> import networkx as nx
+        >>> import utool as ut
+        >>> G = nx.Graph()
+        >>> G.add_edges_from([(1, 2), (1, 3), (2, 3), (2, 4)])
+        >>> result = list(ut.bfs_conditional(G, 1, yield_nodes=False))
+        >>> print(result)
+        [2, 3, 4]
+
+    Example:
+        >>> import networkx as nx
+        >>> import utool as ut
+        >>> G = nx.Graph()
+        >>> G.add_edges_from([(1, 2), (1, 3), (2, 3), (2, 4)])
+        >>> result = list(ut.bfs_conditional(G, 1, visited_nodes=[2]))
+        >>> print(result)
+        [3]
     """
     from collections import deque
     from functools import partial
     if reverse and hasattr(G, 'reverse'):
         G = G.reverse()
-    #edges_iter = partial(G.edges_iter, keys=keys, data=data)
+    #neighbors = partial(G.neighbors, keys=keys, data=data)
     import networkx as nx
     if isinstance(G, nx.Graph):
-        edges_iter = partial(G.edges, data=data)
+        neighbors = partial(G.edges, data=data)
     else:
-        edges_iter = partial(G.edges, keys=keys, data=data)
+        neighbors = partial(G.edges, keys=keys, data=data)
 
-    #list(G.edges_iter('multitest', keys=True, data=True))
+    if visited_nodes is None:
+        visited_nodes = set([source])
+    else:
+        visited_nodes = set(visited_nodes)
+        visited_nodes.add(source)
 
-    visited_nodes = set([source])
-    # visited_edges = set([])
-    new_edges = edges_iter(source)
+    new_edges = neighbors(source)
     if isinstance(new_edges, list):
         new_edges = iter(new_edges)
     queue = deque([(source, new_edges)])
     while queue:
         parent, edges = queue[0]
-        try:
-            edge = next(edges)
+        for edge in edges:
             edge_nodata = edge[0:3]
-            # if edge_nodata not in visited_edges:
-            # visited_edges.add(edge_nodata)
             child = edge_nodata[1]
-            if yield_condition is None or yield_condition(G, child, edge):
-                if yield_nodes:
-                    yield child
-                else:
+            if yield_nodes:
+                if child not in visited_nodes:
+                    if yield_condition is None or yield_condition(G, child, edge):
+                        yield child
+            else:
+                if yield_condition is None or yield_condition(G, child, edge):
                     yield edge
             # Add children to queue if the condition is satisfied
             if continue_condition is None or continue_condition(G, child, edge):
                 if child not in visited_nodes:
                     visited_nodes.add(child)
-                    new_edges = edges_iter(child)
+                    new_edges = neighbors(child)
                     if isinstance(new_edges, list):
                         new_edges = iter(new_edges)
                     queue.append((child, new_edges))
-        except StopIteration:
-            queue.popleft()
+        queue.popleft()
 
 
 def bzip(*args):

@@ -55,12 +55,16 @@ def dump_profile_text():
     import utool as ut
     print("Dumping Profile Information")
     profile = ut.PROFILE_FUNC
-    output_text, summary_text = get_profile_text(profile)
-    #profile.dump_stats('out.lprof')
-    print(summary_text)
-    ut.writeto('profile_output.txt', output_text + '\n' + summary_text)
-    ut.writeto('profile_output.%s.txt' % (ut.get_timestamp()),
-               output_text + '\n' + summary_text)
+    try:
+        output_text, summary_text = get_profile_text(profile)
+    except AttributeError:
+        print('profile is not on')
+    else:
+        #profile.dump_stats('out.lprof')
+        print(summary_text)
+        ut.writeto('profile_output.txt', output_text + '\n' + summary_text)
+        ut.writeto('profile_output.%s.txt' % (ut.get_timestamp()),
+                   output_text + '\n' + summary_text)
 
 
 def __dbg_list(profile_block_list):

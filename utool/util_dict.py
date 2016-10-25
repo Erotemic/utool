@@ -3,8 +3,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import operator
 from collections import defaultdict, OrderedDict
-from itertools import product as iprod
-import itertools
+import itertools as it
+# import itertools
 from functools import partial
 from six.moves import zip, range, reduce, filter, map  # NOQA
 from utool import util_inject
@@ -24,7 +24,8 @@ print, rrr, profile = util_inject.inject2(__name__)
 
 def dzip(list1, list2):
     r"""
-    Broadcast elementwise relationships between a and b into a dictionary
+    Zips elementwise pairs between list1 and list2 into a dictionary. Values
+    from list2 can be broadcast onto list1.
 
     Args:
         list1 (sequence): full sequence
@@ -49,9 +50,13 @@ def dzip(list1, list2):
         >>> ut.assert_raises(ValueError, dzip, [1, 2], [4, 5, 6])
         >>> ut.assert_raises(ValueError, dzip, [1, 2, 3], [4, 5])
     """
-    # if len(list1) == 0 and len(list2) == 1:
-    #     # This introduces list1 corner case
-    #     list2 = []
+    if len(list1) == 0 and len(list2) == 1:
+        # Corner case:
+        # allow the first list to be empty and the second list to broadcast a
+        # value. This means that the equality check wont work for the case
+        # where list1 and list2 are supposed to correspond, but the length of
+        # list2 is 1.
+        list2 = []
     if len(list2) == 1 and len(list1) > 1:
         list2 = list2 * len(list1)
     if len(list1) != len(list2):
@@ -422,7 +427,7 @@ def iter_all_dict_combinations_ordered(varied_dict):
     """
     tups_list = [[(key, val) for val in val_list]
                  for (key, val_list) in six.iteritems(varied_dict)]
-    dict_iter = (OrderedDict(tups) for tups in iprod(*tups_list))
+    dict_iter = (OrderedDict(tups) for tups in it.product(*tups_list))
     return dict_iter
 
 
@@ -473,10 +478,10 @@ def all_dict_combinations(varied_dict):
                  #if isinstance(val_list, (list, tuple))
                  else [(key, val_list)]
                  for (key, val_list) in iteritems_sorted(varied_dict)]
-    dict_list = [dict(tups) for tups in iprod(*tups_list)]
-    #dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]
+    dict_list = [dict(tups) for tups in it.product(*tups_list)]
+    #dict_list = [{key: val for (key, val) in tups} for tups in it.product(*tups_list)]
     #from collections import OrderedDict
-    #dict_list = [OrderedDict([(key, val) for (key, val) in tups]) for tups in iprod(*tups_list)]
+    #dict_list = [OrderedDict([(key, val) for (key, val) in tups]) for tups in it.product(*tups_list)]
     return dict_list
 
 
@@ -536,7 +541,7 @@ def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_sing
             [(key, val) for val in val_list]
             for key, val_list in iteritems_sorted(varied_dict)
             if isinstance(val_list, (list, tuple)) and len(val_list) > 1]
-    combtup_list = list(iprod(*multitups_list))
+    combtup_list = list(it.product(*multitups_list))
     combtup_list2 = [
         [(key, val) if isinstance(val, six.string_types) else (key, repr(val))
          for (key, val) in combtup]
@@ -1120,7 +1125,7 @@ def dict_hist(item_list, weight_list=None, ordered=False):
     """
     hist_ = defaultdict(lambda: 0)
     if weight_list is None:
-        weight_list = itertools.repeat(1)
+        weight_list = it.repeat(1)
     for item, weight in zip(item_list, weight_list):
         hist_[item] += weight
     hist_ = dict(hist_)
