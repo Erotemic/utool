@@ -610,9 +610,10 @@ def ensuredir(path_, verbose=None, info=False, mode=0o1777):
         try:
             os.makedirs(normpath(path_), mode=mode)
         except OSError as ex:
-            util_dbg.printex(ex,
-                             'check that the longest existing path '
-                             'is not a bad windows symlink.')
+            util_dbg.printex(
+                ex,
+                'check that the longest existing path '
+                'is not a bad windows symlink.', keys=['path_'])
             raise
     return path_
 

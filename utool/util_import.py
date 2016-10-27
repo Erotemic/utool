@@ -13,6 +13,52 @@ import sys
 print, rrr, profile = util_inject.inject2(__name__)
 
 
+def dynamic_import(modname, submod):
+    """
+    CommandLine:
+        python -m utool.util_import dynamic_import opengm.opengmcore _opengmcore
+
+    Tutorial:
+        ### Instead of writing:
+
+        from {your_submodule} import *
+        ### OR
+        from {your_module}.{your_submodule} import *
+
+        ### You can use utool's dynamic importer:
+
+        if True:
+            # To Autogenerate Run
+            '''
+            python -c "import {your_module}" --print-{your_module}-init
+            python -c "import {your_module}" --update-{your_module}-init
+            '''
+            import utool as ut
+            ut.dynamic_import(__name__, '{your_submodule}')
+        else:
+            # <AUTOGEN_INIT>
+            pass
+            # </AUTOGEN_INIT>
+
+       ### This will do the same thing, but you can "freeze" your module
+       ### and autogenerate what import * would have done. This helps
+       ### with static analysis and overall code readability.
+
+    Ignore:
+        modname = 'opengm.opengmcore'
+        submod = '_opengmcore'
+    """
+    from utool._internal import util_importer
+    if isinstance(submod, list):
+        import_tuples = submod
+    else:
+        import_tuples = [(submod, None)]
+    import_execstr, initstr = util_importer.dynamic_import(
+        modname, import_tuples, check_not_imported=False,
+        return_initstr=True)
+    return initstr
+
+
 def possible_import_patterns(modname):
     """
     does not support from x import *

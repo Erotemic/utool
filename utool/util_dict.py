@@ -658,21 +658,23 @@ def update_existing(dict1, dict2, copy=False, assert_exists=False,
     if copy:
         dict1 = dict(dict1)
     if alias_dict is None:
-        for key, val in six.iteritems(dict2):
-            if key in dict1:
-                dict1[key] = val
-    else:
-        for key, val in six.iteritems(dict2):
-            key = alias_dict.get(key, key)
-            if key in dict1:
-                dict1[key] = val
+        alias_dict = {}
+    for key, val in six.iteritems(dict2):
+        key = alias_dict.get(key, key)
+        if key in dict1:
+            dict1[key] = val
     return dict1
 
 
-# backwards compatibility
-#updateif_haskey = update_existing
-def updateif_haskey(*args, **kwargs):
-    return update_existing(*args, **kwargs)
+def update_dict(dict1, dict2, copy=False, alias_dict=None):
+    if copy:
+        dict1 = dict(dict1)
+    if alias_dict is None:
+        alias_dict = {}
+    for key, val in six.iteritems(dict2):
+        key = alias_dict.get(key, key)
+        dict1[key] = val
+    return dict1
 
 
 def dict_update_newkeys(dict_, dict2):

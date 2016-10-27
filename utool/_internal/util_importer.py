@@ -16,14 +16,14 @@ import textwrap
 # EXECUTORS
 #----------
 
-def __excecute_imports(module, modname, IMPORTS, verbose=False):
+def __excecute_imports(module, modname, imports, verbose=False):
     """ Module Imports """
     # level: -1 is a the Python2 import strategy
     # level:  0 is a the Python3 absolute import
     if verbose:
-        print('[UTIL_IMPORT] EXECUTING %d IMPORT TUPLES' % (len(IMPORTS),))
+        print('[UTIL_IMPORT] EXECUTING %d IMPORT TUPLES' % (len(imports),))
     level = 0
-    for name in IMPORTS:
+    for name in imports:
         if level == -1:
             tmp = __import__(name, globals(), locals(), fromlist=[], level=level)
         elif level == 0:
@@ -31,31 +31,39 @@ def __excecute_imports(module, modname, IMPORTS, verbose=False):
             tmp = __import__(modname, globals(), locals(), fromlist=[str(name)], level=level)
 
 
-def __execute_fromimport(module, modname, IMPORT_TUPLES, verbose=False):
+def __execute_fromimport(module, modname, import_tuples, verbose=False):
     """ Module From Imports """
     if verbose:
-        print('[UTIL_IMPORT] EXECUTING %d FROM IMPORT TUPLES' % (len(IMPORT_TUPLES),))
-    FROM_IMPORTS = __get_from_imports(IMPORT_TUPLES)
-    for name, fromlist in FROM_IMPORTS:
+        print('[UTIL_IMPORT] EXECUTING %d FROM IMPORT TUPLES' % (len(import_tuples),))
+    from_imports = __get_from_imports(import_tuples)
+    for name, fromlist in from_imports:
         full_modname = '.'.join((modname, name))
         tmp = __import__(full_modname, globals(), locals(), fromlist=fromlist, level=0)
         for attrname in fromlist:
             setattr(module, attrname, getattr(tmp, attrname))
-    return FROM_IMPORTS
+    return from_imports
 
 
-def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
+def __execute_fromimport_star(module, modname, import_tuples, ignore_list=[],
                               ignore_startswith=[], ignore_endswith=[],
                               check_not_imported=True, verbose=False,
                               veryverbose=False):
-    """ Effectively import * statements
+    r"""
+    Effectively import * statements
 
     The dynamic_import must happen before any * imports otherwise it wont catch
     anything.
+
+    Ignore:
+        ignore_startswith = []
+        ignore_endswith = []
+        check_not_imported = False
+        verbose = True
+        veryverbose = True
     """
     if verbose:
-        print('[UTIL_IMPORT] EXECUTE %d FROMIMPORT STAR TUPLES.' % (len(IMPORT_TUPLES),))
-    FROM_IMPORTS = []
+        print('[UTIL_IMPORT] EXECUTE %d FROMIMPORT STAR TUPLES.' % (len(import_tuples),))
+    from_imports = []
     # Explicitly ignore these special functions (usually stdlib functions)
     ignoreset = set(['print', 'print_', 'printDBG', 'rrr', 'profile',
                      'print_function', 'absolute_import', 'division', 'zip',
@@ -76,7 +84,7 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
     #        belongs = item.func_globals['__name__'] == module.__name__
     #    return belongs
 
-    for name, fromlist in IMPORT_TUPLES:
+    for name, fromlist in import_tuples:
         #absname = modname + '.' + name
         child_module = sys.modules[modname + '.' + name]
         # Check if the variable already belongs to the module
@@ -116,45 +124,36 @@ def __execute_fromimport_star(module, modname, IMPORT_TUPLES, ignore_list=[],
             except AttributeError:
                 pass
             if veryverbose:
-                print('[UTIL_IMPORT] importing: %r' % attrname)
+                print('[UTIL_IMPORT] %s is importing: %r' % (modname, attrname))
             valid_fromlist_.append(attrname)
             setattr(module, attrname, attrval)
         if verbose:
             print('[UTIL_IMPORT]     name=%r, len(valid_fromlist_)=%d' % (name, len(valid_fromlist_)))
-        FROM_IMPORTS.append((name, valid_fromlist_))
-    return FROM_IMPORTS
+        from_imports.append((name, valid_fromlist_))
+    return from_imports
 
 #----------
 # PARSERS
 #----------
 
-def __get_imports(IMPORT_TUPLES):
-    """ Returns import names
-    IMPORT_TUPLES are specified as
-    (name, fromlist, ispackage)
-    """
-    IMPORTS = [tup[0] for tup in IMPORT_TUPLES]
-    return IMPORTS
-
-
-def __get_from_imports(IMPORT_TUPLES):
+def __get_from_imports(import_tuples):
     """ Returns import names and fromlist
-    IMPORT_TUPLES are specified as
+    import_tuples are specified as
     (name, fromlist, ispackage)
     """
-    FROM_IMPORTS = [(tup[0], tup[1]) for tup in IMPORT_TUPLES
+    from_imports = [(tup[0], tup[1]) for tup in import_tuples
                     if tup[1] is not None and len(tup[1]) > 0]
-    return FROM_IMPORTS
+    return from_imports
 
 #----------
 # STRING MAKERS
 #----------
 
-def _initstr(modname, IMPORTS, FROM_IMPORTS, inject_execstr, withheader=True):
+def _initstr(modname, imports, from_imports, inject_execstr, withheader=True):
     """ Calls the other string makers """
     header         = _make_module_header() if withheader else ''
-    import_str     = _make_imports_str(IMPORTS, modname)
-    fromimport_str = _make_fromimport_str(FROM_IMPORTS, modname)
+    import_str     = _make_imports_str(imports, modname)
+    fromimport_str = _make_fromimport_str(from_imports, modname)
     initstr = '\n'.join([str_ for str_ in [
         header,
         import_str,
@@ -168,11 +167,11 @@ def _make_module_header():
         '# flake8: noqa',
         'from __future__ import absolute_import, division, print_function, unicode_literals'])
 
-def _make_imports_str(IMPORTS, rootmodname='.'):
+def _make_imports_str(imports, rootmodname='.'):
     imports_fmtstr = 'from {rootmodname} import %s'.format(rootmodname=rootmodname)
-    return '\n'.join([imports_fmtstr % (name,) for name in IMPORTS])
+    return '\n'.join([imports_fmtstr % (name,) for name in imports])
 
-def _make_fromimport_str(FROM_IMPORTS, rootmodname='.'):
+def _make_fromimport_str(from_imports, rootmodname='.'):
     from utool import util_str
     if rootmodname == '.':
         # dot is already taken care of in fmtstr
@@ -191,10 +190,10 @@ def _make_fromimport_str(FROM_IMPORTS, rootmodname='.'):
                                      newline_prefix=newline_prefix,
                                     break_words=False)
         return packstr
-    from_str = '\n'.join(map(_pack_fromimport, FROM_IMPORTS))
+    from_str = '\n'.join(map(_pack_fromimport, from_imports))
     return from_str
 
-def _inject_execstr(modname, IMPORT_TUPLES):
+def _inject_execstr(modname, import_tuples):
     """ Injection and Reload String Defs """
     if modname == 'utool':
         # Special case import of the util_inject module
@@ -222,7 +221,7 @@ def _inject_execstr(modname, IMPORT_TUPLES):
             import {modname}
             # Implicit reassignment.
             seen_ = set([])
-            for tup in IMPORT_TUPLES:
+            for tup in import_tuples:
                 if len(tup) > 2 and tup[2]:
                     continue  # dont import package names
                 submodname, fromimports = tup[0:2]
@@ -280,7 +279,7 @@ def _inject_execstr(modname, IMPORT_TUPLES):
             return rrrdir_fmt.format(modname=tup[0])
         else:
             return rrrfile_fmt.format(modname=tup[0])
-    reload_body = '\n'.join(map(_reload_command, IMPORT_TUPLES)).strip()
+    reload_body = '\n'.join(map(_reload_command, import_tuples)).strip()
     format_dict = {
         'modname': modname,
         'reload_body': reload_body,
@@ -294,9 +293,10 @@ def _inject_execstr(modname, IMPORT_TUPLES):
 # PUBLIC FUNCTIONS
 #----------
 
-def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
+def dynamic_import(modname, import_tuples, developing=True, ignore_froms=[],
                    dump=False, ignore_startswith=[], ignore_endswith=[],
-                   ignore_list=[], check_not_imported=True, verbose=False):
+                   ignore_list=[], check_not_imported=True, return_initstr=False,
+                   verbose=False):
     """
     MAIN ENTRY POINT
 
@@ -306,27 +306,44 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
     Using __import__ like this is typically not considered good style However,
     it is better than import * and this will generate the good file text that
     can be used when the module is 'frozen"
+
+    Returns:
+        str: init_inject_str - by default all imports are executed in this
+            function and only the remainig code needed to be executed is
+            returned to define the reload logic.
+
+        str, str: init_inject_str, init_str - if return_initstr is True then
+            also returns init_str defining the from imports.
+
+    Ignore:
+        ignore_startswith = []
+        ignore_endswith = []
+        check_not_imported = True
+        verbose = True
     """
     if verbose:
         print('[UTIL_IMPORT] Running Dynamic Imports for modname=%r ' % modname)
     # Get the module that will be imported into
-    module = sys.modules[modname]
+    try:
+        module = sys.modules[modname]
+    except:
+        module = __import__(modname)
     # List of modules to be imported
-    IMPORTS = __get_imports(IMPORT_TUPLES)
+    imports = [tup[0] for tup in import_tuples]
     # Import the modules
-    __excecute_imports(module, modname, IMPORTS, verbose=verbose)
+    __excecute_imports(module, modname, imports, verbose=verbose)
     # If developing do explicit import stars
     if developing:
-        FROM_IMPORTS = __execute_fromimport_star(module, modname, IMPORT_TUPLES,
+        from_imports = __execute_fromimport_star(module, modname, import_tuples,
                                                  ignore_list=ignore_list,
                                                  ignore_startswith=ignore_startswith,
                                                  ignore_endswith=ignore_endswith,
                                                  check_not_imported=check_not_imported,
                                                  verbose=verbose)
     else:
-        FROM_IMPORTS = __execute_fromimport(module, modname, IMPORT_TUPLES, verbose=verbose)
+        from_imports = __execute_fromimport(module, modname, import_tuples, verbose=verbose)
 
-    inject_execstr = _inject_execstr(modname, IMPORT_TUPLES)
+    inject_execstr = _inject_execstr(modname, import_tuples)
 
     # If requested: print what the __init__ module should look like
     dump_requested = (('--dump-%s-init' % modname) in sys.argv or
@@ -339,7 +356,7 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
             from utool import util_str
-            initstr = _initstr(modname, IMPORTS, FROM_IMPORTS, inject_execstr)
+            initstr = _initstr(modname, imports, from_imports, inject_execstr)
             print(util_str.indent(initstr))
     # Overwrite the __init__.py file with new explicit imports
     if overwrite_requested:
@@ -352,7 +369,7 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
         if is_main_proc:
             from utool import util_str
             from os.path import join, exists
-            initstr = _initstr(modname, IMPORTS, FROM_IMPORTS, inject_execstr, withheader=False)
+            initstr = _initstr(modname, imports, from_imports, inject_execstr, withheader=False)
             new_else = util_str.indent(initstr)
             #print(new_else)
             # Get path to init file so we can overwrite it
@@ -385,22 +402,25 @@ def dynamic_import(modname, IMPORT_TUPLES, developing=True, ignore_froms=[],
                     file_.write(new_text)
             else:
                 print('no write hook for file: %r' % init_fpath)
+    if return_initstr:
+        initstr = _initstr(modname, imports, from_imports, '', withheader=False)
+        return inject_execstr, initstr
+    else:
+        return inject_execstr
 
-    return inject_execstr
 
-
-def make_initstr(modname, IMPORT_TUPLES, verbose=False):
+def make_initstr(modname, import_tuples, verbose=False):
     """
     Just creates the string representation. Does no importing.
     """
-    IMPORTS      = __get_imports(IMPORT_TUPLES)
-    FROM_IMPORTS = __get_from_imports(IMPORT_TUPLES)
-    inject_execstr = _inject_execstr(modname, IMPORT_TUPLES)
-    return _initstr(modname, IMPORTS, FROM_IMPORTS, inject_execstr)
+    imports = [tup[0] for tup in import_tuples]
+    from_imports = __get_from_imports(import_tuples)
+    inject_execstr = _inject_execstr(modname, import_tuples)
+    return _initstr(modname, imports, from_imports, inject_execstr)
 
 
 def make_import_tuples(module_path, exclude_modnames=[]):
-    """ Infer the IMPORT_TUPLES from a module_path """
+    """ Infer the import_tuples from a module_path """
     from utool import util_path
     kwargs = dict(private=False, full=False)
     module_list  = util_path.ls_modulefiles(module_path, noext=True, **kwargs)
@@ -410,5 +430,5 @@ def make_import_tuples(module_path, exclude_modnames=[]):
                             if modname not in exclude_set]
     package_import_tuples = [(modname, None, True)  for modname in package_list
                             if modname not in exclude_set]
-    IMPORT_TUPLES = (module_import_tuples + package_import_tuples)
-    return IMPORT_TUPLES
+    import_tuples = (module_import_tuples + package_import_tuples)
+    return import_tuples
