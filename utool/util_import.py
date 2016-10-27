@@ -13,50 +13,142 @@ import sys
 print, rrr, profile = util_inject.inject2(__name__)
 
 
-def dynamic_import(modname, submod):
+# def dynamic_import(modname, submod):
+#     """
+#     CommandLine:
+#         python -m utool.util_import dynamic_import opengm.opengmcore _opengmcore
+
+#     Tutorial:
+#         ### Instead of writing:
+
+#         from {your_submodule} import *
+#         ### OR
+#         from {your_module}.{your_submodule} import *
+
+#         ### You can use utool's dynamic importer:
+
+#         if True:
+#             # To Autogenerate Run
+#             '''
+#             python -c "import {your_module}" --print-{your_module}-init
+#             python -c "import {your_module}" --update-{your_module}-init
+#             '''
+#             import utool as ut
+#             ut.dynamic_import(__name__, '{your_submodule}')
+#         else:
+#             # <AUTOGEN_INIT>
+#             pass
+#             # </AUTOGEN_INIT>
+
+#        ### This will do the same thing, but you can "freeze" your module
+#        ### and autogenerate what import * would have done. This helps
+#        ### with static analysis and overall code readability.
+
+#     Ignore:
+#         modname = 'opengm.opengmcore'
+#         submod = '_opengmcore'
+#     """
+#     from utool._internal import util_importer
+#     if isinstance(submod, list):
+#         import_tuples = submod
+#     else:
+#         import_tuples = [(submod, None)]
+#     import_execstr, initstr = util_importer.dynamic_import(
+#         modname, import_tuples, check_not_imported=False,
+#         return_initstr=True)
+#     return initstr
+
+
+def import_star(modname, parent=None):
     """
-    CommandLine:
-        python -m utool.util_import dynamic_import opengm.opengmcore _opengmcore
+    Args:
+        modname (str): module name
 
     Tutorial:
-        ### Instead of writing:
+        Replacement for
+        from modname import *
 
-        from {your_submodule} import *
-        ### OR
-        from {your_module}.{your_submodule} import *
-
-        ### You can use utool's dynamic importer:
-
-        if True:
-            # To Autogenerate Run
-            '''
-            python -c "import {your_module}" --print-{your_module}-init
-            python -c "import {your_module}" --update-{your_module}-init
-            '''
-            import utool as ut
-            ut.dynamic_import(__name__, '{your_submodule}')
-        else:
-            # <AUTOGEN_INIT>
-            pass
-            # </AUTOGEN_INIT>
-
-       ### This will do the same thing, but you can "freeze" your module
-       ### and autogenerate what import * would have done. This helps
-       ### with static analysis and overall code readability.
+        Usage is like this
+        globals().update(ut.import_star('<module>'))
+        OR
+        ut.import_star('<module>', __name__)
 
     Ignore:
-        modname = 'opengm.opengmcore'
-        submod = '_opengmcore'
+        >>> from utool.util_import import *  # NOQA
+        modname = 'opengm'
+        submod = None
+        parent = __name__
     """
-    from utool._internal import util_importer
-    if isinstance(submod, list):
-        import_tuples = submod
+    import six
+    from os.path import dirname
+    if parent is None:
+        parent_module = None
     else:
-        import_tuples = [(submod, None)]
-    import_execstr, initstr = util_importer.dynamic_import(
-        modname, import_tuples, check_not_imported=False,
-        return_initstr=True)
-    return initstr
+        parent_module = sys.modules[parent]
+        if isinstance(parent, six.string_types):
+            parent_module = sys.modules[parent]
+        else:
+            raise ValueError('parent must be the module __name__ attribute')
+
+    try:
+        module = sys.modules[modname]
+    except KeyError:
+        try:
+            module = __import__(modname, {}, {}, fromlist=[], level=0)
+        except ImportError:
+            if parent_module is None:
+                print('Maybe try specifying parent?')
+                raise
+            # Inject into the parent if given
+            # Temporilly put this module dir in the pythonpath to simulate
+            # relative imports
+            relative_to = dirname(parent_module.__file__)
+            sys.path.append(relative_to)
+            try:
+                module = __import__(modname, {}, {}, fromlist=[], level=0)
+            except Exception:
+                raise
+            finally:
+                sys.path.pop()
+    # get public attributes
+    module_attrs = [attr for attr in dir(module) if not attr.startswith('_')]
+    module_vars = {attr: getattr(module, attr) for attr in module_attrs}
+    if parent is not None:
+        # Inject into the parent if given
+        if isinstance(parent, six.string_types):
+            parent_module = sys.modules[parent]
+            for attr, var in module_vars.items():
+                setattr(parent_module, attr, var)
+        else:
+            raise ValueError('parent must be the module __name__ attribute')
+    # return the module dictionary
+    return module_vars
+
+
+def import_star_execstr(modname, parent=None):
+    """
+    print(ut.import_star_execstr('opengm.inference'))
+    """
+    from utool import util_str
+    module_vars = import_star(modname, parent=parent)
+    fromlist_str = ', '.join(sorted(module_vars.keys()))
+    fromimport_prefix = 'from {modname} import ('.format(modname=modname)
+
+    newline_prefix = (' ' * len(fromimport_prefix))
+    if fromlist_str:
+        rawstr = fromimport_prefix + fromlist_str + ',)'
+    else:
+        rawstr = ''
+    textwidth = 79 - 4
+    fromimport_str = util_str.pack_into(rawstr, textwidth=textwidth,
+                                        newline_prefix=newline_prefix,
+                                        break_words=False)
+
+    # fromimport_str = ut.autopep8_format(fromimport_str, ignore={})
+    return fromimport_str
+
+
+# TODO import_freezestar
 
 
 def possible_import_patterns(modname):
