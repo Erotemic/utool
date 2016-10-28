@@ -891,6 +891,8 @@ def __argv_flag_dec(func, default=False, quiet=QUIET, indent=False):
         is_flagged = (get_argflag(flags, default_) or
                       get_argflag('--print-all') or
                       any([get_argflag(_) for _ in alias_flags]))
+        if flagname in kwargs:
+            is_flagged = kwargs.pop(flagname)
         if is_flagged:
             func_label = flags[0].replace('--', '').replace('print-', '')
             # print('')
