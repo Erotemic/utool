@@ -32,6 +32,9 @@ def dzip(list1, list2):
         list2 (sequence): can either be a sequence of one item or a sequence of
             equal length to `list1`
 
+    SeeAlso:
+        util_list.broadcast_zip
+
     Returns:
         dict: similar to dict(zip(list1, list2))
 

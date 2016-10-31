@@ -452,14 +452,17 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
     # Print Results
     if nTotal == 0 and not allexamples:
         valid_test_argflags = ['--allexamples'] + all_testflags
+        modname = ut.get_modname_from_modpath(frame_fpath)
+        # TODO: ensure that exename is in the PATH
+        exename = basename(sys.executable)
         warning_msg = ut.codeblock(
             r'''
-            No test flags sepcified
+            [ut.doctest_funcs] No test flags specified
             Please choose one of the following flags or specify --enableall
             Valid test argflags:
-            ''') + ut.indentjoin(valid_test_argflags, '\n    ')
-        warning_msg = ut.indent(warning_msg, '[util_test.doctest_funcs]')
-        ut.colorprint(warning_msg, 'red')
+            ''') + ut.indentjoin(valid_test_argflags, '\n %s -m %s ' % (exename, modname))
+        # warning_msg = ut.indent(warning_msg, '[util_test.doctest_funcs]')
+        ut.colorprint(warning_msg, 'yellow')
 
     if not exec_mode:
         print('+-------')
@@ -524,14 +527,10 @@ def run_test(func_or_testtup, *args, **kwargs):
         print('\n=============================')
         print('**[TEST.BEGIN] %s ' % (sys.executable))
         print('**[TEST.BEGIN] %s ' % (funcname,))
-    #print('  <funcname>  ')
-    #print('  <' + funcname + '>  ')
-    #short_funcname = ut.clipstr(funcname, 8)
-    # TODO: make the --exec- prefix specify this instead of --test-
+
     verbose_timer = not exec_mode and VERBOSE_TIMER
     nocheckwant = True if exec_mode else None
     print_face = not exec_mode and PRINT_FACE
-    #indent_test = not exec_mode and INDENT_TEST
     error_report = None
 
     if dump_mode:
@@ -547,7 +546,6 @@ def run_test(func_or_testtup, *args, **kwargs):
             else:
                 # TEST INPUT IS A LIVE PYTHON FUNCTION
                 test_locals = func_(*args, **kwargs)
-            # print('')
     except Exception as ex:
         import utool as ut
         # Get locals in the wrapped function
@@ -565,33 +563,20 @@ def run_test(func_or_testtup, *args, **kwargs):
             print_report(SAD_FACE)
         if func_is_testtup:
             print_report('Failed in module: %r' % frame_fpath)
-            if True or DEBUG_SRC:
-                src_with_lineno = ut.number_text_lines(src)
-                print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
+            src_with_lineno = ut.number_text_lines(src)
+            print_report(ut.msgblock('FAILED DOCTEST IN %s' % (funcname,), src_with_lineno))
+
         if util_arg.SUPER_STRICT:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             if not func_is_testtup:
                 # Remove this function from stack strace
                 # dont do this for execed code
                 exc_traceback = exc_traceback.tb_next
-            # Python 2*3=6
-            if True:
-                # FIXME: use common code
-                six.reraise(exc_type, exc_value, exc_traceback)
-            else:
-                ## PYTHON 2.7 DEPRICATED:
-                #if six.PY2:
-                #    raise exc_type, exc_value, exc_traceback.tb_next
-                #    #exec ('raise exc_type, exc_value,
-                #    exc_traceback.tb_next', globals(), locals())
-                ## PYTHON 3.3 NEW METHODS
-                #elif six.PY3:
-                #    ex = exc_type(exc_value)
-                #    ex.__traceback__ = exc_traceback.tb_next
-                #    raise ex
-                #else:
-                #    raise AssertionError('Weird python version')
                 pass
+            # FIXME: make a _internal/py2_syntax_funcs version of this
+            # function as well as a python3 syntax version due to the
+            # reraise syntax issue to avoid an extra frame in the stack
+            six.reraise(exc_type, exc_value, exc_traceback)
         if SYSEXIT_ON_FAIL:
             print('[util_test] SYSEXIT_ON_FAIL = True')
             print('[util_test] exiting with sys.exit(1)')
@@ -1979,10 +1964,10 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             except AttributeError:
                 pass
             testsrc = ut.get_doctest_examples(test_func)[0][testno]
-            # _exec_doctest(doctest_src)
             if ut.get_argflag(('--cmd', '--embed')):
                 # TODO RECTIFY WITH EXEC DOCTEST
                 testsrc = _cmd_modify_src(testsrc)
+            # _exec_doctest(doctest_src)
             # doctest_src = ut.indent(testsrc, '>>> ')
             # Add line numbers
             doctest_src = ut.number_text_lines(testsrc)

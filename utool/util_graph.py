@@ -331,6 +331,104 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
                 visited_edges.pop()
 
 
+def nx_edges_between(graph, nodes1, nodes2=None):
+    """
+    Get edges between two compoments or within a single compoment
+
+    CommandLine:
+        python -m utool.util_graph nx_edges_between
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> import networkx as nx
+        >>> edges = [
+        >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),
+        >>>     (1, 5), (7, 2), (5, 1),
+        >>>     (7, 5), (5, 6), (8, 7),
+        >>> ]
+        >>> digraph = nx.DiGraph(edges)
+        >>> graph = nx.Graph(edges)
+        >>> n1 = list(nx_edges_between(digraph, [1, 2, 3, 4], [5, 6, 7]))
+        >>> n2 = list(nx_edges_between(graph, [1, 2, 3, 4], [5, 6, 7]))
+        >>> n3 = list(nx_edges_between(digraph, [1, 2, 3, 4]))
+        >>> n4 = list(nx_edges_between(graph, [1, 2, 3, 4]))
+        >>> n5 = list(nx_edges_between(graph, [1, 2, 3, 4], [1, 2, 3, 4]))
+        >>> print('n1 == %r' % (n1,))
+        >>> print('n2 == %r' % (n2,))
+        >>> print('n3 == %r' % (n3,))
+        >>> print('n4 == %r' % (n4,))
+        >>> print('n5 == %r' % (n5,))
+        >>> assert n1 == [(1, 5), (5, 1), (7, 2)]
+        >>> assert n2 == [(1, 5), (2, 7)]
+        >>> assert n3 == [(1, 2), (4, 1), (2, 3), (3, 4), (4, 3)]
+        >>> assert n4 == [(1, 2), (1, 4), (2, 3), (3, 4)]
+        >>> assert n5 == [(1, 2), (1, 4), (2, 3), (3, 4)]
+    """
+    import itertools as it
+    if graph.is_directed():
+        if nodes2 is None:
+            for n1, n2 in it.combinations(nodes1, 2):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+                if graph.has_edge(n2, n1):
+                    yield n2, n1
+        else:
+            # make sure edge not returned twice
+            # in the case where len(isect(nodes1, nodes2)) > 0
+            nodes1_ = set(nodes1)
+            nodes2_ = set(nodes2)
+            nodes_isect = nodes1_.intersection(nodes2_)
+            nodes_only1 = nodes1_ - nodes_isect
+            nodes_only2 = nodes2_ - nodes_isect
+            for n1, n2 in it.product(nodes_only1, nodes_only2):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+                if graph.has_edge(n2, n1):
+                    yield n2, n1
+            for n1, n2 in it.product(nodes_only1, nodes_isect):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+                if graph.has_edge(n2, n1):
+                    yield n2, n1
+            for n1, n2 in it.product(nodes_only2, nodes_isect):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+                if graph.has_edge(n2, n1):
+                    yield n2, n1
+            for n1, n2 in it.combinations(nodes_isect, 2):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+                if graph.has_edge(n2, n1):
+                    yield n2, n1
+    else:
+        if nodes2 is None:
+            for n1, n2 in it.combinations(nodes1, 2):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+        else:
+            # make sure edge not returned twice
+            # in the case where len(isect(nodes1, nodes2)) > 0
+            nodes1_ = set(nodes1)
+            nodes2_ = set(nodes2)
+            nodes_isect = nodes1_.intersection(nodes2_)
+            nodes_only1 = nodes1_ - nodes_isect
+            nodes_only2 = nodes2_ - nodes_isect
+            for n1, n2 in it.product(nodes_only1, nodes_only2):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+            for n1, n2 in it.product(nodes_only1, nodes_isect):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+            for n1, n2 in it.product(nodes_only2, nodes_isect):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+            for n1, n2 in it.combinations(nodes_isect, 2):
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+
+
 def nx_delete_node_attr(graph, key, nodes=None):
     removed = 0
     keys = [key] if not isinstance(key, list) else key
@@ -440,13 +538,21 @@ def nx_set_default_edge_attributes(graph, key, val):
     nx.set_edge_attributes(graph, key, values)
 
 
+def nx_get_default_edge_attributes(graph, key, default=None):
+    import networkx as nx
+    import utool as ut
+    edge_list = list(graph.edges())
+    partial_attr_dict = nx.get_edge_attributes(graph, key)
+    attr_dict = ut.dict_subset(partial_attr_dict, edge_list, default=default)
+    return attr_dict
+
+
 def nx_get_default_node_attributes(graph, key, default=None):
     import networkx as nx
     import utool as ut
     node_list = list(graph.nodes())
     partial_attr_dict = nx.get_node_attributes(graph, key)
-    attr_list = ut.dict_take(partial_attr_dict, node_list, default)
-    attr_dict = dict(zip(node_list, attr_list))
+    attr_dict = ut.dict_subset(partial_attr_dict, node_list, default=default)
     return attr_dict
 
 
@@ -983,6 +1089,7 @@ def simplify_graph(graph):
         >>> import utool as ut
         >>> import networkx as nx
         >>> graph = nx.DiGraph([('a', 'b'), ('a', 'c'), ('a', 'e'),
+
         >>>                     ('a', 'd'), ('b', 'd'), ('c', 'e'),
         >>>                     ('d', 'e'), ('c', 'e'), ('c', 'd')])
         >>> new_graph = simplify_graph(graph)
@@ -1404,24 +1511,24 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         queue.popleft()
 
 
-def bzip(*args):
-    """
-    broadcasting zip. Only broadcasts on the first dimension
+# def bzip(*args):
+#     """
+#     broadcasting zip. Only broadcasts on the first dimension
 
-    args = [np.array([1, 2, 3, 4]), [[1, 2, 3]]]
-    args = [np.array([1, 2, 3, 4]), [[1, 2, 3]]]
+#     args = [np.array([1, 2, 3, 4]), [[1, 2, 3]]]
+#     args = [np.array([1, 2, 3, 4]), [[1, 2, 3]]]
 
-    """
-    needs_cast = [isinstance(arg, list) for arg in args]
-    arg_containers = [np.empty(len(arg), dtype=object) if flag else arg
-                      for arg, flag in zip(args, needs_cast)]
-    empty_containers = ut.compress(arg_containers, needs_cast)
-    tocast_args = ut.compress(args, needs_cast)
-    for container, arg in zip(empty_containers, tocast_args):
-        container[:] = arg
-    #[a.shape for a in arg_containers]
-    bc = np.broadcast(*arg_containers)
-    return bc
+#     """
+#     needs_cast = [isinstance(arg, list) for arg in args]
+#     arg_containers = [np.empty(len(arg), dtype=object) if flag else arg
+#                       for arg, flag in zip(args, needs_cast)]
+#     empty_containers = ut.compress(arg_containers, needs_cast)
+#     tocast_args = ut.compress(args, needs_cast)
+#     for container, arg in zip(empty_containers, tocast_args):
+#         container[:] = arg
+#     #[a.shape for a in arg_containers]
+#     bc = np.broadcast(*arg_containers)
+#     return bc
 
 
 def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):

@@ -1,4 +1,4 @@
-def test_jedi_can_read_googlestyle():
+def check_jedi_can_read_googlestyle():
     import jedi
     import utool as ut
     source1 = ut.codeblock(
@@ -79,10 +79,67 @@ def _insource_jedi_vim_test(data, ibs):
     xibs
 
 
+def check_jedi_closures():
+    import jedi
+    import textwrap
+    source = textwrap.dedent(
+        r'''
+        def foo(data):
+            import matplotlib
+            import matplotlib
+
+            def get_default_edge_data(graph, edge):
+                data = graph.get_edge_data(*edge)
+                if data is None:
+                    if len(edge) == 3 and edge[2] is not None:
+                        data = graph.get_edge_data(edge[0], edge[1], int(edge[2]))
+                    else:
+                        data = graph.get_edge_data(edge[0], edge[1])
+                if data is None:
+                    data = {}
+                return data
+
+            import matplotlib
+        '''
+    )
+    print('SOURCE: ')
+    print(source)
+    lines = source.split('\n')
+    test_positions = []
+    for row, line in enumerate(lines):
+        print('line = %r' % (line,))
+        pat = 'import '
+        import_pos = line.find(pat)
+        if import_pos >= 0:
+            module_pos = import_pos + len(pat) + 1
+            print('Adding to tests ' + line[module_pos:])
+            column = module_pos
+            test_positions.append((row, column))
+
+    for row, column in test_positions:
+        script = jedi.Script(source, line=3, column=12)
+        definitions = script.goto_definitions()
+        print('----------')
+        print('Script@(%r, %r):' % (row, column))
+        print(lines[row])
+        print(' ' * column + '^')
+        print('definitions = %r' % (definitions,))
+        print('----------')
+
+    # script = jedi.Script(source, line=4, column=12)
+    # definitions = script.goto_definitions()
+    # print('definitions = %r' % (definitions,))
+
+    # script = jedi.Script(source, line=num_lines - 2, column=12)
+    # definitions = script.goto_definitions()
+    # print('definitions = %r' % (definitions,))
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
         export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/utool/utool/util_scripts
-        python ~/code/utool/utool/util_scripts/test_jedi.py
+        python ~/code/utool/utool/util_scripts/check_jedi.py
     """
-    test_jedi_can_read_googlestyle()
+    # check_jedi_can_read_googlestyle()
+    check_jedi_closures()

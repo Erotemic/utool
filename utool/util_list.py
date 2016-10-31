@@ -1696,9 +1696,58 @@ def list_inverse_take(list_, index_list):
     return output_list_
 
 
+def broadcast_zip(list1, list2):
+    r"""
+    Zips elementwise pairs between list1 and list2. Broadcasts
+    the first dimension if a single list is of length 1.
+
+    Args:
+        list1 (list):
+        list2 (list):
+
+    Returns:
+        list: list of pairs
+
+    SeeAlso:
+        util_dict.dzip
+
+    Raises:
+        ValueError: if the list dimensions are not broadcastable
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> assert bzip([1, 2, 3], [4]) == [(1, 4), (2, 4), (3, 4)]
+        >>> assert bzip([1, 2, 3], [4, 4, 4]) == [(1, 4), (2, 4), (3, 4)]
+        >>> assert bzip([1], [4, 4, 4]) == [(1, 4), (1, 4), (1, 4)]
+        >>> ut.assert_raises(ValueError, bzip, [1, 2, 3], [])
+        >>> ut.assert_raises(ValueError, bzip, [], [4, 5, 6])
+        >>> ut.assert_raises(ValueError, bzip, [], [4])
+        >>> ut.assert_raises(ValueError, bzip, [1, 2], [4, 5, 6])
+        >>> ut.assert_raises(ValueError, bzip, [1, 2, 3], [4, 5])
+    """
+    # if len(list1) == 0 or len(list2) == 0:
+    #     # Corner case where either list is empty
+    #     return []
+    if len(list1) == 1 and len(list2) > 1:
+        list1 = list1 * len(list2)
+    elif len(list1) > 1 and len(list2) == 1:
+        list2 = list2 * len(list1)
+    elif len(list1) != len(list2):
+        raise ValueError('out of alignment len(list1)=%r, len(list2)=%r' % (
+            len(list1), len(list2)))
+    return list(zip(list1, list2))
+
+
 def where(flag_list):
     """ takes flags returns indexes of True values """
     return [index for index, flag in enumerate(flag_list) if flag]
+
+
+def equal(list1, list2):
+    """ takes flags returns indexes of True values """
+    return [item1 == item2 for item1, item2 in broadcast_zip(list1, list2)]
 
 
 def where_not_None(item_list):
@@ -2934,6 +2983,7 @@ list_zipcompress = zipcompress
 list_where = where
 list_take = take
 list_argsort = argsort
+bzip = broadcast_zip
 
 
 def list_strip(list_, to_strip, left=True, right=True):
