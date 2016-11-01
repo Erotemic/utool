@@ -450,7 +450,7 @@ def nx_delete_edge_attr(graph, key, edges=None):
     for key in keys:
         if graph.is_multigraph():
             if edges is None:
-                edges = list(graph.edges(keys=graph.is_multigraph()))
+                edges = list(graph.edges(keys=True))
             for edge in edges:
                 u, v, k = edge
                 try:

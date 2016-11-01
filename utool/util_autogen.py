@@ -639,14 +639,14 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     num_unknown = (len(argname_list_) - len(defaults_))
     default_vals = ['?'] * num_unknown + list(defaults_)
     arg_val_iter = zip(argname_list_, default_vals)
-    infered_defaults = [find_arg_defaultrepr(argname, val)
+    inferred_defaults = [find_arg_defaultrepr(argname, val)
                         for argname, val in arg_val_iter]
     argdef_lines = ['%s = %s' % (argname, inferrepr)
                     for argname, inferrepr in
-                    zip(argname_list_, infered_defaults)]
+                    zip(argname_list_, inferred_defaults)]
     import_lines = ut.unique_ordered(import_lines)
 
-    if any([inferrepr == repr('?') for inferrepr in infered_defaults]):
+    if any([inferrepr == repr('?') for inferrepr in inferred_defaults]):
         examplecode_lines.append('# DISABLE_DOCTEST')
     else:
         # Enable the test if it can be run immediately

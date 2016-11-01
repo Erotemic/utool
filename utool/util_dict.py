@@ -53,6 +53,14 @@ def dzip(list1, list2):
         >>> ut.assert_raises(ValueError, dzip, [1, 2], [4, 5, 6])
         >>> ut.assert_raises(ValueError, dzip, [1, 2, 3], [4, 5])
     """
+    try:
+        len(list1)
+    except TypeError:
+        list1 = list(list1)
+    try:
+        len(list2)
+    except TypeError:
+        list2 = list(list2)
     if len(list1) == 0 and len(list2) == 1:
         # Corner case:
         # allow the first list to be empty and the second list to broadcast a
