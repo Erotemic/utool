@@ -341,6 +341,7 @@ class ProgressIter(object):
         self.use_rate           = kwargs.pop('use_rate', True)
         self.use_rate = True  # Force
         self.lbl                = kwargs.get('lbl', 'lbl')
+        self.lbl                = kwargs.get('label', self.lbl)
         self.nTotal             = kwargs.get('nTotal', 0)
         #self.backspace          = kwargs.get('backspace', True)
         self.backspace          = kwargs.get('backspace', kwargs.get('bs', False))
@@ -549,6 +550,7 @@ class ProgressIter(object):
         #        state.freq = 1
         #        pass
         adjust = self.autoadjust
+        self._cursor_at_newline = not self.backspace
         # SETUP VARIABLES
         # HACK: reaquire logging print funcs in case they have changed
         if self.stream is None:
@@ -619,6 +621,7 @@ class ProgressIter(object):
         else:
             start_msg = start_msg_fmt.format(count=self.parent_offset)
             PROGRESS_WRITE(start_msg + '\n')
+        self._cursor_at_newline = not self.backspace
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
         #if force_newlines:
         #    PROGRESS_WRITE('\n')
@@ -731,6 +734,7 @@ class ProgressIter(object):
                 if print_sep:
                     print('---------')
                 PROGRESS_WRITE(msg)
+                self._cursor_at_newline = not self.backspace
                 #if force_newlines:
                 #    PROGRESS_WRITE('\n')
                 #if not self.backspace:
@@ -762,6 +766,7 @@ class ProgressIter(object):
                 wall=time.strftime('%H:%M'),
             )
             PROGRESS_WRITE(msg)
+            self._cursor_at_newline = not self.backspace
             #if not self.backspace:
             try:
                 PROGRESS_FLUSH()
@@ -779,7 +784,20 @@ class ProgressIter(object):
         DECTCEM_SHOW = '\033[?25h'  # show cursor
         AT_END = DECTCEM_SHOW + '\n'
         PROGRESS_WRITE(AT_END)
+        self._cursor_at_newline = not self.backspace
         #self.end(self.count + 1)
+
+    def ensure_newline(self):
+        """
+        use before any custom printing when using the progress iter to ensure
+        your print statement starts on a new line instead of at the end of a
+        progress line
+        """
+        DECTCEM_SHOW = '\033[?25h'  # show cursor
+        AT_END = DECTCEM_SHOW + '\n'
+        if not self._cursor_at_newline:
+            self.write(AT_END)
+            self._cursor_at_newline = True
 
     def _get_timethresh_heuristics(self):
         """
