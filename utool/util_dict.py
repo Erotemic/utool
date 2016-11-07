@@ -1352,7 +1352,7 @@ def groupby_tags(item_list, tags_list):
         tags_list (list):
 
     Returns:
-        dict: groupid2_items
+        dict: groupid_to_items
 
     CommandLine:
         python -m utool.util_dict --test-groupby_tags
@@ -1370,10 +1370,10 @@ def groupby_tags(item_list, tags_list):
         >>> }
         >>> item_list = list(tagged_item_list.keys())
         >>> tags_list = list(tagged_item_list.values())
-        >>> groupid2_items = groupby_tags(item_list, tags_list)
-        >>> result = ('groupid2_items = %s' % (ut.repr4(groupid2_items),))
+        >>> groupid_to_items = groupby_tags(item_list, tags_list)
+        >>> result = ('groupid_to_items = %s' % (ut.repr4(groupid_to_items),))
         >>> print(result)
-        groupid2_items = {
+        groupid_to_items = {
             'dairy': ['cheese'],
             'food': ['cheese', 'eggs', 'jam', 'banana', 'spam'],
             'fruit': ['jam', 'banana'],
@@ -1383,11 +1383,11 @@ def groupby_tags(item_list, tags_list):
         }
 
     """
-    groupid2_items = defaultdict(list)
+    groupid_to_items = defaultdict(list)
     for tags, item in zip(tags_list, item_list):
         for tag in tags:
-            groupid2_items[tag].append(item)
-    return groupid2_items
+            groupid_to_items[tag].append(item)
+    return groupid_to_items
 
 
 def groupby_attr(item_list, attrname):
@@ -1395,33 +1395,57 @@ def groupby_attr(item_list, attrname):
                        map(operator.attrgetter(attrname), item_list))
 
 
-def group_items(item_list, groupid_list, sorted_=True):
+def group_pairs(pair_list):
     """
-    group_items
+    Groups a list of items using the first element in each pair as the item and
+    the second element as the groupid.
 
     Args:
-        item_list (list):
-        groupid_list (list):
-        sorted_ (bool): if True preserves the ordering of items within groups (default = True)
+        pair_list (list): list of 2-tuples (item, groupid)
 
     Returns:
-        dict: groupid2_items mapping groupids to a list of items
+        dict: groupid_to_items: maps a groupid to a list of items
 
     SeeAlso:
-        vtool.group_indices - much faster numpy grouping algorithm
-        vtool.apply_gropuing - second part to faster numpy grouping algorithm
+        group_items
+    """
+    # Initialize dict of lists
+    groupid_to_items = defaultdict(list)
+    # Insert each item into the correct group
+    for item, groupid in pair_list:
+        groupid_to_items[groupid].append(item)
+    return groupid_to_items
+
+
+def group_items(item_list, groupid_list, sorted_=True):
+    """
+    Groups a list of items by group id.
+
+    Args:
+        item_list (list): a list of items to group
+        groupid_list (list): a corresponding list of item groupids
+        sorted_ (bool): if True preserves the ordering of items within groups
+            (default = True)
+
+    Returns:
+        dict: groupid_to_items: maps a groupid to a list of items
+
+    SeeAlso:
+        group_indices - first part of a a more fine grained grouping algorithm
+        apply_gropuing - second part of a more fine grained grouping algorithm
+        group_pairs - useful when item and groupids are already zipped
 
     CommandLine:
-        python -m utool.util_dict --exec-group_items
+        python -m utool.util_dict --test-group_items
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
-        >>> item_list    = [ 'ham',      'jam',    'spam',     'eggs', 'cheese', 'bannana']
-        >>> groupid_list = ['protein', 'fruit', 'protein',  'protein',  'dairy',   'fruit']
-        >>> groupid2_items = ut.group_items(item_list, iter(groupid_list))
-        >>> result = ut.dict_str(groupid2_items, nl=False, strvals=False)
+        >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
+        >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
+        >>> groupid_to_items = ut.group_items(item_list, iter(groupid_list))
+        >>> result = ut.dict_str(groupid_to_items, nl=False, strvals=False)
         >>> print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
@@ -1431,28 +1455,17 @@ def group_items(item_list, groupid_list, sorted_=True):
         try:
             pair_list = sorted(pair_list_, key=operator.itemgetter(0))
         except TypeError:
-            # FIXME: make something a little cleaner?
-            #pair_list = pair_list_
-            #pair_list = sorted(pair_list_, key=operator.itemgetter(0))
             # Python 3 does not allow sorting mixed types
-            #keys = util_list.take_column(pair_list_, 0)
-            #types = util_list.list_type(keys)
-            def keyfunc(tup):
-                return str(tup[0])
-            pair_list = sorted(pair_list_, key=keyfunc)
-            #from utool import util_alg
-            #groupid_list = list(map(type, keys))
-            #util_alg.group_indices()
-            #pair_list = sorted(pair_list_, key=lambda tup: tup[0])
+            pair_list = sorted(pair_list_, key=lambda tup: str(tup[0]))
     else:
         pair_list = pair_list_
 
-    # Initialize dict of lists
-    groupid2_items = defaultdict(list)
+    # Initialize a dict of lists
+    groupid_to_items = defaultdict(list)
     # Insert each item into the correct group
     for groupid, item in pair_list:
-        groupid2_items[groupid].append(item)
-    return groupid2_items
+        groupid_to_items[groupid].append(item)
+    return groupid_to_items
 
 
 def hierarchical_group_items(item_list, groupids_list):
