@@ -3342,6 +3342,117 @@ class Shortlist(NiceRepr):
             self._keys = self._keys[-self.maxsize:]
             self._items = self._items[-self.maxsize:]
 
+import heapq  # NOQA
+
+
+class PriorityQueue(NiceRepr):
+    """
+    abstracted priority queue for our needs
+
+    Combines properties of dicts and heaps
+    Uses a heap for fast minimum/maximum value search
+    Uses a dict for fast read only operations
+
+    CommandLine:
+        python -m utool.util_dev PriorityQueue
+
+    References:
+        http://code.activestate.com/recipes/522995-priority-dict-a-priority-queue-with-updatable-prio/
+
+    Example:
+        >>> import utool as ut
+        >>> items = dict(a=42, b=29, c=40, d=95, e=10)
+        >>> self = ut.PriorityQueue(items)
+        >>> print(self)
+        >>> print(self.pop())
+        >>> print(self.pop())
+        >>> print(self.pop())
+    """
+    def __init__(self, items=None, ascending=True):
+        # Use a heap for the priority queue aspect
+        self._heap = []
+        # Use a dict for very quick read only operations
+        self._dict = {}
+        assert ascending, 'can only do a minheap currently'
+        if items is not None:
+            self.update(items)
+
+    def _rebuild(self):
+        # O(N) time
+        self._heap = [(v, k) for k, v in self._dict.items()]
+        heapq.heapify(self._heap)
+
+    def __len__(self):
+        return len(self._dict)
+
+    def __nice__(self):
+        return 'size=%r' % (len(self),)
+
+    def __contains__(self, key):
+        return key in self._dict
+
+    def __getitem__(self, key):
+        # Effectively O(1)
+        return self._dict[key]
+
+    def __setitem__(self, key, val):
+        # Effectively O(1)
+        self._dict[key] = val
+        if len(self._heap) > 2 * len(self._dict):
+            # When the heap grows larger than 2 * len(self), we rebuild it from
+            # scratch to avoid wasting too much memory.
+            self._rebuild()
+        else:
+            # Simply append the new value
+            heapq.heappush(self._heap, (val, key))
+
+    def __delitem__(self, key):
+        del self._dict[key]
+
+    def update(self, items):
+        if items:
+            if len(items) > len(self._dict) / 2:
+                self._dict.update(items)
+                self._rebuild()
+            else:
+                for k, v in items:
+                    self[k] = v
+
+    def delete_items(self, key_list):
+        for key in key_list:
+            try:
+                del self[key]
+            except KeyError:
+                pass
+
+    def peek(self):
+        # Effectively O(1)
+        _heap = self._heap
+        _dict = self._dict
+        val, key = heapq[0]
+        # Remove items marked for lazy deletion as they are encountered
+        while key not in _dict or _dict[key] != val:
+            heapq.heappop(_heap)
+            val, key = heapq[0]
+        return key
+
+    def pop(self):
+        try:
+            # Effectively O(1)
+            _heap = self._heap
+            _dict = self._dict
+            val, key = heapq.heappop(_heap)
+            # Remove items marked for lazy deletion as they are encountered
+            while key not in _dict or _dict[key] != val:
+                val, key = heapq.heappop(_heap)
+        except IndexError:
+            if len(_heap) == 0:
+                raise IndexError('queue is empty')
+            else:
+                raise
+        del _dict[key]
+        return key, val
+
 
 if __name__ == '__main__':
     """

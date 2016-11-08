@@ -8,7 +8,7 @@ SeeAlso:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from utool import util_inject
-from utool import util_arg
+# from utool import util_arg
 import sys
 print, rrr, profile = util_inject.inject2(__name__)
 
@@ -238,6 +238,35 @@ def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
     return module_list
 
 
+def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
+    """
+    Same as get_modpath but doesnt import directly
+
+    SeeAlso:
+        get_modpath
+    """
+    from os.path import dirname, basename, join, exists
+    initname = '__init__.py'
+    mainname = '__main__.py'
+    if modname in sys.modules:
+        modpath = sys.modules[modname].__file__.replace('.pyc', '.py')
+    else:
+        import pkgutil
+        loader = pkgutil.find_loader(modname)
+        modpath = loader.filename.replace('.pyc', '.py')
+        if '.' not in basename(modpath):
+            modpath = join(modpath, initname)
+    if prefer_pkg:
+        if modpath.endswith(initname) or modpath.endswith(mainname):
+            modpath = dirname(modpath)
+    if prefer_main:
+        if modpath.endswith(initname):
+            main_modpath = modpath[:-len(initname)] + mainname
+            if exists(main_modpath):
+                modpath = main_modpath
+    return modpath
+
+
 def check_module_installed(modname):
     """
     Check if a python module is installed without attempting to import it.
@@ -367,61 +396,61 @@ def tryimport(modname, pipiname=None, ensure=False):
         return None
 
 
-lazy_module_attrs =  ['_modname', '_module', '_load_module']
+# lazy_module_attrs =  ['_modname', '_module', '_load_module']
 
 
-class LazyModule(object):
-    """
-    Waits to import the module until it is actually used.
-    Caveat: there is no access to module attributes used
-        in ``lazy_module_attrs``
+# class LazyModule(object):
+#     """
+#     Waits to import the module until it is actually used.
+#     Caveat: there is no access to module attributes used
+#         in ``lazy_module_attrs``
 
-    CommandLine:
-        python -m utool.util_import --test-LazyModule
+#     CommandLine:
+#         python -m utool.util_import --test-LazyModule
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_import import *  # NOQA
-        >>> import sys
-        >>> assert 'this' not in sys.modules,  'this was imported before test start'
-        >>> this = LazyModule('this')
-        >>> assert 'this' not in sys.modules,  'this should not have been imported yet'
-        >>> assert this.i == 25
-        >>> assert 'this' in sys.modules,  'this should now be imported'
-        >>> print(this)
-    """
-    def __init__(self, modname):
-        r"""
-        Args:
-            modname (str):  module name
-        """
-        self._modname = modname
-        self._module = None
+#     Example:
+#         >>> # DISABLE_DOCTEST
+#         >>> from utool.util_import import *  # NOQA
+#         >>> import sys
+#         >>> assert 'this' not in sys.modules,  'this was imported before test start'
+#         >>> this = LazyModule('this')
+#         >>> assert 'this' not in sys.modules,  'this should not have been imported yet'
+#         >>> assert this.i == 25
+#         >>> assert 'this' in sys.modules,  'this should now be imported'
+#         >>> print(this)
+#     """
+#     def __init__(self, modname):
+#         r"""
+#         Args:
+#             modname (str):  module name
+#         """
+#         self._modname = modname
+#         self._module = None
 
-    def _load_module(self):
-        if self._module is None:
-            if util_arg.VERBOSE:
-                print('lazy loading module module')
-            self._module =  __import__(self._modname, globals(), locals(), fromlist=[], level=0)
+#     def _load_module(self):
+#         if self._module is None:
+#             if util_arg.VERBOSE:
+#                 print('lazy loading module module')
+#             self._module =  __import__(self._modname, globals(), locals(), fromlist=[], level=0)
 
-    def __str__(self):
-        return 'LazyModule(%s)' % (self._modname,)
+#     def __str__(self):
+#         return 'LazyModule(%s)' % (self._modname,)
 
-    def __dir__(self):
-        self._load_module()
-        return dir(self._module)
+#     def __dir__(self):
+#         self._load_module()
+#         return dir(self._module)
 
-    def __getattr__(self, item):
-        if item in lazy_module_attrs:
-            return super(LazyModule, self).__getattr__(item)
-        self._load_module()
-        return getattr(self._module, item)
+#     def __getattr__(self, item):
+#         if item in lazy_module_attrs:
+#             return super(LazyModule, self).__getattr__(item)
+#         self._load_module()
+#         return getattr(self._module, item)
 
-    def __setattr__(self, item, value):
-        if item in lazy_module_attrs:
-            return super(LazyModule, self).__setattr__(item, value)
-        self._load_module()
-        setattr(self._module, item, value)
+#     def __setattr__(self, item, value):
+#         if item in lazy_module_attrs:
+#             return super(LazyModule, self).__setattr__(item, value)
+#         self._load_module()
+#         setattr(self._module, item, value)
 
 
 def import_module_from_fpath(module_fpath):

@@ -260,19 +260,20 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
         error_str = 'modname=%r is not a string. bad input' % (modname,)
     else:
         if False:
-            basemodname_ = modname
-            basemodname = ''
-            parts = modname.split('.')
-            for index in range(len(parts)):
-                #print('index = %r' % (index,))
-                basemodname = '.'.join(parts[0:index + 1])
-                #print('basemodname = %r' % (basemodname,))
-                basemodule = __import__(basemodname)
-                #print('basemodule = %r' % (basemodule,))
-                #if hasattr(basemodule, 'rrrr'):
-                #    basemodule.rrrr()
-                #imp.reload(basemodule)
-
+            # TODO: static analysis
+            import jedi  # NOQA
+            modpath = ut.util_import.get_modpath_from_modname(modname)
+            script = jedi.Script(path=modpath)
+            mod = script._get_module()
+            # monkeypatch
+            func.script = script
+            func = None
+            for name in mod.names_dict[funcname]:
+                if name.parent.type == 'funcdef':
+                    func = name.parent
+                    break
+            return func, mod, error_str
+            # ut.get_modpath_from_modname(modname)
         try:
             module = __import__(modname)
         except ImportError:
@@ -769,7 +770,7 @@ def make_default_docstr(func, with_args=True, with_ret=True,
 
     argname_list   = funcinfo.argname_list
     argtype_list   = funcinfo.argtype_list
-    argdesc_list   = funcinfo.argdesc_list
+    argdesc_list   = funcinfo.argdsc_list
     return_header  = funcinfo.return_header
     return_type    = funcinfo.return_type
     return_name    = funcinfo.return_name

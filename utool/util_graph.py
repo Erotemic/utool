@@ -331,12 +331,19 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
                 visited_edges.pop()
 
 
-def nx_edges_between(graph, nodes1, nodes2=None):
+def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False):
     """
     Get edges between two compoments or within a single compoment
 
+    Args:
+        graph (nx.Graph): the graph
+        nodes1 (list): list of nodes
+        nodes2 (list): (default=None) if None it is equivlanet to nodes2=nodes1
+        assume_disjoint (bool): skips expensive check to ensure edges arnt
+            returned twice (default=False)
+
     CommandLine:
-        python -m utool.util_graph nx_edges_between
+        python -m utool.util_graph --test-nx_edges_between
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -367,66 +374,36 @@ def nx_edges_between(graph, nodes1, nodes2=None):
         >>> assert n5 == [(1, 2), (1, 4), (2, 3), (3, 4)]
     """
     import itertools as it
-    if graph.is_directed():
-        if nodes2 is None:
-            for n1, n2 in it.combinations(nodes1, 2):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-                if graph.has_edge(n2, n1):
-                    yield n2, n1
-        else:
-            # make sure edge not returned twice
-            # in the case where len(isect(nodes1, nodes2)) > 0
-            nodes1_ = set(nodes1)
-            nodes2_ = set(nodes2)
-            nodes_isect = nodes1_.intersection(nodes2_)
-            nodes_only1 = nodes1_ - nodes_isect
-            nodes_only2 = nodes2_ - nodes_isect
-            for n1, n2 in it.product(nodes_only1, nodes_only2):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-                if graph.has_edge(n2, n1):
-                    yield n2, n1
-            for n1, n2 in it.product(nodes_only1, nodes_isect):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-                if graph.has_edge(n2, n1):
-                    yield n2, n1
-            for n1, n2 in it.product(nodes_only2, nodes_isect):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-                if graph.has_edge(n2, n1):
-                    yield n2, n1
-            for n1, n2 in it.combinations(nodes_isect, 2):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-                if graph.has_edge(n2, n1):
-                    yield n2, n1
+    if nodes2 is None:
+        edge_iter = it.combinations(nodes1, 2)
     else:
-        if nodes2 is None:
-            for n1, n2 in it.combinations(nodes1, 2):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
+        if assume_disjoint:
+            # We assume len(isect(nodes1, nodes2)) == 0
+            edge_iter = it.product(nodes1, nodes2)
         else:
-            # make sure edge not returned twice
+            # make sure a single edge is not returned twice
             # in the case where len(isect(nodes1, nodes2)) > 0
             nodes1_ = set(nodes1)
             nodes2_ = set(nodes2)
             nodes_isect = nodes1_.intersection(nodes2_)
             nodes_only1 = nodes1_ - nodes_isect
             nodes_only2 = nodes2_ - nodes_isect
-            for n1, n2 in it.product(nodes_only1, nodes_only2):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-            for n1, n2 in it.product(nodes_only1, nodes_isect):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-            for n1, n2 in it.product(nodes_only2, nodes_isect):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
-            for n1, n2 in it.combinations(nodes_isect, 2):
-                if graph.has_edge(n1, n2):
-                    yield n1, n2
+            edge_sets = [it.product(nodes_only1, nodes_only2),
+                         it.product(nodes_only1, nodes_isect),
+                         it.product(nodes_only2, nodes_isect),
+                         it.combinations(nodes_isect, 2)]
+            edge_iter = it.chain.from_iterable(edge_sets)
+
+    if graph.is_directed():
+        for n1, n2 in edge_iter:
+            if graph.has_edge(n1, n2):
+                yield n1, n2
+            if graph.has_edge(n2, n1):
+                yield n2, n1
+    else:
+        for n1, n2 in edge_iter:
+            if graph.has_edge(n1, n2):
+                yield n1, n2
 
 
 def nx_delete_node_attr(graph, key, nodes=None):
@@ -1648,6 +1625,45 @@ def translate_graph(graph, t_xy):
             for node, pos in attrdict.items()
         }
         nx.set_edge_attributes(graph, attr, attrdict)
+
+
+def translate_graph_to_origin(graph):
+    x, y, w, h = get_graph_bounding_box(graph)
+    translate_graph(graph, (-x, -y))
+
+
+def stack_graphs(graph_list, vert=False, pad=None):
+    import utool as ut
+    import networkx as nx
+    graph_list_ = [g.copy() for g in graph_list]
+    for g in graph_list_:
+        translate_graph_to_origin(g)
+    bbox_list = [get_graph_bounding_box(g) for g in graph_list_]
+    if vert:
+        dim1 = 3
+        dim2 = 2
+    else:
+        dim1 = 2
+        dim2 = 3
+    dim1_list = np.array([bbox[dim1] for bbox in bbox_list])
+    dim2_list = np.array([bbox[dim2] for bbox in bbox_list])
+    if pad is None:
+        pad = np.mean(dim1_list) / 2
+    offset1_list = ut.cumsum([0] + [d + pad for d in dim1_list[:-1]])
+    max_dim2 = max(dim2_list)
+    offset2_list = [(max_dim2 - d2) / 2 for d2 in dim2_list]
+    if vert:
+        t_xy_list = [(d2, d1) for d1, d2 in zip(offset1_list, offset2_list)]
+    else:
+        t_xy_list = [(d1, d2) for d1, d2 in zip(offset1_list, offset2_list)]
+
+    for g, t_xy in zip(graph_list_, t_xy_list):
+        translate_graph(g, t_xy)
+        nx.set_node_attributes(g, 'pin', 'true')
+
+    new_graph = nx.compose_all(graph_list_)
+    #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
+    return new_graph
 
 
 def approx_min_num_components(nodes, negative_edges):

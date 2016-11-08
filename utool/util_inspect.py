@@ -2506,6 +2506,13 @@ def infer_function_info(func):
     import utool as ut
     import re
 
+    # TODO: allow a jedi argument
+    if False:
+        from jedi.evaluate import docstrings
+        script = func.script
+        argname_list = [p.name.value for p in func.params]
+        argtype_list = [docstrings.follow_param(script._evaluator, p) for p in func.params]
+
     if isinstance(func, property):
         func = func.fget
     try:

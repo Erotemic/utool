@@ -446,6 +446,8 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
                     print('Silently Failing: '
                           'maybe adding the --super-strict flag would help debug?')
             pass
+        except KeyboardInterrupt:
+            print('[util_test] caught Ctrl+C')
         print('L_____________________________________________________________')
     #L__________________
     #+-------------------
