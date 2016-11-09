@@ -1858,7 +1858,7 @@ def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
 def get_module_completions(module):
     import utool as ut
     test_tuples = ut.get_package_testables(module)
-    testnames = ut.make_instancelist(test_tuples).name
+    testnames = ut.instancelist(test_tuples).name
     return testnames
 
 

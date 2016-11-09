@@ -696,7 +696,7 @@ def reloading_meta_metaclass_factory(BASE_TYPE=type):
     return ReloadingMetaclass2
 
 
-def reload_class(self, verbose=True):
+def reload_class(self, verbose=True, reload_module=True):
     """
     special class reloading function
     This function is often injected as rrr of classes
@@ -746,19 +746,21 @@ def reload_class(self, verbose=True):
             else:
                 module_ = sys.modules[_class.__module__]
             if hasattr(module_, 'rrr'):
-                module_.rrr(verbose=verbose)
+                if reload_module:
+                    module_.rrr(verbose=verbose)
             else:
-                import imp
-                if verbose:
-                    print('[class] reloading ' + _class.__module__ + ' with imp')
-                try:
-                    imp.reload(module_)
-                except (ImportError, AttributeError):
-                    print('[class] fallback reloading ' + _class.__module__ +
-                          ' with imp')
-                    # one last thing to try. probably used ut.import_module_from_fpath
-                    # when importing this module
-                    imp.load_source(module_.__name__, module_.__file__)
+                if reload_module:
+                    import imp
+                    if verbose:
+                        print('[class] reloading ' + _class.__module__ + ' with imp')
+                    try:
+                        imp.reload(module_)
+                    except (ImportError, AttributeError):
+                        print('[class] fallback reloading ' + _class.__module__ +
+                              ' with imp')
+                        # one last thing to try. probably used ut.import_module_from_fpath
+                        # when importing this module
+                        imp.load_source(module_.__name__, module_.__file__)
             # Reset class attributes
             _newclass = getattr(module_, _class.__name__)
             reload_class_methods(self, _newclass, verbose=verbose)

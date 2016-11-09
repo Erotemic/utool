@@ -2799,30 +2799,40 @@ def ipcopydev():
     pass
 
 
-def make_instancelist(obj_list, check=True, shared_attrs=None):
+def instancelist(obj_list, check=False, shared_attrs=None):
+    """
+    Executes methods and attribute calls on a list of objects of the same type
+
+    Bundles a list of object of the same type into a single object.
+    The new object contains the same functions as each original object
+    but applies them to each element of the list independantly when called.
+
+    CommandLine:
+        python -m utool.util_dev instancelist
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> obj_list = ['hi', 'bye', 'foo']
+        >>> self = ut.instancelist(obj_list, check=False)
+        >>> print(self)
+        >>> print(self.upper())
+        >>> print(self.isalpha())
+    """
     class InstanceList_(object):
-        """ executes methods and attribute calls on a list of
-        objects of the same type
-
-        CommandLine:
-            python -m utool.util_dev --exec-InstanceList --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from utool.util_dev import *  # NOQA
-            >>> import utool as ut
-            >>> obj_list = ['hi', 'bye', 'foo']
-            >>> self = ut.make_instancelist(obj_list, check=False)
-            >>> print(self.upper())
-            >>> print(self.isalpha())
-        """
         def __init__(self, obj_list, shared_attrs=None):
+            self._obj_list = []
+            self._shared_public_attrs = []
+            self._example_type = None
+
             if len(obj_list) > 0:
                 import utool as ut
-
                 self._obj_list = obj_list
+
                 example_obj = obj_list[0]
                 example_type = type(example_obj)
+                self._example_type = example_type
 
                 if shared_attrs is None:
                     if check:
@@ -2840,18 +2850,30 @@ def make_instancelist(obj_list, check=True, shared_attrs=None):
 
                 for attrname in self._shared_public_attrs:
                     attrtype = getattr(example_type, attrname, None)
-                    print('attrtype = %r' % (attrtype,))
                     if attrtype is not None and isinstance(attrtype, property):
                         # need to do this as metaclass
                         setattr(InstanceList_, attrname,
                                 property(self._define_prop(attrname)))
                     else:
                         func = self._define_func(attrname)
-                        print('func = %r' % (func,))
                         ut.inject_func_as_method(self, func, attrname)
 
         def __nice__(self):
-            return '(%d)' % (len(self._obj_list))
+            if self._example_type is None:
+                typename = 'object'
+            else:
+                typename = self._example_type.__name__
+            return 'of %d %s(s)' % (len(self._obj_list), typename)
+
+        def __repr__(self):
+            classname = self.__class__.__name__
+            devnice = self.__nice__()
+            return '<%s(%s) at %s>' % (classname, devnice, hex(id(self)))
+
+        def __str__(self):
+            classname = self.__class__.__name__
+            devnice = self.__nice__()
+            return '<%s(%s)>' % (classname, devnice)
 
         def __getitem__(self, key):
             # TODO, put in metaclass
