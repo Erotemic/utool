@@ -4,6 +4,7 @@ import operator
 import six
 import itertools
 import functools
+from math import floor, ceil
 from six.moves import zip, map, zip_longest, range, filter, reduce
 from utool import util_iter
 from utool import util_inject
@@ -1657,6 +1658,47 @@ def take_percentile(arr, percent):
     size = len(arr)
     stop = min(int(size * percent), len(arr))
     return arr[0:stop]
+
+
+def snapped_slice(size, frac, n):
+    start = int(size * frac - ceil(n / 2)) + 1
+    stop  = int(size * frac + floor(n / 2)) + 1
+    buf = 0
+    if stop >= size:
+        buf = (size - stop)
+    elif start < 0:
+        buf = 0 - start
+    stop += buf
+    start += buf
+    assert stop <= size, 'out of bounds'
+    sl = slice(start, stop)
+    return sl
+
+
+def take_percentile_parts(arr, front=None, mid=None, back=None):
+    """
+    Take parts from front, back, or middle of a list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> arr = list(range(20))
+        >>> front = 3
+        >>> mid = 3
+        >>> back = 3
+        >>> take_percentile_parts(arr, front, mid, back)
+        [0, 1, 2, 9, 10, 11, 17, 18, 19]
+    """
+    slices = []
+    if front:
+        slices += [snapped_slice(len(arr), 0.0, front)]
+    if mid:
+        slices += [snapped_slice(len(arr), 0.5, mid)]
+    if back:
+        slices += [snapped_slice(len(arr), 1.0, back)]
+    parts = flatten([arr[sl] for sl in slices])
+    return parts
 
 
 def list_inverse_take(list_, index_list):
