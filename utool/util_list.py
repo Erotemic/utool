@@ -1933,9 +1933,11 @@ def strided_sample(items, num, offset=0):
 
 def issorted(list_, op=operator.le):
     """
+    Determines if a list is sorted
+
     Args:
         list_ (list):
-        op (builtin_function_or_method):
+        op (func): sorted operation (default=operator.le)
 
     Returns:
         bool : True if the list is sorted
@@ -1943,40 +1945,43 @@ def issorted(list_, op=operator.le):
     return all(op(list_[ix], list_[ix + 1]) for ix in range(len(list_) - 1))
 
 
-def find_nonconsec_indices(unique_vals, consec_vals):
+def find_nonconsec_values(values, min_=None, max_=None):
     """
-    # TODO: rectify with above function
+    Determines if a list of values is consecutive (ascending)
 
     Args:
-        unique_vals (list):
-        consec_vals (list):
+        values (list): list of values, sorted and unique
+        min_(int): minimum value in range defaults min(values)
+        max_(int): maximum value in range defaults max(values)
 
     Returns:
-        missing_ixs
+        missing_values: missing values that would make the list consecutive
+
+    CommandLine:
+        python -m utool.util_list --test-find_nonconsec_values
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import numpy as np
-        >>> unique_vals = np.array([-2, -1,  1,  2, 10])
-        >>> max_ = unique_vals.max()
-        >>> min_ = unique_vals.min()
-        >>> range_ = max_ - min_
-        >>> consec_vals = np.linspace(min_, max_ + 1, range_ + 2)
-        >>> missing_ixs = find_nonconsec_indices(unique_vals, consec_vals)
-        >>> result = (consec_vals[missing_ixs])
-        [ 0.  3.  4.  5.  6.  7.  8.  9.]
+        >>> values = np.array([-2, 1,  2, 10])
+        >>> result = find_nonconsec_values(values)
+        >>> print(result)
+        [-1, 0, 3, 4, 5, 6, 7, 8, 9]
     """
-    missing_ixs = []
+    # values = sorted(set(values))
+    if min_ is None:
+        min_ = values[0]
+    if max_ is None:
+        max_ = values[-1]
     valx   = 0
-    consecx = 0
-    while valx < len(unique_vals) and consecx < len(consec_vals):
-        if unique_vals[valx] != consec_vals[consecx]:
-            missing_ixs.append(consecx)
+    missing_values = []
+    for check in range(min_, max_ + 1):
+        if values[valx] != check:
+            missing_values.append(check)
         else:
             valx += 1
-        consecx += 1
-    return missing_ixs
+    return missing_values
 
 
 def group_consecutives(data, stepsize=1):

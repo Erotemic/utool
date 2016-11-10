@@ -194,6 +194,31 @@ class Timer(object):
         #return self.ellapsed
 
 
+class Timerit(object):
+    """
+    Example:
+        for timer in Timerit(100):
+            with timer:
+                <your code>
+    """
+    def __init__(self, num, verbose=True):
+        self.num = num
+        self.times = []
+        self.verbose = verbose
+
+    def __iter__(self):
+        if self.verbose:
+            print('Begining timeing iterations')
+        import utool as ut
+        for i in range(self.num):
+            timer = ut.Timer(verbose=0)
+            yield timer
+            self.times.append(timer.ellapsed)
+        if self.verbose:
+            print('body took: %r' % (sum(self.times)))
+            print('time per loop : %r' % (sum(self.times) / len(self.times)))
+
+
 def determine_timestamp_format(datetime_str, warn=True):
     r"""
     Args:

@@ -342,7 +342,7 @@ class ProgressIter(object):
         self.use_rate = True  # Force
         self.lbl                = kwargs.get('lbl', 'lbl')
         self.lbl                = kwargs.get('label', self.lbl)
-        self.nTotal             = kwargs.get('nTotal', 0)
+        self.nTotal             = kwargs.get('nTotal', kwargs.get('length', 0))
         #self.backspace          = kwargs.get('backspace', True)
         self.backspace          = kwargs.get('backspace', kwargs.get('bs', False))
         self.freq               = kwargs.get('freq', 1)

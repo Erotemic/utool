@@ -210,9 +210,10 @@ def _inject_execstr(modname, import_tuples):
         print, rrr, profile = {injecter}.inject2(__name__, '[{modname}]')
 
 
-        def reassign_submodule_attributes(verbose=True):
+        def reassign_submodule_attributes(verbose=1):
             """
-            why reloading all the modules doesnt do this I don't know
+            Updates attributes in the __init__ modules with updated attributes
+            in the submodules.
             """
             import sys
             if verbose and '--quiet' not in sys.argv:
@@ -221,7 +222,7 @@ def _inject_execstr(modname, import_tuples):
             import {modname}
             # Implicit reassignment.
             seen_ = set([])
-            for tup in import_tuples:
+            for tup in IMPORT_TUPLES:
                 if len(tup) > 2 and tup[2]:
                     continue  # dont import package names
                 submodname, fromimports = tup[0:2]
@@ -238,19 +239,16 @@ def _inject_execstr(modname, import_tuples):
                     setattr({modname}, attr, getattr(submod, attr))
 
 
-        def reload_subs(verbose=True):
+        def reload_subs(verbose=1):
             """ Reloads {modname} and submodules """
             if verbose:
-                print('Reloading submodules')
-            rrr(verbose=verbose)
+                print('Reloading {modname} submodules')
+            rrr(verbose > 1)
             def wrap_fbrrr(mod):
                 def fbrrr(*args, **kwargs):
                     """ fallback reload """
-                    if verbose:
-                        print('No fallback relaod for mod=%r' % (mod,))
-                    # Breaks ut.Pref (which should be depricated anyway)
-                    # import imp
-                    # imp.reload(mod)
+                    if verbose > 0:
+                        print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
                 return fbrrr
             def get_rrr(mod):
                 if hasattr(mod, 'rrr'):
@@ -260,7 +258,7 @@ def _inject_execstr(modname, import_tuples):
             def get_reload_subs(mod):
                 return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
             {reload_body}
-            rrr(verbose=verbose)
+            rrr(verbose > 1)
             try:
                 # hackish way of propogating up the new reloaded submodule attributes
                 reassign_submodule_attributes(verbose=verbose)
@@ -272,7 +270,7 @@ def _inject_execstr(modname, import_tuples):
     injectstr_fmt = injectstr_fmt.replace('# STARTBLOCK', '')
     injectstr_fmt = injectstr_fmt.replace('# ENDBLOCK', '')
     rrrdir_fmt  = '    get_reload_subs({modname})(verbose=verbose)'
-    rrrfile_fmt = '    get_rrr({modname})(verbose=verbose)'
+    rrrfile_fmt = '    get_rrr({modname})(verbose > 1)'
 
     def _reload_command(tup):
         if len(tup) > 2 and tup[2] is True:

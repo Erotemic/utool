@@ -1769,7 +1769,8 @@ def parse_return_type(sourcecode):
 
 
 def exec_func_src(func, globals_=None, locals_=None, key_list=None,
-                  sentinal=None, update=None, keys=None):
+                  sentinal=None, update=None, keys=None, verbose=False,
+                  start=None, stop=None):
     """
     execs a func and returns requested local vars.
 
@@ -1790,11 +1791,15 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
         locals_ = ut.get_parent_frame().f_locals
     if sentinal is not None:
         sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
+    if start is not None or stop is not None:
+        sourcecode = '\n'.join(sourcecode.splitlines()[slice(start, stop)])
     globals_new = globals_.copy()
     if locals_ is not None:
         globals_new.update(locals_)
     orig_globals = globals_new.copy()
     #six.exec_(sourcecode, globals_new, locals_)
+    if verbose:
+        print(ut.color_text(sourcecode, 'python'))
     six.exec_(sourcecode, globals_new)
     # Draw intermediate steps
     if key_list is None:
