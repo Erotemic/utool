@@ -137,6 +137,7 @@ def utool_setup():
                     'clean_profile.*.prof',
                     'raw_profile.txt',
                     'clean_profile.txt',
+                    'profile_output.*',
                 ]
                 utool.clean(dirname(__file__), CLUTTER_PATTERNS, clutter_dirs)
         ext_modules = util_setup.find_ext_modules()

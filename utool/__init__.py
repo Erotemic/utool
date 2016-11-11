@@ -623,22 +623,23 @@ if DOELSE:
                                     stop_logging, testlogprog,) 
     from utool.util_list import (accumulate, alloc_lists, alloc_nones, allsame, 
                                  and_lists, argmax, argsort, aslist, 
-                                 broadcast_zip, bzip, compress, 
+                                 broadcast_zip, bzip, ceil, compress, 
                                  debug_consec_list, debug_duplicate_items, 
                                  delete_items_by_index, delete_list_items, 
                                  depth, depth_profile, duplicates_exist, 
                                  ensure_list_size, equal, filter_Nones, 
                                  filter_items, filter_startswith, 
                                  filterfalse_items, find_duplicate_items, 
-                                 find_list_indexes, find_nonconsec_indices, 
+                                 find_list_indexes, find_nonconsec_values, 
                                  flag_None_items, flag_not_None_items, 
                                  flag_unique_items, flat_unique, flatten, 
-                                 flattenize, get_dirty_items, get_list_column, 
-                                 get_list_column_slice, group_consecutives, 
-                                 group_consecutives_numpy, iflag_unique_items, 
-                                 index_complement, index_to_boolmask, 
-                                 insert_values, intersect_ordered, 
-                                 invertible_flatten, invertible_flatten2, 
+                                 flattenize, floor, get_dirty_items, 
+                                 get_list_column, get_list_column_slice, 
+                                 group_consecutives, group_consecutives_numpy, 
+                                 iflag_unique_items, index_complement, 
+                                 index_to_boolmask, insert_values, 
+                                 intersect_ordered, invertible_flatten, 
+                                 invertible_flatten2, 
                                  invertible_flatten2_numpy, 
                                  invertible_total_flatten, is_subset, 
                                  is_subset_of_any, is_superset, isdisjoint, 
@@ -666,18 +667,18 @@ if DOELSE:
                                  safeapply, safelen, sample_lists, sample_zip, 
                                  scalar_input_map, search_list, setdiff, 
                                  setdiff_flags, setdiff_ordered, setintersect, 
-                                 setintersect_ordered, sortedby, sortedby2, 
-                                 strided_sample, take, take_column, 
+                                 setintersect_ordered, snapped_slice, sortedby, 
+                                 sortedby2, strided_sample, take, take_column, 
                                  take_complement, take_percentile, 
-                                 total_flatten, total_unflatten, tuplize, 
-                                 type_profile, type_profile2, 
-                                 type_sequence_factory, unflat_map, 
-                                 unflat_take, unflat_unique_rowid_map, 
-                                 unflat_vecmap, unflatten, unflatten2, union, 
-                                 union_ordered, unique, unique_ordered, 
-                                 unique_unordered, unpack_iterables, where, 
-                                 where_not_None, xor_lists, zipcompress, 
-                                 zipflat, ziptake,) 
+                                 take_percentile_parts, total_flatten, 
+                                 total_unflatten, tuplize, type_profile, 
+                                 type_profile2, type_sequence_factory, 
+                                 unflat_map, unflat_take, 
+                                 unflat_unique_rowid_map, unflat_vecmap, 
+                                 unflatten, unflatten2, union, union_ordered, 
+                                 unique, unique_ordered, unique_unordered, 
+                                 unpack_iterables, where, where_not_None, 
+                                 xor_lists, zipcompress, zipflat, ziptake,) 
     from utool.util_num import (float_to_decimal, get_sys_maxfloat, 
                                 get_sys_maxint, get_sys_minint, int_comma_str, 
                                 num2_sigfig, num_fmt, order_of_magnitude_ceil, 
@@ -864,7 +865,7 @@ if DOELSE:
                                   regex_parse, regex_replace, 
                                   regex_replace_lines, regex_search, 
                                   regex_split, regex_word, whole_word,) 
-    from utool.util_time import (Timer, date_to_datetime, 
+    from utool.util_time import (Timer, Timerit, date_to_datetime, 
                                  datetime_to_posixtime, 
                                  determine_timestamp_format, ensure_timedelta, 
                                  exiftime_to_unixtime, get_datestamp, 
@@ -956,8 +957,8 @@ if DOELSE:
         def wrap_fbrrr(mod):
             def fbrrr(*args, **kwargs):
                 """ fallback reload """
-                if verbose:
-                    print('No fallback reload for mod=%r' % (mod,))
+                if verbose > 0:
+                    print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
             return fbrrr
         def get_rrr(mod):
             if hasattr(mod, 'rrr'):
