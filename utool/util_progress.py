@@ -621,6 +621,7 @@ class ProgressIter(object):
         else:
             start_msg = start_msg_fmt.format(count=self.parent_offset)
             PROGRESS_WRITE(start_msg + '\n')
+        self.write = PROGRESS_WRITE
         self._cursor_at_newline = not self.backspace
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
         #if force_newlines:
