@@ -375,6 +375,8 @@ class Cacher(object):
         return data
 
     def save(self, data, cfgstr=None):
+        if not self.enabled:
+            return
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
         assert cfgstr is not None, 'must specify cfgstr in constructor or call'
         assert self.fname is not None, 'no fname'
