@@ -856,6 +856,29 @@ def get_comparison_methods():
     return method_list
 
 
+def get_comparison_operators():
+    import operator
+    opdict = {
+        'not': operator.not_,
+        'is': operator.is_,
+        'is not': operator.is_not,
+        'contains': operator.contains,
+        'in': lambda a, b: operator.contains(b, a),
+        'not in': lambda a, b: not operator.contains(b, a),
+        '!=': operator.ne,
+        '==': operator.eq,
+        '>=': operator.ge,
+        '<=': operator.le,
+        '>': operator.gt,
+        '<': operator.lt,
+    }
+    for k, v in list(opdict.items()):
+        op = getattr(v, '__name__')
+        if op not in opdict and op != '<lambda>':
+            opdict[op] = v
+    return opdict
+
+
 class HashComparableMetaclass(type):
     """
     Defines extra methods for Configs
