@@ -2391,14 +2391,63 @@ def singular_string(str_, plural_suffix='s', singular_suffix=''):
     return str_[:-1] if str_.endswith(plural_suffix) else str_
 
 
-def pluralize(wordtext, num, plural_suffix='s'):
+def pluralize(wordtext, num=2, plural_suffix='s'):
+    r"""
+    Heuristically changes a word to its plural form if `num` is not 1
+
+    Args:
+        wordtext (str): word in singular form
+        num (int): a length of an associated list if applicable (default = 2)
+        plural_suffix (str): heurstic plural form (default = 's')
+
+    Returns:
+        str: pluralized form
+
+    CommandLine:
+        python -m utool.util_str pluralize
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> wordtext = 'foo'
+        >>> result = pluralize(wordtext)
+        >>> print(result)
+        foos
+    """
     return (wordtext + plural_suffix) if num != 1 else wordtext
 
 
-def quantity_str(typestr, num, plural_suffix='s'):
-    return six.text_type(num) + ' ' + pluralize(typestr, num, plural_suffix)
+def quantstr(typestr, num, plural_suffix='s'):
+    r"""
+    Heuristically generates an english phrase relating to the quantity of
+    something.  This is useful for writing user messages.
 
-quantstr = quantity_str
+    Args:
+        typestr (str): singular form of the word
+        num (int): quanity of the type
+        plural_suffix (str): heurstic plural form (default = 's')
+
+    Returns:
+        str: quantity phrase
+
+    CommandLine:
+        python -m utool.util_str quantity_str
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_str import *  # NOQA
+        >>> items = [1, 2, 3]
+        >>> result = 'The list contains ' + (quantstr('item', len(items)))
+        >>> items = [1]
+        >>> result += '\nThe list contains ' + (quantstr('item', len(items)))
+        >>> items = []
+        >>> result += '\nThe list contains ' + (quantstr('item', len(items)))
+        >>> print(result)
+        The list contains 3 items
+        The list contains 1 item
+        The list contains 0 items
+    """
+    return six.text_type(num) + ' ' + pluralize(typestr, num, plural_suffix)
 
 
 def remove_vowels(str_):
