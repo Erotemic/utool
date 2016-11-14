@@ -1661,6 +1661,21 @@ def take_percentile(arr, percent):
 
 
 def snapped_slice(size, frac, n):
+    r"""
+    Creates a slice spanning `n` items in a list of length `size` at position
+    `frac`.
+
+    Args:
+        size (int): length of the list
+        frac (float): position in the range [0, 1]
+        n (int): number of items in the slice
+
+    Returns:
+        slice: slice object that best fits the criteria
+
+    SeeAlso:
+        take_percentile_parts
+    """
     start = int(size * frac - ceil(n / 2)) + 1
     stop  = int(size * frac + floor(n / 2)) + 1
     buf = 0
@@ -1676,7 +1691,7 @@ def snapped_slice(size, frac, n):
 
 
 def take_percentile_parts(arr, front=None, mid=None, back=None):
-    """
+    r"""
     Take parts from front, back, or middle of a list
 
     Example:
@@ -1687,7 +1702,8 @@ def take_percentile_parts(arr, front=None, mid=None, back=None):
         >>> front = 3
         >>> mid = 3
         >>> back = 3
-        >>> take_percentile_parts(arr, front, mid, back)
+        >>> result = take_percentile_parts(arr, front, mid, back)
+        >>> print(result)
         [0, 1, 2, 9, 10, 11, 17, 18, 19]
     """
     slices = []

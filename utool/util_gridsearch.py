@@ -7,6 +7,7 @@ from utool import util_inject
 from utool import util_dict
 from utool import util_dev
 from utool import util_decor
+from utool import util_type
 import functools
 import operator
 from six.moves import reduce, map, zip
@@ -1139,14 +1140,29 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
     return cfg_combos_list
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
+@util_class.reloadable_class
 class ParamInfo(util_dev.NiceRepr):
     """
     small class for individual paramater information
 
     Configuration objects should use these for default / printing / type
-    information however, the actual value of the parameter for any specific
-    configuration is not stored here.
+    information.
+    NOTE: the actual value of the parameter for any specific configuration is
+    not stored here.
+
+    CommandLine:
+        python -m utool.util_gridsearch --test-ParamInfo
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> pi = ParamInfo(varname='foo', default='bar')
+        >>> cfg = ut.DynStruct()
+        >>> cfg.foo = 5
+        >>> result = pi.get_itemstr(cfg)
+        >>> print(result)
+        foo=5
     """
     def __init__(pi, varname=None, default=None, shortprefix=util_dev.NoParam,
                  type_=util_dev.NoParam, varyvals=[], varyslice=None,
@@ -1156,25 +1172,12 @@ class ParamInfo(util_dev.NiceRepr):
         Args:
             varname (str): name of the variable
             default (str): default value of the variable
-            shortprefix (str):
-            type_ (type):
-            varyvals (list):
-            valid_values (list):
-            hideif (func or value): if the variable value of config is this the itemstr is empty
-
-        CommandLine:
-            python -m utool.util_gridsearch --test-__init__
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from utool.util_gridsearch import *  # NOQA
-            >>> import utool as ut
-            >>> pi = ParamInfo(varname='foo', default='bar')
-            >>> cfg = ut.DynStruct()
-            >>> cfg.foo = 5
-            >>> result = pi.get_itemstr(cfg)
-            >>> print(result)
-            foo=5
+            shortprefix (str): shorter version of the varname for the cfgstr
+            type_ (type): python type of the variable (inferable)
+            varyvals (list): set of values usable by gridsearch
+            valid_values (list): set of allowed values
+            hideif (func or value): if the variable value of config is this the
+                itemstr is empty
         """
         pi.varname = varname
         pi.default = default
@@ -1205,11 +1208,18 @@ class ParamInfo(util_dev.NiceRepr):
         pi.step_ = step_
 
     def __nice__(pi):
-        return '(' + pi.make_varstr(pi.default) + ')'
+        return pi._make_varstr(pi.default)
+
+    def is_type_enforced(pi):
+        enforce_type = (pi.type_ is not None and
+                        not isinstance(pi.type_, six.string_types) and
+                        isinstance(pi.type_, type))
+        return enforce_type
 
     def error_if_invalid_value(pi, value):
-        """ Checks if a value for this param is valid """
-        from utool import util_type
+        """
+        Checks if a `value` for this param is valid
+        """
         if pi.none_ok and value is None:
             return True
         if pi.valid_values is not None:
@@ -1219,18 +1229,14 @@ class ParamInfo(util_dev.NiceRepr):
         if pi.is_type_enforced():
             if not util_type.is_comparable_type(value, pi.type_):
                 raise TypeError(
-                    'pi=%r, value=%r with type_=%r is not the expected type_=%r' %
-                    (pi, value, type(value), pi.type_))
-
-    def is_type_enforced(pi):
-        enforce_type = (pi.type_ is not None and
-                        not isinstance(pi.type_, six.string_types) and
-                        isinstance(pi.type_, type))
-        return enforce_type
+                    'pi=%r, value=%r with type_=%r is not the expected '
+                    'type_=%r' % (pi, value, type(value), pi.type_))
 
     def cast_to_valid_type(pi, value):
-        """ Checks if a value for this param is valid """
-        from utool import util_type
+        """
+        Checks if a `value` for this param is valid and attempts
+        to cast it if it is close
+        """
         if pi.none_ok and value is None:
             return True
         if pi.valid_values is not None:
@@ -1246,6 +1252,9 @@ class ParamInfo(util_dev.NiceRepr):
         pi.hideif_list.append(hideif)
 
     def is_hidden(pi, cfg):
+        """
+        Checks if this param is hidden by the parent context of `cfg`
+        """
         for hideif in pi.hideif_list:
             if callable(hideif):
                 hide = hideif(cfg)
@@ -1255,36 +1264,51 @@ class ParamInfo(util_dev.NiceRepr):
                 return True
 
     def is_enabled(pi, cfg):
-        """ alternative to is_hidden. a bit hacky. only returns false if
-            another config hides you. self hiding is ok """
+        """
+        alternative to is_hidden. a bit hacky. only returns false if
+        another config hides you. self hiding is ok
+        """
         enabled = True
         for hideif in pi.hideif_list:
             if callable(hideif):
-                # FIXME: just because it is a function doesnt mean it isn't self-hidden
+                # FIXME: just because it is a function doesnt mean it isn't
+                # self-hidden
                 enabled = not hideif(cfg)
             if not enabled:
                 break
         return enabled
 
-    def make_varstr(pi, varval):
-        varstr = six.text_type(varval)
-        if isinstance(varval, slice):
-            varstr = varstr.replace(' ', '')
+    def _make_varstr(pi, varval):
+        # Create string representation of a `varval`
+        if isinstance(varval, dict):
+            from utool import util_str
+            # The ut.dict_str representation will consistently stringify dicts
+            varstr = util_str.dict_str(varval, explicit=True, strvals=True,
+                                       itemsep='', nl=0)
+        else:
+            varstr = six.text_type(varval)
+            if isinstance(varval, slice):
+                varstr = varstr.replace(' ', '')
+        # Place varstr in the context of the param name
         if pi.shortprefix is not util_dev.NoParam:
             itemstr = '%s%s' % (pi.shortprefix, varstr)
         else:
             itemstr =  '%s=%s' % (pi.varname, varstr)
         return itemstr
 
-    def make_itemstr(pi, cfg):
+    def _make_itemstr(pi, cfg):
         varval = getattr(cfg,  pi.varname)
-        return pi.make_varstr(varval)
+        return pi._make_varstr(varval)
 
     def get_itemstr(pi, cfg):
+        """
+        Args:
+            cfg (dict-like): Parent object (like a dtool.Config)
+        """
         if pi.is_hidden(cfg):
             return ''
         else:
-            return pi.make_itemstr(cfg)
+            return pi._make_itemstr(cfg)
 
 
 @six.add_metaclass(util_class.ReloadingMetaclass)
@@ -1304,7 +1328,8 @@ class ParamInfoBool(ParamInfo):
         nocheese
     """
     def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam,
-                 type_=bool, varyvals=[], varyslice=None, hideif=False, help_=None):
+                 type_=bool, varyvals=[], varyslice=None, hideif=False,
+                 help_=None):
         if not varname.endswith('_on'):
             # TODO: use this convention or come up with a better one
             #print('WARNING: varname=%r should end with _on' % (varname,))
@@ -1313,7 +1338,9 @@ class ParamInfoBool(ParamInfo):
             varname, default=default, shortprefix=shortprefix, type_=bool,
             varyvals=varyvals, varyslice=varyslice, hideif=hideif)
 
-    def make_itemstr(pi, cfg):
+    def _make_itemstr(pi, cfg):
+        # TODO: redo this as _make_varstr and remove all instances of
+        # _make_itemstr
         varval = getattr(cfg,  pi.varname)
         if pi.shortprefix is not util_dev.NoParam:
             itemstr = pi.shortprefix
@@ -1322,7 +1349,8 @@ class ParamInfoBool(ParamInfo):
         if varval is False:
             itemstr = 'no' + itemstr
         elif varval is not True:
-            raise AssertionError('Not a boolean pi.varname=%r, varval=%r' % (pi.varname, varval,))
+            raise AssertionError('Not a boolean pi.varname=%r, varval=%r' % (
+                pi.varname, varval,))
         return itemstr
 
 
@@ -1359,7 +1387,8 @@ class ParamInfoList(object):
 
     def get_slicedict(self):
         """ for gridsearch """
-        slice_dict = {pi.varname: pi.varyslice for pi in self.param_info_list if pi.varyslice is not None}
+        slice_dict = {pi.varname: pi.varyslice for pi in self.param_info_list
+                      if pi.varyslice is not None}
         if len(slice_dict) == 0:
             slice_dict = None
         return slice_dict

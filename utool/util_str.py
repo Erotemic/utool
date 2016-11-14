@@ -1440,7 +1440,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
              indent_='', precision=None, hack_liststr=None, truncate=False,
              nl=None, explicit=False, truncatekw=dict(), key_order=None,
              key_order_metric=None, nobraces=False, nobr=None, align=False,
-             **dictkw):
+             itemsep=' ', **dictkw):
     r"""
     Makes a pretty printable / human-readable string representation of a
         dictionary. In most cases this string could be evaled.
@@ -1554,7 +1554,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
                 retstr = ut.align(retstr, ':')
     else:
         # hack away last trailing comma
-        sequence_str = ' '.join(itemstr_list)
+        sequence_str = itemsep.join(itemstr_list)
         if dictkw.get('trailing_comma', True):
             sequence_str = sequence_str.rstrip(',')
         retstr = leftbrace +  sequence_str + rightbrace
@@ -1563,8 +1563,8 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
 
 
 def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
-             truncate=False, truncatekw={}, label_list=None, packed=False, nobr=None,
-             **listkw):
+             truncate=False, truncatekw={}, label_list=None, packed=False,
+             nobr=None, itemsep=' ', **listkw):
     r"""
     Args:
         list_ (list):
@@ -1657,7 +1657,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
             retstr = body_str
         else:
             if packed:
-                joinstr = '\n' + ' ' * len(leftbrace)
+                joinstr = '\n' + itemsep * len(leftbrace)
                 body_str = joinstr.join([itemstr for itemstr in itemstr_list])
                 braced_body_str = (leftbrace + '' + body_str + '' + rightbrace)
             else:
@@ -1667,7 +1667,7 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
                                    body_str + '\n' + rightbrace)
             retstr = braced_body_str
     else:
-        sequence_str = ' '.join(itemstr_list)
+        sequence_str = itemsep.join(itemstr_list)
         # hack away last comma except in 1-tuple case
         is_one_tuple = (is_tuple and len(list_) <= 1)
         if listkw.get('trailing_comma', True):
@@ -1733,7 +1733,8 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             #print('hack_liststr = %r' % (hack_liststr,))
             return list_str(val, newlines=newlines, precision=precision,
                             hack_liststr=hack_liststr)
-        elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
+        elif precision is not None and (isinstance(val, (float)) or
+                                        util_type.is_float(val)):
             return scalar_str(val, precision)
         else:
             # base case

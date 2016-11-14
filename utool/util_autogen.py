@@ -641,7 +641,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     default_vals = ['?'] * num_unknown + list(defaults_)
     arg_val_iter = zip(argname_list_, default_vals)
     inferred_defaults = [find_arg_defaultrepr(argname, val)
-                        for argname, val in arg_val_iter]
+                         for argname, val in arg_val_iter]
     argdef_lines = ['%s = %s' % (argname, inferrepr)
                     for argname, inferrepr in
                     zip(argname_list_, inferred_defaults)]
@@ -770,7 +770,7 @@ def make_default_docstr(func, with_args=True, with_ret=True,
 
     argname_list   = funcinfo.argname_list
     argtype_list   = funcinfo.argtype_list
-    argdesc_list   = funcinfo.argdsc_list
+    argdesc_list   = funcinfo.argdesc_list
     return_header  = funcinfo.return_header
     return_type    = funcinfo.return_type
     return_name    = funcinfo.return_name
