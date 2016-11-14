@@ -222,13 +222,13 @@ def save_cache(dpath, fname, cfgstr, data, ext='.cPkl', verbose=None):
     return fpath
 
 
-def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None):
+def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None, enabled=True):
     """
     Loads data using util_io, but smartly constructs a filename
     """
     if verbose is None:
         verbose = VERBOSE_CACHE
-    if not USE_CACHE:
+    if not USE_CACHE or not enabled:
         if verbose > 1:
             print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
                     (basename(dpath), cfgstr,))
@@ -325,7 +325,8 @@ class Cacher(object):
     old non inhertable version of cachable
     """
     def __init__(self, fname, cfgstr=None, cache_dir='default',
-                 appname='utool', ext='.cPkl', verbose=None):
+                 appname='utool', ext='.cPkl', verbose=None,
+                 enabled=True):
         if verbose is None:
             verbose = VERBOSE
         if cache_dir == 'default':
@@ -336,6 +337,7 @@ class Cacher(object):
         self.cfgstr = cfgstr
         self.verbose = verbose
         self.ext = ext
+        self.enabled = enabled
 
     def get_fpath(self):
         fpath = _args2_fpath(self.dpath, self.fname, self.cfgstr, self.ext)
@@ -348,7 +350,7 @@ class Cacher(object):
         assert self.dpath is not None, 'no dpath'
         # TODO: use the computed fpath from this object instead
         data = load_cache(self.dpath, self.fname, cfgstr, self.ext,
-                          verbose=self.verbose)
+                          verbose=self.verbose, enabled=self.enabled)
         if self.verbose > 1:
             print('... ' + self.fname + ' Cacher hit')
         return data
