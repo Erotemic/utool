@@ -1676,9 +1676,10 @@ def approx_min_num_components(nodes, negative_edges):
     solution.
 
     CommandLine:
-        python -m utool.util_graph approx_min_num_components --show
+        python -m utool.util_graph approx_min_num_components
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> import networkx as nx
@@ -1690,10 +1691,11 @@ def approx_min_num_components(nodes, negative_edges):
         >>>         ]
         >>> g_pos = nx.Graph()
         >>> g_pos.add_edges_from(edges)
-        >>> import plottool as pt
-        >>> pt.qt4ensure()
         >>> g_neg = nx.complement(g_pos)
-        >>> pt.show_nx(g_neg)
+        >>> #import plottool as pt
+        >>> #pt.qt4ensure()
+        >>> #pt.show_nx(g_pos)
+        >>> #pt.show_nx(g_neg)
         >>> negative_edges = g_neg.edges()
         >>> nodes = [1, 2, 3, 4, 5, 6, 7]
         >>> negative_edges = [(1, 2), (2, 3), (4, 5)]
@@ -1708,7 +1710,11 @@ def approx_min_num_components(nodes, negative_edges):
     g_neg.add_edges_from(negative_edges)
 
     # Collapse all nodes with degree 0
-    deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
+    if nx.__version__.startswith('2'):
+        deg0_nodes = [n for n, d in g_neg.degree() if d == 0]
+    else:
+        deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
+
     for u, v in ut.itertwo(deg0_nodes):
         g_neg = nx.contracted_nodes(g_neg, v, u)
 

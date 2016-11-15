@@ -1860,7 +1860,10 @@ def scalar_input_map(func, input_):
 
 
 def partial_imap_1to1(func, si_func):
-    """ a bit messy """
+    """ a bit messy
+
+    DEPRICATE
+    """
     @functools.wraps(si_func)
     def wrapper(input_):
         if not util_iter.isiterable(input_):
