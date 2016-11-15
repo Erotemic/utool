@@ -135,6 +135,26 @@ def check_jedi_closures():
     # print('definitions = %r' % (definitions,))
 
 
+def check_jedi_utool():
+    import jedi
+    import textwrap
+    source = textwrap.dedent(
+        r'''
+        import utool as ut
+        ut.'''
+    )
+    script = jedi.Script(source)
+
+    definitions = script.goto_definitions()
+    print('definitions = %r' % (definitions,))
+
+    completions = script.completions()  # NOQA
+    print('completions = %r' % (completions,))
+
+    vardefs = script.goto_assignments()  # NOQA
+    print('vardefs = %r' % (vardefs,))
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
@@ -142,4 +162,5 @@ if __name__ == '__main__':
         python ~/code/utool/utool/util_scripts/check_jedi.py
     """
     # check_jedi_can_read_googlestyle()
-    check_jedi_closures()
+    # check_jedi_closures()
+    check_jedi_utool()
