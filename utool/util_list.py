@@ -1583,6 +1583,10 @@ def argmax(list_):
     return list_.index(max(list_))
 
 
+def argmin(list_):
+    return list_.index(min(list_))
+
+
 def index_complement(index_list, len_=None):
     """
     Returns the other indicies in a list of length ``len_``

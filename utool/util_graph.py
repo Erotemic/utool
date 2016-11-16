@@ -1769,6 +1769,219 @@ def nx_mincut_edges_weighted(G, s, t, capacity='weight'):
     return edge_cut_list
 
 
+def weighted_diamter(graph, weight=None):
+    import networkx as nx
+    if weight is None:
+        distances = nx.all_pairs_shortest_path_length(graph)
+    else:
+        distances = nx.all_pairs_dijkstra_path_length(graph, weight=weight)
+    eccentricities = (max(dists.values()) for node, dists in distances)
+    diameter = max(eccentricities)
+    return diameter
+
+
+def mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost=None):
+    """
+    PROBLEM: Bounded Cost Minimum Diameter Edge Addition (BCMD)
+
+    Args:
+        graph (nx.Graph): input graph
+        max_cost (float): maximum weighted diamter of the graph
+        weight (str): key of the edge weight attribute
+        cost (str): key of the edge cost attribute
+        candidates (list): set of non-edges, optional, defaults
+            to the complement of the graph
+
+    Returns:
+        None: if no solution exists
+        list: minimum cost edges if solution exists
+
+    Notes:
+        We are given a graph G = (V, E) with an edge weight function w, an edge
+        cost function c, an a maximum cost B.
+
+        The goal is to find a set of candidate non-edges F.
+
+        Let x[e] in {0, 1} denote if a non-edge e is excluded or included.
+
+        minimize sum(c(e) * x[e] for e in F)
+        such that
+        weighted_diamter(graph.union({e for e in F if x[e]})) <= B
+
+    References:
+        https://www.cse.unsw.edu.au/~sergeg/papers/FratiGGM13isaac.pdf
+        http://www.cis.upenn.edu/~sanjeev/papers/diameter.pdf
+        http://dl.acm.org/citation.cfm?id=2953882
+
+    Notes:
+        There is a 4-Approximation of the BCMD problem
+        Running time is O((3 ** B * B ** 3 + n + log(B * n)) * B * n ** 2)
+
+        This algorithm usexs a clustering approach to find a set C, of B + 1
+        cluster centers.  Then we create a minimum height rooted tree, T = (U
+        \subseteq V, D) so that C \subseteq U.  This tree T approximates an
+        optimal B-augmentation.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> import networkx as nx
+        >>> graph = nx.Graph()
+        >>> nx.add_path(graph, range(6))
+        >>> #cost_func   = lambda e: e[0] + e[1]
+        >>> cost_func   = lambda e: 1
+        >>> weight_func = lambda e: (e[0]) / e[1]
+        >>> comp_graph = nx.complement(graph)
+        >>> nx.set_edge_attributes(graph, 'cost', {e: cost_func(e) for e in graph.edges()})
+        >>> nx.set_edge_attributes(graph, 'weight', {e: weight_func(e) for e in graph.edges()})
+        >>> nx.set_edge_attributes(comp_graph, 'cost', {e: cost_func(e) for e in comp_graph.edges()})
+        >>> nx.set_edge_attributes(comp_graph, 'weight', {e: weight_func(e) for e in comp_graph.edges()})
+        >>> candidates = list(comp_graph.edges(data=True))
+        >>> max_cost = 2
+        >>> cost = 'cost'
+        >>> weight = 'weight'
+        >>> best_edges = mincost_diameter_augment(graph, max_cost, candidates, weight, cost)
+        >>> print('best_edges = %r' % (best_edges,))
+        >>> soln_edges = greedy_mincost_diameter_augment(graph, max_cost, candidates, weight, cost)
+        >>> print('soln_edges = %r' % (soln_edges,))
+    """
+    import utool as ut
+    import operator as op
+
+    if candidates is None:
+        candidates = list(graph.complement().edges(data=True))
+
+    def augment_add(graph, edges):
+        aug_graph = graph.copy()
+        aug_graph.add_edges_from(edges)
+        return aug_graph
+
+    def solution_energy(chosen_edges):
+        if weight is None:
+            return len(chosen_edges)
+        else:
+            return sum(d[weight] for (u, v, d) in chosen_edges)
+
+    variable_basis = [(0, 1) for _ in candidates]
+    best_energy = np.inf
+    best_soln = None
+
+    soln_generator = ut.product(*variable_basis)
+    length = reduce(op.mul, map(len, variable_basis), 1)
+    if length > 3000:
+        # Let the user know that it might take some time to find a solution
+        soln_generator = ut.ProgIter(soln_generator, label='BruteForce BCMD',
+                                     length=length)
+    # Brute force solution
+    for x in soln_generator:
+        chosen_edges = ut.compress(candidates, x)
+        aug_graph = augment_add(graph, chosen_edges)
+        total_cost = weighted_diamter(aug_graph, weight=cost)
+        energy = solution_energy(chosen_edges)
+        if total_cost <= max_cost:
+            if energy < best_energy:
+                best_energy = energy
+                best_soln = x
+
+    best_edges = ut.compress(candidates, best_soln)
+    return best_edges
+
+
+def greedy_mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost=None):
+    # import networkx as nx
+    # import utool as ut
+
+    def solution_cost(graph):
+        return weighted_diamter(graph, weight=cost)
+
+    def solution_energy(chosen_edges):
+        if weight is None:
+            return len(chosen_edges)
+        else:
+            return sum(d[weight] for (u, v, d) in chosen_edges)
+
+    def augment_add(graph, edges):
+        aug_graph = graph.copy()
+        aug_graph.add_edges_from(edges)
+        return aug_graph
+
+    def augment_remove(graph, edges):
+        aug_graph = graph.copy()
+        aug_graph.remove_edges_from(edges)
+        return aug_graph
+
+    base_cost = solution_cost(graph)
+    # base_energy = 0
+
+    full_graph = augment_add(graph, candidates)
+    full_cost = solution_cost(full_graph)
+    # full_energy = solution_energy(candidates)
+
+    def greedy_improvement(soln_graph, available_candidates, base_cost=None):
+        """
+        Choose edge that results in the best improvement
+        """
+        best_loss = None
+        best_cost = None
+        best_energy = None
+        best_e = None
+        best_graph = None
+
+        for e in available_candidates:
+            aug_graph = augment_add(soln_graph, [e])
+            aug_cost = solution_cost(aug_graph)
+            aug_energy = solution_energy([e])
+
+            # We don't want to go over if possible
+            aug_loss = max(aug_cost - max_cost, 0)
+
+            if best_loss is None or aug_loss <= best_loss:
+                if best_energy is None or aug_energy < best_energy:
+                    best_loss = aug_loss
+                    best_e = e
+                    best_graph = aug_graph
+                    best_cost = aug_cost
+                    best_energy = aug_energy
+
+        if best_e is None:
+            return None
+        else:
+            return best_cost, best_graph, best_energy, best_e
+
+    import warnings
+    if full_cost > max_cost:
+        warnings.warn('no feasible solution')
+    else:
+        soln_graph = graph.copy()
+        available_candidates = candidates[:]
+        soln_edges = []
+        soln_energy = 0
+        soln_cost = base_cost
+
+        # Add edges to the solution until the cost is feasible
+        while soln_cost > max_cost and len(available_candidates):
+            tup = greedy_improvement(soln_graph, available_candidates, soln_cost)
+            if tup is None:
+                warnings.warn('no improvement found')
+                break
+            soln_cost, soln_graph, best_energy, best_e = tup
+            soln_energy += best_energy
+            soln_edges.append(best_e)
+            available_candidates.remove(best_e)
+
+        # Check to see we can remove edges while maintaining feasibility
+        for e in soln_edges[:]:
+            aug_graph = augment_remove(soln_graph, [e])
+            aug_cost = solution_cost(aug_graph)
+            if aug_cost <= soln_cost:
+                soln_cost = aug_cost
+                soln_graph = aug_graph
+                soln_edges.remove(e)
+
+    return soln_edges
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

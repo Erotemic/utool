@@ -1184,6 +1184,29 @@ def knapsack_greedy(items, maxweight):
     return total_value, items_subset
 
 
+def prod(item_list, initial=1.0):
+    """
+    product of all number in a list (like np.prod)
+
+    Args:
+        item_list (list): list of numbers or items supporting mulitplicatiuon
+        initial (value): initial identity (default=1)
+
+    Returns:
+        float: Multiplied value
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> initial = 1.0
+        >>> item_list = [1, 2, 3, 4, 5]
+        >>> assert prod(item_list, initial) == 120.0
+        >>> assert prod([]) == 1.0
+        >>> assert prod([5]) == 5.0
+    """
+    return reduce(op.mul, item_list, initial)
+
+
 def cumsum(item_list, initial=0):
     """ python cumsum
 
