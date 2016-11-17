@@ -2932,11 +2932,14 @@ def chr_range(*args, **kw):
         stop (None): (default = None)
         step (None): (default = None)
 
+    Kwargs:
+        base (str): charater to start with (default='a')
+
     Returns:
-        list:
+        list: list of characters
 
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-chr_range
+        python -m utool.util_str --exec-chr_range
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2963,7 +2966,7 @@ def chr_range(*args, **kw):
 
     chr_ = six.unichr
 
-    base = ord(kw.get('base', 'i'))
+    base = ord(kw.get('base', 'a'))
     if isinstance(start, int):
         start = base + start
     if isinstance(stop, int):

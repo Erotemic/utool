@@ -816,7 +816,7 @@ def _make_test_docstr(config):
 
     if config['n_args'] is not None:
         argheader = 'Args'
-        argname_list = ut.chr_range(config['n_args'])
+        argname_list = ut.chr_range(config['n_args'], base='a')
         argtype_list = ['bool'] * config['n_args']
         argdesc_list = [''] * config['n_args']
         arg_docstr = ut.make_args_docstr(argname_list, argtype_list,

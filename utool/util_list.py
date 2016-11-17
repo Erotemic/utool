@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import operator
 import six
 import itertools
+import warnings
 import functools
 from math import floor, ceil
 from six.moves import zip, map, zip_longest, range, filter, reduce
@@ -896,9 +897,11 @@ def list_all_eq_to(list_, val, strict=True):
     try:
         # FUTURE WARNING
         # FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
-        flags = [item == val for item in list_]
-        return all([np.all(flag) if hasattr(flag, '__array__') else flag
-                    for flag in flags])
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=FutureWarning)
+            flags = [item == val for item in list_]
+            return all([np.all(flag) if hasattr(flag, '__array__') else flag
+                        for flag in flags])
         #return all([item == val for item in list_])
     except ValueError:
         if not strict:
@@ -2801,6 +2804,15 @@ def list_alignment(list1, list2):
     idx2_item1 = make_index_lookup(list1)
     sortx = take(idx2_item1, list2)
     return sortx
+
+
+def unique_inverse(item_list):
+    """
+    Like np.unique(item_list, return_inverse=True)
+    """
+    unique_items = ut.unique(item_list)
+    inverse = list_alignment(unique_items, item_list)
+    return unique_items, inverse
 
 
 def list_transpose(list_, shape=None):
