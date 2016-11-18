@@ -1517,7 +1517,7 @@ def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):
     unique_lbls = ut.unique(node_to_lbl.values())
     ncolors = len(unique_lbls)
     if (ncolors) == 1:
-        unique_colors = [pt.NEUTRAL_BLUE]
+        unique_colors = [pt.LIGHT_BLUE]
     else:
         unique_colors = pt.distinct_colors(ncolors, brightness=brightness)
     if sat_adjust:

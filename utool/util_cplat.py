@@ -539,7 +539,7 @@ def view_directory(dname=None, verbose=True):
     }[OS_TYPE]
     dname = normpath(dname)
     if STRICT:
-        assert checkpath(dname, verbose=verbose)
+        assert checkpath(dname, verbose=verbose), 'directory doesnt exit'
     if dname.find(' ') != -1 and not dname.startswith(('"', '\'')):
         dname = '"%s"' % dname
     import pipes

@@ -1875,12 +1875,27 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
     return itemstr_list
 
 
+def utf8_len(str_):
+    """
+    returns num printed characters in utf8
+
+    Returns:
+        http://stackoverflow.com/questions/2247205/python-returning-the-wrong-length-of-string-when-using-special-characters
+    """
+    import unicodedata
+    return len(unicodedata.normalize('NFC', str_))
+
+
 def horiz_string(*args, **kwargs):
     """
     Horizontally concatenates strings reprs preserving indentation
 
     Concats a list of objects ensuring that the next item in the list
     is all the way to the right of any previous items.
+
+    Args:
+        *args: list of strings to concat
+        **kwargs: precision, sep
 
     CommandLine:
         python -m utool.util_str --test-horiz_string
@@ -1909,12 +1924,17 @@ def horiz_string(*args, **kwargs):
         A = [[1 2]  * [[5 6]
              [3 4]]    [7 8]]
     """
+    import unicodedata
+
     precision = kwargs.get('precision', None)
+    sep = kwargs.get('sep', '')
 
     if len(args) == 1 and not isinstance(args[0], six.string_types):
         val_list = args[0]
     else:
         val_list = args
+
+    val_list = [unicodedata.normalize('NFC', val) for val in val_list]
     all_lines = []
     hpos = 0
     # for each value in the list or args
@@ -1947,8 +1967,7 @@ def horiz_string(*args, **kwargs):
         # Horizontal padding
         for lx in range(len(all_lines)):
             hpos_diff = hpos - len(all_lines[lx])
-            if hpos_diff > 0:
-                all_lines[lx] += ' ' * hpos_diff
+            all_lines[lx] += ' ' * hpos_diff + sep
     all_lines = [line.rstrip(' ') for line in all_lines]
     ret = '\n'.join(all_lines)
     return ret
