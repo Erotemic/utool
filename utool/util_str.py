@@ -1883,7 +1883,7 @@ def utf8_len(str_):
         http://stackoverflow.com/questions/2247205/python-returning-the-wrong-length-of-string-when-using-special-characters
     """
     import unicodedata
-    return len(unicodedata.normalize('NFC', str_))
+    return len(unicodedata.normalize('NFC', ensure_unicode(str_)))
 
 
 def horiz_string(*args, **kwargs):
@@ -1934,7 +1934,8 @@ def horiz_string(*args, **kwargs):
     else:
         val_list = args
 
-    val_list = [unicodedata.normalize('NFC', val) for val in val_list]
+    val_list = [unicodedata.normalize('NFC', ensure_unicode(val))
+                for val in val_list]
     all_lines = []
     hpos = 0
     # for each value in the list or args
