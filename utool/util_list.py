@@ -1516,7 +1516,6 @@ def sortedby2(item_list, *args, **kwargs):
         >>> print(result)
         [3, 4, 5, 2, 1]
     """
-    import operator
     assert all([len(item_list) == len_ for len_ in map(len, args)])
     reverse = kwargs.get('reverse', False)
     key = operator.itemgetter(*range(1, len(args) + 1))
@@ -2810,6 +2809,7 @@ def unique_inverse(item_list):
     """
     Like np.unique(item_list, return_inverse=True)
     """
+    import utool as ut
     unique_items = ut.unique(item_list)
     inverse = list_alignment(unique_items, item_list)
     return unique_items, inverse
