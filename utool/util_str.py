@@ -3202,9 +3202,9 @@ def testdata_text(num=1):
 
     text2 = ut.codeblock(r'''
         \begin{comment}
-        python -m ibeis -e rank_cdf -t invar -a viewdiff --test_cfgx_slice=6: --db PZ_Master1 --hargv=expt --prefix "Invariance+View Experiment "  # NOQA
+        python -m ibeis -e rank_cmc -t invar -a viewdiff --test_cfgx_slice=6: --db PZ_Master1 --hargv=expt --prefix "Invariance+View Experiment "  # NOQA
         \end{comment}
-        \ImageCommand{figuresX/expt_rank_cdf_PZ_Master1_a_viewdiff_t_invar.png}{\textwidth}{
+        \ImageCommand{figuresX/expt_rank_cmc_PZ_Master1_a_viewdiff_t_invar.png}{\textwidth}{
         Results of the invariance experiment with different viewpoints for plains
         zebras.  Only the results with different viewpoints are shown.  The query and
         database annotations are the same as those in the viewpoint experiment.  Thre

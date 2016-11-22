@@ -1273,13 +1273,39 @@ def triangular_number(n):
 
 
 def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
-    """
+    r"""
     Greedy algorithm, may be exact for 1d case.
     First, choose the first item, then choose the next item that is farthest
     away from all previously chosen items. Iterate.
 
     CommandLine:
         python -m utool.util_alg --exec-maximin_distance_subset1d
+
+    Notes:
+        Given a set of items V.
+        Let $E = V \times V$ be the the set of all item pairs.
+
+        The goal is to return the largest subset of item such that the distance
+        between any pair of items in the subset is greater than some threshold.
+
+        Let t[u, v] be the distance between u and v.
+
+        Let x[u, v] = 1 if the annotation pair (u, v) is included.
+
+        Let y[u] = 1 if the annotation u is included.
+
+        Objective:
+            maximize sum(y[u] for u in V)
+
+        subject to:
+            # Annotations pairs are only included if their timedelta is less than
+            # the threshold.
+            x[u, v] = 0 if t[u, v] > thresh
+
+            # If an edge is exclued at least one of its endpoints must be
+            # excluded
+            y[u] + y[v] - x[u, v] < 2
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1304,6 +1330,45 @@ def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
         >>> result = maximin_distance_subset1d(items, K, min_thresh, verbose=True)
         >>> print(result)
     """
+    if False:
+        import pulp
+        # Formulate integer program
+        prob = pulp.LpProblem("MaxSizeLargeDistSubset", pulp.LpMaximize)
+        # Solution variable indicates if set it chosen or not
+        item_indices = list(range(len(items)))
+        pair_indices = list(ut.combinations(item_indices, 2))
+        x = pulp.LpVariable.dicts(name='x', indexs=pair_indices,
+                                  lowBound=0, upBound=1, cat=pulp.LpInteger)
+        y = pulp.LpVariable.dicts(name='y', indexs=item_indices,
+                                  lowBound=0, upBound=1, cat=pulp.LpInteger)
+        # minimize the number of sets
+        prob.objective = sum(y[i] for i in item_indices)
+
+        # subject to
+        count = 0
+        for u, v in pair_indices:
+            # Minimum thresh constraint
+            if abs(items[u] - items[v]) < min_thresh:
+                prob.add(x[(u, v)] == 0, name='thresh_%r' % (count,))
+                count += 1
+
+        count = 0
+        for u, v in pair_indices:
+            prob.add(y[u] + y[v] - x[(u, v)] <= 1, 'exclusion_%r' % (count,))
+            count += 1
+
+        pulp.PULP_CBC_CMD().solve(prob)
+        # Read solution
+        flags = [y[i].varValue >= 1.0 for i in item_indices]
+        chosen_items_idxs = ut.where(flags)
+        chosen_items = ut.take(items, chosen_items_idxs)
+
+        # total_value = sum([val for val, flag in zip(values, flags) if flag])
+        # items_subset = [item for item, flag in zip(items, flags) if flag]
+        # each element is covered
+        # containing_sets = [i for i in set_indices if e in candidate_sets_dict[i]]
+        # prob.add(sum(x[i] for i in containing_sets) >= 1)
+
     import utool as ut
     import vtool as vt
     points = np.array(items)[:, None]

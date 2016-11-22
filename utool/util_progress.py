@@ -511,9 +511,10 @@ class ProgressIter(object):
         CLEARLINE_EL0 = '\33[0K'  # clear line to right
         # CLEARLINE_EL1 = '\33[1K'  # clear line to left
         CLEARLINE_EL2 = '\33[2K'  # clear line
-        DECTCEM_HIDE = '\033[?25l'  # hide cursor
+        # DECTCEM_HIDE = '\033[?25l'  # hide cursor
 
-        CLEAR_BEFORE = '\r' + CLEARLINE_EL2 + DECTCEM_HIDE
+        CLEAR_BEFORE = '\r' + CLEARLINE_EL2  # + DECTCEM_HIDE
+        # FIXME: hideing cursor persists if the program crashes
         CLEAR_AFTER = CLEARLINE_EL0
 
         msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl)
