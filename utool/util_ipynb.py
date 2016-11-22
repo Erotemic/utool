@@ -4,7 +4,11 @@ Utils for IPython/Jupyter Notebooks
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from utool import util_inject
+from collections import namedtuple
 print, rrr, profile = util_inject.inject2(__name__)
+
+
+IPYNBCell = namedtuple('IPYNBCell', ['header', 'code', 'footer'])
 
 
 def make_autogen_str():
@@ -93,6 +97,22 @@ def run_ipython_notebook(notebook_str):
     runner.run_notebook(skip_exceptions=False)
     run_nb = runner.nb
     return run_nb
+
+
+def normalize_cells(block):
+    if isinstance(block, (tuple, list)):
+        if len(block) == 2:
+            header, code = block
+            footer = None
+        elif len(block) == 3:
+            header, code, footer = block
+        else:
+            assert False
+    else:
+        header = None
+        footer = None
+        code = block
+    return IPYNBCell(header, code, footer)
 
 
 def format_cells(block, locals_=None):
