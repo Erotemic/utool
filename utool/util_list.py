@@ -1353,6 +1353,10 @@ def unique_unordered(list_):
     return list(set(list_))
 
 
+def unique_indices(list_):
+    return where(flag_unique_items(list_))
+
+
 def unique(list_, ordered=True):
     """
     Returns unique items in ``list_``.

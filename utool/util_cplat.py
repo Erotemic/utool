@@ -4,12 +4,13 @@ cross platform utilities
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
+import pipes
 import six
 import sys
 import platform
 import subprocess
 import shlex
-from os.path import exists, normpath, basename
+from os.path import exists, normpath, basename, dirname, join
 from utool import util_inject
 from utool._internal import meta_util_cplat
 from utool._internal.meta_util_path import unixpath, truepath
@@ -452,7 +453,6 @@ def startfile(fpath, detatch=True, quote=False, verbose=False, quiet=True):
     #if quote:
     #    fpath = '"%s"' % (fpath,)
     if not WIN32:
-        import pipes
         fpath = pipes.quote(fpath)
     if LINUX:
         #out, err, ret = cmd(['xdg-open', fpath], detatch=True)
@@ -507,12 +507,24 @@ def editfile(fpath):
     pass
 
 
-def view_directory(dname=None, verbose=True):
+def view_file_in_directory(fpaths):
+    import utool as ut
+    fpaths = ut.ensure_iterable(fpaths)
+    fnames = [basename(f) for f in fpaths]
+    dpaths = [dirname(f) for f in fpaths]
+    dpath_to_fnames = ut.group_items(fnames, dpaths)
+    for dpath, fnames in dpath_to_fnames.items():
+        ut.view_directory(dpath, fnames[0], verbose=False)
+
+
+def view_directory(dname=None, fname=None, verbose=True):
     """
-    view directory
+    View a directory in the operating system file browser. Currently supports
+    windows explorer, mac open, and linux nautlius.
 
     Args:
         dname (str): directory name
+        fname (str): a filename to select in the directory (nautlius only)
         verbose (bool):
 
     CommandLine:
@@ -525,9 +537,32 @@ def view_directory(dname=None, verbose=True):
         >>> dname = ut.truepath('~')
         >>> verbose = True
         >>> view_directory(dname, verbose)
+
+    Example:
+        >>> # SCRIPT_TEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> import utool as ut
+        >>> base = ut.ensure_app_resource_dir('utool', 'test_vd')
+        >>> dirs = [
+        >>>     '',
+        >>>     'dir1',
+        >>>     'has space',
+        >>>     'space at end ',
+        >>>     ' space at start ',
+        >>>     '"quotes and spaces"',
+        >>>     "'single quotes and spaces'",
+        >>>     'Frogram Piles (y2K)',
+        >>> ]
+        >>> dirs_ = [ut.ensuredir(join(base, d)) for d in dirs]
+        >>> for dname in dirs_:
+        >>>     ut.view_directory(dname, verbose=False)
+        >>> fpath = join(base, 'afile.txt')
+        >>> ut.touch(fpath)
+        >>> ut.view_directory(base, fpath, verbose=False)
     """
     from utool.util_arg import STRICT
     from utool.util_path import checkpath
+    # from utool.util_str import SINGLE_QUOTE, DOUBLE_QUOTE
 
     if verbose:
         print('[cplat] view_directory(%r) ' % dname)
@@ -540,25 +575,24 @@ def view_directory(dname=None, verbose=True):
     dname = normpath(dname)
     if STRICT:
         assert checkpath(dname, verbose=verbose), 'directory doesnt exit'
-    if dname.find(' ') != -1 and not dname.startswith(('"', '\'')):
-        dname = '"%s"' % dname
-    import pipes
-    if WIN32:
-        dname_ = dname
+    if fname is not None and OS_TYPE == 'linux':
+        arg = join(dname, fname)
     else:
-        dname_ = pipes.quote(dname)
-    command = open_prog + ' ' + dname_
-    print(command)
-    # spawn deteched process
-    args = (open_prog, dname_)
+        arg = dname
+    # if ' ' in dname and not dname.startswith((SINGLE_QUOTE, DOUBLE_QUOTE)):
+    #     # Ensure quotations
+    #     dname = '"%s"' % dname
+    # if not WIN32:
+    #     arg = dname
+    #     # arg = subprocess.list2cmdline([dname])
+    #     # arg = pipes.quote(dname)
+    # else:
+    #     arg = dname
+    # spawn and detatch process
+    args = (open_prog, arg)
+    print(subprocess.list2cmdline(args))
     subprocess.Popen(args)
-    #import utool as ut
-    #ut.embed()
-    #pass
-    print('[cplat] exit view directory')
-
-    #ret = os.system(command)
-    #print('ret = %r' % (ret,))
+    # print('[cplat] exit view directory')
 
 # Alias
 vd = view_directory

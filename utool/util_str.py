@@ -2421,7 +2421,7 @@ def pluralize(wordtext, num=2, plural_suffix='s'):
         plural_suffix (str): heurstic plural form (default = 's')
 
     Returns:
-        str: pluralized form
+        str: pluralized form. Can handle some genitive cases
 
     CommandLine:
         python -m utool.util_str pluralize
@@ -2434,6 +2434,13 @@ def pluralize(wordtext, num=2, plural_suffix='s'):
         >>> print(result)
         foos
     """
+    if num == 1:
+        return wordtext
+    else:
+        if wordtext.endswith('\'s'):
+            return wordtext[:-2] + 's\''
+        else:
+            return wordtext + plural_suffix
     return (wordtext + plural_suffix) if num != 1 else wordtext
 
 
