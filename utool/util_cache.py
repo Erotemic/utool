@@ -1396,7 +1396,9 @@ class LazyDict(object):
         >>> self.printinfo()
         >>> print(self.tostring(is_eager=False))
     """
-    def __init__(self, other=None, is_eager=True, verbose=False, reprkw=None, **kwargs):
+    def __init__(self, other=None, is_eager=True, verbose=False, reprkw=None,
+                 mutable=False,
+                 **kwargs):
         # Registered lazy evaluations
         self._eval_funcs = {}
         # Computed results
@@ -1405,6 +1407,7 @@ class LazyDict(object):
         self._is_eager = is_eager
         self._verbose = verbose
         self.reprkw = dict(is_eager=False, nl=False)
+        self._mutable = mutable
         if reprkw is not None:
             self.reprkw.update(**reprkw)
         if other is not None:
@@ -1421,7 +1424,7 @@ class LazyDict(object):
         #        ('Cannot add new lazy function for key=%r'
         #         'that has been computed') % (key,))
         #if key in self._stored_results:
-        if key in self.reconstructable_keys():
+        if not self._mutable and key in self.reconstructable_keys():
             raise ValueError(
                 ('Cannot overwrite lazy function for key=%r') % (key,))
         self._eval_funcs[key] = func
@@ -1429,7 +1432,7 @@ class LazyDict(object):
     def setitem(self, key, value):
         # HACK, lazy funcs should all be registered
         # this should should always just set a value
-        if key in self.reconstructable_keys():
+        if not self._mutable and key in self.reconstructable_keys():
             raise ValueError(
                 ('Cannot overwrite lazy function for key=%r') % (key,))
         if (self.infer_lazy_vals_hack and
