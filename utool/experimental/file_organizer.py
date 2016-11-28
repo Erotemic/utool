@@ -169,6 +169,7 @@ def turtles():
         self.populate()
 
     for self in ut.ProgIter(sources, label='del empty'):
+        self.populate()
         self.delete_empty_directories()
 
     print(ut.byte_str2(sum([self.nbytes() for self in sources])))
