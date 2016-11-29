@@ -501,6 +501,26 @@ def check_module_usage(modpath_patterns):
     pass
 
 
+def get_object_methods(obj):
+    """
+    Returns all methods belonging to an object instance specified in by the
+    __dir__ function
+
+    Example:
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> obj = ut.NiceRepr()
+        >>> methods1 = ut.get_object_methods()
+        >>> ut.inject_func_as_method(obj, ut.get_object_methods)
+        >>> methods2 = ut.get_object_methods()
+        >>> assert ut.get_object_methods in methods2
+    """
+    import utool as ut
+    attr_list = (getattr(obj, attrname) for attrname in dir(obj))
+    methods = [attr for attr in attr_list if ut.is_method(attr)]
+    return methods
+
+
 def help_members(obj, use_other=False):
     r"""
     Inspects members of a class
@@ -522,14 +542,14 @@ def help_members(obj, use_other=False):
     import utool as ut
     attrnames = dir(obj)
     attr_list = [getattr(obj, attrname) for attrname in attrnames]
-    attr_types = list(map(ut.type_str, map(type, attr_list)))
+    attr_types = ut.lmap(ut.type_str, map(type, attr_list))
     unique_types, groupxs = ut.group_indices(attr_types)
-    type2_items = dict(zip(unique_types, ut.apply_grouping(attr_list, groupxs)))
-    type2_item_names = dict(zip(unique_types, ut.apply_grouping(attrnames, groupxs)))
+    type_to_items = ut.dzip(unique_types, ut.apply_grouping(attr_list, groupxs))
+    type_to_itemname = ut.dzip(unique_types, ut.apply_grouping(attrnames, groupxs))
     #if memtypes is None:
-    #    memtypes = list(type2_items.keys())
+    #    memtypes = list(type_to_items.keys())
     memtypes = ['instancemethod']  # , 'method-wrapper']
-    func_mems = ut.dict_subset(type2_items, memtypes, [])
+    func_mems = ut.dict_subset(type_to_items, memtypes, [])
 
     func_list = ut.flatten(func_mems.values())
     defsig_list = []
@@ -550,8 +570,8 @@ def help_members(obj, use_other=False):
     print(ut.repr3(group, strvals=True))
 
     if use_other:
-        other_mems = ut.delete_keys(type2_items.copy(), memtypes)
-        other_mems_attrnames = ut.dict_subset(type2_item_names, other_mems.keys())
+        other_mems = ut.delete_keys(type_to_items.copy(), memtypes)
+        other_mems_attrnames = ut.dict_subset(type_to_itemname, other_mems.keys())
         named_other_attrs = ut.dict_union_combine(other_mems_attrnames, other_mems, lambda x, y: list(zip(x, y)))
         print(ut.dict_str(named_other_attrs, nl=2, strvals=True))
 

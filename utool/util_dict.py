@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """ convinience functions for dictionaries """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import operator
-from collections import defaultdict, OrderedDict
+import operator as op
 import itertools as it
-# import itertools
+from collections import defaultdict, OrderedDict
 from functools import partial
-from six.moves import zip, range, reduce, filter, map  # NOQA
+from six.moves import zip, range, map
 from utool import util_inject
 from utool import util_list
 from utool import util_const
@@ -132,6 +131,8 @@ def map_dict_keys(func, dict_):
         >>> ut.assert_raises(AssertionError, map_dict_keys, len, dict_)
         {97: [1, 2, 3], 98: []}
     """
+    if not hasattr(func, '__call__'):
+        func = op.itemgetter(func)
     keyval_list = [(func(key), val) for key, val in six.iteritems(dict_)]
     # newdict = type(dict_)(keyval_list)
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
@@ -1199,12 +1200,12 @@ def merge_dicts(*args):
     return mergedict_
 
 
-def dict_union3(dict1, dict2, combine_op=operator.add):
+def dict_union3(dict1, dict2, combine_op=op.add):
     r"""
     Args:
         dict1 (dict):
         dict2 (dict):
-        combine_op (builtin_function_or_method): (default = operator.add)
+        combine_op (func): (default=op.add)
 
     Returns:
         dict: mergedict_
@@ -1218,7 +1219,7 @@ def dict_union3(dict1, dict2, combine_op=operator.add):
         >>> import utool as ut
         >>> dict1 = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
-        >>> combine_op = operator.add
+        >>> combine_op = op.add
         >>> mergedict_ = dict_union3(dict1, dict2, combine_op)
         >>> result = ('mergedict_ = %s' % (ut.dict_str(mergedict_, nl=False),))
         >>> print(result)
@@ -1239,14 +1240,14 @@ def dict_union3(dict1, dict2, combine_op=operator.add):
     return dict3
 
 
-def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
+def dict_intersection(dict1, dict2, combine=False, combine_op=op.add):
     r"""
     Args:
         dict1 (dict):
         dict2 (dict):
         combine (bool): Combines keys only if the values are equal if False else
             values are combined using combine_op (default = False)
-        combine_op (builtin_function_or_method): (default = operator.add)
+        combine_op (func): (default = op.add)
 
     Returns:
         dict: mergedict_
@@ -1275,14 +1276,14 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=operator.add):
     return dict3
 
 
-def dict_isect_combine(dict1, dict2, combine_op=operator.add):
+def dict_isect_combine(dict1, dict2, combine_op=op.add):
     """ Intersection of dict keys and combination of dict values """
     keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
     dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
     return dict3
 
 
-def dict_union_combine(dict1, dict2, combine_op=operator.add,
+def dict_union_combine(dict1, dict2, combine_op=op.add,
                        default=util_const.NoParam,
                        default2=util_const.NoParam):
     """
@@ -1392,7 +1393,7 @@ def groupby_tags(item_list, tags_list):
 
 def groupby_attr(item_list, attrname):
     return group_items(item_list,
-                       map(operator.attrgetter(attrname), item_list))
+                       map(op.attrgetter(attrname), item_list))
 
 
 def group_pairs(pair_list):
@@ -1453,7 +1454,7 @@ def group_items(item_list, groupid_list, sorted_=True):
     if sorted_:
         # Sort by groupid for cache efficiency
         try:
-            pair_list = sorted(pair_list_, key=operator.itemgetter(0))
+            pair_list = sorted(pair_list_, key=op.itemgetter(0))
         except TypeError:
             # Python 3 does not allow sorting mixed types
             pair_list = sorted(pair_list_, key=lambda tup: str(tup[0]))
@@ -1820,7 +1821,7 @@ def sort_dict(dict_, part='keys', key=None, reverse=False):
     else:
         raise ValueError('Unknown method part=%r' % (part,))
     if key is None:
-        _key = operator.itemgetter(index)
+        _key = op.itemgetter(index)
     else:
         def _key(item):
             return key(item[index])
