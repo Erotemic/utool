@@ -3086,6 +3086,12 @@ class ColumnLists(NiceRepr):
         newself = self.__class__(key_to_list, self._meta.copy())
         return newself
 
+    def remove(self, idxs):
+        """ Returns a copy with idxs removed """
+        import utool as ut
+        keep_idxs = ut.index_complement(idxs, len(self))
+        return self.take(keep_idxs)
+
     def compress(self,  flags):
         import utool as ut
         idxs = ut.where(flags)

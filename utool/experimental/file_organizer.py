@@ -2,8 +2,11 @@
 from __future__ import print_function, division, absolute_import, unicode_literals
 import utool as ut
 from os.path import join, basename, splitext, exists, dirname
+# from utool import util_inject
+# print, rrr, profile = util_inject.inject2(__file__)
 
 
+@ut.reloadable_class
 class SourceDir(ut.NiceRepr):
     def __init__(self, dpath):
         self.dpath = dpath
@@ -25,8 +28,64 @@ class SourceDir(ut.NiceRepr):
         return len(self.rel_fpath_list)
 
     def index(self):
-        prog =  ut.ProgIter(self.fpaths(), length=len(self), label='building uuid')
-        self.uuids = [ut.get_file_uuid(fpath) for fpath in prog]
+        fpaths = self.fpaths()
+        prog =  ut.ProgIter(fpaths, length=len(self), label='building uuid')
+        self.uuids = self._uuids(prog)
+
+    def _uuids(self, fpaths):
+        return (ut.get_file_uuid(fpath) for fpath in fpaths)
+
+    def _abs(self, rel_paths):
+        for rel_path in rel_paths:
+            yield join(self.dpath, rel_path)
+
+    def get_prop(self, attrname, idxs):
+        """
+        Caching getter
+        """
+        if attrname not in self.attrs:
+            self.attrs[attrname] = [None for _ in range(len(self))]
+        prop_list = self.attrs[attrname]
+        props = ut.take(prop_list, idxs)
+        miss_flags = ut.flag_None_items(props)
+        if any(miss_flags):
+            miss_idxs = ut.compress(idxs, miss_flags)
+            miss_fpaths = self._abs(ut.take(self.rel_fpath_list, miss_idxs))
+            miss_values = getattr(self, '_' + attrname)(miss_fpaths)
+            for idx, val in zip(miss_idxs, miss_values):
+                prop_list[idx] = val
+            props = ut.take(prop_list, idxs)
+        return props
+
+    def find_nonunique_names(self):
+        fnames = map(basename, self.rel_fpath_list)
+        duplicate_map = ut.find_duplicate_items(fnames)
+        groups = []
+        for dupname, idxs in duplicate_map.items():
+            uuids = self.get_prop('uuids', idxs)
+            fpaths = self.get_prop('abs', idxs)
+            groups = ut.group_items(fpaths, uuids)
+            if len(groups) > 1:
+                if all(x == 1 for x in map(len, groups.values())):
+                    # All groups are different, this is an simpler case
+                    print(ut.repr2(groups, nl=3))
+                else:
+                    # Need to handle the multi-item groups first
+                    pass
+
+    def consolodate_duplicates(self):
+        fnames = map(basename, self.rel_fpath_list)
+        duplicate_map = ut.find_duplicate_items(fnames)
+        groups = []
+        for dupname, idxs in duplicate_map.items():
+            uuids = self.get_prop('uuids', idxs)
+            unique_uuids, groupxs = ut.group_indices(uuids)
+            groups.extend(ut.apply_grouping(idxs, groupxs))
+        multitons  = [g for g in groups if len(g) > 1]
+        singletons = [g for g in groups if len(g) <= 1]
+
+        ut.unflat_take(list(self.fpaths()), multitons)
+
 
     def duplicates(self):
         uuid_to_dupxs = ut.find_duplicate_items(self.uuids)
@@ -40,8 +99,7 @@ class SourceDir(ut.NiceRepr):
         return ut.dict_hist(self.attrs['ext'])
 
     def fpaths(self):
-        for fpath in self.rel_fpath_list:
-            yield join(self.dpath, fpath)
+        return self._abs(self.rel_fpath_list)
 
     def __nice__(self):
         return self.dpath
@@ -148,6 +206,14 @@ class SourceDir(ut.NiceRepr):
                 os.rmdir(dpath)
 
 
+def turtles2():
+    """
+    from utool.experimental.file_organizer import *
+    """
+    self = SourceDir('/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016')
+    self.populate()
+
+
 def turtles():
     source_dpaths = sorted(ut.glob('/raid/raw/RotanTurtles/', '*',
                                    recusrive=False, with_dirs=True,
@@ -206,11 +272,10 @@ def turtles():
     dest = sources[0]
     others = sources[1:]
     # Merge others into dest
-    bash_script = '\n'.join([other.make_merge_bash_script(dest) for other in others])
+    bash_script = '\n'.join([o.make_merge_bash_script(dest) for o in others])
     print(bash_script)
 
     other = self
-
     for other in others:
         other.merge_into(dest)
 
