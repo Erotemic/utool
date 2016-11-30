@@ -782,62 +782,12 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
     return unflat_vals
 
 
-def tuplize(list_):
-    """ Converts each scalar item in a list to a dimension-1 tuple
-    """
-    tup_list = [item if util_iter.isiterable(item) else (item,) for item in list_]
-    return tup_list
-
-
 def unpack_iterables(list_):
     import utool as ut
     if ut.isiterable(list_):
         return [new_item for item in list_ for new_item in unpack_iterables(item)]
     else:
         return [list_]
-
-
-def flattenize(list_):
-    """ maps flatten to a tuplized list
-
-    Weird function. DEPRICATE
-
-    Example:
-        >>> list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
-        >>> import utool
-        >>> from itertools import zip
-        >>> val_list1 = [(1, 2), (2, 4), (5, 3)]
-        >>> id_list1  = [(1,),     (2,),   (3,)]
-        >>> out_list1 = utool.flattenize(zip(val_list1, id_list1))
-
-        >>> val_list2 = [1, 4, 5]
-        >>> id_list2  = [(1,),     (2,),   (3,)]
-        >>> out_list2 = utool.flattenize(zip(val_list2, id_list2))
-
-        >>> val_list3 = [1, 4, 5]
-        >>> id_list3  = [1, 2, 3]
-        >>> out_list3 = utool.flattenize(zip(val_list3, id_list3))
-
-        out_list4 = list(zip(val_list3, id_list3))
-        %timeit utool.flattenize(zip(val_list1, id_list1))
-        %timeit utool.flattenize(zip(val_list2, id_list2))
-        %timeit utool.flattenize(zip(val_list3, id_list3))
-        %timeit list(zip(val_list3, id_list3))
-
-        100000 loops, best of 3: 14 us per loop
-        100000 loops, best of 3: 16.5 us per loop
-        100000 loops, best of 3: 18 us per loop
-        1000000 loops, best of 3: 1.18 us per loop
-    """
-
-    #return map(iflatten, list_)
-    #if not isiterable(list_):
-    #    list2_ = (list_,)
-    #else:
-    #    list2_ = list_
-    tuplized_iter   = list(map(tuplize, list_))
-    flatenized_list = list(map(flatten, tuplized_iter))
-    return flatenized_list
 
 
 def safe_slice(list_, *args):
@@ -1480,12 +1430,9 @@ def sortedby2(item_list, *args, **kwargs):
 
     Args:
         item_list (list): list to sort
-
-    Varargs:
-        *args (list): multiple lists to sort by
-
-    Kwargs:
-        reverse (bool): sort order is descending if True else acscending
+        *args: multiple lists to sort by
+        **kwargs:
+            reverse (bool): sort order is descending if True else acscending
 
     Returns:
         list : ``list_`` sorted by the values of another ``list``. defaults to
@@ -1536,41 +1483,43 @@ def sortedby2(item_list, *args, **kwargs):
     return sorted_list
 
 
-def list_unflat_take(items_list, unflat_index_list):
+def unflat_take(items_list, unflat_index_list):
     r"""
+    Returns nested subset of items_list
+
     Args:
         items_list (list):
-        unflat_index_list (list):
+        unflat_index_list (list): nested list of indices
 
     CommandLine:
-        python -m utool.util_list --exec-list_unflat_take
+        python -m utool.util_list --exec-unflat_take
+
+    SeeAlso:
+        ut.take
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> items_list = [1, 2, 3, 4, 5]
         >>> unflat_index_list = [[0, 1], [2, 3], [0, 4]]
-        >>> result = list_unflat_take(items_list, unflat_index_list)
+        >>> result = unflat_take(items_list, unflat_index_list)
         >>> print(result)
         [[1, 2], [3, 4], [1, 5]]
     """
-    return [list_unflat_take(items_list, xs)
+    return [unflat_take(items_list, xs)
             if isinstance(xs, list) else
             take(items_list, xs)
             for xs in unflat_index_list]
 
 
-unflat_take = list_unflat_take
-
-
 def argsort(*args, **kwargs):
-    """ like np.argsort but for lists
+    """
+    like np.argsort but for lists
 
-    Varargs:
-        *args (list): multiple lists to sort by
-
-    Kwargs:
-        reverse (bool): sort order is descending if True else acscending
+    Args:
+        *args: multiple lists to sort by
+        **kwargs:
+            reverse (bool): sort order is descending if True else acscending
     """
     index_list = list(range(len(args[0])))
     return sortedby2(index_list, *args, **kwargs)
@@ -1581,10 +1530,10 @@ def argmax(list_):
     References:
         http://stackoverflow.com/questions/16945518/python-argmin-argmax
 
-    list_ = np.random.rand(10000).tolist()
-
-    %timeit list_.index(max(list_))
-    %timeit max(enumerate(list_), key=itemgetter(1))
+    Ignore:
+        list_ = np.random.rand(10000).tolist()
+        %timeit list_.index(max(list_))
+        %timeit max(enumerate(list_), key=itemgetter(1))
     """
     return list_.index(max(list_))
 
@@ -1609,8 +1558,20 @@ def take_complement(list_, index_list):
     return compress(list_, mask)
 
 
+def none_take(list_, index_list):
+    """
+    Like take but indices can be None
+
+    SeeAlso:
+        ut.take
+    """
+    return [None if index is None else list_[index] for index in index_list]
+
+
 def take(list_, index_list):
-    """ like np.take but for lists
+    """
+    Selects a subset of a list based on a list of indices.
+    This is similar to np.take, but pure python.
 
     Args:
         list_ (list): some indexable object
@@ -1621,6 +1582,12 @@ def take(list_, index_list):
 
     CommandLine:
         python -m utool.util_list --test-take
+
+    SeeAlso:
+        ut.dict_take
+        ut.dict_subset
+        ut.none_take
+        ut.compress
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2473,9 +2440,6 @@ def list_type_profile(sequence, compress_homogenous=True, with_dtype=True):
         sequence (?):
         compress_homogenous (bool): (default = True)
 
-    Kwargs:
-        compress_homogenous
-
     Returns:
         str: level_type_str
 
@@ -2536,9 +2500,6 @@ def type_profile2(sequence, TypedSequence=None):
     Args:
         sequence (?):
         compress_homogenous (bool): (default = True)
-
-    Kwargs:
-        compress_homogenous
 
     Returns:
         str: level_type_str
@@ -2803,9 +2764,50 @@ def make_index_lookup(list_, dict_factory=dict):
     return dict_factory(zip(list_, range(len(list_))))
 
 
-def list_alignment(list1, list2):
-    idx2_item1 = make_index_lookup(list1)
-    sortx = take(idx2_item1, list2)
+def list_alignment(list1, list2, missing=False):
+    """
+    Assumes list items are unique
+
+    Args:
+        list1 (list): a list of unique items to be aligned
+        list2 (list): a list of unique items in a desired ordering
+        missing (bool): True if list2 can contain items not in list1
+
+    Returns:
+        list: sorting that will map list1 onto list2
+
+    CommandLine:
+        python -m utool.util_list list_alignment
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> list1 = ['b', 'c', 'a']
+        >>> list2 = ['a', 'b', 'c']
+        >>> sortx = list_alignment(list1, list2)
+        >>> list1_aligned = take(list1, sortx)
+        >>> assert list1_aligned == list2
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> list1 = ['b', 'c', 'a']
+        >>> list2 = ['a', 'a2', 'b', 'c', 'd']
+        >>> sortx = ut.list_alignment(list1, list2, missing=True)
+        >>> print('sortx = %r' % (sortx,))
+        >>> list1_aligned = ut.none_take(list1, sortx)
+        >>> result = ('list1_aligned = %s' % (ut.repr2(list1_aligned),))
+        >>> print(result)
+        list1_aligned = ['a', None, 'b', 'c', None]
+    """
+    import utool as ut
+    item1_to_idx = make_index_lookup(list1)
+    if missing:
+        sortx = ut.dict_take(item1_to_idx, list2, None)
+    else:
+        sortx = ut.take(item1_to_idx, list2)
     return sortx
 
 
@@ -3046,9 +3048,6 @@ def index_to_boolmask(index_list, maxval=None):
     Args:
         index_list (list):
         maxval (None): (default = None)
-
-    Kwargs:
-        maxval
 
     Returns:
         list: mask
