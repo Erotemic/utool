@@ -98,7 +98,7 @@ class BaronWraper(object):
         else:
             raise ValueError('unknown error for node=%r' % (node.name))
 
-    def internal_call_graph(self):
+    def internal_call_graph(self, with_doctests=False):
         """
         >>> import plottool as pt
         >>> pt.qt4ensure()
@@ -113,7 +113,7 @@ class BaronWraper(object):
         with ut.Timer('parsing docstrings'):
             doc_nodes = {}
             for func in functions:
-                if False and len(func) > 0:
+                if with_doctests and len(func) > 0:
                     if func[0].type == 'raw_string':
                         docstr_ = eval(func[0].value)
                         docstr = ut.unindent(docstr_)
@@ -121,7 +121,8 @@ class BaronWraper(object):
                         count = 0
                         for key, block in docblocks:
                             if key.startswith('Example'):
-                                doctest = docblocks['Example:']
+                                doctest = block
+                                # docblocks['Example:']
                                 docname = '<doctest%d>' % (count,) + func.name
                                 doc_nodes[docname] = doctest
                                 G.add_node(docname)
@@ -137,7 +138,7 @@ class BaronWraper(object):
             pat = re.compile(ut.regex_or(func_names))
             found = self.baron.find_all('NameNode', value=pat, recursive=True)
 
-        for node in ut.ProgIter(found, 'Searching for parent funcs'):
+        for node in ut.ProgIter(found, 'Searching for parent funcs', adjust=False, freq=1):
             parent_func = self.find_root_function(node)
             caller = parent_func.name
             callee = node.name
@@ -153,7 +154,7 @@ class BaronWraper(object):
             return G
 
 
-def get_internal_call_graph(fpath):
+def get_internal_call_graph(fpath, with_doctests=False):
     """
     CommandLine:
         python -m utool.util_inspect get_internal_call_graph --show --modpath=~/code/ibeis/ibeis/init/main_helpers.py --show
@@ -164,18 +165,21 @@ def get_internal_call_graph(fpath):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> fpath = ut.get_argval('--modpath', default='.')
-        >>> G = get_internal_call_graph(fpath)
+        >>> with_doctests = ut.get_argflag('--with_doctests')
+        >>> G = get_internal_call_graph(fpath, with_doctests)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.qt4ensure()
         >>> pt.show_nx(G, fontsize=8, as_directed=False)
+        >>> z = pt.zoom_factory()
+        >>> p = pt.pan_factory()
         >>> ut.show_if_requested()
     """
     import utool as ut
     fpath = ut.truepath(fpath)
     sourcecode = ut.readfrom(fpath)
     self = ut.BaronWraper(sourcecode)
-    G = self.internal_call_graph()
+    G = self.internal_call_graph(with_doctests=with_doctests)
     return G
 
 
