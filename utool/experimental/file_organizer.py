@@ -86,7 +86,6 @@ class SourceDir(ut.NiceRepr):
 
         ut.unflat_take(list(self.fpaths()), multitons)
 
-
     def duplicates(self):
         uuid_to_dupxs = ut.find_duplicate_items(self.uuids)
         dup_fpaths = [ut.take(self.rel_fpath_list, idxs) for idxs in uuid_to_dupxs.values()]
