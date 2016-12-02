@@ -212,6 +212,37 @@ def turtles2():
     self = SourceDir('/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016')
     self.populate()
 
+    """
+    Goal:
+        Organize media on a computer over multiple drives.
+
+    Fix duplicate strategy:
+        make graph where each file/directory is a node
+        make a directed edge whenever <path1> -- contains --> <path2>
+        Find all files with the same contents
+        make an undirected edge whever <file1.uuid> == <file2.uuid>
+
+    For each pair of the same files we need to assign them both to either
+    directory 1 or directory 2. Maybe do a min-st cut between directory 1 and
+    directory 2. for each pair of directories with the same file.
+
+    In this case dir1 should be merged into dir2 (cut all edges from dir1 to
+    its files)
+
+    dir1      dir2
+    ----      ----
+    a.jpg --- a.jpg
+    b.jpg --- b.jpg
+    c.jpg --- c.jpg
+              d.jpg
+              e.jpg
+
+    We also need to know the association of each file with every other file in
+    its directory (or more preciely every other file in the system, but we can
+    ignore most setting thir association to 0)
+
+    """
+
 
 def turtles():
     source_dpaths = sorted(ut.glob('/raid/raw/RotanTurtles/', '*',
