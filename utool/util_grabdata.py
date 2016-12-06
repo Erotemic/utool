@@ -9,11 +9,13 @@ import gzip
 import urllib  # NOQA
 import functools
 import time
+import hashlib
 from six.moves import urllib as _urllib
 from utool import util_path
 from utool import util_cplat
 from utool import util_arg
 from utool import util_inject
+from utool import util_hash
 print, rrr, profile = util_inject.inject2(__name__)
 
 
@@ -679,7 +681,7 @@ def grab_selenium_driver(driver_name=None):
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                   delay=None, spoof=False, fname=None, verbose=True,
-                  redownload=False):
+                  redownload=False, verify_hash=True, assert_verify_hash=False):
     r"""
     Downloads a file and returns the local path of the file.
 
@@ -704,9 +706,10 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
 
     CommandLine:
         sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
-        python -m utool.util_grabdata --test-grab_file_url
+        python -m utool.util_grabdata --test-grab_file_url:0
+        python -m utool.util_grabdata --test-grab_file_url:1
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut  # NOQA
@@ -725,6 +728,49 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         >>> result = basename(lena_fpath)
         >>> print(result)
         lena.png
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> import utool as ut  # NOQA
+        >>> from os.path import basename
+        >>> file_url = 'http://i.imgur.com/JGrqMnV.png'
+        >>> ensure = True
+        >>> appname = 'utool'
+        >>> download_dir = None
+        >>> delay = None
+        >>> spoof = False
+        >>> verbose = True
+        >>> redownload = False
+        >>> fname = 'lena.png'
+        >>> lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,
+        >>>                               delay, spoof, fname, verbose, redownload)
+        >>> result = basename(lena_fpath)
+        >>> print(result)
+        lena.png
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> import utool as ut  # NOQA
+        >>> from os.path import basename
+        >>> file_url = 'http://i.imgur.com/JGrqMnV.png'
+        >>> ensure = True
+        >>> appname = 'utool'
+        >>> download_dir = None
+        >>> delay = None
+        >>> spoof = False
+        >>> verbose = True
+        >>> redownload = True
+        >>> fname = 'lena.png'
+        >>> assert_verify_hash = True
+        >>> try:
+        >>>     lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,
+        >>>                                   delay, spoof, fname, verbose, redownload,
+        >>>                                   assert_verify_hash=assert_verify_hash)
+        >>> except ValueError:
+        >>>     print('ERROR FOR HASH CAUGHT')
+        >>>     pass
     """
     file_url = clean_dropbox_link(file_url)
     if fname is None:
@@ -749,6 +795,62 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                 print('[utool] Already have file %s' % fpath)
     if ensure:
         util_path.assert_exists(fpath)
+
+    # At this point, the file exists locally.  Check if remote MD5 hash exists.
+    # If so, check local hash if force hash flag is enabled.  If hash is
+    # different, redownload files
+    if verify_hash:
+        hash_list = [
+            ('md5',    32, hashlib.md5()),
+            ('sha1',   20, hashlib.sha1()),
+            ('sha256', 32, hashlib.sha256()),
+        ]
+
+        success = False
+        for (hash_tag, hash_len, hasher) in hash_list:
+            hash_url = '%s.%s' % (file_url, hash_tag, )
+            hash_fpath = '%s.%s' % (fpath, hash_tag, )
+
+            vals = (file_url, hash_tag, hash_url, )
+            print('Downloaded URL %r, checking %s hash URL %r' % vals)
+
+            download_url(hash_url, hash_fpath, spoof=spoof)
+            with open(hash_fpath) as hash_file:
+                hash_remote = hash_file.read().strip()
+
+            try:
+                # CHeck correct length
+                assert len(hash_remote) == hash_len
+
+                # Check number is hexidecimal
+                int(hash_remote, 16)
+
+                # Get local hash and compare
+                hash_local = util_hash.get_file_hash(fpath, hexdigest=True)
+                print(hash_remote)
+                print(hash_local)
+                if hash_remote == hash_local:
+                    success = True
+                    break
+            except (AssertionError, ValueError):
+                util_path.delete(hash_fpath)
+
+        if not success:
+            exception = ValueError('Failed required downloaded file hash check')
+            print('[utool.grabdata] WARNING: DOWNLOADED FILE FAILED HASH CHECK')
+            if assert_verify_hash:
+                raise exception
+            else:
+                print('[utool.grabdata] TRYING REDOWNLOAD...')
+                try:
+                    grab_file_url(file_url, ensure=ensure, appname=appname,
+                                  download_dir=download_dir, delay=delay, spoof=spoof,
+                                  fname=fname, verbose=verbose, redownload=True,
+                                  verify_hash=verify_hash, assert_verify_hash=True)
+                except ValueError:
+                    if assert_verify_hash:
+                        raise exception
+
     return fpath
 
 

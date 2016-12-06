@@ -12,10 +12,12 @@ Currently there is a mix of sha1, sha256, and sha512 in different places.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import hashlib
 import copy
+import os
 import six
 import uuid
 import random
 from utool import util_inject
+from utool import util_path
 (print, rrr, profile) = util_inject.inject2(__name__, '[hash]')
 
 # default length of hash codes
@@ -279,7 +281,8 @@ def hashstr_sha1(data, base10=False):
     return text
 
 
-def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1):
+def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1,
+                  hexdigest=False):
     r"""
     For better hashes use hasher=hashlib.sha256, and keep stride=1
 
@@ -343,7 +346,77 @@ def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1):
             if stride > 1:
                 file_.seek(blocksize * (stride - 1), 1)  # skip blocks
             buf = file_.read(blocksize)
-        return hasher.digest()
+        if hexdigest:
+            return hasher.hexdigest()
+        else:
+            return hasher.digest()
+
+
+def write_hash_file(fpath, hash_tag='md5', recompute=False, **kwargs):
+    r""" Creates a hash file for each file in a path
+
+    CommandLine:
+        python -m utool.util_hash --test-write_hash_file
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import utool as ut
+        >>> from utool.util_hash import *  # NOQA
+        >>> fpath = ut.grab_test_imgpath('patsy.jpg')
+        >>> write_hash_file(fpath, 'md5')
+    """
+    hash_dict = {
+        'md5'    : hashlib.md5(),
+        'sha1'   : hashlib.sha1(),
+        'sha256' : hashlib.sha256(),
+    }
+    message = "Unrecognized hashing function.  Use 'md5', 'sha1', or 'sha256"
+    assert hash_tag in hash_dict, message
+    if fpath.endswith('.%s' % (hash_tag, )):
+        # No need to compute hashes on hashes
+        return
+    # Get hash path
+    hash_fpath = '%s.%s' % (fpath, hash_tag, )
+    if os.path.exists(hash_fpath) and not recompute:
+        return
+    # Assert this is a file
+    file_type = util_path.get_path_type(fpath)
+    if file_type == 'file':
+        # Compute hash
+        hasher = hash_dict[hash_tag]
+        hash_local = get_file_hash(fpath, hasher=hasher, hexdigest=True)
+        print('Adding:', fpath, hash_local)
+        with open(hash_fpath, 'w') as hash_file:
+            hash_file.write(hash_local)
+        return hash_fpath
+
+
+def write_hash_file_for_path(path, **kwargs):
+    r""" Creates a hash file for each file in a path
+
+    CommandLine:
+        python -m utool.util_hash --test-write_hash_file_for_path
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import os
+        >>> import utool as ut
+        >>> from utool.util_hash import *  # NOQA
+        >>> fpath = ut.grab_test_imgpath('patsy.jpg')
+        >>> path, _ = os.path.split(fpath)
+        >>> hash_fpath_list = write_hash_file_for_path(path)
+        >>> for hash_fpath in hash_fpath_list:
+        >>>     assert os.path.exists(hash_fpath)
+        >>>     ut.delete(hash_fpath)
+    """
+    hash_fpath_list = []
+    for root, dname_list, fname_list in os.walk(path):
+        for fname in fname_list:
+            fpath = os.path.join(path, fname)
+            hash_fpath = write_hash_file(fpath, **kwargs)
+            if hash_fpath is not None:
+                hash_fpath_list.append(hash_fpath)
+    return hash_fpath_list
 
 
 def get_file_uuid(fpath, hasher=None, stride=1):
