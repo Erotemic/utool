@@ -1666,6 +1666,36 @@ def stack_graphs(graph_list, vert=False, pad=None):
     return new_graph
 
 
+def nx_contracted_nodes(G, u, v, self_loops=True, inplace=False):
+    """
+    copy of networkx function with inplace modification
+    TODO: commit to networkx
+    """
+    import itertools as it
+    if G.is_directed():
+        in_edges = ((w, u, d) for w, x, d in G.in_edges(v, data=True)
+                    if self_loops or w != u)
+        out_edges = ((u, w, d) for x, w, d in G.out_edges(v, data=True)
+                     if self_loops or w != u)
+        new_edges = it.chain(in_edges, out_edges)
+    else:
+        new_edges = ((u, w, d) for x, w, d in G.edges(v, data=True)
+                     if self_loops or w != u)
+    if inplace:
+        H = G
+        new_edges = list(new_edges)
+    else:
+        H = G.copy()
+    v_data = H.node[v]
+    H.remove_node(v)
+    H.add_edges_from(new_edges)
+    if 'contraction' in H.node[u]:
+        H.node[u]['contraction'][v] = v_data
+    else:
+        H.node[u]['contraction'] = {v: v_data}
+    return H
+
+
 def approx_min_num_components(nodes, negative_edges):
     """
     Find approximate minimum number of connected components possible
@@ -1673,7 +1703,7 @@ def approx_min_num_components(nodes, negative_edges):
 
     This code doesn't solve the problem. The problem is NP-complete and
     reduces to minimum clique cover (MCC). This is only an approximate
-    solution.
+    solution. Not sure what the approximation ratio is.
 
     CommandLine:
         python -m utool.util_graph approx_min_num_components
@@ -1716,7 +1746,8 @@ def approx_min_num_components(nodes, negative_edges):
         deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
 
     for u, v in ut.itertwo(deg0_nodes):
-        g_neg = nx.contracted_nodes(g_neg, v, u)
+        nx_contracted_nodes(g_neg, v, u, inplace=True)
+        # g_neg = nx.contracted_nodes(g_neg, v, u, self_loops=False)
 
     # Initialize unused nodes to be everything
     unused = list(g_neg.nodes())
