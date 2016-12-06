@@ -837,7 +837,8 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                     args = (hash_remote, hash_local, )
                     print('[utool] Remote Hash: %r, Local Hash: %r' % args)
                 if hash_remote == hash_local:
-                    print('[utool] Hash verified...')
+                    if verbose:
+                        print('[utool] Hash verified...')
                     success = True
                     break
             except (AssertionError, ValueError):
