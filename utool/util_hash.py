@@ -411,7 +411,7 @@ def write_hash_file_for_path(path, **kwargs):
     """
     hash_fpath_list = []
     for root, dname_list, fname_list in os.walk(path):
-        for fname in fname_list:
+        for fname in sorted(fname_list):
             fpath = os.path.join(path, fname)
             hash_fpath = write_hash_file(fpath, **kwargs)
             if hash_fpath is not None:
