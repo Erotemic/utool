@@ -681,7 +681,7 @@ def grab_selenium_driver(driver_name=None):
 
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                   delay=None, spoof=False, fname=None, verbose=True,
-                  redownload=False, verify_hash=True, ensure_hash=False,
+                  redownload=False, verify_hash=False, ensure_hash=False,
                   assert_hash=False):
     r"""
     Downloads a file and returns the local path of the file.
@@ -799,18 +799,20 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
     # At this point, the file exists locally.  Check if remote MD5 hash exists.
     # If so, check local hash if force hash flag is enabled.  If hash is
     # different, redownload files
-    if verify_hash:
-        if redownload or util_arg.get_argflag('--hashes'):
+    if verify_hash or util_arg.get_argflag('--verify-hashes'):
+        if redownload or util_arg.get_argflag('--ensure-hashes'):
             ensure_hash = True
 
         hash_list = [
-            ('md5',    32, hashlib.md5()),
-            ('sha1',   20, hashlib.sha1()),
-            ('sha256', 32, hashlib.sha256()),
+            ('md5',    hashlib.md5()),
+            # ('sha1',   hashlib.sha1()),
+            # ('sha256', hashlib.sha256()),
         ]
+        # xs = [hashlib.md5(), hashlib.sha1(), hashlib.sha256()]
 
         success = False
-        for (hash_tag, hash_len, hasher) in hash_list:
+        for (hash_tag, hasher) in hash_list:
+            hash_len = hasher.digest_size * 2
             hash_url = '%s.%s' % (file_url, hash_tag, )
             hash_fpath = '%s.%s' % (fpath, hash_tag, )
 
@@ -824,7 +826,7 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                 hash_remote = hash_file.read().strip()
 
             try:
-                # CHeck correct length
+                # Check correct length
                 assert len(hash_remote) == hash_len
 
                 # Check number is hexidecimal
