@@ -374,7 +374,7 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False):
         >>> assert n5 == [(1, 2), (1, 4), (2, 3), (3, 4)]
     """
     import itertools as it
-    if nodes2 is None:
+    if nodes2 is None or nodes2 is nodes1:
         edge_iter = it.combinations(nodes1, 2)
     else:
         if assume_disjoint:
@@ -1729,7 +1729,7 @@ def approx_min_num_components(nodes, negative_edges):
         >>> negative_edges = g_neg.edges()
         >>> nodes = [1, 2, 3, 4, 5, 6, 7]
         >>> negative_edges = [(1, 2), (2, 3), (4, 5)]
-        >>> approx_min_num_components(nodes, negative_edges)
+        >>> result = approx_min_num_components(nodes, negative_edges)
         2
     """
     import utool as ut
