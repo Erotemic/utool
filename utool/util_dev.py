@@ -17,7 +17,6 @@ from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
 from utool import util_dict
 from utool import util_arg
-from utool import util_const
 from utool import util_decor
 try:
     import numpy as np
@@ -34,9 +33,6 @@ if HAVE_NUMPY:
     INDEXABLE_TYPES = (list, tuple, np.ndarray)
 else:
     INDEXABLE_TYPES = (list, tuple)
-
-
-NoParam = util_const.NoParam
 
 
 def overrideable_partial(func, *args, **default_kwargs):

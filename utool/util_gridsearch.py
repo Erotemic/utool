@@ -6,6 +6,7 @@ from utool import util_class
 from utool import util_inject
 from utool import util_dict
 from utool import util_dev
+from utool import util_const
 from utool import util_decor
 from utool import util_type
 import functools
@@ -1164,9 +1165,9 @@ class ParamInfo(util_dev.NiceRepr):
         >>> print(result)
         foo=5
     """
-    def __init__(pi, varname=None, default=None, shortprefix=util_dev.NoParam,
-                 type_=util_dev.NoParam, varyvals=[], varyslice=None,
-                 hideif=util_dev.NoParam, help_=None, valid_values=None,
+    def __init__(pi, varname=None, default=None, shortprefix=None,
+                 type_=util_const.NoParam, varyvals=[], varyslice=None,
+                 hideif=util_const.NoParam, help_=None, valid_values=None,
                  max_=None, min_=None, step_=None, none_ok=True):
         r"""
         Args:
@@ -1182,14 +1183,14 @@ class ParamInfo(util_dev.NiceRepr):
         pi.varname = varname
         pi.default = default
         pi.shortprefix = shortprefix
-        if type_ is util_dev.NoParam:
+        if type_ is util_const.NoParam:
             if default is not None:
                 pi.type_ = type(default)
             else:
                 pi.type_ = None
         else:
             pi.type_ = type_
-        # pi.type_ = type(default) if type_ is util_dev.NoParam else type_
+        # pi.type_ = type(default) if type_ is util_const.NoParam else type_
         # for gridsearch
         pi.varyvals = varyvals
         pi.varyslice = varyslice
@@ -1201,7 +1202,7 @@ class ParamInfo(util_dev.NiceRepr):
             assert default in valid_values
         pi.valid_values = valid_values
         pi.hideif_list = []
-        if hideif is not util_dev.NoParam:
+        if hideif is not util_const.NoParam:
             pi.append_hideif(hideif)
         pi.max_ = max_
         pi.min_ = min_
@@ -1290,7 +1291,7 @@ class ParamInfo(util_dev.NiceRepr):
             if isinstance(varval, slice):
                 varstr = varstr.replace(' ', '')
         # Place varstr in the context of the param name
-        if pi.shortprefix is not util_dev.NoParam:
+        if pi.shortprefix is not None:
             itemstr = '%s%s' % (pi.shortprefix, varstr)
         else:
             itemstr =  '%s=%s' % (pi.varname, varstr)
@@ -1320,14 +1321,14 @@ class ParamInfoBool(ParamInfo):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
-        >>> pi = ParamInfoBool('cheese_on', hideif=util_dev.NoParam)
+        >>> pi = ParamInfoBool('cheese_on', hideif=util_const.NoParam)
         >>> cfg = ut.DynStruct()
         >>> cfg.cheese_on = False
         >>> result = pi.get_itemstr(cfg)
         >>> print(result)
         nocheese
     """
-    def __init__(pi, varname, default=False, shortprefix=util_dev.NoParam,
+    def __init__(pi, varname, default=False, shortprefix=None,
                  type_=bool, varyvals=[], varyslice=None, hideif=False,
                  help_=None):
         if not varname.endswith('_on'):
@@ -1342,7 +1343,7 @@ class ParamInfoBool(ParamInfo):
         # TODO: redo this as _make_varstr and remove all instances of
         # _make_itemstr
         varval = getattr(cfg,  pi.varname)
-        if pi.shortprefix is not util_dev.NoParam:
+        if pi.shortprefix is not None:
             itemstr = pi.shortprefix
         else:
             itemstr =  pi.varname.replace('_on', '')

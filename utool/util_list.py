@@ -404,11 +404,11 @@ def flatten(list_):
     return list(util_iter.iflatten(list_))
 
 
-def invertible_flatten(unflat_list):
+def invertible_flatten1(unflat_list):
     r"""
-    Flattens ``list`` but remember how to reconstruct the unflat ``list``
-    Returns flat ``list`` and the unflat ``list`` with indexes into the flat
-    ``list``
+    Flattens `unflat_list` but remember how to reconstruct the `unflat_list`
+    Returns `flat_list` and the `reverse_list` with indexes into the
+    `flat_list`
 
     Args:
         unflat_list (list): list of nested lists that we will flatten.
@@ -417,24 +417,20 @@ def invertible_flatten(unflat_list):
         tuple : (flat_list, reverse_list)
 
     CommandLine:
-        python -m utool.util_list --exec-invertible_flatten --show
+        python -m utool.util_list --exec-invertible_flatten1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
         >>> unflat_list = [[1, 2, 3], [4, 5], [6, 6]]
-        >>> flat_list, reverse_list = invertible_flatten(unflat_list)
+        >>> flat_list, reverse_list = invertible_flatten1(unflat_list)
         >>> result = ('flat_list = %s\n' % (ut.repr2(flat_list),))
         >>> result += ('reverse_list = %s' % (ut.repr2(reverse_list),))
         >>> print(result)
         flat_list = [1, 2, 3, 4, 5, 6, 6]
         reverse_list = [[0, 1, 2], [3, 4], [5, 6]]
     """
-    # def nextnum(trick_=[0]):
-    #     num = trick_[0]
-    #     trick_[0] += 1
-    #     return num
     nextnum = functools.partial(six.next, itertools.count(0))
     # Build an unflat list of flat indexes
     reverse_list = [[nextnum() for _ in tup] for tup in unflat_list]
@@ -442,8 +438,8 @@ def invertible_flatten(unflat_list):
     return flat_list, reverse_list
 
 
-def unflatten(flat_list, reverse_list):
-    """ Rebuilds unflat list from invertible_flatten
+def unflatten1(flat_list, reverse_list):
+    """ Rebuilds unflat list from invertible_flatten1
 
     Args:
         flat_list (list): the flattened list
@@ -454,12 +450,13 @@ def unflatten(flat_list, reverse_list):
 
 
     SeeAlso:
-        invertible_flatten
+        invertible_flatten1
         invertible_flatten2
         unflatten2
 
     """
-    unflat_list2 = [[flat_list[index] for index in tup] for tup in reverse_list]
+    unflat_list2 = [[flat_list[index] for index in tup]
+                    for tup in reverse_list]
     return unflat_list2
 
 
@@ -539,7 +536,7 @@ def invertible_total_flatten(unflat_list):
     while not all(scalar_flags):
         unflattenized = [[item] if flag else item
                          for flag, item in zip(scalar_flags, next_list)]
-        flatter_list, invert_part = ut.invertible_flatten(unflattenized)
+        flatter_list, invert_part = ut.invertible_flatten1(unflattenized)
         # print('flatter_list = %r' % (flatter_list,))
         for idx in ut.where(scalar_flags):
             invert_part[idx] = invert_part[idx][0]
@@ -563,7 +560,7 @@ def total_unflatten(flat_list, invert_levels):
         needs_unflatxs = ut.where(needs_unflatten)
         already_flatxs = ut.where(is_alreadyflat)
         invertinfo = ut.compress(level, needs_unflatten)
-        unflat_part = ut.unflatten(less_flat_list, invertinfo)
+        unflat_part = ut.unflatten1(less_flat_list, invertinfo)
 
         flat_sortx = ut.take(level, already_flatxs)
         flat_part = ut.take(less_flat_list, flat_sortx)
@@ -579,7 +576,7 @@ def total_unflatten(flat_list, invert_levels):
 
 def invertible_flatten2(unflat_list):
     """
-    An alternative to invertible_flatten which uses cumsum
+    An alternative to invertible_flatten1 which uses cumsum
 
     Flattens ``list`` but remember how to reconstruct the unflat ``list``
     Returns flat ``list`` and the unflat ``list`` with indexes into the flat
@@ -592,8 +589,8 @@ def invertible_flatten2(unflat_list):
         tuple: flat_list, cumlen_list
 
     SeeAlso:
-        invertible_flatten
-        unflatten
+        invertible_flatten1
+        unflatten1
         unflatten2
 
     Example:
@@ -622,9 +619,9 @@ def invertible_flatten2(unflat_list):
     Timeits:
         import utool
         unflat_list = aids_list1
-        flat_aids1, reverse_list = utool.invertible_flatten(unflat_list)
+        flat_aids1, reverse_list = utool.invertible_flatten1(unflat_list)
         flat_aids2, cumlen_list = utool.invertible_flatten2(unflat_list)
-        unflat_list1 = utool.unflatten(flat_aids1, reverse_list)
+        unflat_list1 = utool.unflatten1(flat_aids1, reverse_list)
         unflat_list2 = utool.unflatten2(flat_aids2, cumlen_list)
         assert list(map(list, unflat_list1)) == unflat_list2
         print(utool.get_object_size_str(unflat_list,  'unflat_list  '))
@@ -635,8 +632,8 @@ def invertible_flatten2(unflat_list):
         print(utool.get_object_size_str(unflat_list1, 'unflat_list1 '))
         print(utool.get_object_size_str(unflat_list2, 'unflat_list2 '))
         print('Timings 1:)
-        %timeit utool.invertible_flatten(unflat_list)
-        %timeit utool.unflatten(flat_aids1, reverse_list)
+        %timeit utool.invertible_flatten1(unflat_list)
+        %timeit utool.unflatten1(flat_aids1, reverse_list)
         print('Timings 2:)
         %timeit utool.invertible_flatten2(unflat_list)
         %timeit utool.unflatten2(flat_aids2, cumlen_list)
@@ -680,7 +677,7 @@ def invertible_flatten2_numpy(unflat_arrs, axis=0):
 
 
 def unflatten2(flat_list, cumlen_list):
-    """ Rebuilds unflat list from invertible_flatten
+    """ Rebuilds unflat list from invertible_flatten1
 
     Args:
         flat_list (list): the flattened list
@@ -690,7 +687,7 @@ def unflatten2(flat_list, cumlen_list):
         unflat_list2: original nested list
 
     SeeAlso:
-        invertible_flatten
+        invertible_flatten1
         invertible_flatten2
         unflatten2
 
