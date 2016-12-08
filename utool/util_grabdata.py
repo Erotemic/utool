@@ -792,6 +792,12 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         verbose (bool):  verbosity flag (default = True)
         redownload (bool): if True forces redownload of the file
             (default = False)
+        ensure_hash (bool or iterable): if True, defaults to checking 4 hashes
+            (in order): custom, md5, sha1, sha256.  These hashes are checked
+            for remote copies and, if found, will check the local file.  You may
+            also specify a list of hashes to check, for example ['md5', 'sha256']
+            in the specified order.  The first verified hash to be found is used
+            (default = False)
 
     Returns:
         str: fpath
@@ -859,8 +865,9 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         hash_list = [hash_tag_remote]
         # We have a valid candidate hash from remote, check for same hash locally
         hash_local, hash_tag_local = get_file_local_hash(fpath, hash_list, verbose=verbose)
-        print('[utool] Pre Local Hash:  %r' % (hash_local, ))
-        print('[utool] Pre Remote Hash: %r' % (hash_remote, ))
+        if verbose:
+            print('[utool] Pre Local Hash:  %r' % (hash_local, ))
+            print('[utool] Pre Remote Hash: %r' % (hash_remote, ))
         # Check all 4 hash conditions
         if hash_remote is None:
             # No remote hash provided, turn off post-download hash check
@@ -907,7 +914,8 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
             hash_file.write(hash_remote)
         # For sanity check (custom) and file verification (hashing), get local hash again
         hash_local, hash_tag_local = get_file_local_hash(fpath, hash_list, verbose=verbose)
-        print('[utool] Post Local Hash: %r' % (hash_local, ))
+        if verbose:
+            print('[utool] Post Local Hash: %r' % (hash_local, ))
         assert hash_local == hash_remote, 'Post-download hash disagreement'
         assert hash_tag_local == hash_tag_remote, 'Post-download hash tag disagreement'
     return fpath
