@@ -679,10 +679,101 @@ def grab_selenium_driver(driver_name=None):
         raise AssertionError('unknown name = %r' % (driver_name,))
 
 
+def get_file_local_hash(fpath, hash_list, verbose=False):
+    hash_dict = {
+        'custom' : hashlib.sha1(),  # No local file hash verification, but we need to verify validity of remote hash
+        'md5'    : hashlib.md5(),
+        'sha1'   : hashlib.sha1(),
+        'sha256' : hashlib.sha256(),
+    }
+
+    # Loop through the list of hashes to check
+    for hash_tag in hash_list:
+        if hash_tag is None:
+            continue
+
+        if hash_tag not in hash_dict:
+            raise ValueError('Unrecognized hashing function (custom, md5, sha1, sha256 supported).')
+
+        # Get the hashing parameters and the expected hash destination
+        hasher = hash_dict[hash_tag]
+        hash_len = int(hasher.digest_size * 2)
+        hash_fpath = '%s.%s' % (fpath, hash_tag, )
+
+        if exists(hash_fpath):
+            with open(hash_fpath, 'r') as hash_file:
+                hash_local = hash_file.read().strip()
+
+            if hash_tag != 'custom':
+                # Get the current local hash of the file and verify it
+                hash_local_fresh = util_hash.get_file_hash(fpath, hasher=hasher, hexdigest=True)
+                if hash_local_fresh != hash_local:
+                    continue
+
+            try:
+                # Check correct length
+                assert len(hash_local) == hash_len
+
+                # Check number is hexidecimal
+                int(hash_local, 16)
+
+                return hash_local, hash_tag
+            except (AssertionError, ValueError):
+                pass
+
+    # No valid hash found
+    return None, None
+
+
+def grab_file_remote_hash(file_url, hash_list, verbose=False):
+    import requests
+
+    hash_dict = {
+        'custom' : hashlib.sha1(),  # No local file hash verification, but we need to verify validity of remote hash
+        'md5'    : hashlib.md5(),
+        'sha1'   : hashlib.sha1(),
+        'sha256' : hashlib.sha256(),
+    }
+
+    # Loop through the list of hashes to check
+    for hash_tag in hash_list:
+        if hash_tag is None:
+            continue
+
+        if hash_tag not in hash_dict:
+            raise ValueError('Unrecognized hashing function (custom, md5, sha1, sha256 supported).')
+
+        # Get the hashing parameters and the expected hash destination
+        hasher = hash_dict[hash_tag]
+        hash_len = int(hasher.digest_size * 2)
+        hash_url = '%s.%s' % (file_url, hash_tag, )
+
+        if verbose:
+            print('[utool] Checking remote hash URL %r' % (hash_url, ))
+
+        # Get the actual hash from the remote server, save in memory
+        resp = requests.get(hash_url)
+        hash_remote = resp.content.strip()
+
+        # Verify response is of an actual hash
+        try:
+            # Check correct length
+            assert len(hash_remote) == hash_len
+
+            # Check number is hexidecimal
+            int(hash_remote, 16)
+
+            return hash_remote, hash_tag
+        except (AssertionError, ValueError):
+            pass
+
+    # No valid hash found
+    return None, None
+
+
 def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                   delay=None, spoof=False, fname=None, verbose=True,
-                  redownload=False, verify_hash=True, ensure_hash=False,
-                  assert_hash=False):
+                  redownload=False, ensure_hash=False):
     r"""
     Downloads a file and returns the local path of the file.
 
@@ -709,7 +800,6 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         sh -c "python ~/code/utool/utool/util_grabdata.py --all-examples"
         python -m utool.util_grabdata --test-grab_file_url:0
         python -m utool.util_grabdata --test-grab_file_url:1
-        python -m utool.util_grabdata --test-grab_file_url:2
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -736,26 +826,6 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut  # NOQA
         >>> from os.path import basename
-        >>> file_url = 'http://i.imgur.com/JGrqMnV.png'
-        >>> ensure = True
-        >>> appname = 'utool'
-        >>> download_dir = None
-        >>> delay = None
-        >>> spoof = False
-        >>> verbose = True
-        >>> redownload = False
-        >>> fname = 'lena.png'
-        >>> lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,
-        >>>                               delay, spoof, fname, verbose, redownload)
-        >>> result = basename(lena_fpath)
-        >>> print(result)
-        lena.png
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_grabdata import *  # NOQA
-        >>> import utool as ut  # NOQA
-        >>> from os.path import basename
         >>> file_url = 'https://lev.cs.rpi.edu/public/models/detect.yolo.12.classes'
         >>> ensure = True
         >>> appname = 'utool'
@@ -763,14 +833,12 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         >>> delay = None
         >>> spoof = False
         >>> verbose = True
-        >>> redownload = True
+        >>> redownload = False
         >>> fname = 'detect.yolo.12.classes'
         >>> ensure_hash = True
-        >>> assert_hash = True
         >>> lena_fpath = ut.grab_file_url(file_url, ensure, appname, download_dir,
         >>>                               delay, spoof, fname, verbose, redownload,
-        >>>                               ensure_hash=ensure_hash,
-        >>>                               assert_hash=assert_hash)
+        >>>                               ensure_hash=ensure_hash)
     """
     file_url = clean_dropbox_link(file_url)
     if fname is None:
@@ -780,6 +848,42 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
         download_dir = util_cplat.get_app_resource_dir(appname)
     # Zipfile should unzip to:
     fpath = join(download_dir, fname)
+    # If check hash, get remote hash and assert local copy is the same
+    if ensure_hash:
+        if isinstance(ensure_hash, list):
+            hash_list = ensure_hash
+        else:
+            hash_list = ['custom', 'md5', 'sha1', 'sha256']
+        # Get expected remote file
+        hash_remote, hash_tag_remote = grab_file_remote_hash(file_url, hash_list, verbose=verbose)
+        hash_list = [hash_tag_remote]
+        # We have a valid candidate hash from remote, check for same hash locally
+        hash_local, hash_tag_local = get_file_local_hash(fpath, hash_list, verbose=verbose)
+        print('[utool] Pre Local Hash:  %r' % (hash_local, ))
+        print('[utool] Pre Remote Hash: %r' % (hash_remote, ))
+        # Check all 4 hash conditions
+        if hash_remote is None:
+            # No remote hash provided, turn off post-download hash check
+            ensure_hash = False
+        elif hash_local is None:
+            # Remote hash is provided but the same local hash does not exist, redownload
+            if verbose:
+                print('[utool] Remote hash provided but local hash missing, redownloading.')
+            redownload = True
+        elif hash_local == hash_remote:
+            # Both hashes provided and local hash agrees with remote hash, check tags
+            # Sanity check, make sure tags agree
+            if hash_tag_local != hash_tag_remote:
+                # Hash tags disagree, redownload
+                if verbose:
+                    print('[utool] Hash tag disagreement, redownloading.')
+                redownload = True
+        else:
+            # Both hashes provided but local hash and remote hash disagree, redownload
+            if verbose:
+                print('[utool] Hash disagreement, redownloading.')
+            redownload = True
+    # Download
     if ensure or redownload:
         util_path.ensurepath(download_dir)
         if redownload or not exists(fpath):
@@ -795,71 +899,17 @@ def grab_file_url(file_url, ensure=True, appname='utool', download_dir=None,
                 print('[utool] Already have file %s' % fpath)
     if ensure:
         util_path.assert_exists(fpath)
-
-    # At this point, the file exists locally.  Check if remote MD5 hash exists.
-    # If so, check local hash if force hash flag is enabled.  If hash is
-    # different, redownload files
-    if verify_hash:
-        if redownload or util_arg.get_argflag('--hashes'):
-            ensure_hash = True
-
-        hash_list = [
-            ('md5',    32, hashlib.md5()),
-            ('sha1',   20, hashlib.sha1()),
-            ('sha256', 32, hashlib.sha256()),
-        ]
-
-        success = False
-        for (hash_tag, hash_len, hasher) in hash_list:
-            hash_url = '%s.%s' % (file_url, hash_tag, )
-            hash_fpath = '%s.%s' % (fpath, hash_tag, )
-
-            if ensure_hash or not exists(hash_fpath):
-                vals = (file_url, hash_tag, hash_url, )
-                if verbose:
-                    print('utool] Downloaded URL %r, checking %s hash URL %r' % vals)
-                download_url(hash_url, hash_fpath, spoof=spoof, verbose=False)
-
-            with open(hash_fpath) as hash_file:
-                hash_remote = hash_file.read().strip()
-
-            try:
-                # CHeck correct length
-                assert len(hash_remote) == hash_len
-
-                # Check number is hexidecimal
-                int(hash_remote, 16)
-
-                # Get local hash and compare
-                hash_local = util_hash.get_file_hash(fpath, hasher=hasher, hexdigest=True)
-
-                if verbose:
-                    args = (hash_remote, hash_local, )
-                    print('[utool] Remote Hash: %r, Local Hash: %r' % args)
-                if hash_remote == hash_local:
-                    if verbose:
-                        print('[utool] Hash verified...')
-                    success = True
-                    break
-            except (AssertionError, ValueError):
-                util_path.delete(hash_fpath)
-
-        if not success:
-            exception = ValueError('Failed required downloaded file hash check')
-            print('[utool] WARNING: DOWNLOADED FILE FAILED HASH CHECK')
-            if assert_hash:
-                raise exception
-            else:
-                print('[utool] TRYING REDOWNLOAD...')
-                try:
-                    grab_file_url(file_url, ensure=ensure, appname=appname,
-                                  download_dir=download_dir, delay=delay, spoof=spoof,
-                                  fname=fname, verbose=verbose, redownload=True,
-                                  verify_hash=verify_hash, assert_hash=True)
-                except ValueError:
-                    if assert_hash:
-                        raise exception
-
+    # Post-download local hash verification
+    if ensure_hash:
+        # File has been successfuly downloaded, write remote hash to local hash file
+        hash_fpath = '%s.%s' % (fpath, hash_tag_remote, )
+        with open(hash_fpath, 'w') as hash_file:
+            hash_file.write(hash_remote)
+        # For sanity check (custom) and file verification (hashing), get local hash again
+        hash_local, hash_tag_local = get_file_local_hash(fpath, hash_list, verbose=verbose)
+        print('[utool] Post Local Hash: %r' % (hash_local, ))
+        assert hash_local == hash_remote, 'Post-download hash disagreement'
+        assert hash_tag_local == hash_tag_remote, 'Post-download hash tag disagreement'
     return fpath
 
 
@@ -972,6 +1022,14 @@ def s3_dict_encode_to_str(s3_dict, return_local_directory_if_available=False):
         'auth_secret_key' : None,
     }
     default_s3_dict.update(s3_dict)
+    # Remove any miscellaneous keys received, enumerated explicitly below
+    ignore_key_list = [
+        'accessKey',
+    ]
+    for ignore_key in ignore_key_list:
+        if ignore_key in default_s3_dict:
+            default_s3_dict.pop(ignore_key)
+    # Assert that all of the keys received were expected
     assert len(default_s3_dict.keys()) == 6
 
     for key in default_s3_dict.keys():
