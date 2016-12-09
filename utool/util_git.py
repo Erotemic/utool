@@ -241,9 +241,13 @@ class Repo(util_dev.NiceRepr):
         return remote_dict
 
     def _remote_info(repo, remote):
-        remote_details = remote.repo.git.remote("get-url", remote.name, '--push')
-        # TODO push into gitpython
-        urls = [line for line in remote_details.split('\n')]
+        OLD = False
+        if OLD:
+            remote_details = remote.repo.git.remote("get-url", remote.name, '--push')
+            # TODO push into gitpython
+            urls = [line for line in remote_details.split('\n')]
+        else:
+            urls = remote.urls
 
         # urls = list(remote.urls)
         if len(urls) == 0:
