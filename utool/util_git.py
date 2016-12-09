@@ -247,7 +247,7 @@ class Repo(util_dev.NiceRepr):
             # TODO push into gitpython
             urls = [line for line in remote_details.split('\n')]
         else:
-            urls = remote.urls
+            urls = list(remote.urls)
 
         # urls = list(remote.urls)
         if len(urls) == 0:
