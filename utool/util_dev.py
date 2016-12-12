@@ -3152,6 +3152,11 @@ class ColumnLists(NiceRepr):
 
     @util_decor.accepts_scalar_input2()
     def map_column(self, keys, func):
+        """
+        Args:
+            keys (list or str): the column name(s) to apply the `func` to
+            func (callable): applied to each element in the specified columns
+        """
         return [[func(v) for v in self[key]] for key in keys]
 
     def merge_rows(self, key, merge_scalars=True):

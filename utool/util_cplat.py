@@ -667,7 +667,7 @@ def __parse_cmd_args(args, sudo, shell):
         args = args[0]
 
     if shell:
-        # When shell is False, ensure args is a string
+        # When shell is True, ensure args is a string
         if isinstance(args, six.string_types):
             pass
         elif  isinstance(args, (list, tuple)) and len(args) > 1:
@@ -919,6 +919,64 @@ def cmd(*args, **kwargs):
         ut.printex(ex, 'Exception running ut.cmd',
                    keys=['verbose', 'detatch', 'shell', 'sudo', 'pad_stdout'],
                    tb=True)
+
+
+def cmd2(command, shell=False, detatch=False, verbose=False):
+    """
+    Trying to clean up cmd
+
+    Args:
+        command (str): string command
+
+    Returns:
+        dict: info - information about command status
+    """
+    import shlex
+    if isinstance(command, (list, tuple)):
+        raise ValueError('command tuple not supported yet')
+    args = shlex.split(command, posix=not WIN32)
+    if verbose:
+        print('+=== START CMD2 ===')
+        print('Command:')
+        print(command)
+        print('----')
+        print('Stdout:')
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, shell=shell,
+                            universal_newlines=True)
+    if detatch:
+        info = {'proc': proc}
+    else:
+        write_fn = sys.stdout.write
+        flush_fn = sys.stdout.flush
+        logged_out = []
+        for line in _run_process(proc):
+            #line_ = line if six.PY2 else line.decode('utf-8')
+            line_ = line if six.PY2 else line
+            if len(line_) > 0:
+                if verbose:
+                    write_fn(line_)
+                    flush_fn()
+                logged_out.append(line)
+        try:
+            from utool import util_str  # NOQA
+            out = '\n'.join(logged_out)
+        except UnicodeDecodeError:
+            from utool import util_str  # NOQA
+            logged_out = util_str.ensure_unicode_strlist(logged_out)
+            out = '\n'.join(logged_out)
+            # print('logged_out = %r' % (logged_out,))
+            # raise
+        (out_, err) = proc.communicate()
+        ret = proc.wait()
+        info = {
+            'out': out,
+            'err': err,
+            'ret': ret,
+        }
+    if verbose:
+        print('L___ END CMD2 ___')
+    return info
 
 
 def get_flops():

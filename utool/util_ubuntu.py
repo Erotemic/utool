@@ -272,11 +272,70 @@ class XCtrl(object):
     #     ut.cmd(*args, quiet=True, silence=True)
 
     @staticmethod
+    def move_window(win_key, bbox):
+        """
+        CommandLine:
+            wmctrl -l
+            python -m utool.util_ubuntu XCtrl.move_window joncrall 0+1920,680,400,600,400
+            python -m utool.util_ubuntu XCtrl.move_window x-terminal-emulator.X-terminal-emulator [0,0,1000,1000]
+
+        # >>> import utool as ut
+        # >>> from utool import util_ubuntu
+        # >>> orig_window = []
+        # >>> X = util_ubuntu.XCtrl
+        win_key =  'x-terminal-emulator.X-terminal-emulator'
+        win_id = X.findall_window_ids(key)[0]
+
+        python -m utool.util_ubuntu XCtrl.findall_window_ids gvim --src
+
+        """
+        import utool as ut
+        import plottool as pt  # NOQA
+        import plottool.screeninfo as screeninfo
+        monitor_infos = {i + 1: screeninfo.get_resolution_info(i) for i in range(2)}
+
+        print('bbox = %r' % (bbox,))
+        print('win_key = %r' % (win_key,))
+        bbox = ','.join(map(str, eval(bbox)))
+
+        if win_key.startswith('joncrall'):
+            m = 2
+            minfo = monitor_infos[m]
+            if m == 1:
+                mx = 0
+            else:
+                mx = monitor_infos[m - 1]['pixels_w']
+            my = 0
+            mw = minfo['pixels_w']
+            mh = minfo['pixels_h']
+            x, y = 0, .9
+            w, h = (1 - x), (1 - y)
+            bbox = [(x * mw) + mx, (y * mh) + my,
+                    (w * mw), (h * mh)]
+            bbox = ','.join(map(str, map(int, bbox)))
+            print('bbox = %r' % (bbox,))
+        # bbox.replace('[', '').replace(']', '')
+        # get = lambda cmd: ut.cmd2(' '.join(["/bin/bash", "-c", cmd]))['out']  # NOQA
+        win_id = XCtrl.findall_window_ids(win_key)[0]
+        fmtdict = locals()
+        cmd_list = [
+            ("wmctrl -ir {win_id} -b remove,maximized_horz".format(**fmtdict)),
+            ("wmctrl -ir {win_id} -b remove,maximized_vert".format(**fmtdict)),
+            ("wmctrl -ir {win_id} -e 0,{bbox}".format(**fmtdict)),
+        ]
+        print('\n'.join(cmd_list))
+        for cmd in cmd_list:
+            ut.cmd2(cmd)
+
+    @staticmethod
     def findall_window_ids(pattern):
         """
         CommandLine:
             wmctrl  -l
             python -m utool.util_ubuntu XCtrl.findall_window_ids gvim --src
+            python -m utool.util_ubuntu XCtrl.findall_window_ids gvim --src
+            python -m utool.util_ubuntu XCtrl.findall_window_ids joncrall --src
+
         """
         import utool as ut
         cmdkw = dict(verbose=False, quiet=True, silence=True)

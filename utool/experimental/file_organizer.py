@@ -16,8 +16,9 @@ class SourceDir(ut.NiceRepr):
         self.rel_fpath_list = ut.glob(self.dpath, '*',  recursive=True,
                                       fullpath=False, with_dirs=False)
         self.attrs = {
-            'nbytes': list(map(ut.get_file_nBytes, self.fpaths())),
+            # 'nbytes': list(map(ut.get_file_nBytes, self.fpaths())),
             'fname': list(map(basename, self.rel_fpath_list)),
+            'dname': list(map(dirname, self.rel_fpath_list)),
             'ext': list(map(lambda p: splitext(p)[1].lower().replace('.jpeg', '.jpg'), self.rel_fpath_list)),
         }
         # self.nbytes_list = list(map(ut.get_file_nBytes, self.fpaths()))
@@ -30,32 +31,123 @@ class SourceDir(ut.NiceRepr):
     def index(self):
         fpaths = self.fpaths()
         prog =  ut.ProgIter(fpaths, length=len(self), label='building uuid')
-        self.uuids = self._uuids(prog)
+        self.uuids = self._md5(prog)
 
-    def _uuids(self, fpaths):
-        return (ut.get_file_uuid(fpath) for fpath in fpaths)
+    def _nbytes(self, fpaths):
+        return (ut.get_file_nBytes(fpath) for fpath in fpaths)
+
+    def _full_path(self, fpaths):
+        return fpaths
+
+    def _md5(self, fpaths):
+        import hashlib
+        return (ut.get_file_hash(fpath, hasher=hashlib.md5()) for fpath in fpaths)
+
+    def _md5_stride(self, fpaths):
+        import hashlib
+        return (ut.get_file_hash(fpath, hasher=hashlib.md5(), stride=1024) for fpath in fpaths)
+
+    # def _sha1(self, fpaths):
+    #     import hashlib
+    #     hasher = hashlib.sha1()
+    #     return (ut.get_file_hash(fpath, hasher=hasher) for fpath in fpaths)
+
+    def _crc32(self, fpaths):
+        return (ut.cmd2('crc32 "%s"' % fpath)['out'] for fpath in fpaths)
 
     def _abs(self, rel_paths):
         for rel_path in rel_paths:
             yield join(self.dpath, rel_path)
 
-    def get_prop(self, attrname, idxs):
+    def get_prop(self, attrname, idxs=None):
         """
         Caching getter
         """
         if attrname not in self.attrs:
             self.attrs[attrname] = [None for _ in range(len(self))]
         prop_list = self.attrs[attrname]
-        props = ut.take(prop_list, idxs)
+        if idxs is None:
+            idxs = list(range(len(prop_list)))
+            props = prop_list
+        else:
+            props = ut.take(prop_list, idxs)
         miss_flags = ut.flag_None_items(props)
         if any(miss_flags):
             miss_idxs = ut.compress(idxs, miss_flags)
             miss_fpaths = self._abs(ut.take(self.rel_fpath_list, miss_idxs))
-            miss_values = getattr(self, '_' + attrname)(miss_fpaths)
-            for idx, val in zip(miss_idxs, miss_values):
+            miss_iter = getattr(self, '_' + attrname)(miss_fpaths)
+            miss_iter = ut.ProgIter(miss_iter, length=len(miss_idxs),
+                                    label='Compute %s' % (attrname,))
+            for idx, val in zip(miss_idxs, miss_iter):
                 prop_list[idx] = val
             props = ut.take(prop_list, idxs)
         return props
+
+    def find_needsmove_to_other(self, other):
+        hash1 = self.get_prop('md5_stride')
+        hash2 = other.get_prop('md5_stride')
+        idxs1 = list(range(len(hash1)))
+
+        hash_to_idxs = ut.group_items(idxs1, hash1)
+        # Find what we have that other doesnt have and move it there
+        other_missing = set(hash1).difference(hash2)
+        missing_idxs1 = ut.flatten(ut.take(hash_to_idxs, other_missing))
+
+        data = ut.ColumnLists({
+            'idx': missing_idxs1,
+            'fname': self.get_prop('fname', missing_idxs1),
+            'dname': self.get_prop('dname', missing_idxs1),
+            'full_path': self.get_prop('full_path', missing_idxs1),
+            'nbytes': self.get_prop('nbytes', missing_idxs1),
+        })
+        data = data.compress([f != 'Thumbs.db' for f in data['fname']])
+        data['ext'] = self.get_prop('ext', data['idx'])
+        ut.dict_hist(data['ext'])
+        data.print(ignore=['full_path', 'dname'])
+
+    def find_internal_duplicates(self):
+        # First find which files take up the same amount of space
+        nbytes = self.get_prop('nbytes')
+        dups = ut.find_duplicate_items(nbytes)
+        # Now evaluate the hashes of these candidates
+        cand_idxs = ut.flatten(dups.values())
+
+        data = ut.ColumnLists({
+            'idx': cand_idxs,
+            'fname': self.get_prop('fname', cand_idxs),
+            'dname': self.get_prop('dname', cand_idxs),
+            'full_path': self.get_prop('full_path', cand_idxs),
+            'nbytes': self.get_prop('nbytes', cand_idxs),
+        })
+        # print(ut.repr4(ut.group_items(fpaths, nbytes)))
+        data.ignore = ['full_path', 'dname']
+        data.print(ignore=['full_path', 'dname'])
+        data['hash'] = self.get_prop('md5', data['idx'])
+        data.print(ignore=['full_path', 'hash'])
+        data.print(ignore=['full_path', 'dname'])
+
+        multis = data.get_multis('hash')
+        multis.print(ignore=data.ignore)
+        return multis
+
+    def analyze_internal_duplicats(self):
+        multis = self.find_internal_duplicates()
+        unique_dnames = set([])
+        associations = ut.ddict(lambda: 0)
+
+        # diag_dups = []
+        # other_dups = []
+
+        for sub in multis.group_items('hash').values():
+            dnames = sub['dname']
+            unique_dnames.update(dnames)
+            for dn1, dn2 in ut.combinations(dnames, 2):
+                # if dn1 == dn2:
+                #     diag_dups[dn1] += 1
+                key = tuple(sorted([dn1, dn2]))
+                associations[key] += 1
+
+            print(sub['dname'])
 
     def find_nonunique_names(self):
         fnames = map(basename, self.rel_fpath_list)
@@ -82,7 +174,7 @@ class SourceDir(ut.NiceRepr):
             unique_uuids, groupxs = ut.group_indices(uuids)
             groups.extend(ut.apply_grouping(idxs, groupxs))
         multitons  = [g for g in groups if len(g) > 1]
-        singletons = [g for g in groups if len(g) <= 1]
+        # singletons = [g for g in groups if len(g) <= 1]
 
         ut.unflat_take(list(self.fpaths()), multitons)
 
@@ -108,6 +200,8 @@ class SourceDir(ut.NiceRepr):
         set2 = set(other.rel_fpath_list)
 
         set_comparisons = ut.odict([
+            ('s1', set1),
+            ('s2', set2),
             ('union', set1.union(set2)),
             ('isect', set1.intersection(set2)),
             ('s1 - s2', set1.difference(set2)),
@@ -115,6 +209,7 @@ class SourceDir(ut.NiceRepr):
         ])
         stat_stats = ut.map_vals(len, set_comparisons)
         print(ut.repr4(stat_stats))
+        return set_comparisons
 
         if False:
             idx_lookup1 = ut.make_index_lookup(self.rel_fpath_list)
@@ -171,6 +266,19 @@ class SourceDir(ut.NiceRepr):
         ]
         assert not any(error_list), 'error merging'
         return error_list
+
+    def find_empty_dirs(self):
+        """ find dirs with only dirs in them """
+        self.rel_dpath_list = ut.glob(self.dpath, '*',  recursive=True,
+                                      fullpath=False, with_dirs=True, with_files=False)
+        counts = {dpath: 0 for dpath in self.rel_dpath_list}
+        for fpath in self.rel_fpath_list:
+            tmp = dirname(fpath)
+            while tmp:
+                counts[tmp] += 1
+                tmp = dirname(tmp)
+        empty_dpaths = [dpath for dpath, count in counts.items() if count == 0]
+        return empty_dpaths
 
     def delete_empty_directories(self):
         """
