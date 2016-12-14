@@ -349,6 +349,15 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
        http://stackoverflow.com/questions/27911570/can-you-specify-a-command-to-run-after-you-embed-into-ipython/27914204#27914204
        http://stackoverflow.com/questions/15167200/how-do-i-embed-an-ipython-interpreter-into-an-application-running-in-an-ipython
 
+    Notes:
+        Use cases I want to achieve
+
+        1) Simply stop execution and embed in an IPython terminal session
+        2) Like case 1, but execute a specific set of command (eg '%gui qt')
+           AFTER IPython has started
+        3) Embed and pause GUI execution (this is just case 1)
+        3) Embed and let GUI execution continue while embeded. (basically just need case 2)
+
     TODO:
         try:
             get_ipython
@@ -483,6 +492,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             #c = IPython.Config()
             #c.InteractiveShellApp.exec_lines = [
             #    '%pylab qt4',
+            #    '%gui qt4',
             #    "print 'System Ready!'",
             #]
             #IPython.embed(config=c)
