@@ -2767,6 +2767,7 @@ def find_pyfunc_above_row(line_list, row, orclass=False):
         >>> print(result)
         find_pyfunc_above_row
     """
+    import utool as ut
     searchlines = []  # for debugging
     funcname = None
     # Janky way to find function name
@@ -2776,6 +2777,7 @@ def find_pyfunc_above_row(line_list, row, orclass=False):
     for ix in range(200):
         func_pos = row - ix
         searchline = line_list[func_pos]
+        searchline = ut.ensure_unicode(searchline)
         cleanline = searchline.strip(' ')
         searchlines.append(cleanline)
         if searchline.startswith(func_sentinal):  # and cleanline.endswith(':'):

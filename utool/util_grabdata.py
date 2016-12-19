@@ -617,7 +617,7 @@ def grab_test_imgpath(key='lena.png', allow_external=True, verbose=True):
     return testimg_fpath
 
 
-def grab_selenium_chromedriver():
+def grab_selenium_chromedriver(redownload=False):
     r"""
     Automatically download selenium chrome driver if needed
 
@@ -649,12 +649,15 @@ def grab_selenium_chromedriver():
     # TODO: use a better download dir (but it must be in the PATh or selenium freaks out)
     chromedriver_dpath = ut.ensuredir(ut.truepath('~/bin'))
     chromedriver_fpath = join(chromedriver_dpath, 'chromedriver')
-    if not ut.checkpath(chromedriver_fpath):
+    if not ut.checkpath(chromedriver_fpath) or redownload:
         assert chromedriver_dpath in os.environ['PATH'].split(os.pathsep)
         # TODO: make this work for windows as well
         if ut.LINUX and ut.util_cplat.is64bit_python():
-            url = 'http://chromedriver.storage.googleapis.com/2.16/chromedriver_linux64.zip'
-            ut.grab_zipped_url(url, download_dir=chromedriver_dpath)
+            import requests
+            rsp = requests.get('http://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+            assert rsp.status_code == 200
+            url = 'http://chromedriver.storage.googleapis.com/' + rsp.text.strip() + '/chromedriver_linux64.zip'
+            ut.grab_zipped_url(url, download_dir=chromedriver_dpath, redownload=True)
         else:
             raise AssertionError('unsupported chrome driver getter script')
         if not ut.WIN32:
@@ -676,7 +679,7 @@ def grab_selenium_driver(driver_name=None):
         grab_selenium_chromedriver()
         return webdriver.Chrome()
     elif driver_name.lower() == 'firefox':
-        grab_selenium_chromedriver()
+        # grab_selenium_chromedriver()
         return webdriver.Firefox()
     else:
         raise AssertionError('unknown name = %r' % (driver_name,))
@@ -950,11 +953,11 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
         if redownload:
             util_path.remove_dirs(data_dir)
         util_path.ensurepath(download_dir)
-        if not exists(data_dir):
+        if not exists(data_dir) or redownload:
             # Download and unzip testdata
             zip_fpath = realpath(join(download_dir, zip_fname))
             #print('[utool] Downloading archive %s' % zip_fpath)
-            if not exists(zip_fpath):
+            if not exists(zip_fpath) or redownload:
                 download_url(zipped_url, zip_fpath, spoof=spoof)
             unarchive_file(zip_fpath, force_commonprefix)
             if cleanup:
