@@ -734,12 +734,25 @@ def byte_str(nBytes, unit='bytes', precision=2):
     #return ('%.' + str(precision) + 'f %s') % (nUnit, unit)
 
 
-def second_str(nsecs, unit='ms'):
+def second_str(nsecs, unit=None, precision=None, abbrev=True):
+    import utool as ut
     import pint
     ureg = pint.UnitRegistry()
     sec_quant = nsecs * ureg.s
-    unit_quant = sec_quant.to(unit)
-    return str(unit_quant)
+    if unit is not None:
+        unit_quant = sec_quant.to(unit)
+    else:
+        unit_quant = sec_quant.to_compact()
+    unit_str = str(unit_quant.units)
+    if abbrev:
+        lookup = {'millisecond': 'ms', 'second': 's',
+                  'nanosecond': 'ns', 'microsecond': 'µs'}
+        unit_str = lookup.get(unit_str, unit_str)
+    else:
+        unit_str = ut.pluralize(unit_str, unit_quant.magnitude)
+    quant_str = ut.repr2(unit_quant.magnitude, precision=precision) + ' ' + unit_str
+    # quant_str =  str(unit_quant)
+    return quant_str
 
 
 def file_megabytes_str(fpath):

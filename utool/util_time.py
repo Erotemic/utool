@@ -196,27 +196,45 @@ class Timer(object):
 
 class Timerit(object):
     """
+    Iterator that reports the average time for an arbitrary block of code
+
     Example:
-        for timer in Timerit(100):
-            with timer:
-                <your code>
+        >>> for timer in Timerit(100):
+        >>>     with timer:
+        >>>         <your code>
     """
-    def __init__(self, num, verbose=True):
+    def __init__(self, num, label=None, verbose=1):
         self.num = num
+        self.label = label
         self.times = []
         self.verbose = verbose
+        self.total_time = None
+        self.n_loops = None
 
     def __iter__(self):
-        if self.verbose:
-            print('Begining timeing iterations')
         import utool as ut
+        if self.verbose > 1:
+            if self.label is None:
+                print('Timing for %d loops' % self.num)
+            else:
+                print('Timing %s for %d loops.' % (self.label, self.num,))
+        # Core timing loop
         for i in range(self.num):
             timer = ut.Timer(verbose=0)
             yield timer
             self.times.append(timer.ellapsed)
-        if self.verbose:
-            print('body took: %r' % (sum(self.times)))
-            print('time per loop : %r' % (sum(self.times) / len(self.times)))
+        self.total_time = sum(self.times)
+        assert len(self.times) == self.num
+        self.n_loops = len(self.times)
+        ave_secs = self.total_time / self.n_loops
+        if self.verbose > 0:
+            if self.label is None:
+                print('Timing complete, %d loops' % (self.n_loops,))
+            else:
+                print('Timing complete for: %s, %d loops' % (self.label, self.n_loops))
+            if self.verbose > 2:
+                print('    body took: %s' % (ut.second_str(self.total_time, unit=None, precision=4)))
+            print('    time per loop : %s' % (ut.second_str(ave_secs, unit=None, precision=4)))
 
 
 def determine_timestamp_format(datetime_str, warn=True):
