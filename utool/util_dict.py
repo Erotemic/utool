@@ -1786,6 +1786,9 @@ class DictLike(object):
     def setitem(self, key, value):
         raise NotImplementedError('abstract setitem function')
 
+    def delitem(self, key):
+        raise NotImplementedError('abstract delitem function')
+
     def keys(self):
         raise NotImplementedError('abstract keys function')
 
@@ -1800,6 +1803,9 @@ class DictLike(object):
 
     def __contains__(self, key):
         return key in self.keys()
+
+    def __delitem__(self, key):
+        return self.delitem(key)
 
     def __getitem__(self, key):
         return self.getitem(key)

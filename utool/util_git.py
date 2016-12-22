@@ -319,6 +319,19 @@ class Repo(util_dev.NiceRepr):
         url = ''.join(parts)
         return url
 
+    def reset_branch_to_remote(repo, branch, hard=True):
+        remote = repo.get_branch_remote(branch)
+        kw = dict(remote=remote, branch=branch)
+        if hard:
+            kw['flags'] = '--hard'
+        repo.issue('git reset {flags} {remote}/{branch}'.format(**kw))
+
+    def get_branch_remote(repo, branch):
+        gitrepo = repo.as_gitpython()
+        gitbranch = gitrepo.branches[branch]
+        remote = gitbranch.tracking_branch().remote_name
+        return remote
+
     @property
     def active_branch(repo):
         return repo.as_gitpython().active_branch.name
@@ -583,7 +596,7 @@ class Repo(util_dev.NiceRepr):
         # import utool as ut
         # ut.print_code(repo.install_script, 'bash')
 
-    def issue(repo, command, sudo=False):
+    def issue(repo, command, sudo=False, dry=False):
         """
         issues a command on a repo
 
@@ -607,21 +620,26 @@ class Repo(util_dev.NiceRepr):
             return repo.short_status()
         command_list = ut.ensure_iterable(command)
         cmdstr = '\n        '.join([cmd_ for cmd_ in command_list])
-        print('+--- *** repocmd(%s) *** ' % (cmdstr,))
-        print('repo=%s' % ut.color_text(repo.dpath, 'yellow'))
+        if not dry:
+            print('+--- *** repocmd(%s) *** ' % (cmdstr,))
+            print('repo=%s' % ut.color_text(repo.dpath, 'yellow'))
+        verbose = True
         with ut.ChdirContext(repo.dpath, verbose=False):
             ret = None
             for count, cmd in enumerate(command_list):
+                if dry:
+                    print(cmd)
+                    continue
                 if not sudo or ut.WIN32:
                     ret = os.system(cmd)
                 else:
                     out, err, ret = ut.cmd(cmd, sudo=True)
-                verbose = True
                 if verbose > 1:
                     print('ret(%d) = %r' % (count, ret,))
                 if ret != 0:
                     raise Exception('Failed command %r' % (cmd,))
-        print('L____')
+        if not dry:
+            print('L____')
 
     def short_status(repo):
         r"""

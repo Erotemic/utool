@@ -1525,6 +1525,8 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     """
     Returns the string version of get_stats
 
+    DEPRICATE
+
     if keys is not None then it only displays chosen keys
     excluded keys are always removed
 
@@ -1547,6 +1549,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
 
     SeeAlso:
+        repr2
         print_stats
         get_stats
     """
