@@ -277,7 +277,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None,
         str: cfg_lbl
 
     CommandLine:
-        python -m utool.util_gridsearch --exec-get_cfg_lbl
+        python -m utool.util_gridsearch get_cfg_lbl
 
     Example:
         >>> # ENABLE_DOCTEST
