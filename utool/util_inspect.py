@@ -1382,6 +1382,14 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
     CommandLine:
         python3 -m utool.util_inspect find_child_kwarg_funcs
 
+    SeeAlso:
+        argparse_funckw
+        find_child_kwarg_funcs
+        recursive_parse_kwargs
+        parse_kwarg_keys
+        parse_func_kwarg_keys
+        get_func_kwargs
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
@@ -1423,6 +1431,9 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
     class KwargParseVisitor(ast.NodeVisitor):
         """
         TODO: understand ut.update_existing and dict update
+        ie, know when kwargs is passed to these functions and
+        then look assume the object that was updated is a dictionary
+        and check wherever that is passed to kwargs as well.
         """
         def visit_FunctionDef(self, node):
             if debug:
@@ -2155,10 +2166,18 @@ def lookup_attribute_chain(attrname, namespace):
     return leaf_attr
 
 
-def recursive_parse_kwargs(root_func, path_=None):
+def recursive_parse_kwargs(root_func, path_=None, verbose=None):
     """
     recursive kwargs parser
+    TODO: rectify with others
     FIXME: if docstr indentation is off, this fails
+
+    SeeAlso:
+        argparse_funckw
+        recursive_parse_kwargs
+        parse_kwarg_keys
+        parse_func_kwarg_keys
+        get_func_kwargs
 
     Args:
         root_func (function):  live python function
@@ -2175,6 +2194,7 @@ def recursive_parse_kwargs(root_func, path_=None):
         python -m utool.util_inspect recursive_parse_kwargs:2 --mod vtool --func ScoreNormalizer.visualize
 
         python -m utool.util_inspect recursive_parse_kwargs:2 --mod ibeis.viz.viz_matches --func show_name_matches --verbinspect
+        python -m utool.util_inspect recursive_parse_kwargs:2 --mod ibeis.expt.experiment_drawing --func draw_rank_cmc --verbinspect
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2216,7 +2236,9 @@ def recursive_parse_kwargs(root_func, path_=None):
         >>> result = ut.repr2(parsed)
         >>> print(result)
     """
-    if VERBOSE_INSPECT:
+    if verbose is None:
+        verbose = VERBOSE_INSPECT
+    if verbose:
         print('[inspect] recursive parse kwargs root_func = %r ' % (root_func,))
 
     import utool as ut
@@ -2227,11 +2249,17 @@ def recursive_parse_kwargs(root_func, path_=None):
     path_.append(root_func)
     spec = ut.get_func_argspec(root_func)
     # ADD MORE
-    kwargs_list = list(ut.get_kwdefaults(root_func, parse_source=False).items())
+    kwargs_list = []
+    found_explicit = list(ut.get_kwdefaults(root_func, parse_source=False).items())
+    if verbose:
+        print('[inspect] * Found explicit %r' % (found_explicit,))
     #kwargs_list = [(kw,) for kw in  ut.get_kwargs(root_func)[0]]
     sourcecode = ut.get_func_sourcecode(root_func, strip_docstr=True,
                                         stripdef=True)
-    kwargs_list += ut.parse_kwarg_keys(sourcecode, with_vals=True)
+    found_implicit = ut.parse_kwarg_keys(sourcecode, with_vals=True)
+    if verbose:
+        print('[inspect] * Found found_implicit %r' % (found_implicit,))
+    kwargs_list = found_explicit = found_implicit
 
     def hack_lookup_mod_attrs(attr):
         # HACKS TODO: have find_child_kwarg_funcs infer an attribute is a
@@ -2295,7 +2323,7 @@ def recursive_parse_kwargs(root_func, path_=None):
                     raise
                 subfunc = None
         if subfunc is not None:
-            subkw_list = recursive_parse_kwargs(subfunc)
+            subkw_list = recursive_parse_kwargs(subfunc, verbose=verbose)
             have_keys = set(ut.get_list_column(kwargs_list, 0))
             new_subkw = [item for item in subkw_list
                          if item[0] not in have_keys]
@@ -2304,22 +2332,33 @@ def recursive_parse_kwargs(root_func, path_=None):
         return new_subkw
 
     if spec.keywords is not None:
-        if VERBOSE_INSPECT:
+        if verbose:
             print('[inspect] Checking spec.keywords=%r' % (spec.keywords,))
         subfunc_name_list = ut.find_child_kwarg_funcs(sourcecode, spec.keywords)
-        if VERBOSE_INSPECT:
+        if verbose:
             print('[inspect] Checking subfunc_name_list=%r' % (subfunc_name_list,))
         for subfunc_name in subfunc_name_list:
             try:
                 new_subkw = check_subfunc_name(subfunc_name)
+                if verbose:
+                    print('[inspect] * Found %r' % (new_subkw,))
+                kwargs_list.extend(new_subkw)
             except TypeError:
                 print('warning: unable to recursivley parse type of : %r' % (subfunc_name,))
-            kwargs_list.extend(new_subkw)
     return kwargs_list
 
 
 def parse_func_kwarg_keys(func, with_vals=False):
-    """ hacky inference of kwargs keys """
+    """ hacky inference of kwargs keys
+
+    SeeAlso:
+        argparse_funckw
+        recursive_parse_kwargs
+        parse_kwarg_keys
+        parse_func_kwarg_keys
+        get_func_kwargs
+
+    """
     sourcecode = get_func_sourcecode(func, strip_docstr=True,
                                         strip_comments=True)
     kwkeys = parse_kwarg_keys(sourcecode, with_vals=with_vals)
@@ -2330,6 +2369,13 @@ def parse_func_kwarg_keys(func, with_vals=False):
 def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
     """
     func = ibeis.run_experiment
+
+    SeeAlso:
+        argparse_funckw
+        recursive_parse_kwargs
+        parse_kwarg_keys
+        parse_func_kwarg_keys
+        get_func_kwargs
     """
     import utool as ut
     argspec = ut.get_func_argspec(func)
@@ -2361,60 +2407,177 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
     CommandLine:
         python -m utool.util_inspect parse_kwarg_keys
 
+    SeeAlso:
+        argparse_funckw
+        find_child_kwarg_funcs
+        recursive_parse_kwargs
+        parse_kwarg_keys
+        parse_func_kwarg_keys
+        get_func_kwargs
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
-        >>> source = ("\n kwargs.get('foo', None)\n kwargs.pop('bar', 3)"
-        >>>           "\n kwargs.pop('str', '3fd')\n kwargs.pop('str', '3f\'d')"
-        >>>           "\n \"kwargs.get('baz', None)\"\n kwargs['foo2']")
-        >>> print(source)
+        >>> source = (
+        >>>           "\n x = 'hidden_x'"
+        >>>           "\n y = 3 # hidden val"
+        >>>           "\n kwargs.get(x, y)"
+        >>>           "\n kwargs.get('foo', None)\n kwargs.pop('bar', 3)"
+        >>>           "\n kwargs.pop('str', '3fd')\n kwargs.pop('str', '3f\\'d')"
+        >>>           "\n \"kwargs.get('baz', None)\"\n kwargs['foo2']"
+        >>>           "\n #kwargs.get('biz', None)\""
+        >>>           "\n kwargs['bloop']"
+        >>>           "\n x = 'bop' in kwargs"
+        >>>           )
+        >>> print('source = %s\n' % (source,))
         >>> ut.exec_funckw(parse_kwarg_keys, globals())
         >>> with_vals = True
-        >>> kwarg_keys = parse_kwarg_keys(source, with_vals=with_vals)
-        >>> result = ('kwarg_keys = %s' % (ut.repr2(kwarg_keys, nl=1),))
-        >>> assert 'baz' not in ut.take_column(kwarg_keys, 0)
-        >>> assert 'foo' in ut.take_column(kwarg_keys, 0)
+        >>> kwarg_items = parse_kwarg_keys(source, with_vals=with_vals)
+        >>> result = ('kwarg_items = %s' % (ut.repr2(kwarg_items, nl=1),))
         >>> print(result)
-        kwarg_keys = [
+        >>> kwarg_keys = ut.take_column(kwarg_items, 0)
+        >>> assert 'baz' not in kwarg_keys
+        >>> assert 'foo' in kwarg_keys
+        >>> assert 'bloop' in kwarg_keys
+        >>> assert 'bop' not in kwarg_keys
+        kwarg_items = [
             ('foo', None),
             ('bar', 3),
-            ('str', "'3fd'"),
-            ('str', "'3f'd'"),
+            ('str', '3fd'),
+            ('str', "3f'd"),
             ('foo2', None),
+            ('bloop', None),
         ]
+
     """
     import re
     import utool as ut
-    keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
-    esc = re.escape
-    # TODO: both kinds of quotes
-    getfuncnames = ut.regex_or(['get', 'pop'])
-    getfunc_pattern = esc(keywords + '.') + getfuncnames + esc("('") + keyname + esc("',")
-    getitem_pattern = esc(keywords + "[\'") + keyname + esc("\']")
-    if with_vals:
-        WS = ut.REGEX_WHITESPACE
-        valname = WS + ut.named_field('valname', ut.REGEX_RVAL) + WS + esc(')')
-        getfunc_pattern += valname
-    not_quotes = r'^[^\'\"]*'
-    getfunc_pattern_ = not_quotes + getfunc_pattern
-    getitem_pattern_ = not_quotes + getitem_pattern
-    # Parse get/pop kwargs
-    regex1 = re.compile(getfunc_pattern_, flags=re.MULTILINE)
-    groupdict_list1 = [match.groupdict() for match in regex1.finditer(source)]
-    kwarg_keys1 = [groupdict_['keyname'] for groupdict_ in groupdict_list1]
-    # Parse __getitem__ kwargs
-    regex2 = re.compile(getitem_pattern_, flags=re.MULTILINE)
-    groupdict_list2 = [match.groupdict() for match in regex2.finditer(source)]
-    kwarg_keys2 = [groupdict_['keyname'] for groupdict_ in groupdict_list2]
-    if with_vals:
-        kwarg_vals = [ut.smart_cast2(groupdict_['valname'])
-                      for groupdict_ in groupdict_list1]
-        parsed_list1 = list(zip(kwarg_keys1, kwarg_vals))
-        parsed_list2 = [(key, None) for key in kwarg_keys2]
-        return parsed_list1 + parsed_list2
+    if False:
+        keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
+        esc = re.escape
+        # TODO: both kinds of quotes
+        getfuncnames = ut.regex_or(['get', 'pop'])
+        getfunc_pattern = esc(keywords + '.') + getfuncnames + esc("('") + keyname + esc("',")
+        getitem_pattern = esc(keywords + "[\'") + keyname + esc("\']")
+        if with_vals:
+            WS = ut.REGEX_WHITESPACE
+            valname = WS + ut.named_field('valname', ut.REGEX_RVAL) + WS + esc(')')
+            getfunc_pattern += valname
+        not_quotes = r'^[^\'\"]*'
+        getfunc_pattern_ = not_quotes + getfunc_pattern
+        getitem_pattern_ = not_quotes + getitem_pattern
+        # Parse get/pop kwargs
+        regex1 = re.compile(getfunc_pattern_, flags=re.MULTILINE)
+        groupdict_list1 = [match.groupdict() for match in regex1.finditer(source)]
+        kwarg_keys1 = [groupdict_['keyname'] for groupdict_ in groupdict_list1]
+        # Parse __getitem__ kwargs
+        regex2 = re.compile(getitem_pattern_, flags=re.MULTILINE)
+        groupdict_list2 = [match.groupdict() for match in regex2.finditer(source)]
+        kwarg_keys2 = [groupdict_['keyname'] for groupdict_ in groupdict_list2]
+        if with_vals:
+            kwarg_vals = [ut.smart_cast2(groupdict_['valname'])
+                          for groupdict_ in groupdict_list1]
+            parsed_list1 = list(zip(kwarg_keys1, kwarg_vals))
+            parsed_list2 = [(key, None) for key in kwarg_keys2]
+            return parsed_list1 + parsed_list2
+        else:
+            return kwarg_keys1 + kwarg_keys2
     else:
-        return kwarg_keys1 + kwarg_keys2
+        import ast
+        sourcecode = 'from __future__ import print_function, unicode_literals\n' + ut.unindent(source)
+        pt = ast.parse(sourcecode)
+        kwargs_items = []
+        debug = VERYVERB_INSPECT
+        target_kwargs_name = keywords
+
+        if debug:
+            import astor
+            print('\nInput:')
+            print('target_kwargs_name = %r' % (target_kwargs_name,))
+            print('\nSource:')
+            print(sourcecode)
+            print('\nParse:')
+            print(astor.dump(pt))
+
+        class KwargParseVisitor(ast.NodeVisitor):
+            """
+            TODO: understand ut.update_existing and dict update
+            ie, know when kwargs is passed to these functions and
+            then look assume the object that was updated is a dictionary
+            and check wherever that is passed to kwargs as well.
+            """
+            def visit_FunctionDef(self, node):
+                if debug:
+                    print('VISIT FunctionDef node = %r' % (node,))
+                    # print('node.args.kwarg = %r' % (node.args.kwarg,))
+                if six.PY2:
+                    kwarg_name = node.args.kwarg
+                else:
+                    if node.args.kwarg is None:
+                        kwarg_name = None
+                    else:
+                        kwarg_name = node.args.kwarg.arg
+                    #import utool as ut
+                    #ut.embed()
+                if kwarg_name != target_kwargs_name:
+                    # target kwargs is still in scope
+                    ast.NodeVisitor.generic_visit(self, node)
+
+            def visit_Subscript(self, node):
+                if debug:
+                    print('VISIT SUBSCRIPT node = %r' % (node,))
+                    # print(ut.dict_str(node.__dict__,))
+                if isinstance(node.value, ast.Name):
+                    if node.value.id == target_kwargs_name:
+                        if isinstance(node.slice, ast.Index):
+                            index = node.slice
+                            key = index.value
+                            if isinstance(key, ast.Str):
+                                # item = (key.s, None)
+                                item = (key.s, None)
+                                kwargs_items.append(item)
+
+            def visit_Call(self, node):
+                if debug:
+                    print('VISIT Call node = %r' % (node,))
+                    # print(ut.dict_str(node.__dict__,))
+                if isinstance(node.func, ast.Attribute):
+                    objname = node.func.value.id
+                    methodname = node.func.attr
+                    # funcname = objname + '.' + methodname
+                    if objname == target_kwargs_name and methodname in {'get', 'pop'}:
+                        args = node.args
+                        if len(args) == 2:
+                            key, val = args
+                            if isinstance(key, ast.Name):
+                                # TODO lookup constant
+                                pass
+                            elif isinstance(key, ast.Str):
+                                key_value = key.s
+                                val_value = ut.NoParam
+                                if isinstance(val, ast.Str):
+                                    val_value = val.s
+                                elif isinstance(val, ast.Num):
+                                    val_value = val.n
+                                elif isinstance(val, ast.Name):
+                                    if val.id == 'None':
+                                        val_value = None
+                                    else:
+                                        # TODO: lookup constants?
+                                        pass
+                                item = (key_value, val_value)
+                                kwargs_items.append(item)
+                ast.NodeVisitor.generic_visit(self, node)
+        try:
+            KwargParseVisitor().visit(pt)
+        except Exception:
+            raise
+            pass
+        if with_vals:
+            return kwargs_items
+        else:
+            return ut.take_column(kwargs_items, 0)
 
 
 class KWReg(object):
@@ -2467,6 +2630,11 @@ def argparse_funckw(func, defaults={}, **kwargs):
 
     CommandLine:
         python -m utool.util_inspect argparse_funckw
+
+    SeeAlso:
+        argparse_funckw
+        recursive_parse_kwargs
+        parse_kwarg_keys
 
     Example:
         >>> # ENABLE_DOCTEST
