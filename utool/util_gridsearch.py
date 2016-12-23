@@ -262,7 +262,8 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     return nonvaried_cfg, varied_cfg_list
 
 
-def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, with_name=True, default_cfg=None):
+def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None,
+                with_name=True, default_cfg=None, sep=''):
     r"""
     Formats a flat configuration dict into a short string label. This is useful
     for re-creating command line strings.
@@ -317,8 +318,6 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, wi
     import utool as ut
     if name is None:
         name = cfg.get('_cfgname', '')
-    _search = ['dict(', ')', ' ']
-    _repl = [''] * len(_search)
 
     if default_cfg is not None:
         # Remove defaulted labels
@@ -326,7 +325,11 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None, wi
 
     # remove keys that should not belong to the label
     _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
-    _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True, key_order=key_order)
+    _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True,
+                       key_order=key_order, itemsep=sep)
+    # _search = ['dict(', ')', ' ']
+    _search = ['dict(', ')']
+    _repl = [''] * len(_search)
     _lbl = ut.multi_replace(_lbl, _search, _repl).rstrip(',')
     if not with_name:
         return _lbl
