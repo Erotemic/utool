@@ -1885,7 +1885,7 @@ def sort_dict(dict_, part='keys', key=None, reverse=False):
     """
     if part == 'keys':
         index = 0
-    elif part == 'vals':
+    elif part in {'vals', 'values'}:
         index = 1
     else:
         raise ValueError('Unknown method part=%r' % (part,))
