@@ -921,12 +921,17 @@ def cmd(*args, **kwargs):
                    tb=True)
 
 
-def cmd2(command, shell=False, detatch=False, verbose=False):
+def cmd2(command, shell=False, detatch=False, verbose=False, verbout=None):
     """
     Trying to clean up cmd
 
     Args:
         command (str): string command
+        shell (bool): if True, process is run in shell
+        detatch (bool): if True, process is run in background
+        verbose (int): verbosity mode
+        verbout (bool): if True, `command` writes to stdout in realtime.
+            defaults to True iff verbose > 0
 
     Returns:
         dict: info - information about command status
@@ -935,12 +940,17 @@ def cmd2(command, shell=False, detatch=False, verbose=False):
     if isinstance(command, (list, tuple)):
         raise ValueError('command tuple not supported yet')
     args = shlex.split(command, posix=not WIN32)
-    if verbose:
+    if verbose is True:
+        verbose = 2
+    if verbout is None:
+        verbout = verbose >= 1
+    if verbose >= 2:
         print('+=== START CMD2 ===')
         print('Command:')
         print(command)
-        print('----')
-        print('Stdout:')
+        if verbout:
+            print('----')
+            print('Stdout:')
     proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, shell=shell,
                             universal_newlines=True)
@@ -954,17 +964,19 @@ def cmd2(command, shell=False, detatch=False, verbose=False):
             #line_ = line if six.PY2 else line.decode('utf-8')
             line_ = line if six.PY2 else line
             if len(line_) > 0:
-                if verbose:
+                if verbout:
                     write_fn(line_)
                     flush_fn()
                 logged_out.append(line)
         try:
             from utool import util_str  # NOQA
-            out = '\n'.join(logged_out)
+            # out = '\n'.join(logged_out)
+            out = ''.join(logged_out)
         except UnicodeDecodeError:
             from utool import util_str  # NOQA
             logged_out = util_str.ensure_unicode_strlist(logged_out)
-            out = '\n'.join(logged_out)
+            # out = '\n'.join(logged_out)
+            out = ''.join(logged_out)
             # print('logged_out = %r' % (logged_out,))
             # raise
         (out_, err) = proc.communicate()
@@ -974,7 +986,7 @@ def cmd2(command, shell=False, detatch=False, verbose=False):
             'err': err,
             'ret': ret,
         }
-    if verbose:
+    if verbose >= 2:
         print('L___ END CMD2 ___')
     return info
 

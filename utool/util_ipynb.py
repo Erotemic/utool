@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Utils for IPython/Jupyter Notebooks
+Utilities for IPython/Jupyter Notebooks
+
+
+CommandLine:
+    # to connect to a notebook on a remote machine that does not have the
+    # appropriate port exposed you must start an SSH tunnel.
+    # Typically a jupyter-notebook runs on port 8888.
+    # Run this command on your local machine.
+    ssh -N -f -L localhost:8888:localhost:8889 <remote_user>@<remote_host>
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import sys
 from utool import util_inject
 from collections import namedtuple
 print, rrr, profile = util_inject.inject2(__name__)
@@ -27,9 +36,7 @@ def make_autogen_str():
         >>> print(result)
     """
     import utool as ut
-    import sys
     def get_regen_cmd():
-        # TODO: move to utool
         try:
             if len(sys.argv) > 0 and ut.checkpath(sys.argv[0]):
                 # Check if running python command
@@ -117,7 +124,6 @@ def normalize_cells(block):
 
 def format_cells(block, locals_=None):
     import utool as ut
-
     try:
         if isinstance(block, (tuple, list)):
             if len(block) == 2:

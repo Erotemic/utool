@@ -106,23 +106,44 @@ def monkey_to_str_columns(self):
     return strcols
 
 
-def to_string_monkey(df, highlight_cols=[0, 1]):
+def to_string_monkey(df, highlight_cols=None):
     """  monkey patch to pandas to highlight the maximum value in specified
-    cols of a row """
+    cols of a row
+
+    df = pd.DataFrame(
+        np.array([[ 0.87031269,  0.86886931,  0.86842073,  0.91981975],
+                  [ 0.34196218,  0.34289191,  0.34206377,  0.34252863],
+                  [ 0.34827074,  0.34829214,  0.35032833,  0.28857126],
+                  [ 0.76979453,  0.77214855,  0.77547518,  0.38850962]]),
+        columns=['sum(fgweights)', 'sum(weighted_ratio)', 'len(matches)', 'score_lnbnn_1vM'],
+        index=['match_state(match-v-rest)', 'match_state(nomatch-v-rest)', 'match_state(notcomp-v-rest)', 'photobomb_state']
+    )
+    highlight_cols = 'all'
+
+    ut.editfile(pd.formats.printing.adjoin)
+
+    """
     import pandas as pd
     import utool as ut
-    kwds = dict(buf=None, columns=None, col_space=None, header=True,
-                index=True, na_rep='NaN', formatters=None,
-                float_format=None, sparsify=None, index_names=True,
-                justify=None, line_width=None, max_rows=None,
-                max_cols=None, show_dimensions=False)
-    self = pd.formats.format.DataFrameFormatter(df, **kwds)
+    import numpy as np
+    import six
+    if isinstance(highlight_cols, six.string_types) and highlight_cols == 'all':
+        highlight_cols = np.arange(len(df.columns))
+    # kwds = dict(buf=None, columns=None, col_space=None, header=True,
+    #             index=True, na_rep='NaN', formatters=None,
+    #             float_format=None, sparsify=None, index_names=True,
+    #             justify=None, line_width=None, max_rows=None,
+    #             max_cols=None, show_dimensions=False)
+    # self = pd.formats.format.DataFrameFormatter(df, **kwds)
+    self = pd.formats.format.DataFrameFormatter(df)
     self.highlight_cols = highlight_cols
     ut.inject_func_as_method(self, monkey_to_str_columns, '_to_str_columns', override=True, force=True)
+
     def strip_ansi(text):
         import re
         ansi_escape = re.compile(r'\x1b[^m]*m')
         return ansi_escape.sub('', text)
+
     def justify_ansi(self, texts, max_len, mode='right'):
         if mode == 'left':
             return [x.ljust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
@@ -130,15 +151,51 @@ def to_string_monkey(df, highlight_cols=[0, 1]):
             return [x.center(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
         else:
             return [x.rjust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
+    ut.inject_func_as_method(self.adj, justify_ansi, 'justify', override=True, force=True)
+
     def strlen_ansii(self, text):
         return pd.compat.strlen(strip_ansi(text), encoding=self.encoding)
     ut.inject_func_as_method(self.adj, strlen_ansii, 'len', override=True, force=True)
-    ut.inject_func_as_method(self.adj, justify_ansi, 'justify', override=True, force=True)
-    # strcols = monkey_to_str_columns(self)
-    # texts = strcols[2]
-    # str_ = self.adj.adjoin(1, *strcols)
-    # print(str_)
-    # print(strip_ansi(str_))
+
+    if False:
+        strlen = ut.partial(strlen_ansii, self.adj)  # NOQA
+        justfunc = ut.partial(justify_ansi, self.adj)  # NOQA
+        # Essentially what to_string does
+        strcols = monkey_to_str_columns(self)
+        # texts = strcols[2]
+        space = 1
+        lists = strcols
+        str_ = self.adj.adjoin(space, *lists)
+        print(str_)
+        print(strip_ansi(str_))
     self.to_string()
     result = self.buf.getvalue()
+    # hack because adjoin is not working correctly with injected strlen
+    result = '\n'.join([x.rstrip() for x in result.split('\n')])
     return result
+
+
+def pandas_repr(df):
+    import utool as ut
+    args = [
+        df.values,
+    ]
+    kwargs = [
+        ('columns', df.columns.values.tolist()),
+        ('index', df.index.values.tolist()),
+    ]
+    header = 'pd.DataFrame('
+    footer = ')'
+
+    arg_parts = [
+        ut.hz_str('    ', ut.repr2(arg))
+        for arg in args if arg is not None
+    ]
+    kwarg_parts = [
+        ut.hz_str('    {}={}'.format(key, ut.repr2(val)))
+        for key, val in kwargs if val is not None
+    ]
+    body = ',\n'.join(arg_parts + kwarg_parts)
+    dfrepr = '\n'.join([header, body, footer])
+    print(dfrepr)
+    pass

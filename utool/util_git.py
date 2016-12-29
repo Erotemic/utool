@@ -596,7 +596,7 @@ class Repo(util_dev.NiceRepr):
         # import utool as ut
         # ut.print_code(repo.install_script, 'bash')
 
-    def issue(repo, command, sudo=False, dry=False):
+    def issue(repo, command, sudo=False, dry=False, error='raise'):
         """
         issues a command on a repo
 
@@ -631,15 +631,58 @@ class Repo(util_dev.NiceRepr):
                     print(cmd)
                     continue
                 if not sudo or ut.WIN32:
-                    ret = os.system(cmd)
+                    # ret = os.system(cmd)
+                    cmdinfo = ut.cmd2(cmd, verbout=True)
+                    out, err, ret = ut.take(cmdinfo, ['out', 'err', 'ret'])
                 else:
+                    # cmdinfo = ut.cmd2('sudo ' + cmd, verbose=1)
                     out, err, ret = ut.cmd(cmd, sudo=True)
                 if verbose > 1:
                     print('ret(%d) = %r' % (count, ret,))
                 if ret != 0:
-                    raise Exception('Failed command %r' % (cmd,))
+                    if error == 'raise':
+                        raise Exception('Failed command %r' % (cmd,))
+                    elif error == 'return':
+                        return out
+                    else:
+                        raise ValueError('unknown flag error=%r' % (error,))
         if not dry:
             print('L____')
+
+    def pull2(repo, overwrite=True):
+        """
+        Pulls and automatically overwrites conflict files.
+        """
+        cmd = 'git pull --no-edit'
+        out = repo.issue(cmd, error='return')
+        if overwrite and out is not None:
+            repo._handle_overwrite_error(out)
+            # Retry
+            repo.issue(cmd)
+
+    def checkout2(repo, branch, overwrite=True):
+        """
+        Checkout `branch` and automatically overwrites conflict files.
+        """
+        cmd = 'git checkout %s' % (branch,)
+        out = repo.issue(cmd, error='return')
+        if overwrite and out is not None:
+            repo._handle_overwrite_error(out)
+            # Retry
+            repo.issue(cmd)
+
+    def _handle_overwrite_error(repo, out):
+        import utool as ut
+        # parse stdout to handle the error
+        if out.startswith('error: The following untracked working tree files would be overwritten'):
+            print('[ut.git] handling overwrite error')
+            lines = out.split('\n')[1:]
+            fpaths = []
+            for line in lines:
+                if line.startswith('Please move or remove them before you can merge'):
+                    break
+                fpaths.append(join(repo.dpath, line.strip()))
+                ut.remove_file_list(fpaths)
 
     def short_status(repo):
         r"""
