@@ -1758,9 +1758,9 @@ def broadcast_zip(list1, list2):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
-        >>> assert bzip([1, 2, 3], [4]) == [(1, 4), (2, 4), (3, 4)]
-        >>> assert bzip([1, 2, 3], [4, 4, 4]) == [(1, 4), (2, 4), (3, 4)]
-        >>> assert bzip([1], [4, 4, 4]) == [(1, 4), (1, 4), (1, 4)]
+        >>> assert list(bzip([1, 2, 3], [4])) == [(1, 4), (2, 4), (3, 4)]
+        >>> assert list(bzip([1, 2, 3], [4, 4, 4])) == [(1, 4), (2, 4), (3, 4)]
+        >>> assert list(bzip([1], [4, 4, 4])) == [(1, 4), (1, 4), (1, 4)]
         >>> ut.assert_raises(ValueError, bzip, [1, 2, 3], [])
         >>> ut.assert_raises(ValueError, bzip, [], [4, 5, 6])
         >>> ut.assert_raises(ValueError, bzip, [], [4])
@@ -1785,7 +1785,8 @@ def broadcast_zip(list1, list2):
     elif len(list1) != len(list2):
         raise ValueError('out of alignment len(list1)=%r, len(list2)=%r' % (
             len(list1), len(list2)))
-    return list(zip(list1, list2))
+    # return list(zip(list1, list2))
+    return zip(list1, list2)
 
 
 def where(flag_list):
@@ -3184,6 +3185,36 @@ def aslist(listlike):
 
 #    def __setitem__(self, key, value):
 #        return self.setitem(key, value)
+
+
+def length_hint(obj, default=0):
+    """
+    Return an estimate of the number of items in obj.
+
+    This is the PEP 424 implementation.
+    If the object supports len(), the result will be
+    exact. Otherwise, it may over- or under-estimate by an
+    arbitrary amount. The result will be an integer >= 0.
+    """
+    try:
+        return len(obj)
+    except TypeError:
+        try:
+            get_hint = type(obj).__length_hint__
+        except AttributeError:
+            return default
+        try:
+            hint = get_hint(obj)
+        except TypeError:
+            return default
+        if hint is NotImplemented:
+            return default
+        if not isinstance(hint, int):
+            raise TypeError("Length hint must be an integer, not %r" %
+                            type(hint))
+        if hint < 0:
+            raise ValueError("__length_hint__() should return >= 0")
+        return hint
 
 
 if __name__ == '__main__':

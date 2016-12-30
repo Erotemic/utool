@@ -1488,26 +1488,6 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         queue.popleft()
 
 
-# def bzip(*args):
-#     """
-#     broadcasting zip. Only broadcasts on the first dimension
-
-#     args = [np.array([1, 2, 3, 4]), [[1, 2, 3]]]
-#     args = [np.array([1, 2, 3, 4]), [[1, 2, 3]]]
-
-#     """
-#     needs_cast = [isinstance(arg, list) for arg in args]
-#     arg_containers = [np.empty(len(arg), dtype=object) if flag else arg
-#                       for arg, flag in zip(args, needs_cast)]
-#     empty_containers = ut.compress(arg_containers, needs_cast)
-#     tocast_args = ut.compress(args, needs_cast)
-#     for container, arg in zip(empty_containers, tocast_args):
-#         container[:] = arg
-#     #[a.shape for a in arg_containers]
-#     bc = np.broadcast(*arg_containers)
-#     return bc
-
-
 def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):
     """ Colors edges and nodes by nid """
     import plottool as pt

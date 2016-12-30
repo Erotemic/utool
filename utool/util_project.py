@@ -95,6 +95,7 @@ class SetupRepo(object):
     def main(self):
         """
         python -m utool SetupRepo.main --modname=sklearn --repo=scikit-learn --codedir=~/code -w
+        python -m utool SetupRepo.main --repo=ubelt --codedir=~/code --modname=ubelt -w
 
         Example:
             >>> # SCRIPT
@@ -149,6 +150,8 @@ def setup_repo():
         python -m utool setup_repo --repo=mtgmonte --codedir=~/code --modname=mtgmonte
         python -m utool setup_repo --repo=pydarknet --codedir=~/code --modname=pydarknet
         python -m utool setup_repo --repo=sandbox_utools --codedir=~/code --modname=sandbox_utools
+
+        python -m utool setup_repo --repo=ubelt --codedir=~/code --modname=ubelt -w
 
         python -m utool setup_repo
 
