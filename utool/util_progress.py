@@ -371,6 +371,7 @@ class ProgressIter(object):
         #self.start_offset       = self.substep_min
 
         self.stream      = kwargs.pop('stream', None)
+        self.extra = ''
 
         if FORCE_ALL_PROGRESS:
             self.freq = 1
@@ -529,6 +530,7 @@ class ProgressIter(object):
             (' wall={wall} ' + tzname if with_wall else ''),
             # backslash-r is a carrage return and undoes all previous output on
             # a written line
+            (' {extra}'),
             CLEAR_AFTER if backspace else '\n',
         ]
         msg_fmtstr_time = ''.join((msg_head + msg_tail))
@@ -601,6 +603,7 @@ class ProgressIter(object):
         # Prepare for iteration
         msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
                                             self.invert_rate, self.backspace)
+        self.msg_fmtstr = msg_fmtstr
         #msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
         #                                   self.invert_rate, self.backspace)
 
@@ -617,11 +620,14 @@ class ProgressIter(object):
                 etr=six.text_type('0:00:00'),
                 ellapsed=six.text_type('0:00:00'),
                 wall=time.strftime('%H:%M'),
+                extra=self.extra
             )
             PROGRESS_WRITE(msg)
         else:
             start_msg = start_msg_fmt.format(count=self.parent_offset)
             PROGRESS_WRITE(start_msg + '\n')
+
+        self.flush = PROGRESS_FLUSH
         self.write = PROGRESS_WRITE
         self._cursor_at_newline = not self.backspace
         #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
@@ -653,6 +659,9 @@ class ProgressIter(object):
         # use last 64 times to compute a more stable average rate
         measure_between_time = collections.deque([], maxlen=self.est_window)
         measure_est_seconds = collections.deque([], maxlen=self.est_window)
+        self.iters_per_second = 0
+        self.est_seconds_left = 1
+        self.total_seconds = 0
 
         # Wrap the for loop with a generator
         for self.count, item in enumerate(self.iterable, start=start):
@@ -665,11 +674,13 @@ class ProgressIter(object):
                 between_time      = (now_time - last_time)
                 between_count     = self.count - last_count
                 total_seconds     = (now_time - start_time)
+                self.total_seconds = total_seconds
                 if USE_RECORD:
                     measure_between_time.append(between_count / (float(between_time) + 1E-9))
                     iters_per_second = sum(measure_between_time) / len(measure_between_time)
                 else:
                     iters_per_second = between_count / (float(between_time) + 1E-9)
+                self.iters_per_second = iters_per_second
                 # If the future is known
                 if nTotal is None:
                     est_seconds_left = -1
@@ -681,6 +692,7 @@ class ProgressIter(object):
                         est_seconds_left = sum(measure_est_seconds) / len(measure_est_seconds)
                     else:
                         est_seconds_left = est_etr
+                self.est_seconds_left = est_seconds_left
 
                 # /future
                 last_count        = self.count
@@ -730,6 +742,7 @@ class ProgressIter(object):
                     etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
                     ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
                     wall=time.strftime('%H:%M'),
+                    extra=self.extra,
                 )
                 #est_timeunit_left,
                 #total_timeunit)
@@ -758,14 +771,17 @@ class ProgressIter(object):
             # If the final line of progress was not written in the loop, write
             # it here
             est_seconds_left = 0
+            self.est_seconds_left = est_seconds_left
             now_time = default_timer()
             total_seconds = (now_time - start_time)
+            self.total_seconds = total_seconds
             msg = msg_fmtstr.format(
                 count=self.count,
                 rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
                 etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
                 ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
                 wall=time.strftime('%H:%M'),
+                extra=self.extra
             )
             PROGRESS_WRITE(msg)
             self._cursor_at_newline = not self.backspace
@@ -788,6 +804,35 @@ class ProgressIter(object):
         PROGRESS_WRITE(AT_END)
         self._cursor_at_newline = not self.backspace
         #self.end(self.count + 1)
+
+    def display_message(self):
+        # HACK TO LET USER UPDATE MESSAGE ON THE FLY
+        # FIXME: use the sklearn.extrnals ProgIter version instead
+        # print('self.msg_fmtstr.format = %r' % (self.msg_fmtstr,))
+        # print('self.iters_per_second = %r' % (self.iters_per_second,))
+        msg = self.msg_fmtstr.format(
+            count=self.count,
+            rate=1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second,
+            etr=six.text_type(datetime.timedelta(seconds=int(self.est_seconds_left))),
+            ellapsed=six.text_type(datetime.timedelta(seconds=int(self.total_seconds))),
+            wall=time.strftime('%H:%M'),
+            extra=self.extra
+        )
+        self.write(msg)
+        self._cursor_at_newline = not self.backspace
+        try:
+            self.flush()
+        except IOError as ex:
+            if util_arg.VERBOSE:
+                print('IOError flushing %s' % (ex,))
+        pass
+
+    def set_extra(self, extra):
+        """
+        specify a custom info appended to the end of the next message
+        TODO: come up with a better name and rename
+        """
+        self.extra = extra
 
     def ensure_newline(self):
         """

@@ -245,12 +245,12 @@ def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None, enabled=True):
                 basename(dpath), fname, cfgstr,))
         import utool as ut
         nbytes = ut.get_file_nBytes(fpath)
-        big_verbose = nbytes > 1E6 or verbose > 2
-        if nbytes > 1E6:
-            print('About to read file of size %s' % (ut.byte_str2(nbytes),))
+        big_verbose = (nbytes > 1E6 and verbose > 2) or verbose > 2
+        if big_verbose:
+            print('[util_cache] About to read file of size %s' % (ut.byte_str2(nbytes),))
     try:
-        with ut.Timer(fpath, verbose=big_verbose):
-            data = util_io.load_data(fpath, verbose=verbose)
+        with ut.Timer(fpath, verbose=big_verbose and verbose > 2):
+            data = util_io.load_data(fpath, verbose=verbose > 2)
     except (EOFError, IOError, ImportError) as ex:
         print('CORRUPTED? fpath = %s' % (fpath,))
         if verbose > 1:
@@ -261,7 +261,7 @@ def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None, enabled=True):
         print('CORRUPTED? fpath = %s' % (fpath,))
         raise
     else:
-        if verbose > 1:
+        if verbose > 2:
             print('[util_cache] ... cache hit')
     return data
 
@@ -352,7 +352,7 @@ class Cacher(object):
         data = load_cache(self.dpath, self.fname, cfgstr, self.ext,
                           verbose=self.verbose, enabled=self.enabled)
         if self.verbose > 1:
-            print('... ' + self.fname + ' Cacher hit')
+            print('[cache] ... ' + self.fname + ' Cacher hit')
         return data
 
     def tryload(self, cfgstr=None):
@@ -361,11 +361,12 @@ class Cacher(object):
                 assert cfgstr is not None or self.cfgstr is not None, (
                     'must specify cfgstr in constructor or call')
                 print('[cache] tryload fname=' + self.fname)
-                print('[cache] cfgstr= ' + self.cfgstr if cfgstr is None else cfgstr)
+                if self.verbose > 2:
+                    print('[cache] cfgstr= ' + self.cfgstr if cfgstr is None else cfgstr)
             return self.load(cfgstr)
         except IOError:
             if self.verbose > 0:
-                print('... ' + self.fname + ' Cacher miss')
+                print('[cache] ... ' + self.fname + ' Cacher miss')
 
     def ensure(self, func, *args, **kwargs):
         data = self.tryload()
@@ -382,7 +383,7 @@ class Cacher(object):
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
         if self.verbose > 0:
-            print('... ' + self.fname + ' Cacher save')
+            print('[cache] ... ' + self.fname + ' Cacher save')
         save_cache(self.dpath, self.fname, cfgstr, data, self.ext)
 
 

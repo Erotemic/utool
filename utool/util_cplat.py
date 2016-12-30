@@ -733,6 +733,10 @@ def _run_process(proc):
         line = proc.stdout.readline()
         yield line
         if retcode is not None:
+            # The program has a return code, so its done executing.
+            # Grab any remaining data in stdout
+            for line in proc.stdout.readlines():
+                yield line
             raise StopIteration('process finished')
 
 

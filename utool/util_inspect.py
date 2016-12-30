@@ -82,6 +82,9 @@ class BaronWraper(object):
             used_in.append(parent_func)
         return used_in
 
+    def find_func(self, name):
+        return self.baron.find('def', name=name)
+
     def find_root_function(self, node):
         par = node.parent_find('def')
         if par is None:

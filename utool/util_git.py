@@ -596,7 +596,7 @@ class Repo(util_dev.NiceRepr):
         # import utool as ut
         # ut.print_code(repo.install_script, 'bash')
 
-    def issue(repo, command, sudo=False, dry=False, error='raise'):
+    def issue(repo, command, sudo=False, dry=False, error='raise', return_out=False):
         """
         issues a command on a repo
 
@@ -624,7 +624,7 @@ class Repo(util_dev.NiceRepr):
             print('+--- *** repocmd(%s) *** ' % (cmdstr,))
             print('repo=%s' % ut.color_text(repo.dpath, 'yellow'))
         verbose = True
-        with ut.ChdirContext(repo.dpath, verbose=False):
+        with repo.chdir_context():
             ret = None
             for count, cmd in enumerate(command_list):
                 if dry:
@@ -646,8 +646,14 @@ class Repo(util_dev.NiceRepr):
                         return out
                     else:
                         raise ValueError('unknown flag error=%r' % (error,))
+                if return_out:
+                    return out
         if not dry:
             print('L____')
+
+    def chdir_context(repo, verbose=False):
+        import utool as ut
+        return ut.ChdirContext(repo.dpath, verbose=verbose)
 
     def pull2(repo, overwrite=True):
         """
@@ -668,8 +674,28 @@ class Repo(util_dev.NiceRepr):
         out = repo.issue(cmd, error='return')
         if overwrite and out is not None:
             repo._handle_overwrite_error(out)
+            repo._handle_abort_merge_rebase(out)
             # Retry
             repo.issue(cmd)
+
+    def _parse_merge_conflict_fpaths(repo, out):
+        fpaths = []
+        for line in out.split('\n'):
+            pref = 'CONFLICT (content): Merge conflict in '
+            if line.startswith(pref):
+                fpaths.append(join(repo.dpath, line[len(pref):]))
+        return fpaths
+
+    def _handle_abort_merge_rebase(repo, out):
+        if out.startswith('error: you need to resolve your current index first'):
+            try:
+                repo.issue('git merge --abort')
+            except Exception:
+                pass
+            try:
+                repo.issue('git rebase --abort')
+            except Exception:
+                pass
 
     def _handle_overwrite_error(repo, out):
         import utool as ut
@@ -774,6 +800,40 @@ class Repo(util_dev.NiceRepr):
             'git push {remote} {new_branch_name}'.format(**fmtdict),
         ]
         repo.issue(command_list)
+
+    @staticmethod
+    def resolve_conflicts(fpath, strat, force=False, verbose=True):
+        """
+        Parses merge conflits and takes either version
+        """
+        import utool as ut
+        import re
+        top_pat = re.escape('<' * 7)
+        mid_pat = re.escape('=' * 7)
+        bot_pat = re.escape('>' * 7)
+        flags = re.MULTILINE | re.DOTALL
+        # Pattern to remove the top part
+        theirs_pat1 = re.compile('^%s.*?%s.*?$\n' % (top_pat, mid_pat), flags=flags)
+        theirs_pat2 = re.compile('^%s.*?$\n' % (bot_pat), flags=flags)
+        # Pattern to remove the bottom part
+        ours_pat1   = re.compile('^%s.*?%s.*?$\n' % (mid_pat, bot_pat), flags=flags)
+        ours_pat2   = re.compile('^%s.*?$\n' % (top_pat), flags=flags)
+        strat_pats = {
+            'theirs': [theirs_pat1, theirs_pat2],
+            'ours': [ours_pat1, ours_pat2],
+        }
+
+        text_in = ut.readfrom(fpath)
+        text_out = text_in
+        strat = 'ours'
+        strat = 'theirs'
+        for pat in strat_pats[strat]:
+            text_out = pat.sub('', text_out)
+        if verbose:
+            ut.print_difftext(ut.difftext(text_in, text_out, num_context_lines=3))
+
+        if force:
+            ut.writeto(fpath, text_out)
 
 
 def git_sequence_editor_squash(fpath):
