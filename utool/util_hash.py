@@ -392,7 +392,7 @@ def write_hash_file(fpath, hash_tag='md5', recompute=False, **kwargs):
         # Compute hash
         hasher = hash_dict[hash_tag]
         hash_local = get_file_hash(fpath, hasher=hasher, hexdigest=True)
-        print('utool] Adding:', fpath, hash_local)
+        print('[utool] Adding:', fpath, hash_local)
         with open(hash_fpath, 'w') as hash_file:
             hash_file.write(hash_local)
         return hash_fpath
