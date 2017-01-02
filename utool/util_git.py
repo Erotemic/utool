@@ -320,6 +320,9 @@ class Repo(util_dev.NiceRepr):
         return url
 
     def reset_branch_to_remote(repo, branch, hard=True):
+        """
+        does a git reset --hard to whatever remote the branch is assigned to
+        """
         remote = repo.get_branch_remote(branch)
         kw = dict(remote=remote, branch=branch)
         if hard:

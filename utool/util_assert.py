@@ -290,8 +290,11 @@ def assert_all_eq(item_list, eq_=operator.eq):
             raise AssertionError(msg)
 
 
-def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=not util_arg.QUIET):
+def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None,
+              verbose=None):
     import utool as ut
+    if verbose is None:
+        verbose = not util_arg.QUIET
     failed = var1 != var2
     if var1_name is None:
         var1_name = ut.get_varname_from_stack(var1, N=1, default='var1')
@@ -317,7 +320,8 @@ def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None, verbose=not ut
         msg = msg_fmtstr.format(**fmtdict)
         raise AssertionError(msg)
     else:
-        print('ASSERT_EQ_PASSED: {var1_name} == {var2_name} == {var1_repr}'.format(**fmtdict))
+        if verbose:
+            print('ASSERT_EQ_PASSED: {var1_name} == {var2_name} == {var1_repr}'.format(**fmtdict))
 
 
 if __name__ == '__main__':

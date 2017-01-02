@@ -354,7 +354,9 @@ class ProgressIter(object):
         self.autoadjust         = kwargs.get('autoadjust', kwargs.get('adjust', False))
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
-        self.separate           = kwargs.pop('separate', False)
+        self.prehack            = kwargs.pop('prehack', None)
+        if 'separate' in kwargs:
+            print('WARNING separate no longer supported by ProgIter')
 
         # FIXME: get these subinder things working
         # ~/code/guitool/guitool/guitool_components.py
@@ -463,11 +465,6 @@ class ProgressIter(object):
     #    ))
     #    return msg_fmtstr_time
 
-    #def build_msg_fmtstr(self, nTotal, lbl, invert_rate, backspace):
-    #    msg_fmtstr = (self.build_msg_fmtstr_index(nTotal, lbl) +
-    #                  self.build_msg_fmtstr_time(lbl, invert_rate, backspace))
-    #    return msg_fmtstr
-
     @staticmethod
     def build_msg_fmtstr_head_cols(nTotal, lbl):
         nTotal_ = '?' if nTotal == 0 else six.text_type(nTotal)
@@ -565,6 +562,8 @@ class ProgressIter(object):
         #import sys
         #PROGRESS_WRITE = sys.stdout.write
         #PROGRESS_FLUSH = sys.stdout.flush
+        self.flush = PROGRESS_FLUSH
+        self.write = PROGRESS_WRITE
 
         nTotal        = self.nTotal * self.parent_nTotal  # hack
         freq          = self.freq
@@ -590,22 +589,17 @@ class ProgressIter(object):
         # TODO: should be kept as a statistic that uses the max time from a
         # list of iterations divided by the size of that list that will account
         # for buffering issues
-        iters_per_second = -1
-
-        #est_timeunit_left = -1
+        iters_per_second = 0
+        self.iters_per_second = 0
+        self.est_seconds_left = 0
+        self.total_seconds = 0
 
         # Write initial message
         #force_newlines = not self.backspace
-        print_sep = self.separate
-        if print_sep:
-            print('---------')
         start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl))
-        # Prepare for iteration
-        msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
-                                            self.invert_rate, self.backspace)
-        self.msg_fmtstr = msg_fmtstr
-        #msg_fmtstr = self.build_msg_fmtstr(nTotal, self.lbl,
-        #                                   self.invert_rate, self.backspace)
+        self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
+                                                 self.invert_rate,
+                                                 self.backspace)
 
         try:
             PROGRESS_FLUSH()
@@ -613,38 +607,24 @@ class ProgressIter(object):
             # There is some weird error when doing progress in IPython notebook
             if util_arg.VERBOSE:
                 print('IOError flushing %s' % (ex,))
-        #PROGRESS_WRITE(start_msg)
-        if self.backspace:
-            msg = msg_fmtstr.format(
-                count=self.count, rate=0.0,
-                etr=six.text_type('0:00:00'),
-                ellapsed=six.text_type('0:00:00'),
-                wall=time.strftime('%H:%M'),
-                extra=self.extra
-            )
-            PROGRESS_WRITE(msg)
+        if not self.prehack:
+            if self.backspace:
+                self.display_message()
+            else:
+                start_msg = start_msg_fmt.format(count=self.parent_offset)
+                PROGRESS_WRITE(start_msg + '\n')
+
+            self._cursor_at_newline = not self.backspace
+
+            try:
+                PROGRESS_FLUSH()
+            except IOError as ex:
+                # There is some weird error when doing progress in IPython notebook
+                if util_arg.VERBOSE:
+                    print('IOError flushing %s' % (ex,))
         else:
-            start_msg = start_msg_fmt.format(count=self.parent_offset)
-            PROGRESS_WRITE(start_msg + '\n')
+            self._cursor_at_newline = True
 
-        self.flush = PROGRESS_FLUSH
-        self.write = PROGRESS_WRITE
-        self._cursor_at_newline = not self.backspace
-        #PROGRESS_WRITE(self.build_msg_fmtstr_index(nTotal, self.lbl) % (self.parent_offset))
-        #if force_newlines:
-        #    PROGRESS_WRITE('\n')
-
-        try:
-            PROGRESS_FLUSH()
-        except IOError as ex:
-            # There is some weird error when doing progress in IPython notebook
-            if util_arg.VERBOSE:
-                print('IOError flushing %s' % (ex,))
-            #print('PROGRESS_FLUSH = %r' % (PROGRESS_FLUSH,))
-            #import utool as ut
-            #ut.debug_logging_iostreams()
-            #ut.printex(ex)
-            #raise
         if self.prog_hook is not None:
             self.prog_hook(self.count, nTotal)
 
@@ -659,17 +639,20 @@ class ProgressIter(object):
         # use last 64 times to compute a more stable average rate
         measure_between_time = collections.deque([], maxlen=self.est_window)
         measure_est_seconds = collections.deque([], maxlen=self.est_window)
-        self.iters_per_second = 0
-        self.est_seconds_left = 1
-        self.total_seconds = 0
 
         # Wrap the for loop with a generator
         for self.count, item in enumerate(self.iterable, start=start):
+            if self.prehack:
+                # hack to print before yeilding
+                # so much for efficiency
+                self.set_extra((self.lbl + '=' + self.prehack) % item)
+                self.display_message()
+                self.ensure_newline()
+
             # GENERATE
             yield item
-            # DO PROGRESS INFO
-            if (self.count) % freq == 0:
-                # UPDATE INFO
+
+            if self.prehack or (self.count) % freq == 0:
                 now_time          = default_timer()
                 between_time      = (now_time - last_time)
                 between_count     = self.count - last_count
@@ -729,35 +712,10 @@ class ProgressIter(object):
                         freq -= max_freq_change_down
                     else:
                         freq = new_freq
-                #msg = msg_fmtstr % (
-                #    self.count,
-                #    1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                #    six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-                #    six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-                #    time.strftime('%H:%M'),
-                #)
-                msg = msg_fmtstr.format(
-                    count=self.count,
-                    rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                    etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-                    ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-                    wall=time.strftime('%H:%M'),
-                    extra=self.extra,
-                )
-                #est_timeunit_left,
-                #total_timeunit)
-                if print_sep:
-                    print('---------')
-                PROGRESS_WRITE(msg)
-                self._cursor_at_newline = not self.backspace
-                #if force_newlines:
-                #    PROGRESS_WRITE('\n')
-                #if not self.backspace:
-                try:
-                    PROGRESS_FLUSH()
-                except IOError as ex:
-                    if util_arg.VERBOSE:
-                        print('IOError flushing %s' % (ex,))
+
+                if not self.prehack:
+                    self.display_message()
+
                 # DO PROGRESS INFO
                 if self.prog_hook is not None:
                     # From the point of view of the progress iter, we are about
@@ -765,51 +723,29 @@ class ProgressIter(object):
                     # executed the body implicitly in the yeild....  so it is
                     # ambiguous. In the second case 0 will be executed twice.
                     self.prog_hook(self.count, nTotal)
+
+        if self.prehack:
+            self.set_extra('')
+
         # --- end of main loop
         # cleanup
         if (self.count) % freq != 0:
             # If the final line of progress was not written in the loop, write
             # it here
-            est_seconds_left = 0
-            self.est_seconds_left = est_seconds_left
-            now_time = default_timer()
-            total_seconds = (now_time - start_time)
-            self.total_seconds = total_seconds
-            msg = msg_fmtstr.format(
-                count=self.count,
-                rate=1.0 / iters_per_second if self.invert_rate else iters_per_second,
-                etr=six.text_type(datetime.timedelta(seconds=int(est_seconds_left))),
-                ellapsed=six.text_type(datetime.timedelta(seconds=int(total_seconds))),
-                wall=time.strftime('%H:%M'),
-                extra=self.extra
-            )
-            PROGRESS_WRITE(msg)
-            self._cursor_at_newline = not self.backspace
-            #if not self.backspace:
-            try:
-                PROGRESS_FLUSH()
-            except IOError as ex:
-                if util_arg.VERBOSE:
-                    print('IOError flushing %s' % (ex,))
-            #PROGRESS_WRITE('\nComplete(2)\n')
+            self.est_seconds_left = 0
+            self.total_seconds = (default_timer() - start_time)
+            self.display_message()
             if self.prog_hook is not None:
                 # From the point of view of the progress iter, we are about to
                 # enter the body of a for loop. (But we may have executed the
                 # body implicitly in the yeild....  so it is ambiguous. In the
                 # second case 0 will be executed twice.
                 self.prog_hook(self.count, nTotal)
-        # AFTER_BAR = '\033[?25h\n'
-        DECTCEM_SHOW = '\033[?25h'  # show cursor
-        AT_END = DECTCEM_SHOW + '\n'
-        PROGRESS_WRITE(AT_END)
-        self._cursor_at_newline = not self.backspace
-        #self.end(self.count + 1)
+
+        self.ensure_newline()
 
     def display_message(self):
-        # HACK TO LET USER UPDATE MESSAGE ON THE FLY
-        # FIXME: use the sklearn.extrnals ProgIter version instead
-        # print('self.msg_fmtstr.format = %r' % (self.msg_fmtstr,))
-        # print('self.iters_per_second = %r' % (self.iters_per_second,))
+        # HACK to be more like sklearn.extrnals ProgIter version
         msg = self.msg_fmtstr.format(
             count=self.count,
             rate=1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second,
@@ -825,6 +761,11 @@ class ProgressIter(object):
         except IOError as ex:
             if util_arg.VERBOSE:
                 print('IOError flushing %s' % (ex,))
+            #print('self.flush = %r' % (self.flush,))
+            #import utool as ut
+            #ut.debug_logging_iostreams()
+            #ut.printex(ex)
+            #raise
         pass
 
     def set_extra(self, extra):
