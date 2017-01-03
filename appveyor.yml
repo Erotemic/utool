@@ -74,15 +74,15 @@ test_script:
   # Move back to the project folder
   #- "cd .."
 
-artifacts:
-  # Archive the generated wheel package in the ci.appveyor.com build report.
-  #- path: dist\*
+#artifacts:
+#  # Archive the generated wheel package in the ci.appveyor.com build report.
+#  #- path: dist\*
 
-on_success:
-  # Upload the generated wheel package to Rackspace
-  # On Windows, Apache Libcloud cannot find a standard CA cert bundle so we
-  # disable the ssl checks.
-  #- "python -m wheelhouse_uploader upload --no-ssl-check --local-folder=dist utool-windows-wheels"
+#on_success:
+#  # Upload the generated wheel package to Rackspace
+#  # On Windows, Apache Libcloud cannot find a standard CA cert bundle so we
+#  # disable the ssl checks.
+#  #- "python -m wheelhouse_uploader upload --no-ssl-check --local-folder=dist utool-windows-wheels"
 
 #notifications:
 #  - provider: Webhook
