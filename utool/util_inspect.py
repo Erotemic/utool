@@ -1380,6 +1380,26 @@ def special_parse_process_python_code(sourcecode):
     #class SpecialVisitor(ast.NodeVisitor):
 
 
+def parse_function_names(sourcecode):
+    """
+    Finds all function names in a file without importing it
+
+    sourcecode = ut.readfrom(modpath)
+    """
+    import ast
+    func_names = []
+    pt = ast.parse(sourcecode)
+    class FuncVisitor(ast.NodeVisitor):
+        def visit_FunctionDef(self, node):
+            func_names.append(node.name)
+            ast.NodeVisitor.generic_visit(self, node)
+    try:
+        FuncVisitor().visit(pt)
+    except Exception:
+        pass
+    return func_names
+
+
 def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
     r"""
     CommandLine:
