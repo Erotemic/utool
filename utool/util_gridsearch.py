@@ -1284,7 +1284,10 @@ class ParamInfo(util_dev.NiceRepr):
 
     def _make_varstr(pi, varval):
         # Create string representation of a `varval`
-        if isinstance(varval, dict):
+        if isinstance(varval, set):
+            import utool as ut
+            varstr = 'set([' + ut.list_str(sorted(varval), nl=0, itemsep='', nobr=True) + '])'
+        elif isinstance(varval, dict):
             from utool import util_str
             # The ut.dict_str representation will consistently stringify dicts
             varstr = util_str.dict_str(varval, explicit=True, strvals=True,

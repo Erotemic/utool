@@ -1480,7 +1480,10 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
                 print('\nVISIT Call node = %r' % (node,))
                 #print(ut.dict_str(node.__dict__,))
             if isinstance(node.func, ast.Attribute):
-                funcname = node.func.value.id + '.' + node.func.attr
+                try:
+                    funcname = node.func.value.id + '.' + node.func.attr
+                except AttributeError:
+                    funcname = None
             elif isinstance(node.func, ast.Name):
                 funcname = node.func.id
             else:
@@ -1488,7 +1491,7 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
                     'do not know how to parse: node.func = %r' % (node.func,))
             kwargs = node.kwargs
             kwargs_name = None if kwargs is None else kwargs.id
-            if kwargs_name == target_kwargs_name:
+            if funcname is not None and kwargs_name == target_kwargs_name:
                 child_funcnamess.append(funcname)
             if debug:
                 print('funcname = %r' % (funcname,))
@@ -2566,7 +2569,10 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                     print('VISIT Call node = %r' % (node,))
                     # print(ut.dict_str(node.__dict__,))
                 if isinstance(node.func, ast.Attribute):
-                    objname = node.func.value.id
+                    try:
+                        objname = node.func.value.id
+                    except AttributeError:
+                        return
                     methodname = node.func.attr
                     # funcname = objname + '.' + methodname
                     if objname == target_kwargs_name and methodname in {'get', 'pop'}:
@@ -2852,7 +2858,7 @@ def infer_function_info(func):
             'sourcefile',
             'sourcecode',
             'argspec',
-        ])
+        ], tb=True)
         raise
 
     class FunctionInfo(object):
