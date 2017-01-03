@@ -32,6 +32,13 @@ def is_local_port_open(port):
     return result != 0
 
 
+def find_open_port(base=5000):
+    port = base
+    while not ut.is_local_port_open(port):
+        port += 1
+    return port
+
+
 def get_localhost():
     import socket
     try:
