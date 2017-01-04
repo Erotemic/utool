@@ -3118,11 +3118,29 @@ def insert_values(list_, index, values, inplace=False):
     return new_list
 
 
-def aslist(listlike):
-    if isinstance(listlike, np.ndarray):
-        list_ = listlike.tolist()
+def aslist(sequence):
+    r"""
+    Ensures that the sequence object is a Python list.
+    Handles, numpy arrays, and python sequences (e.g. tuples, and iterables).
+
+    Args:
+        sequence (sequence): a list-like object
+
+    Returns:
+        list: list_ - `sequence` as a Python list
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> aslist(np.array([[1, 2], [3, 4], [5, 6]]))
+        [[1, 2], [3, 4], [5, 6]]
+        >>> aslist(range(3))
+        [0, 1, 2]
+    """
+    if util_type.HAVE_NUMPY and isinstance(sequence, np.ndarray):
+        list_ = sequence.tolist()
     else:
-        list_ = list(listlike)
+        list_ = list(sequence)
     return list_
 
 
