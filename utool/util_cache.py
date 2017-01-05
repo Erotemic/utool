@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+This module needs serious refactoring and testing
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import shelve
 import six
@@ -13,12 +16,10 @@ import os
 import contextlib
 import collections
 from six.moves import cPickle as pickle
-from six.moves import range, zip  # NOQA
+from six.moves import range, zip
 from os.path import join, normpath, basename, exists
-#import functools
 from functools import partial
 from itertools import chain
-#from zipfile import error as BadZipFile  # Screwy naming convention.
 import zipfile
 from utool import util_arg
 from utool import util_hash
@@ -29,9 +30,9 @@ from utool import util_str
 from utool import util_cplat
 from utool import util_inspect
 from utool import util_list
-from utool import util_class  # NOQA
+from utool import util_class
 from utool import util_type
-from utool import util_decor   # NOQA
+from utool import util_decor
 from utool import util_dict
 from utool._internal import meta_util_constants
 print, rrr, profile = util_inject.inject2(__name__)
@@ -130,7 +131,6 @@ def text_dict_read(fpath):
     return dict_
 
 
-#def text_dict_write(fpath, key, val):
 def text_dict_write(fpath, dict_):
     """
     Very naive, but readable way of storing a dictionary on disk
@@ -148,9 +148,6 @@ def text_dict_write(fpath, dict_):
 def consensed_cfgstr(prefix, cfgstr, max_len=128, cfgstr_hashlen=16):
     if len(prefix) + len(cfgstr) > max_len:
         hashed_cfgstr = util_hash.hashstr27(cfgstr, hashlen=cfgstr_hashlen)
-        #if write_hashtbl:
-        #    # DONT WRITE TO HASHTABLE THE FUNCTION IS BROKEN
-        #    text_dict_write(join(dpath, 'hashtbl.txt'), hashed_cfgstr, cfgstr)
         # Hack for prettier names
         if not prefix.endswith('_'):
             fname_cfgstr = prefix + '_' + hashed_cfgstr
@@ -161,23 +158,20 @@ def consensed_cfgstr(prefix, cfgstr, max_len=128, cfgstr_hashlen=16):
     return fname_cfgstr
 
 
-def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
+def _args2_fpath(dpath, fname, cfgstr, ext):
     r"""
-    Internal util_cache helper function
+    Ensures that the filename is not too long
 
-    Ensures that the filename is not too long (looking at you windows)
+    Internal util_cache helper function
     Windows MAX_PATH=260 characters
     Absolute length is limited to 32,000 characters
     Each filename component is limited to 255 characters
-
-    if write_hashtbl is True, hashed values expaneded and written to a text file
 
     Args:
         dpath (str):
         fname (str):
         cfgstr (str):
         ext (str):
-        write_hashtbl (bool):
 
     Returns:
         str: fpath
@@ -194,8 +188,7 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
         >>> fname = 'normalizer_'
         >>> cfgstr = u'PZ_MTEST_DSUUIDS((9)67j%dr%&bl%4oh4+)_QSUUIDS((9)67j%dr%&bl%4oh4+)zebra_plains_vsone_NN(single,K1+1,last,cks1024)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)'
         >>> ext = '.cPkl'
-        >>> write_hashtbl = False
-        >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl)
+        >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext)
         >>> result = str(ut.ensure_unixslash(fpath))
         >>> target = 'F:/data/work/PZ_MTEST/_ibsdb/_ibeis_cache/normalizer_xfylfboirymmcpfg.cPkl'
         >>> ut.assert_eq(result, target)
@@ -204,7 +197,8 @@ def _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False):
     if len(ext) > 0 and ext[0] != '.':
         raise ValueError('Please be explicit and use a dot in ext')
     max_len = 128
-    cfgstr_hashlen = 16  # TODO: make bigger before production
+    # should hashlen be larger?
+    cfgstr_hashlen = 16
     prefix = fname
     fname_cfgstr = consensed_cfgstr(prefix, cfgstr, max_len=max_len,
                                     cfgstr_hashlen=cfgstr_hashlen)
@@ -217,7 +211,7 @@ def save_cache(dpath, fname, cfgstr, data, ext='.cPkl', verbose=None):
     """
     Saves data using util_io, but smartly constructs a filename
     """
-    fpath = _args2_fpath(dpath, fname, cfgstr, ext, write_hashtbl=False)
+    fpath = _args2_fpath(dpath, fname, cfgstr, ext)
     util_io.save_data(fpath, data, verbose=verbose)
     return fpath
 
@@ -230,7 +224,7 @@ def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None, enabled=True):
         verbose = VERBOSE_CACHE
     if not USE_CACHE or not enabled:
         if verbose > 1:
-            print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
+            print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r'
                     (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
     fpath = _args2_fpath(dpath, fname, cfgstr, ext)
@@ -356,17 +350,22 @@ class Cacher(object):
         return data
 
     def tryload(self, cfgstr=None):
+        """
+        Like load, but returns None if the load fails
+        """
+        if cfgstr is None:
+            cfgstr = self.cfgstr
+        assert cfgstr is not None, (
+            'must specify cfgstr in constructor or call')
         try:
             if self.verbose > 1:
-                assert cfgstr is not None or self.cfgstr is not None, (
-                    'must specify cfgstr in constructor or call')
-                print('[cache] tryload fname=' + self.fname)
+                print('[cache] tryload fname=%s' (self.fname,))
                 if self.verbose > 2:
-                    print('[cache] cfgstr= ' + self.cfgstr if cfgstr is None else cfgstr)
+                    print('[cache] cfgstr=%r' % (cfgstr,))
             return self.load(cfgstr)
         except IOError:
             if self.verbose > 0:
-                print('[cache] ... ' + self.fname + ' Cacher miss')
+                print('[cache] ... %s Cacher miss' % (self.fname))
 
     def ensure(self, func, *args, **kwargs):
         data = self.tryload()
@@ -1014,8 +1013,7 @@ class Cachable(object):
         _fname = self.get_prefix()
         _cfgstr = self.get_cfgstr() if cfgstr is None else cfgstr
         _ext =   self.ext if ext is None else ext
-        write_hashtbl = False
-        fpath = _args2_fpath(_dpath, _fname, _cfgstr, _ext, write_hashtbl=write_hashtbl)
+        fpath = _args2_fpath(_dpath, _fname, _cfgstr, _ext)
         return fpath
 
     def delete(self, cachedir=None, cfgstr=None, verbose=True or VERBOSE or util_arg.VERBOSE):

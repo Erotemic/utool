@@ -16,9 +16,14 @@ import os
 import six
 import uuid
 import random
+import warnings
 from utool import util_inject
 from utool import util_path
+from utool import util_type
 (print, rrr, profile) = util_inject.inject2(__name__, '[hash]')
+
+if util_type.HAVE_NUMPY:
+    import numpy as np
 
 # default length of hash codes
 HASH_LEN = 16
@@ -107,10 +112,10 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
         str: arr_hashstr
 
     CommandLine:
-        python -m utool.util_hash --exec-hashstr_arr
         python -m utool.util_hash --test-hashstr_arr
+        python -m utool.util_hash hashstr_arr:2
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np
@@ -123,7 +128,7 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
         >>> print(result)
         arr_hashstr = arr((2,3)daukyreqnhfejkfs)
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np
@@ -175,9 +180,11 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         python -m utool.util_hash --test-hashstr
         python3 -m utool.util_hash --test-hashstr
         python3 -m utool.util_hash --test-hashstr:2
+        python -m utool.util_hash hashstr:3
+        python3 -m utool.util_hash hashstr:3
 
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> data = 'foobar'
@@ -188,7 +195,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> print(result)
         text = mi5yum60mbxhyp+x
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> data = ''
@@ -210,11 +217,50 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> result = ('text = %s' % (str(text),))
         >>> print(result)
         text = z5lqw0bzt4dmb9yy
+
+    Example3:
+        >>> # UNSTABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> import numpy as np
+        >>> data = np.array(['a', 'b'], dtype=object)
+        >>> text = hashstr(data, alphabet=ALPHABET_27)
+        >>> result = ('text = %s' % (str(text),))
+        >>> print(result)
+
+    Ignore:
+        data = np.array(['a', 'b'], dtype=object)
+        data.tobytes()
+        data = np.array(['a', 'b'])
+        data = ['a', 'b']
+        data = np.array([1, 2, 3])
+        import hashlib
+        from six.moves import cPickle as pickle
+        pickle.dumps(data, protocol=2)
+
+        python2 -c "import hashlib, numpy; print(hashlib.sha1('ab').hexdigest())"
+        python3 -c "import hashlib, numpy; print(hashlib.sha1(b'ab').hexdigest())"
+
+        python2 -c "import hashlib, numpy; print(hashlib.sha1(numpy.array([1, 2])).hexdigest())"
+        python3 -c "import hashlib, numpy; print(hashlib.sha1(numpy.array([1, 2])).hexdigest())"
+
+        # TODO: numpy arrays of strings must be encoded to bytes first in python3
+        python2 -c "import hashlib, numpy; print(hashlib.sha1(numpy.array(['a', 'b'])).hexdigest())"
+        python3 -c "import hashlib, numpy; print(hashlib.sha1(numpy.array([b'a', b'b'])).hexdigest())"
+
+        python -c "import hashlib, numpy; print(hashlib.sha512(numpy.array(['a', 'b'], dtype=object)).hexdigest())"
+        python -c "import hashlib, numpy; print(hashlib.sha512(numpy.array(['a', 'b'], dtype=object)).hexdigest())"
     """
+    if util_type.HAVE_NUMPY and isinstance(data, np.ndarray):
+        if data.dtype.kind == 'O':
+            msg = 'hashing ndarrays with dtype=object is unstable'
+            warnings.warn(msg, RuntimeWarning)
+            # but tobytes is ok, but differs between python 2 and 3 for objects
+            data = data.dumps()
+            # data = data.tobytes()
     if isinstance(data, tuple):
         data = repr(data)  # Hack?
     if six.PY3 and isinstance(data, str):
-        # convert unicode into bytes
+        # convert unicode into raw bytes
         data = data.encode('utf-8')
     if isinstance(data, stringlike) and len(data) == 0:
         # Make a special hash for empty data
