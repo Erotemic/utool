@@ -590,7 +590,7 @@ class ProgressIter(object):
         # list of iterations divided by the size of that list that will account
         # for buffering issues
         iters_per_second = 0
-        self.iters_per_second = 0
+        self.iters_per_second = float('nan')
         self.est_seconds_left = 0
         self.total_seconds = 0
 
@@ -746,9 +746,13 @@ class ProgressIter(object):
 
     def display_message(self):
         # HACK to be more like sklearn.extrnals ProgIter version
+        try:
+            rate = 1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second
+        except ZeroDivisionError:
+            rate = np.nan
         msg = self.msg_fmtstr.format(
             count=self.count,
-            rate=1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second,
+            rate=rate,
             etr=six.text_type(datetime.timedelta(seconds=int(self.est_seconds_left))),
             ellapsed=six.text_type(datetime.timedelta(seconds=int(self.total_seconds))),
             wall=time.strftime('%H:%M'),
