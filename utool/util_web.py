@@ -34,7 +34,7 @@ def is_local_port_open(port):
 
 def find_open_port(base=5000):
     port = base
-    while not ut.is_local_port_open(port):
+    while not is_local_port_open(port):
         port += 1
     return port
 
