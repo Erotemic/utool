@@ -275,8 +275,18 @@ class XCtrl(object):
     def move_window(win_key, bbox):
         """
         CommandLine:
+            # List windows
             wmctrl -l
+            # List desktops
+            wmctrl -d
+
+            # Window info
+            xwininfo -id 60817412
+
             python -m utool.util_ubuntu XCtrl.move_window joncrall 0+1920,680,400,600,400
+            python -m utool.util_ubuntu XCtrl.move_window joncrall [0,0,1000,1000]
+            python -m utool.util_ubuntu XCtrl.move_window GVIM special2
+            python -m utool.util_ubuntu XCtrl.move_window joncrall special2
             python -m utool.util_ubuntu XCtrl.move_window x-terminal-emulator.X-terminal-emulator [0,0,1000,1000]
 
         # >>> import utool as ut
@@ -292,36 +302,52 @@ class XCtrl(object):
         import utool as ut
         import plottool as pt  # NOQA
         import plottool.screeninfo as screeninfo
-        monitor_infos = {i + 1: screeninfo.get_resolution_info(i) for i in range(2)}
-
-        print('bbox = %r' % (bbox,))
-        print('win_key = %r' % (win_key,))
-        bbox = ','.join(map(str, eval(bbox)))
-
-        if win_key.startswith('joncrall'):
-            m = 2
+        monitor_infos = {
+            i + 1: screeninfo.get_resolution_info(i)
+            for i in range(2)
+        }
+        # TODO: cut out borders
+        # TODO: fix screeninfo monitor offsets
+        # TODO: dynamic num screens
+        def rel_to_abs_bbox(m, x, y, w, h):
+            """ monitor_num, relative x, y, w, h """
             minfo = monitor_infos[m]
-            if m == 1:
-                mx = 0
-            else:
-                mx = monitor_infos[m - 1]['pixels_w']
-            my = 0
-            mw = minfo['pixels_w']
-            mh = minfo['pixels_h']
-            x, y = 0, .9
-            w, h = (1 - x), (1 - y)
-            bbox = [(x * mw) + mx, (y * mh) + my,
-                    (w * mw), (h * mh)]
-            bbox = ','.join(map(str, map(int, bbox)))
-            print('bbox = %r' % (bbox,))
-        # bbox.replace('[', '').replace(']', '')
+            # print('minfo(%d) = %s' % (m, ut.repr3(minfo),))
+            mx, my = minfo['off_x'], minfo['off_y']
+            mw, mh = minfo['pixels_w'], minfo['pixels_h']
+            # Transform to the absolution position
+            abs_x = (x * mw) + mx
+            abs_y = (y * mh) + my
+            abs_w = (w * mw)
+            abs_h = (h * mh)
+            abs_bbox = [abs_x, abs_y, abs_w, abs_h]
+            abs_bbox = ','.join(map(str, map(int, abs_bbox)))
+            return abs_bbox
+
+        if win_key.startswith('joncrall') and bbox == 'special2':
+            # Specify the relative position
+            abs_bbox = rel_to_abs_bbox(m=2,
+                                       x=0.0, y=0.7,
+                                       w=1.0, h=0.3)
+        elif win_key.startswith('GVIM') and bbox == 'special2':
+            # Specify the relative position
+            abs_bbox = rel_to_abs_bbox(m=2,
+                                       x=0.0, y=0.0,
+                                       w=1.0, h=0.7)
+        else:
+            abs_bbox = ','.join(map(str, eval(bbox)))
+
+        print('MOVING: win_key = %r' % (win_key,))
+        print('TO: abs_bbox = %r' % (abs_bbox,))
+        # abs_bbox.replace('[', '').replace(']', '')
         # get = lambda cmd: ut.cmd2(' '.join(["/bin/bash", "-c", cmd]))['out']  # NOQA
-        win_id = XCtrl.findall_window_ids(win_key)[0]
+        win_id = XCtrl.find_window_id(win_key, error='raise')
+        print('MOVING: win_id = %r' % (win_id,))
         fmtdict = locals()
         cmd_list = [
             ("wmctrl -ir {win_id} -b remove,maximized_horz".format(**fmtdict)),
             ("wmctrl -ir {win_id} -b remove,maximized_vert".format(**fmtdict)),
-            ("wmctrl -ir {win_id} -e 0,{bbox}".format(**fmtdict)),
+            ("wmctrl -ir {win_id} -e 0,{abs_bbox}".format(**fmtdict)),
         ]
         print('\n'.join(cmd_list))
         for cmd in cmd_list:
@@ -412,13 +438,21 @@ class XCtrl(object):
         return winid_order
 
     @staticmethod
-    def find_window_id(pattern, method='mru'):
+    def find_window_id(pattern, method='mru', error='raise'):
+        import utool as ut
         winid_candidates = XCtrl.findall_window_ids(pattern)
         if len(winid_candidates) == 0:
+            if error == 'raise':
+                available_windows = ut.cmd2('wmctrl -l')['out']
+                msg = 'No window matches pattern=%r' % (pattern,)
+                msg += '\navailable windows are:\n%s' % (available_windows,)
+                raise Exception(msg)
             win_id = None
         elif len(winid_candidates) == 1:
             win_id = winid_candidates[0]
         else:
+            # print('Multiple (%d) windows matches pattern=%r' % (
+            #     len(winid_list), pattern,))
             # Find most recently used window with the focus name.
             win_id = XCtrl.sort_window_ids(winid_candidates, method)[0]
         return win_id
