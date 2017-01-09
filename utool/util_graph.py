@@ -422,26 +422,29 @@ def nx_delete_node_attr(graph, key, nodes=None):
 
 
 def nx_delete_edge_attr(graph, key, edges=None):
+    """
+    Removes an attributes from specific edges in the graph
+    """
     removed = 0
-    keys = [key] if not isinstance(key, list) else key
-    for key in keys:
+    keys = [key] if not isinstance(key, (list, tuple)) else key
+    if edges is None:
         if graph.is_multigraph():
-            if edges is None:
-                edges = list(graph.edges(keys=True))
-            for edge in edges:
-                u, v, k = edge
+            edges = graph.edges(keys=True)
+        else:
+            edges = graph.edges()
+    if graph.is_multigraph():
+        for u, v, k in edges:
+            for key_ in keys:
                 try:
-                    del graph[u][v][k][key]
+                    del graph[u][v][k][key_]
                     removed += 1
                 except KeyError:
                     pass
-        else:
-            if edges is None:
-                edges = list(graph.edges())
-            for edge in edges:
-                u, v = edge
+    else:
+        for u, v in edges:
+            for key_ in keys:
                 try:
-                    del graph[u][v][key]
+                    del graph[u][v][key_]
                     removed += 1
                 except KeyError:
                     pass

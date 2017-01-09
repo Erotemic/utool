@@ -359,7 +359,7 @@ class Cacher(object):
             'must specify cfgstr in constructor or call')
         try:
             if self.verbose > 1:
-                print('[cache] tryload fname=%s' (self.fname,))
+                print('[cache] tryload fname=%s' % (self.fname,))
                 if self.verbose > 2:
                     print('[cache] cfgstr=%r' % (cfgstr,))
             return self.load(cfgstr)

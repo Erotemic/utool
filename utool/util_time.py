@@ -82,6 +82,12 @@ def get_timestamp(format_='iso', use_second=False, delta_seconds=None,
         >>> assert len(stamp) == len('15:43:04 2015/02/24')
     """
     # TODO: time.timezone
+    if format_ == 'int':
+        if isutc:
+            stamp = int(time.mktime(time.gmtime()))
+        else:
+            stamp = int(time.mktime(time.localtime()))
+        return stamp
     if isutc:
         now = datetime.datetime.utcnow()
     else:
