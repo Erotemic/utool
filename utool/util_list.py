@@ -3132,12 +3132,18 @@ def aslist(sequence):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
+        >>> s1 = [1, 2, 3]
+        >>> s2 = (1, 2, 3)
+        >>> assert aslist(s1) is s1
+        >>> assert aslist(s2) is not s2
         >>> aslist(np.array([[1, 2], [3, 4], [5, 6]]))
         [[1, 2], [3, 4], [5, 6]]
         >>> aslist(range(3))
         [0, 1, 2]
     """
-    if util_type.HAVE_NUMPY and isinstance(sequence, np.ndarray):
+    if isinstance(sequence, list):
+        return sequence
+    elif util_type.HAVE_NUMPY and isinstance(sequence, np.ndarray):
         list_ = sequence.tolist()
     else:
         list_ = list(sequence)

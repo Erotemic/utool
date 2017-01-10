@@ -4,7 +4,12 @@ try:
     import numpy as np
 except ImportError:
     pass
+try:
+    import networkx as nx
+except ImportError:
+    pass
 from utool import util_inject
+from utool import util_const
 (print, rrr, profile) = util_inject.inject2(__name__)
 
 
@@ -21,7 +26,6 @@ def nx_topsort_rank(graph, nodes=None):
     graph = inputs.exi_graph.reverse()
     nodes = flat_node_order_
     """
-    import networkx as nx
     import utool as ut
     topsort = list(nx.topological_sort(graph))
     node_to_top_rank = ut.make_index_lookup(topsort)
@@ -30,7 +34,6 @@ def nx_topsort_rank(graph, nodes=None):
 
 
 def nx_common_descendants(graph, node1, node2):
-    import networkx as nx
     descendants1 = nx.descendants(graph, node1)
     descendants2 = nx.descendants(graph, node2)
     common_descendants = set.intersection(descendants1, descendants2)
@@ -38,7 +41,6 @@ def nx_common_descendants(graph, node1, node2):
 
 
 def nx_common_ancestors(graph, node1, node2):
-    import networkx as nx
     ancestors1 = nx.ancestors(graph, node1)
     ancestors2 = nx.ancestors(graph, node2)
     common_ancestors = set.intersection(ancestors1, ancestors2)
@@ -71,7 +73,6 @@ def nx_transitive_reduction(G, mode=1):
         >>> # DISABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
-        >>> import networkx as nx
         >>> G = nx.DiGraph([('a', 'b'), ('a', 'c'), ('a', 'e'),
         >>>                 ('a', 'd'), ('b', 'd'), ('c', 'e'),
         >>>                 ('d', 'e'), ('c', 'e'), ('c', 'd')])
@@ -90,7 +91,6 @@ def nx_transitive_reduction(G, mode=1):
     """
 
     import utool as ut
-    import networkx as nx
     has_cycles = not nx.is_directed_acyclic_graph(G)
     if has_cycles:
         # FIXME: this does not work for cycle graphs.
@@ -187,7 +187,6 @@ def nx_transitive_reduction(G, mode=1):
 
 
 def nx_source_nodes(graph):
-    import networkx as nx
     topsort_iter = nx.dag.topological_sort(graph)
     source_iter = (node for node in topsort_iter
                    if graph.in_degree(node) == 0)
@@ -195,7 +194,6 @@ def nx_source_nodes(graph):
 
 
 def nx_sink_nodes(graph):
-    import networkx as nx
     topsort_iter = nx.dag.topological_sort(graph)
     sink_iter = (node for node in topsort_iter
                  if graph.out_degree(node) == 0)
@@ -213,7 +211,6 @@ def nx_to_adj_dict(graph):
 
 def nx_from_adj_dict(adj_dict, cls=None):
     if cls is None:
-        import networkx as nx
         cls = nx.DiGraph
     nodes = list(adj_dict.keys())
     edges = [(u, v) for u, adj in adj_dict.items() for v in adj]
@@ -240,7 +237,6 @@ def nx_dag_node_rank(graph, nodes=None):
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> adj_dict = {0: [5], 1: [5], 2: [1], 3: [4], 4: [0], 5: [], 6: [4], 7: [9], 8: [6], 9: [1]}
-        >>> import networkx as nx
         >>> nodes = [2, 1, 5]
         >>> f_graph = ut.nx_from_adj_dict(adj_dict, nx.DiGraph)
         >>> graph = f_graph.reverse()
@@ -267,7 +263,6 @@ def nx_all_nodes_between(graph, source, target, data=False):
     Find all nodes with on paths between source and target.
     """
     import utool as ut
-    import networkx as nx
     if source is None:
         # assume there is a single source
         sources = list(ut.nx_source_nodes(graph))
@@ -349,7 +344,6 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
-        >>> import networkx as nx
         >>> edges = [
         >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),
         >>>     (1, 5), (7, 2), (5, 1),
@@ -499,7 +493,6 @@ def nx_delete_None_node_attr(graph, nodes=None):
 
 
 def nx_set_default_node_attributes(graph, key, val):
-    import networkx as nx
     unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
     if isinstance(val, dict):
         values = {n: val[n] for n in unset_nodes if n in val}
@@ -509,7 +502,6 @@ def nx_set_default_node_attributes(graph, key, val):
 
 
 def nx_set_default_edge_attributes(graph, key, val):
-    import networkx as nx
     unset_edges = [(u, v) for u, v, d in graph.edges(data=True) if key not in d]
     if isinstance(val, dict):
         values = {e: val[e] for e in unset_edges if e in val}
@@ -519,7 +511,6 @@ def nx_set_default_edge_attributes(graph, key, val):
 
 
 def nx_get_default_edge_attributes(graph, key, default=None):
-    import networkx as nx
     import utool as ut
     edge_list = list(graph.edges())
     partial_attr_dict = nx.get_edge_attributes(graph, key)
@@ -528,7 +519,6 @@ def nx_get_default_edge_attributes(graph, key, default=None):
 
 
 def nx_get_default_node_attributes(graph, key, default=None):
-    import networkx as nx
     import utool as ut
     node_list = list(graph.nodes())
     partial_attr_dict = nx.get_node_attributes(graph, key)
@@ -536,8 +526,66 @@ def nx_get_default_node_attributes(graph, key, default=None):
     return attr_dict
 
 
+def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam):
+    """
+    Improved generator version of nx.get_node_attributes
+    """
+    if nodes is None:
+        return ((n, d[key]) for n, d in G.node.items() if key in d)
+    else:
+        node_data = ((n, G.node[n]) for n in nodes)
+        if default is util_const.NoParam:
+            return ((n, d[key]) for n, d in node_data if key in d)
+        else:
+            return ((n, d.get(key, default)) for n, d in node_data)
+
+
+def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
+                      check_exist=True):
+    """
+    Improved generator version of nx.get_edge_attributes
+    """
+    if edges is None:
+        if G.is_multigraph():
+            edges_ = G.edges(keys=True, data=True)
+        else:
+            edges_ = G.edges(data=True)
+        return ((x[:-1], x[-1][key]) for x in edges_ if key in x[-1])
+    else:
+        if check_exist:
+            # ignore edges that don't exist
+            uv_iter = (e for e in edges if G.has_edge(*e))
+        else:
+            uv_iter = edges
+        uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+
+        if default is util_const.NoParam:
+            # return (((u, v), d[key]) for u, v, d in uvd_iter if key in d)
+            return (((u, v), d[key]) for u, v, d in uvd_iter)
+        else:
+            uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+            return (((u, v), d.get(key, default)) for u, v, d in uvd_iter)
+
+
+def nx_from_node_edge(nodes=None, edges=None):
+    graph = nx.Graph()
+    if nodes:
+        graph.add_nodes_from(nodes)
+    if edges:
+        graph.add_edges_from(edges)
+    return graph
+
+
+def nx_minimum_weight_component(graph, weight='weight'):
+    """ A minimum weight component is an MST + all negative edges """
+    mwc = nx.minimum_spanning_tree(graph, weight=weight)
+    # negative edges only reduce the total weight
+    neg_edges = (e for e, w in nx_gen_edge_attrs(graph, weight) if w < 0)
+    mwc.add_edges_from(neg_edges)
+    return mwc
+
+
 def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
-    import networkx as nx
     import utool as ut
     import numpy as np
     if nodes is None:
@@ -630,7 +678,6 @@ def dag_longest_path(graph, source, target):
     """
     Finds the longest path in a dag between two nodes
     """
-    import networkx as nx
     if source == target:
         return [source]
     allpaths = nx.all_simple_paths(graph, source, target)
@@ -659,7 +706,6 @@ def testdata_graph():
         >>> pt.show_nx(G, layout='pygraphviz')
         >>> ut.show_if_requested()
     """
-    import networkx as nx
     import utool as ut
     # Define adjacency list
     graph = {
@@ -726,7 +772,6 @@ def edges_to_adjacency_list(edges):
 
 
 def get_ancestor_levels(graph, tablename):
-    import networkx as nx
     import utool as ut
     root = nx.topological_sort(graph)[0]
     reverse_edges = [(e2, e1) for e1, e2 in graph.edges()]
@@ -739,7 +784,6 @@ def get_ancestor_levels(graph, tablename):
 
 
 def get_descendant_levels(graph, tablename):
-    #import networkx as nx
     import utool as ut
     parent_to_children = ut.edges_to_adjacency_list(graph.edges())
     to_leafs = ut.path_to_leafs(tablename, parent_to_children)
@@ -1067,7 +1111,6 @@ def simplify_graph(graph):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
-        >>> import networkx as nx
         >>> graph = nx.DiGraph([('a', 'b'), ('a', 'c'), ('a', 'e'),
 
         >>>                     ('a', 'd'), ('b', 'd'), ('c', 'e'),
@@ -1244,7 +1287,6 @@ def convert_multigraph_to_graph(G):
             edge_list.append((u, pair_node))
             edge_list.append((pair_node, v))
 
-    import networkx as nx
     G2 = nx.DiGraph()
     G2.add_edges_from(edge_list)
     G2.add_nodes_from(node_list)
@@ -1344,7 +1386,6 @@ def all_multi_paths(graph, source, target, data=False):
     return path_multiedges
     #import copy
     #import utool as ut
-    #import networkx as nx
     #all_simple_paths = list(nx.all_simple_paths(graph, source, target))
     #paths_from_source2 = ut.unique(ut.lmap(tuple, all_simple_paths))
     #path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
@@ -1452,7 +1493,6 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
     if reverse and hasattr(G, 'reverse'):
         G = G.reverse()
     #neighbors = partial(G.neighbors, keys=keys, data=data)
-    import networkx as nx
     if isinstance(G, nx.Graph):
         neighbors = partial(G.edges, data=data)
     else:
@@ -1495,7 +1535,6 @@ def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):
     """ Colors edges and nodes by nid """
     import plottool as pt
     import utool as ut
-    import networkx as nx
     node_to_lbl = nx.get_node_attributes(graph, labelattr)
     unique_lbls = ut.unique(node_to_lbl.values())
     ncolors = len(unique_lbls)
@@ -1569,7 +1608,6 @@ def graph_info(graph, ignore=None, stats=False, verbose=False):
 
 def get_graph_bounding_box(graph):
     import utool as ut
-    import networkx as nx
     import vtool as vt
     #nx.get_node_attrs = nx.get_node_attributes
     nodes = list(graph.nodes())
@@ -1588,7 +1626,6 @@ def get_graph_bounding_box(graph):
 
 def translate_graph(graph, t_xy):
     #import utool as ut
-    import networkx as nx
     import utool as ut
     node_pos_attrs = ['pos']
     for attr in node_pos_attrs:
@@ -1617,7 +1654,6 @@ def translate_graph_to_origin(graph):
 
 def stack_graphs(graph_list, vert=False, pad=None):
     import utool as ut
-    import networkx as nx
     graph_list_ = [g.copy() for g in graph_list]
     for g in graph_list_:
         translate_graph_to_origin(g)
@@ -1695,7 +1731,6 @@ def approx_min_num_components(nodes, negative_edges):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
-        >>> import networkx as nx
         >>> nodes = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         >>> edges = [(1, 2), (2, 3), (3, 1),
         >>>          (4, 5), (5, 6), (6, 4),
@@ -1716,7 +1751,6 @@ def approx_min_num_components(nodes, negative_edges):
         2
     """
     import utool as ut
-    import networkx as nx
     num = 0
     g_neg = nx.Graph()
     g_neg.add_nodes_from(nodes)
@@ -1773,7 +1807,6 @@ def approx_min_num_components(nodes, negative_edges):
 
 def nx_mincut_edges_weighted(G, s, t, capacity='weight'):
     # http://stackoverflow.com/questions/33332462/minimum-s-t-edge-cut-which-takes-edge-weight-into-consideration
-    import networkx as nx
     cut_weight, partitions = nx.minimum_cut(G, s, t, capacity=capacity)
     edge_cut_list = []
     for p1_node in partitions[0]:
@@ -1784,7 +1817,6 @@ def nx_mincut_edges_weighted(G, s, t, capacity='weight'):
 
 
 def weighted_diamter(graph, weight=None):
-    import networkx as nx
     if weight is None:
         distances = nx.all_pairs_shortest_path_length(graph)
     else:
@@ -1840,7 +1872,6 @@ def mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
-        >>> import networkx as nx
         >>> graph = nx.Graph()
         >>> nx.add_path(graph, range(6))
         >>> #cost_func   = lambda e: e[0] + e[1]
@@ -1903,7 +1934,6 @@ def mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost
 
 
 def greedy_mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost=None):
-    # import networkx as nx
     # import utool as ut
 
     def solution_cost(graph):
