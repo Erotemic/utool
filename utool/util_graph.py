@@ -67,7 +67,7 @@ def nx_transitive_reduction(G, mode=1):
     References:
         https://en.wikipedia.org/wiki/Transitive_reduction#Computing_the_reduction_using_the_closure
         http://dept-info.labri.fr/~thibault/tmp/0201008.pdf
-        http://stackoverflow.com/questions/17078696/im-trying-to-perform-the-transitive-reduction-of-directed-graph-in-python
+        http://stackoverflow.com/questions/17078696/transitive-reduction-of-directed-graph-in-python
 
     CommandLine:
         python -m utool.util_graph nx_transitive_reduction --show
@@ -358,21 +358,21 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
         >>> graph = nx.Graph(edges)
         >>> nodes1 = [1, 2, 3, 4]
         >>> nodes2 = [5, 6, 7]
-        >>> n1 = sorted(nx_edges_between(digraph, nodes1, nodes2))
         >>> n2 = sorted(nx_edges_between(graph, nodes1, nodes2))
-        >>> n3 = sorted(nx_edges_between(digraph, nodes1))
         >>> n4 = sorted(nx_edges_between(graph, nodes1))
         >>> n5 = sorted(nx_edges_between(graph, nodes1, nodes1))
-        >>> print('n1 == %r' % (n1,))
+        >>> n1 = sorted(nx_edges_between(digraph, nodes1, nodes2))
+        >>> n3 = sorted(nx_edges_between(digraph, nodes1))
         >>> print('n2 == %r' % (n2,))
-        >>> print('n3 == %r' % (n3,))
         >>> print('n4 == %r' % (n4,))
         >>> print('n5 == %r' % (n5,))
-        >>> assert n1 == sorted([(1, 5), (5, 1), (7, 2)]), '1'
-        >>> assert n2 == sorted([(1, 5), (2, 7)]), '2'
-        >>> assert n3 == sorted([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), '3'
-        >>> assert n4 == sorted([(1, 2), (1, 4), (2, 3), (3, 4)]), '4'
-        >>> assert n5 == sorted([(1, 2), (1, 4), (2, 3), (3, 4)]), '5'
+        >>> print('n1 == %r' % (n1,))
+        >>> print('n3 == %r' % (n3,))
+        >>> assert n2 == ([(1, 5), (2, 7)]), '2'
+        >>> assert n4 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '4'
+        >>> assert n5 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '5'
+        >>> assert n1 == ([(1, 5), (5, 1), (7, 2)]), '1'
+        >>> assert n3 == ([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), '3'
 
     Timeit:
         from utool.util_graph import *  # NOQA
@@ -384,9 +384,16 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
         rng = np.random
         nodes1 = set(rng.choice(list(graph.nodes()), 500, replace=False))
         nodes2 = set(graph.nodes()) - nodes1
-        %timeit list(ut.nx_edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=True))
-        %timeit list(ut.nx_edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=False))
-        %timeit list(ut.nx_edges_between(graph, nodes1, nodes2, assume_sparse=True))
+        edges_between = ut.nx_edges_between
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=True))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=False))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=True))
+
+    Ignore:
+        graph = nx.DiGraph(edges)
+        graph = nx.Graph(edges)
+        nodes1 = [1, 2, 3, 4]
+        nodes2 = nodes1
 
     """
     if assume_sparse:
@@ -395,38 +402,57 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
             nodes2_ = nodes1_
         else:
             nodes2_ = set(nodes2)
+        nodes_isect = nodes1_.intersection(nodes2_)
+        nodes_only1 = nodes1_ - nodes_isect
+        nodes_only2 = nodes2_ - nodes_isect
 
-        # FIXME: this is a haphhazard implementation
-        seen_ = set([])
+        for u in nodes_only1:
+            neighbs = set(graph.adj[u])
+            neighbs12 = neighbs.intersection(nodes_only2)
+            neighbs1B = neighbs.intersection(nodes_isect)
+            # 1-to-2
+            for v in neighbs12:
+                yield (u, v)
+            # 1-to-B
+            for v in neighbs1B:
+                yield (u, v)
+
+        nodes_isect_upper = nodes_isect.copy()
+        for u in nodes_isect:
+            neighbs = set(graph.adj[u])
+            neighbsBB_upper = neighbs.intersection(nodes_isect_upper)
+            # B-to-B
+            for v in neighbsBB_upper:
+                yield (u, v)
+            nodes_isect_upper.remove(u)
+
         if graph.is_directed():
-            for n1 in nodes1_:
-                for n2 in set(graph.adj[n1]).intersection(nodes2_):
-                    e = (n1, n2)
-                    if e not in seen_:
-                        seen_.add(e)
-                        yield n1, n2
-            if nodes2 is not None:
-                for n2 in nodes2_:
-                    for n1 in set(graph.adj[n2]).intersection(nodes1_):
-                        e = n2, n1
-                        if e not in seen_:
-                            seen_.add(e)
-                            yield n2, n1
-        else:
-            for n1 in nodes1_:
-                for n2 in set(graph.adj[n1]).intersection(nodes2_):
-                    e = (n1, n2) if n1 < n2 else (n2, n1)
-                    if e not in seen_:
-                        seen_.add(e)
-                        yield e
-            if nodes2 is not None:
-                for n2 in nodes2_:
-                    for n1 in set(graph.adj[n2]).intersection(nodes1_):
-                        e = (n1, n2) if n1 < n2 else (n2, n1)
-                        if e not in seen_:
-                            seen_.add(e)
-                            yield e
+            # 2-to-1
+            for u in nodes_only2:
+                neighbs = set(graph.adj[u])
+                neighbs21 = neighbs.intersection(nodes_only1)
+                for v in neighbs21:
+                    yield (u, v)
 
+            nodes_isect_lower = set([])
+            for u in nodes_isect:
+                neighbs = set(graph.adj[u])
+
+                # B-to-1
+                neighbsB1 = neighbs.intersection(nodes_only1)
+                for v in neighbsB1:
+                    yield (u, v)
+
+                # B-to-2
+                neighbsB2 = neighbs.intersection(nodes_only2)
+                for v in neighbsB2:
+                    yield (u, v)
+
+                # reverse B-to-B
+                neighbsBB_lower = neighbs.intersection(nodes_isect_lower)
+                for v in neighbsBB_lower:
+                    yield (u, v)
+                nodes_isect_lower.add(u)
     else:
         if nodes2 is None or nodes2 is nodes1:
             edge_iter = it.combinations(nodes1, 2)
