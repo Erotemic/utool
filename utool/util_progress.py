@@ -611,7 +611,7 @@ class ProgressIter(object):
         if not self.prehack:
             if self.backspace:
                 self.display_message()
-            else:
+            elif not self.quiet:
                 start_msg = start_msg_fmt.format(count=self.parent_offset)
                 PROGRESS_WRITE(start_msg + '\n')
 
