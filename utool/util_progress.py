@@ -347,6 +347,7 @@ class ProgressIter(object):
         self.backspace          = kwargs.get('backspace', kwargs.get('bs', False))
         self.freq               = kwargs.get('freq', 1)
         self.invert_rate        = kwargs.get('invert_rate', False)
+        self.quiet              = kwargs.pop('quiet', QUIET)
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
         self.enabled            = kwargs.get('enabled', True)
         self.report_unit        = kwargs.get('report_unit', 'seconds')
@@ -409,7 +410,7 @@ class ProgressIter(object):
         if NO_PROGRESS:
             # IF PROGRESS IS TURNED OFF
             msg = 'Iterating ' + self.lbl + ' with no progress'
-            if not util_arg.QUIET:
+            if not self.quiet:
                 print(msg)
             #with ut.Timer(msg):
             return iter(self.iterable)
@@ -746,30 +747,31 @@ class ProgressIter(object):
 
     def display_message(self):
         # HACK to be more like sklearn.extrnals ProgIter version
-        try:
-            rate = 1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second
-        except ZeroDivisionError:
-            rate = np.nan
-        msg = self.msg_fmtstr.format(
-            count=self.count,
-            rate=rate,
-            etr=six.text_type(datetime.timedelta(seconds=int(self.est_seconds_left))),
-            ellapsed=six.text_type(datetime.timedelta(seconds=int(self.total_seconds))),
-            wall=time.strftime('%H:%M'),
-            extra=self.extra
-        )
-        self.write(msg)
-        self._cursor_at_newline = not self.backspace
-        try:
-            self.flush()
-        except IOError as ex:
-            if util_arg.VERBOSE:
-                print('IOError flushing %s' % (ex,))
-            #print('self.flush = %r' % (self.flush,))
-            #import utool as ut
-            #ut.debug_logging_iostreams()
-            #ut.printex(ex)
-            #raise
+        if not self.quiet:
+            try:
+                rate = 1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second
+            except ZeroDivisionError:
+                rate = np.nan
+            msg = self.msg_fmtstr.format(
+                count=self.count,
+                rate=rate,
+                etr=six.text_type(datetime.timedelta(seconds=int(self.est_seconds_left))),
+                ellapsed=six.text_type(datetime.timedelta(seconds=int(self.total_seconds))),
+                wall=time.strftime('%H:%M'),
+                extra=self.extra
+            )
+            self.write(msg)
+            self._cursor_at_newline = not self.backspace
+            try:
+                self.flush()
+            except IOError as ex:
+                if util_arg.VERBOSE:
+                    print('IOError flushing %s' % (ex,))
+                #print('self.flush = %r' % (self.flush,))
+                #import utool as ut
+                #ut.debug_logging_iostreams()
+                #ut.printex(ex)
+                #raise
         pass
 
     def set_extra(self, extra):

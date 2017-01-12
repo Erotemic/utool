@@ -300,7 +300,8 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
             raw_generator, nTotal=nTasks, lbl=lbl,
             freq=kwargs.get('freq', None),
             backspace=kwargs.get('backspace', True),
-            adjust=kwargs.get('adjust', False)
+            adjust=kwargs.get('adjust', False),
+            quiet=quiet
         )
 
     else:
