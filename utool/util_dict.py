@@ -21,6 +21,7 @@ except ImportError:
 print, rrr, profile = util_inject.inject2(__name__)
 
 
+@profile
 def dzip(list1, list2):
     r"""
     Zips elementwise pairs between list1 and list2 into a dictionary. Values

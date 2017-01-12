@@ -538,21 +538,32 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
                     yield n1, n2
 
 
+@profile
 def nx_delete_node_attr(graph, key, nodes=None):
+    if nodes is None:
+        nodes = list(graph.nodes())
     removed = 0
-    keys = [key] if not isinstance(key, list) else key
-    for key in keys:
-        if nodes is None:
-            nodes = list(graph.nodes())
+    # keys = [key] if not isinstance(key, list) else key
+    graph_node = graph.node
+    if isinstance(key, list):
+        for node in nodes:
+            for key_ in key:
+                try:
+                    del graph_node[node][key_]
+                    removed += 1
+                except KeyError:
+                    pass
+    else:
         for node in nodes:
             try:
-                del graph.node[node][key]
+                del graph_node[node][key]
                 removed += 1
             except KeyError:
                 pass
     return removed
 
 
+@profile
 def nx_delete_edge_attr(graph, key, edges=None):
     """
     Removes an attributes from specific edges in the graph
@@ -583,6 +594,7 @@ def nx_delete_edge_attr(graph, key, edges=None):
     return removed
 
 
+@profile
 def nx_delete_None_edge_attr(graph, edges=None):
     removed = 0
     if graph.is_multigraph():
@@ -614,6 +626,7 @@ def nx_delete_None_edge_attr(graph, edges=None):
     return removed
 
 
+@profile
 def nx_delete_None_node_attr(graph, nodes=None):
     removed = 0
     if nodes is None:
@@ -630,6 +643,7 @@ def nx_delete_None_node_attr(graph, nodes=None):
     return removed
 
 
+@profile
 def nx_set_default_node_attributes(graph, key, val):
     unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
     if isinstance(val, dict):
@@ -639,6 +653,7 @@ def nx_set_default_node_attributes(graph, key, val):
     nx.set_node_attributes(graph, key, values)
 
 
+@profile
 def nx_set_default_edge_attributes(graph, key, val):
     unset_edges = [(u, v) for u, v, d in graph.edges(data=True) if key not in d]
     if isinstance(val, dict):
@@ -2017,9 +2032,9 @@ def mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> graph = nx.Graph()
-        >>> if hasattr(nx, 'add_path'):
-        >>>     graph.add_path = ut.partial(nx.add_path, graph)  # nx versions
-        >>> graph.add_path(range(6))
+        >>> if nx.__version__.startswith('1'):
+        >>>     nx.add_path = nx.Graph.add_path
+        >>> nx.add_path(graph, range(6))
         >>> #cost_func   = lambda e: e[0] + e[1]
         >>> cost_func   = lambda e: 1
         >>> weight_func = lambda e: (e[0]) / e[1]
