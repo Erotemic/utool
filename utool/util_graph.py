@@ -329,56 +329,6 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
                 visited_edges.pop()
 
 
-# helpers nx_edges between
-def _node_combo_lower(graph, both):
-    both_lower = set([])
-    for u in both:
-        neighbs = set(graph.adj[u])
-        neighbsBB_lower = neighbs.intersection(both_lower)
-        for v in neighbsBB_lower:
-            yield (u, v)
-        both_lower.add(u)
-
-
-def _node_combo_upper(graph, both):
-    both_upper = both.copy()
-    for u in both:
-        neighbs = set(graph.adj[u])
-        neighbsBB_upper = neighbs.intersection(both_upper)
-        for v in neighbsBB_upper:
-            yield (u, v)
-        both_upper.remove(u)
-
-
-def _node_product(graph, only1, only2):
-    for u in only1:
-        neighbs = set(graph.adj[u])
-        neighbs12 = neighbs.intersection(only2)
-        for v in neighbs12:
-            yield (u, v)
-
-
-@profile
-def nx_edges_between_sparse_disjoint(graph, nodes1, nodes2=None):
-    if nodes2 is None or nodes2 is nodes1:
-        both = set(nodes1)
-        both_upper = both.copy()
-        for u in both:
-            neighbs = set(graph.adj[u])
-            neighbsBB_upper = neighbs.intersection(both_upper)
-            for v in neighbsBB_upper:
-                yield (u, v)
-            both_upper.remove(u)
-    else:
-        only1 = set(nodes1)
-        only2 = set(nodes2)
-        for u in only1:
-            neighbs = set(graph.adj[u])
-            neighbs12 = neighbs.intersection(only2)
-            for v in neighbs12:
-                yield (u, v)
-
-
 @profile
 def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
                      assume_sparse=True):
@@ -465,6 +415,32 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
         # Method 1 is where we check the intersection of existing edges
         # and the edges in the second set (faster for sparse graphs)
 
+        # helpers nx_edges between
+        def _node_combo_lower(graph, both):
+            both_lower = set([])
+            for u in both:
+                neighbs = set(graph.adj[u])
+                neighbsBB_lower = neighbs.intersection(both_lower)
+                for v in neighbsBB_lower:
+                    yield (u, v)
+                both_lower.add(u)
+
+        def _node_combo_upper(graph, both):
+            both_upper = both.copy()
+            for u in both:
+                neighbs = set(graph.adj[u])
+                neighbsBB_upper = neighbs.intersection(both_upper)
+                for v in neighbsBB_upper:
+                    yield (u, v)
+                both_upper.remove(u)
+
+        def _node_product(graph, only1, only2):
+            for u in only1:
+                neighbs = set(graph.adj[u])
+                neighbs12 = neighbs.intersection(only2)
+                for v in neighbs12:
+                    yield (u, v)
+
         # Test for special cases
         if nodes2 is None or nodes2 is nodes1:
             # Case where we just are finding internal edges
@@ -502,6 +478,8 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
             only1 = nodes1_ - both
             only2 = nodes2_ - both
 
+            # This could be made faster by avoiding duplicate
+            # calls to set(graph.adj[u]) in the helper functions
             if graph.is_directed():
                 edge_sets = (
                     _node_product(graph, only1, only2),  # 1-to-2
