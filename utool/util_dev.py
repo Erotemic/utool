@@ -3442,6 +3442,9 @@ class PriorityQueue(NiceRepr):
         del self._dict[key]
 
     def update(self, items):
+        if isinstance(items, dict):
+            items = items.items()
+        items = list(items)
         if items:
             if len(items) > len(self._dict) / 2:
                 self._dict.update(items)

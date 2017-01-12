@@ -8,8 +8,11 @@ try:
     import networkx as nx
 except ImportError:
     pass
+import collections
+import functools
 from utool import util_inject
 from utool import util_const
+import itertools as it
 (print, rrr, profile) = util_inject.inject2(__name__)
 
 
@@ -64,7 +67,7 @@ def nx_transitive_reduction(G, mode=1):
     References:
         https://en.wikipedia.org/wiki/Transitive_reduction#Computing_the_reduction_using_the_closure
         http://dept-info.labri.fr/~thibault/tmp/0201008.pdf
-        http://stackoverflow.com/questions/17078696/im-trying-to-perform-the-transitive-reduction-of-directed-graph-in-python
+        http://stackoverflow.com/questions/17078696/transitive-reduction-of-directed-graph-in-python
 
     CommandLine:
         python -m utool.util_graph nx_transitive_reduction --show
@@ -326,9 +329,11 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
                 visited_edges.pop()
 
 
-def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False):
-    """
-    Get edges between two compoments or within a single compoment
+@profile
+def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
+                     assume_sparse=True):
+    r"""
+    Get edges between two components or within a single component
 
     Args:
         graph (nx.Graph): the graph
@@ -345,59 +350,191 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False):
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> edges = [
-        >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),
-        >>>     (1, 5), (7, 2), (5, 1),
+        >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),  # cc 1234
+        >>>     (1, 5), (7, 2), (5, 1),  # cc 567 / 5678
         >>>     (7, 5), (5, 6), (8, 7),
         >>> ]
         >>> digraph = nx.DiGraph(edges)
         >>> graph = nx.Graph(edges)
-        >>> n1 = list(nx_edges_between(digraph, [1, 2, 3, 4], [5, 6, 7]))
-        >>> n2 = list(nx_edges_between(graph, [1, 2, 3, 4], [5, 6, 7]))
-        >>> n3 = list(nx_edges_between(digraph, [1, 2, 3, 4]))
-        >>> n4 = list(nx_edges_between(graph, [1, 2, 3, 4]))
-        >>> n5 = list(nx_edges_between(graph, [1, 2, 3, 4], [1, 2, 3, 4]))
-        >>> print('n1 == %r' % (n1,))
+        >>> nodes1 = [1, 2, 3, 4]
+        >>> nodes2 = [5, 6, 7]
+        >>> n2 = sorted(nx_edges_between(graph, nodes1, nodes2))
+        >>> n4 = sorted(nx_edges_between(graph, nodes1))
+        >>> n5 = sorted(nx_edges_between(graph, nodes1, nodes1))
+        >>> n1 = sorted(nx_edges_between(digraph, nodes1, nodes2))
+        >>> n3 = sorted(nx_edges_between(digraph, nodes1))
         >>> print('n2 == %r' % (n2,))
-        >>> print('n3 == %r' % (n3,))
         >>> print('n4 == %r' % (n4,))
         >>> print('n5 == %r' % (n5,))
-        >>> assert n1 == [(1, 5), (5, 1), (7, 2)]
-        >>> assert n2 == [(1, 5), (2, 7)]
-        >>> assert n3 == [(1, 2), (4, 1), (2, 3), (3, 4), (4, 3)]
-        >>> assert n4 == [(1, 2), (1, 4), (2, 3), (3, 4)]
-        >>> assert n5 == [(1, 2), (1, 4), (2, 3), (3, 4)]
-    """
-    import itertools as it
-    if nodes2 is None or nodes2 is nodes1:
-        edge_iter = it.combinations(nodes1, 2)
-    else:
-        if assume_disjoint:
-            # We assume len(isect(nodes1, nodes2)) == 0
-            edge_iter = it.product(nodes1, nodes2)
-        else:
-            # make sure a single edge is not returned twice
-            # in the case where len(isect(nodes1, nodes2)) > 0
-            nodes1_ = set(nodes1)
-            nodes2_ = set(nodes2)
-            nodes_isect = nodes1_.intersection(nodes2_)
-            nodes_only1 = nodes1_ - nodes_isect
-            nodes_only2 = nodes2_ - nodes_isect
-            edge_sets = [it.product(nodes_only1, nodes_only2),
-                         it.product(nodes_only1, nodes_isect),
-                         it.product(nodes_only2, nodes_isect),
-                         it.combinations(nodes_isect, 2)]
-            edge_iter = it.chain.from_iterable(edge_sets)
+        >>> print('n1 == %r' % (n1,))
+        >>> print('n3 == %r' % (n3,))
+        >>> assert n2 == ([(1, 5), (2, 7)]), '2'
+        >>> assert n4 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '4'
+        >>> assert n5 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '5'
+        >>> assert n1 == ([(1, 5), (5, 1), (7, 2)]), '1'
+        >>> assert n3 == ([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), '3'
+        >>> n6 = sorted(nx_edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_sparse=True))
+        >>> print('n6 = %r' % (n6,))
+        >>> n6 = sorted(nx_edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_sparse=False))
+        >>> print('n6 = %r' % (n6,))
+        >>> assert n6 == ([(1, 2), (1, 5), (2, 3), (4, 1), (5, 1), (5, 6), (7, 2)]), '6'
 
-    if graph.is_directed():
-        for n1, n2 in edge_iter:
-            if graph.has_edge(n1, n2):
-                yield n1, n2
-            if graph.has_edge(n2, n1):
-                yield n2, n1
+    Timeit:
+        from utool.util_graph import *  # NOQA
+        # ut.timeit_compare()
+        import networkx as nx
+        import utool as ut
+        graph = nx.fast_gnp_random_graph(1000, .001)
+        list(nx.connected_components(graph))
+        rng = np.random.RandomState(0)
+        nodes1 = set(rng.choice(list(graph.nodes()), 500, replace=False))
+        nodes2 = set(graph.nodes()) - nodes1
+        edges_between = ut.nx_edges_between
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=True))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=False))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=True, assume_disjoint=False))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=True, assume_disjoint=True))
+
+        graph = nx.fast_gnp_random_graph(1000, .1)
+        rng = np.random.RandomState(0)
+        print(graph.number_of_edges())
+        nodes1 = set(rng.choice(list(graph.nodes()), 500, replace=False))
+        nodes2 = set(graph.nodes()) - nodes1
+        edges_between = ut.nx_edges_between
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=True, assume_disjoint=True))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=True))
+
+    Ignore:
+        graph = nx.DiGraph(edges)
+        graph = nx.Graph(edges)
+        nodes1 = [1, 2, 3, 4]
+        nodes2 = nodes1
+
+    """
+    if assume_sparse:
+        # Method 1 is where we check the intersection of existing edges
+        # and the edges in the second set (faster for sparse graphs)
+
+        # helpers nx_edges between
+        def _node_combo_lower(graph, both):
+            both_lower = set([])
+            for u in both:
+                neighbs = set(graph.adj[u])
+                neighbsBB_lower = neighbs.intersection(both_lower)
+                for v in neighbsBB_lower:
+                    yield (u, v)
+                both_lower.add(u)
+
+        def _node_combo_upper(graph, both):
+            both_upper = both.copy()
+            for u in both:
+                neighbs = set(graph.adj[u])
+                neighbsBB_upper = neighbs.intersection(both_upper)
+                for v in neighbsBB_upper:
+                    yield (u, v)
+                both_upper.remove(u)
+
+        def _node_product(graph, only1, only2):
+            for u in only1:
+                neighbs = set(graph.adj[u])
+                neighbs12 = neighbs.intersection(only2)
+                for v in neighbs12:
+                    yield (u, v)
+
+        # Test for special cases
+        if nodes2 is None or nodes2 is nodes1:
+            # Case where we just are finding internal edges
+            both = set(nodes1)
+            if graph.is_directed():
+                edge_sets = (
+                    _node_combo_upper(graph, both),  # B-to-B (upper)
+                    _node_combo_lower(graph, both),  # B-to-B (lower)
+                )
+            else:
+                edge_sets = (
+                    _node_combo_upper(graph, both),  # B-to-B (upper)
+                )
+        elif assume_disjoint:
+            # Case where we find edges between disjoint sets
+            only1 = set(nodes1)
+            only2 = set(nodes2)
+            if graph.is_directed():
+                edge_sets = (
+                    _node_product(graph, only1, only2),  # 1-to-2
+                    _node_product(graph, only2, only1),  # 2-to-1
+                )
+            else:
+                edge_sets = (
+                    _node_product(graph, only1, only2),  # 1-to-2
+                )
+        else:
+            # Full general case
+            nodes1_ = set(nodes1)
+            if nodes2 is None:
+                nodes2_ = nodes1_
+            else:
+                nodes2_ = set(nodes2)
+            both = nodes1_.intersection(nodes2_)
+            only1 = nodes1_ - both
+            only2 = nodes2_ - both
+
+            # This could be made faster by avoiding duplicate
+            # calls to set(graph.adj[u]) in the helper functions
+            if graph.is_directed():
+                edge_sets = (
+                    _node_product(graph, only1, only2),  # 1-to-2
+                    _node_product(graph, only1, both),   # 1-to-B
+                    _node_combo_upper(graph, both),      # B-to-B (u)
+                    _node_combo_lower(graph, both),      # B-to-B (l)
+                    _node_product(graph, both, only1),   # B-to-1
+                    _node_product(graph, both, only2),   # B-to-2
+                    _node_product(graph, only2, both),   # 2-to-B
+                    _node_product(graph, only2, only1),  # 2-to-1
+                )
+            else:
+                edge_sets = (
+                    _node_product(graph, only1, only2),  # 1-to-2
+                    _node_product(graph, only1, both),   # 1-to-B
+                    _node_combo_upper(graph, both),      # B-to-B (u)
+                    _node_product(graph, only2, both),   # 2-to-B
+                )
+
+        for u, v in it.chain.from_iterable(edge_sets):
+            yield u, v
+
     else:
-        for n1, n2 in edge_iter:
-            if graph.has_edge(n1, n2):
-                yield n1, n2
+        # Method 2 is where we enumerate all possible edges and just take the
+        # ones that exist (faster for very dense graphs)
+        if nodes2 is None or nodes2 is nodes1:
+            edge_iter = it.combinations(nodes1, 2)
+        else:
+            if assume_disjoint:
+                # We assume len(isect(nodes1, nodes2)) == 0
+                edge_iter = it.product(nodes1, nodes2)
+            else:
+                # make sure a single edge is not returned twice
+                # in the case where len(isect(nodes1, nodes2)) > 0
+                nodes1_ = set(nodes1)
+                nodes2_ = set(nodes2)
+                nodes_isect = nodes1_.intersection(nodes2_)
+                nodes_only1 = nodes1_ - nodes_isect
+                nodes_only2 = nodes2_ - nodes_isect
+                edge_sets = [it.product(nodes_only1, nodes_only2),
+                             it.product(nodes_only1, nodes_isect),
+                             it.product(nodes_only2, nodes_isect),
+                             it.combinations(nodes_isect, 2)]
+                edge_iter = it.chain.from_iterable(edge_sets)
+
+        if graph.is_directed():
+            for n1, n2 in edge_iter:
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
+                if graph.has_edge(n2, n1):
+                    yield n2, n1
+        else:
+            for n1, n2 in edge_iter:
+                if graph.has_edge(n1, n2):
+                    yield n1, n2
 
 
 def nx_delete_node_attr(graph, key, nodes=None):
@@ -1460,6 +1597,7 @@ def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
             queue.popleft()
 
 
+@profile
 def bfs_conditional(G, source, reverse=False, keys=True, data=False,
                     yield_nodes=True, yield_condition=None,
                     continue_condition=None, visited_nodes=None):
@@ -1470,6 +1608,9 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
 
     conditions are callables that take (G, child, edge) and return true or false
 
+    CommandLine:
+        python -m utool.util_graph bfs_conditional
+
     Example:
         >>> import networkx as nx
         >>> import utool as ut
@@ -1477,7 +1618,7 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         >>> G.add_edges_from([(1, 2), (1, 3), (2, 3), (2, 4)])
         >>> result = list(ut.bfs_conditional(G, 1, yield_nodes=False))
         >>> print(result)
-        [2, 3, 4]
+        [(1, 2), (1, 3), (2, 1), (2, 3), (2, 4), (3, 1), (3, 2), (4, 2)]
 
     Example:
         >>> import networkx as nx
@@ -1486,7 +1627,7 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         >>> G.add_edges_from([(1, 2), (1, 3), (2, 3), (2, 4)])
         >>> result = list(ut.bfs_conditional(G, 1, visited_nodes=[2]))
         >>> print(result)
-        [3]
+        [1, 3]
     """
     from collections import deque
     from functools import partial
@@ -1504,15 +1645,18 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         visited_nodes = set(visited_nodes)
         visited_nodes.add(source)
 
+    if yield_nodes:
+        yield source
+
     new_edges = neighbors(source)
     if isinstance(new_edges, list):
         new_edges = iter(new_edges)
     queue = deque([(source, new_edges)])
+
     while queue:
         parent, edges = queue[0]
         for edge in edges:
-            edge_nodata = edge[0:3]
-            child = edge_nodata[1]
+            child = edge[1]
             if yield_nodes:
                 if child not in visited_nodes:
                     if yield_condition is None or yield_condition(G, child, edge):
@@ -1524,6 +1668,42 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
             if continue_condition is None or continue_condition(G, child, edge):
                 if child not in visited_nodes:
                     visited_nodes.add(child)
+                    new_edges = neighbors(child)
+                    if isinstance(new_edges, list):
+                        new_edges = iter(new_edges)
+                    queue.append((child, new_edges))
+        queue.popleft()
+
+
+@profile
+def bfs_same_attr_nodes(G, source, key):
+    """
+    Hacks of BFS to only yield nodes that are connected and share a specific
+    attribute. (e.g. name_label)
+    """
+    if isinstance(G, nx.Graph):
+        neighbors = functools.partial(G.edges, data=True)
+    else:
+        neighbors = functools.partial(G.edges, keys=True, data=True)
+
+    visited_nodes = set([source])
+
+    yield source
+
+    new_edges = neighbors(source)
+    if isinstance(new_edges, list):
+        new_edges = iter(new_edges)
+    queue = collections.deque([(source, new_edges)])
+    while queue:
+        parent, edges = queue[0]
+        parent_attr = G.node[parent][key]
+        for edge in edges:
+            child = edge[1]
+            # only move forward if the child shares your attribute
+            if child not in visited_nodes:
+                visited_nodes.add(child)
+                if parent_attr == G.node[child][key]:
+                    yield child
                     new_edges = neighbors(child)
                     if isinstance(new_edges, list):
                         new_edges = iter(new_edges)
