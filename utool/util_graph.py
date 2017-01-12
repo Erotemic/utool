@@ -1629,29 +1629,28 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         >>> print(result)
         [1, 3]
     """
-    from collections import deque
-    from functools import partial
     if reverse and hasattr(G, 'reverse'):
         G = G.reverse()
-    #neighbors = partial(G.neighbors, keys=keys, data=data)
     if isinstance(G, nx.Graph):
-        neighbors = partial(G.edges, data=data)
+        neighbors = functools.partial(G.edges, data=data)
     else:
-        neighbors = partial(G.edges, keys=keys, data=data)
+        neighbors = functools.partial(G.edges, keys=keys, data=data)
+
+    queue = collections.deque([])
 
     if visited_nodes is None:
-        visited_nodes = set([source])
+        visited_nodes = set([])
     else:
         visited_nodes = set(visited_nodes)
+
+    if source not in visited_nodes:
+        if yield_nodes:
+            yield source
         visited_nodes.add(source)
-
-    if yield_nodes:
-        yield source
-
-    new_edges = neighbors(source)
-    if isinstance(new_edges, list):
-        new_edges = iter(new_edges)
-    queue = deque([(source, new_edges)])
+        new_edges = neighbors(source)
+        if isinstance(new_edges, list):
+            new_edges = iter(new_edges)
+        queue.append((source, new_edges))
 
     while queue:
         parent, edges = queue[0]
@@ -1668,42 +1667,6 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
             if continue_condition is None or continue_condition(G, child, edge):
                 if child not in visited_nodes:
                     visited_nodes.add(child)
-                    new_edges = neighbors(child)
-                    if isinstance(new_edges, list):
-                        new_edges = iter(new_edges)
-                    queue.append((child, new_edges))
-        queue.popleft()
-
-
-@profile
-def bfs_same_attr_nodes(G, source, key):
-    """
-    Hacks of BFS to only yield nodes that are connected and share a specific
-    attribute. (e.g. name_label)
-    """
-    if isinstance(G, nx.Graph):
-        neighbors = functools.partial(G.edges, data=True)
-    else:
-        neighbors = functools.partial(G.edges, keys=True, data=True)
-
-    visited_nodes = set([source])
-
-    yield source
-
-    new_edges = neighbors(source)
-    if isinstance(new_edges, list):
-        new_edges = iter(new_edges)
-    queue = collections.deque([(source, new_edges)])
-    while queue:
-        parent, edges = queue[0]
-        parent_attr = G.node[parent][key]
-        for edge in edges:
-            child = edge[1]
-            # only move forward if the child shares your attribute
-            if child not in visited_nodes:
-                visited_nodes.add(child)
-                if parent_attr == G.node[child][key]:
-                    yield child
                     new_edges = neighbors(child)
                     if isinstance(new_edges, list):
                         new_edges = iter(new_edges)
