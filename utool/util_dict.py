@@ -1438,12 +1438,13 @@ def groupby_tags(item_list, tags_list):
         >>> item_list = list(tagged_item_list.keys())
         >>> tags_list = list(tagged_item_list.values())
         >>> groupid_to_items = groupby_tags(item_list, tags_list)
+        >>> groupid_to_items = ut.map_vals(sorted, groupid_to_items)
         >>> result = ('groupid_to_items = %s' % (ut.repr4(groupid_to_items),))
         >>> print(result)
         groupid_to_items = {
             'dairy': ['cheese'],
-            'food': ['cheese', 'eggs', 'jam', 'banana', 'spam'],
-            'fruit': ['jam', 'banana'],
+            'food': ['banana', 'cheese', 'eggs', 'jam', 'spam'],
+            'fruit': ['banana', 'jam'],
             'meat': ['spam'],
             'protein': ['cheese', 'eggs', 'spam'],
             'weapon': ['banana'],

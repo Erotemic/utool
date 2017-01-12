@@ -12,6 +12,7 @@ import collections
 import functools
 from utool import util_inject
 from utool import util_const
+from six.moves import reduce, zip, range
 import itertools as it
 (print, rrr, profile) = util_inject.inject2(__name__)
 
@@ -2016,7 +2017,9 @@ def mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> graph = nx.Graph()
-        >>> nx.add_path(graph, range(6))
+        >>> if hasattr(nx, 'add_path'):
+        >>>     graph.add_path = ut.partial(nx.add_path, graph)  # nx versions
+        >>> graph.add_path(range(6))
         >>> #cost_func   = lambda e: e[0] + e[1]
         >>> cost_func   = lambda e: 1
         >>> weight_func = lambda e: (e[0]) / e[1]

@@ -750,7 +750,7 @@ def grab_file_remote_hash(file_url, hash_list, verbose=False):
 
         # Get the actual hash from the remote server, save in memory
         resp = requests.get(hash_url)
-        hash_remote = resp.content.strip()
+        hash_remote = six.text_type(resp.content.strip())
 
         # Verify response is of an actual hash
         try:

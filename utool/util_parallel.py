@@ -521,10 +521,10 @@ def generate(func, args_list, ordered=True, force_serial=None,
     """
     if force_serial is None:
         force_serial = __FORCE_SERIAL__
-    if nTasks == 1 or nTasks < MIN_PARALLEL_TASKS:
-        force_serial = True
     if nTasks is None:
         nTasks = len(args_list)
+    if nTasks == 1 or nTasks < MIN_PARALLEL_TASKS:
+        force_serial = True
     if nTasks == 0:
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] submitted 0 tasks')
