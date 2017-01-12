@@ -57,6 +57,12 @@ class _NoParamType(object):
         return NoParam
     def __call__(self, default):
         pass
+    def __str__(cls):
+        return 'NoParam'
+        # return "<type 'NoParamType'>"
+    def __repr__(cls):
+        return 'NoParam'
+        # return "<type 'NoParamType'>"
 
 # Create the only instance of _NoParamType that should ever exist
 try:

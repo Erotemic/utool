@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Module that handles string formating and manipulation of varoius data
-
+Module that handles string formating and manipulation of various data
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
@@ -182,18 +181,6 @@ def verts_str(verts, pad=1):
     fmtstr = ', '.join(['%' + six.text_type(pad) + 'd' +
                         ', %' + six.text_type(pad) + 'd'] * 1)
     return ', '.join(['(' + fmtstr % vert + ')' for vert in verts])
-
-
-def percent_str(pcnt):
-    """
-    Depricate
-    """
-    return 'undef' if pcnt is None else '%06.2f %%' % (pcnt * 100,)
-
-
-def tupstr(tuple_):
-    """ maps each item in tuple to a string and doesnt include parens """
-    return ', '.join(list(map(six.text_type, tuple_)))
 
 # --- Strings ----
 
@@ -412,26 +399,6 @@ def truncate_str(str_, maxlen=110, truncmsg=' ~~~TRUNCATED~~~ '):
         upperb  = maxlen_ - lowerb
         tup = (str_[:lowerb], truncmsg, str_[-upperb:])
         return ''.join(tup)
-
-
-def __OLD_pack_into(instr, textwidth=160, breakchars=' ', break_words=True,
-                    newline_prefix='', wordsep=' '):
-    """
-    BROKEN DO NOT USE
-    """
-    textwidth_ = textwidth
-    line_list = ['']
-    word_list = instr.split(breakchars)
-    for word in word_list:
-        if len(line_list[-1]) + len(word) > textwidth_:
-            line_list.append('')
-            textwidth_ = textwidth - len(newline_prefix)
-        while break_words and len(word) > textwidth_:
-            line_list[-1] += word[:textwidth_]
-            line_list.append('')
-            word = word[textwidth_:]
-        line_list[-1] += word + wordsep
-    return ('\n' + newline_prefix).join(line_list)
 
 
 def pack_into(text, textwidth=160, breakchars=' ', break_words=True,

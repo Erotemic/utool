@@ -2214,6 +2214,7 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
 
     CommandLine:
         python -m utool.util_inspect recursive_parse_kwargs:0
+        python -m utool.util_inspect recursive_parse_kwargs:0 --verbinspect
         python -m utool.util_inspect recursive_parse_kwargs:1
         python -m utool.util_inspect recursive_parse_kwargs:2 --mod plottool --func draw_histogram
 
@@ -2282,10 +2283,12 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
     #kwargs_list = [(kw,) for kw in  ut.get_kwargs(root_func)[0]]
     sourcecode = ut.get_func_sourcecode(root_func, strip_docstr=True,
                                         stripdef=True)
-    found_implicit = ut.parse_kwarg_keys(sourcecode, with_vals=True)
+    sourcecode1 = ut.get_func_sourcecode(root_func, strip_docstr=True,
+                                         stripdef=False)
+    found_implicit = ut.parse_kwarg_keys(sourcecode1, with_vals=True)
     if verbose:
         print('[inspect] * Found found_implicit %r' % (found_implicit,))
-    kwargs_list = found_explicit = found_implicit
+    kwargs_list = found_explicit + found_implicit
 
     def hack_lookup_mod_attrs(attr):
         # HACKS TODO: have find_child_kwarg_funcs infer an attribute is a
@@ -2532,7 +2535,40 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
             ie, know when kwargs is passed to these functions and
             then look assume the object that was updated is a dictionary
             and check wherever that is passed to kwargs as well.
+
+            Other visit_<classname> values:
+                http://greentreesnakes.readthedocs.io/en/latest/nodes.html
             """
+            def __init__(self):
+                super(KwargParseVisitor, self).__init__()
+                self.const_lookup = {}
+                self.first = True
+
+            # def visit_Assign(self, node):
+            #     # print('VISIT FunctionDef node = %r' % (node,))
+            #     # print('VISIT FunctionDef node = %r' % (node.__dict__,))
+            #     # for target in node.targets:
+            #     #     print('target.id = %r' % (target.id,))
+            #     # print('node.value = %r' % (node.value,))
+            #     # TODO: assign constants to
+            #     # self.const_lookup
+            #     ast.NodeVisitor.generic_visit(self, node)
+
+            # def visit_Name(self, node):
+            #     if debug:
+            #         print('VISIT FunctionDef node = %r' % (node,))
+            #         # print('node.args.kwarg = %r' % (node.args.kwarg,))
+            #     print('VISIT FunctionDef node = %r' % (node,))
+            #     # print('node.ctx = %r' % (node.ctx,))
+            #     # print('ast.Store = %r' % (ast.Store,))
+            #     if isinstance(node.ctx, ast.Load):
+            #         print('node.ctx.__dict__ = %r' % (node.ctx.__dict__,))
+            #         print('VISIT FunctionDef node = %r' % (node.__dict__,))
+            #     if isinstance(node.ctx, ast.Store):
+            #         print('node.ctx.__dict__ = %r' % (node.ctx.__dict__,))
+            #         print('VISIT FunctionDef node = %r' % (node.__dict__,))
+            #     ast.NodeVisitor.generic_visit(self, node)
+
             def visit_FunctionDef(self, node):
                 if debug:
                     print('VISIT FunctionDef node = %r' % (node,))
@@ -2544,11 +2580,29 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                         kwarg_name = None
                     else:
                         kwarg_name = node.args.kwarg.arg
-                    #import utool as ut
-                    #ut.embed()
-                if kwarg_name != target_kwargs_name:
+
+                # Record any constants defined in function definitions
+                defaults_vals = node.args.defaults
+                offset = len(node.args.args) - len(defaults_vals)
+                default_keys = node.args.args[offset:]
+                for kwname, kwval in zip(default_keys, defaults_vals):
+                    # try:
+                    if six.PY2:
+                        if isinstance(kwval, ast.Name):
+                            val = eval(kwval.id, {}, {})
+                            self.const_lookup[kwname.id] = val
+                    else:
+                        if isinstance(kwval, ast.NameConstant):
+                            val = kwval.value
+                            self.const_lookup[kwname.arg] = val
+                    # except Exception:
+                    #     pass
+
+                if self.first or kwarg_name != target_kwargs_name:
                     # target kwargs is still in scope
                     ast.NodeVisitor.generic_visit(self, node)
+                    # always visit the first function
+                    self.first = False
 
             def visit_Subscript(self, node):
                 if debug:
@@ -2584,7 +2638,7 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                                 pass
                             elif isinstance(key, ast.Str):
                                 key_value = key.s
-                                val_value = ut.NoParam
+                                val_value = None   # ut.NoParam
                                 if isinstance(val, ast.Str):
                                     val_value = val.s
                                 elif isinstance(val, ast.Num):
@@ -2593,6 +2647,9 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                                     if val.id == 'None':
                                         val_value = None
                                     else:
+                                        val_value = self.const_lookup.get(
+                                                val.id, None)
+                                        # val_value = 'TODO lookup const'
                                         # TODO: lookup constants?
                                         pass
                                 item = (key_value, val_value)
@@ -2675,8 +2732,8 @@ def argparse_funckw(func, defaults={}, **kwargs):
         >>> print(result)
         funckw = {
             'default': True,
-            'with_methods': 'default',
-            'with_properties': 'default',
+            'with_methods': True,
+            'with_properties': True,
         }
     """
     import utool as ut

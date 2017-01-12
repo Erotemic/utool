@@ -18,11 +18,10 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-from collections import namedtuple
 import inspect
 import types
-import traceback  # NOQA
 import sys
+from collections import namedtuple
 from os.path import basename
 from utool import util_arg
 from utool import util_time
@@ -35,19 +34,17 @@ print, rrr, profile = util_inject.inject2(__name__)
 
 VERBOSE_TEST = util_arg.get_module_verbosity_flags('test')[0]
 
-#PRINT_SRC = not util_arg.get_argflag(('--noprintsrc', '--nosrc'))
 DEBUG_SRC = not util_arg.get_argflag('--nodbgsrc')
-PRINT_SRC = util_arg.get_argflag(('--printsrc', '--src', '--show-src', '--showsrc'),
-                                 help_='show docstring source when running tests')
-#PRINT_FACE = not util_arg.get_argflag(('--noprintface', '--noface'))
+PRINT_SRC = util_arg.get_argflag(
+    ('--printsrc', '--src', '--show-src', '--showsrc'),
+    help_='show docstring source when running tests')
 PRINT_FACE = util_arg.get_argflag(('--printface', '--face'))
-#BIGFACE = False
 BIGFACE = util_arg.get_argflag('--bigface')
-SYSEXIT_ON_FAIL = util_arg.get_argflag(('--sysexitonfail', '--fastfail'),
-                                       help_='Force testing harness to exit on first test failure')
+SYSEXIT_ON_FAIL = util_arg.get_argflag(
+    ('--sysexitonfail', '--fastfail'),
+    help_='Force testing harness to exit on first test failure')
 VERBOSE_TIMER = not util_arg.get_argflag('--no-time-tests')
 INDENT_TEST   = False
-#EXEC_MODE = util_arg.get_argflag('--exec-mode', help_='dummy flag that will be removed')
 
 ModuleDoctestTup = namedtuple('ModuleDoctestTup', ('enabled_testtup_list',
                                                    'frame_fpath',
@@ -60,7 +57,8 @@ class TestTuple(util_dev.NiceRepr):
     exec mode specifies if the test is being run as a script
     """
     def __init__(self, name, num, src, want, flag, tags=None, frame_fpath=None,
-                 mode=None, nametup=None, test_namespace=None, shortname=None, total=None):
+                 mode=None, nametup=None, test_namespace=None, shortname=None,
+                 total=None):
         self._name = name  # function / class / testable name
         self.num = num    # doctest index
         self.src = src    # doctest src
@@ -113,23 +111,8 @@ class TestTuple(util_dev.NiceRepr):
 
     def __nice__(self):
         tagstr = ' ' + ','.join(self.tags) if self.tags is not None else ''
-        # return ' '  + self.shortname + ':' + str(self.num) + ' /' + int(self.total) + ' ' + tagstr + ' in ' + self.namespace
-        return ' '  + self.name + ':' + str(self.num) + ' /' + str(self.total) + ' ' + tagstr + ' in ' + self.modname
-
-    #def __repr__(self):
-    #    custom =
-    #    return '<%s%s at %s>' % (self.__class__.__name__, custom, hex(id(self)),)
-
-    #def __str__(self):
-    #    custom = ' '  + self.name + ':' + str(self.num)
-    #    return '<%s%s>' % (self.__class__.__name__, custom,)
-
-##debug_decor = lambda func: func
-
-#if VERBOSE_TEST:
-#    from utool import util_decor
-#    #debug_decor = util_decor.indent_func
-#    #debug_decor = util_decor.tracefunc
+        return (' '  + self.name + ':' + str(self.num) + ' /' +
+                str(self.total) + ' ' + tagstr + ' in ' + self.modname)
 
 
 HAPPY_FACE_BIG = r'''
@@ -188,10 +171,10 @@ def get_package_testables(module=None, **tagkw):
         test_flags (None): (default = None)
 
     CommandLine:
-        python -m utool.util_tests --exec-get_package_testables --show --mod ibeis
-        python -m utool.util_tests --exec-get_package_testables --show --mod plottool
-        python -m utool.util_tests --exec-get_package_testables --show --mod utool --tags SCRIPT
-        python -m utool.util_tests --exec-get_package_testables --show --mod utool --tags ENABLE
+        python -m utool get_package_testables --show --mod ibeis
+        python -m utool get_package_testables --show --mod plottool
+        python -m utool get_package_testables --show --mod utool --tags SCRIPT
+        python -m utool get_package_testables --show --mod utool --tags ENABLE
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -302,7 +285,7 @@ def doctest_module_list(module_list):
 def doctest_funcs(testable_list=None, check_flags=True, module=None,
                   allexamples=None, needs_enable=None, strict=False,
                   verbose=True, return_error_report=True, seen_=None):
-    """
+    r"""
     Main entry point into utools main module doctest harness
     Imports a module and checks flags for the function to run
     Depth 1)
@@ -496,18 +479,17 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
 
 
 def run_test(func_or_testtup, *args, **kwargs):
-    """
-    Runs the test function with success / failure printing
+    r"""
+    Runs the test function. Prints a success / failure report.
 
     Args:
         func_or_testtup (func or tuple): function or doctest tuple
-
-    Varargs/Kwargs:
-        Anything that needs to be passed to <func_>
+        args*: args to be forwarded to `func_or_testtup`
+        kwargs*: keyword args to be forwarded to `func_or_testtup`
     """
     import utool as ut
     #func_is_testtup = isinstance(func_or_testtup, tuple)
-    # NOTE: isinstance is not gaurenteed not work here if ut.rrrr has been called
+    # NOTE: isinstance might not work here if ut.rrrr has been called
     func_is_testtup = isinstance(func_or_testtup, TestTuple)
     exec_mode = False
     dump_mode = False
@@ -608,7 +590,7 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
     """
     Helper for run_test
 
-    block of code that r:uns doctest and was too big to be in run_test
+    block of code that runs doctest and was too big to be in run_test
     """
     # TEST INPUT IS PYTHON CODE TEXT
     #test_locals = {}
@@ -648,7 +630,8 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
             msglines = []
             # Even if they arent exactly the same, the difference might just be
             # some whitespace characters. Ignore in this case.
-            difftext = util_str.get_textdiff(want, result, ignore_whitespace=True)
+            difftext = util_str.get_textdiff(want, result,
+                                             ignore_whitespace=True)
             if difftext:
                 if util_dbg.COLORED_EXCEPTIONS:
                     difftext = ut.color_diff_text(difftext)
@@ -951,7 +934,7 @@ def parse_docblocks_from_docstr(docstr, offsets=False):
             if line_num + 1 < len(docstr_lines):
                 # A tag is only valid if its next line is properly indented,
                 # empty, or is a tag itself.
-                if true_indent[line_num + 1] > base_indent or line_len[line_num + 1] == 0 or re.match(tag_pattern, docstr_lines[line_num + 1]):
+                if (true_indent[line_num + 1] > base_indent or line_len[line_num + 1] == 0 or re.match(tag_pattern, docstr_lines[line_num + 1])):
                     group_id += 1
                     in_tag = True
             else:
@@ -993,41 +976,6 @@ def parse_docblocks_from_docstr(docstr, offsets=False):
     # except Exception as ex:
     #     ut.printex(ex, iswarning=True)
     return groups
-    # else:
-    #     initial_docblocks = docstr.split('\n\n')
-    #     docblock_len_list = [str_.count('\n') + 2 for str_ in initial_docblocks]
-    #     offset_iter = it.chain([0], ut.cumsum(docblock_len_list)[:-1])
-    #     initial_line_offsets = [offset for offset in offset_iter]
-
-    #     if VERBOSE_TEST:
-    #         if ut.VERBOSE:
-    #             print('__________')
-    #             print('__Initial Docblocks__')
-    #             print('\n---\n'.join(initial_docblocks))
-    #     docstr_blocks = []
-    #     for docblock, line_offset in zip(initial_docblocks, initial_line_offsets):
-    #         docblock = docblock.strip('\n')
-    #         indent = ' ' * ut.get_indentation(docblock)
-    #         parse_result = parse.parse(indent + '{tag}:\n{rest}', docblock)
-    #         if parse_result is not None:
-    #             header = parse_result['tag']
-    #         else:
-    #             header = ''
-    #         docstr_blocks.append((header, docblock, line_offset))
-    #     #print(docstr_blocks)
-
-    #     docblock_headers = ut.take_column(docstr_blocks, 0)
-    #     docblock_bodys = ut.take_column(docstr_blocks, 1)
-    #     docblock_offsets = ut.take_column(docstr_blocks, 2)
-
-    #     if VERBOSE_TEST:
-    #         print('[util_test]   * found %d docstr_blocks' % (len(docstr_blocks),))
-    #         print('[util_test]   * docblock_headers = %r' % (docblock_headers,))
-    #         print('[util_test]   * docblock_offsets = %r' % (docblock_offsets,))
-    #         if ut.VERBOSE:
-    #             print('[util_test]  * docblock_bodys:')
-    #             print('\n-=-\n'.join(docblock_bodys))
-    #     return docstr_blocks
 
 
 def read_exampleblock(docblock):
@@ -1269,24 +1217,16 @@ def get_doctest_examples(func_or_class):
             ut.printex(ex, '[util-test] error getting function line number')
 
     docstr = ut.get_docstr(func_or_class)
-    # Cache because my janky parser is slow
-    #with ut.GlobalShelfContext('utool') as shelf:
-    #    if False and docstr in shelf:
-    #        testsrc_list, testwant_list = shelf[docstr]
-    #    else:
     (testheader_list, testsrc_list, testwant_list,
      testlineoffset_list) = parse_doctest_from_docstr(docstr)
     testlinenum_list = [
         func_lineno + num_funcdef_lines + offset
         for offset in testlineoffset_list
     ]
-    #       shelf[docstr] = testsrc_list, testwant_list
     if VERBOSE_TEST:
         print('[util_test] L found %d doctests' % (len(testsrc_list),))
     examptup = testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr
     return examptup
-    # doctest doesnt do what i want. so I wrote my own primative but effective
-    # parser.
 
 
 def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
@@ -1339,7 +1279,10 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         >>> N = 0
         >>> verbose = True
         >>> testslow = False
-        >>> mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags, module, allexamples, needs_enable, N, verbose, testslow)
+        >>> mod_doctest_tup = get_module_doctest_tup(testable_list, check_flags,
+        >>>                                          module, allexamples,
+        >>>                                          needs_enable, N, verbose,
+        >>>                                          testslow)
         >>> result = ('mod_doctest_tup = %s' % (ut.list_str(mod_doctest_tup, nl=4),))
         >>> print(result)
     """
@@ -2038,7 +1981,9 @@ def execute_doctest(func, testnum=0, module=None):
     testsrc = ut.get_doctest_examples(func)[0][testnum]
     # colored_src = ut.highlight_code(ut.indent(testsrc, '>>> '))
     doctest_src = ut.indent(testsrc, '>>> ')
-    doctest_src = '\n'.join(['%3d %s' % (count, line) for count, line in enumerate(doctest_src.splitlines(), start=1)])
+    doctest_src = '\n'.join([
+        '%3d %s' % (count, line)
+        for count, line in enumerate(doctest_src.splitlines(), start=1)])
     colored_src = ut.highlight_code(doctest_src)
     print('testsrc = \n%s' % (colored_src,))
     try:
