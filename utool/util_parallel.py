@@ -344,7 +344,7 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
 
 
 def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None,
-                     quiet=quiet, **kwargs):
+                     quiet=QUIET, **kwargs):
     """ internal serial generator  """
     if nTasks is None:
         nTasks = len(args_list)
