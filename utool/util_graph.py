@@ -331,7 +331,7 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
 
 @profile
 def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
-                     assume_sparse=False):
+                     assume_sparse=True):
     r"""
     Get edges between two components or within a single component
 
@@ -373,6 +373,11 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
         >>> assert n5 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '5'
         >>> assert n1 == ([(1, 5), (5, 1), (7, 2)]), '1'
         >>> assert n3 == ([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), '3'
+        >>> n6 = sorted(nx_edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_sparse=True))
+        >>> print('n6 = %r' % (n6,))
+        >>> n6 = sorted(nx_edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_sparse=False))
+        >>> print('n6 = %r' % (n6,))
+        >>> assert n6 == ([(1, 2), (1, 5), (2, 3), (4, 1), (5, 1), (5, 6), (7, 2)]), '6'
 
     Timeit:
         from utool.util_graph import *  # NOQA
@@ -387,7 +392,8 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
         edges_between = ut.nx_edges_between
         %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=True))
         %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=False, assume_disjoint=False))
-        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=True))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=True, assume_disjoint=False))
+        %timeit list(edges_between(graph, nodes1, nodes2, assume_sparse=True, assume_disjoint=True))
 
     Ignore:
         graph = nx.DiGraph(edges)
@@ -397,63 +403,98 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
 
     """
     if assume_sparse:
-        nodes1_ = set(nodes1)
-        if nodes2 is None:
-            nodes2_ = nodes1_
-        else:
-            nodes2_ = set(nodes2)
-        nodes_isect = nodes1_.intersection(nodes2_)
-        nodes_only1 = nodes1_ - nodes_isect
-        nodes_only2 = nodes2_ - nodes_isect
+        # Method 1 is where we check the intersection of existing edges
+        # and the edges in the second set (faster for sparse graphs)
 
-        for u in nodes_only1:
-            neighbs = set(graph.adj[u])
-            neighbs12 = neighbs.intersection(nodes_only2)
-            neighbs1B = neighbs.intersection(nodes_isect)
-            # 1-to-2
-            for v in neighbs12:
-                yield (u, v)
-            # 1-to-B
-            for v in neighbs1B:
-                yield (u, v)
-
-        nodes_isect_upper = nodes_isect.copy()
-        for u in nodes_isect:
-            neighbs = set(graph.adj[u])
-            neighbsBB_upper = neighbs.intersection(nodes_isect_upper)
-            # B-to-B
-            for v in neighbsBB_upper:
-                yield (u, v)
-            nodes_isect_upper.remove(u)
-
-        if graph.is_directed():
-            # 2-to-1
-            for u in nodes_only2:
+        # Define helpers
+        def node_combo_lower(graph, both):
+            both_lower = set([])
+            for u in both:
                 neighbs = set(graph.adj[u])
-                neighbs21 = neighbs.intersection(nodes_only1)
-                for v in neighbs21:
-                    yield (u, v)
-
-            nodes_isect_lower = set([])
-            for u in nodes_isect:
-                neighbs = set(graph.adj[u])
-
-                # B-to-1
-                neighbsB1 = neighbs.intersection(nodes_only1)
-                for v in neighbsB1:
-                    yield (u, v)
-
-                # B-to-2
-                neighbsB2 = neighbs.intersection(nodes_only2)
-                for v in neighbsB2:
-                    yield (u, v)
-
-                # reverse B-to-B
-                neighbsBB_lower = neighbs.intersection(nodes_isect_lower)
+                neighbsBB_lower = neighbs.intersection(both_lower)
                 for v in neighbsBB_lower:
                     yield (u, v)
-                nodes_isect_lower.add(u)
+                both_lower.add(u)
+
+        def node_combo_upper(graph, both):
+            both_upper = both.copy()
+            for u in both:
+                neighbs = set(graph.adj[u])
+                neighbsBB_upper = neighbs.intersection(both_upper)
+                for v in neighbsBB_upper:
+                    yield (u, v)
+                both_upper.remove(u)
+
+        def node_product(graph, only1, only2):
+            for u in only1:
+                neighbs = set(graph.adj[u])
+                neighbs12 = neighbs.intersection(only2)
+                for v in neighbs12:
+                    yield (u, v)
+
+        # Test for special cases
+        if nodes2 is None or nodes2 is nodes1:
+            # Case where we just are finding internal edges
+            both = set(nodes1)
+            if graph.is_directed():
+                edge_sets = [
+                    node_combo_upper(graph, both),  # B-to-B (upper)
+                    node_combo_lower(graph, both),  # B-to-B (lower)
+                ]
+            else:
+                edge_sets = [
+                    node_combo_upper(graph, both),  # B-to-B (upper)
+                ]
+        elif assume_disjoint:
+            # Case where we find edges between disjoint sets
+            only1 = set(nodes1)
+            only2 = set(nodes2)
+            if graph.is_directed():
+                edge_sets = [
+                    node_product(graph, only1, only2),  # 1-to-2
+                    node_product(graph, only2, only1),  # 2-to-1
+                ]
+            else:
+                edge_sets = [
+                    node_product(graph, only1, only2),  # 1-to-2
+                ]
+        else:
+            # Full general case
+            nodes1_ = set(nodes1)
+            if nodes2 is None:
+                nodes2_ = nodes1_
+            else:
+                nodes2_ = set(nodes2)
+            both = nodes1_.intersection(nodes2_)
+            only1 = nodes1_ - both
+            only2 = nodes2_ - both
+
+            if graph.is_directed():
+                edge_sets = [
+                    node_product(graph, only1, only2),  # 1-to-2
+                    node_product(graph, only1, both),   # 1-to-B
+                    node_combo_upper(graph, both),      # B-to-B (u)
+                    node_combo_lower(graph, both),      # B-to-B (l)
+                    node_product(graph, both, only1),   # B-to-1
+                    node_product(graph, both, only2),   # B-to-2
+                    node_product(graph, only2, both),   # 2-to-B
+                    node_product(graph, only2, only1),  # 2-to-1
+                ]
+            else:
+                edge_sets = [
+                    node_product(graph, only1, only2),  # 1-to-2
+                    node_product(graph, only1, both),   # 1-to-B
+                    node_combo_upper(graph, both),      # B-to-B (u)
+                    node_product(graph, only2, both),   # 2-to-B
+                ]
+
+        edge_iter = it.chain.from_iterable(edge_sets)
+        for u, v in edge_iter:
+            yield u, v
+
     else:
+        # Method 2 is where we enumerate all possible edges and just take the
+        # ones that exist (faster for very dense graphs)
         if nodes2 is None or nodes2 is nodes1:
             edge_iter = it.combinations(nodes1, 2)
         else:
@@ -2164,3 +2205,4 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
+
