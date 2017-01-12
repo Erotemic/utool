@@ -205,7 +205,7 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
     result_list = []
     lbl = '(serproc) %s: ' % (get_funcname(func),)
     prog_iter = util_progress.ProgressIter(
-        args_list, nTotal=nTasks, lbl=lbl, adjust=True)
+        args_list, nTotal=nTasks, lbl=lbl, adjust=True, quiet=quiet)
     # Execute each task sequentially
     for args in prog_iter:
         result = func(*args, **args_dict)
@@ -227,7 +227,7 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET, p
     lbl = '(parproc) %s: ' % (get_funcname(func),)
     _prog = util_progress.ProgressIter(
         range(nTasks), nTotal=nTasks, lbl=lbl,
-        adjust=True)
+        adjust=True, quiet=quiet)
     _prog_iter = iter(_prog)
     num_tasks_returned_ptr = [0]
     def _callback(result):
@@ -357,7 +357,8 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None, **kw
         util_progress.ProgressIter(args_list, nTotal=nTasks,
                                    lbl=lbl,
                                    freq=kwargs.get('freq', None),
-                                   adjust=kwargs.get('adjust', False))
+                                   adjust=kwargs.get('adjust', False),
+                                   quiet=quiet)
         if prog else args_list
     )
     if __TIME_GENERATE__:
