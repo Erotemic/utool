@@ -2549,18 +2549,20 @@ def number_text_lines(text):
 
 def get_textdiff(text1, text2, num_context_lines=0, ignore_whitespace=False):
     r"""
-    Uses difflib to return a difference string between two
-    similar texts
-
-    References:
-        http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
+    Uses difflib to return a difference string between two similar texts
 
     Args:
         text1 (str):
         text2 (str):
 
     Returns:
-        str:
+        str: formatted difference text message
+
+    SeeAlso:
+        ut.color_diff_text
+
+    References:
+        http://www.java2s.com/Code/Python/Utility/IntelligentdiffbetweentextfilesTimPeters.htm
 
     CommandLine:
         python -m utool.util_str --test-get_textdiff:1
@@ -2597,20 +2599,28 @@ def get_textdiff(text1, text2, num_context_lines=0, ignore_whitespace=False):
     text1_lines = text1.splitlines()
     text2_lines = text2.splitlines()
     if ignore_whitespace:
-        all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines, difflib.IS_LINE_JUNK, difflib.IS_CHARACTER_JUNK))
+        text1_lines = [t.rstrip() for t in text1_lines]
+        text2_lines = [t.rstrip() for t in text2_lines]
+        ndiff_kw = dict(linejunk=difflib.IS_LINE_JUNK,
+                        charjunk=difflib.IS_CHARACTER_JUNK)
     else:
-        all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines))
+        ndiff_kw = {}
+    all_diff_lines = list(difflib.ndiff(text1_lines, text2_lines, **ndiff_kw))
+
     if num_context_lines is None:
         diff_lines = all_diff_lines
     else:
         from utool import util_list
         # boolean for every line if it is marked or not
-        ismarked_list = [len(line) > 0 and line[0] in '+-?' for line in all_diff_lines]
+        ismarked_list = [len(line) > 0 and line[0] in '+-?'
+                         for line in all_diff_lines]
         # flag lines that are within num_context_lines away from a diff line
         isvalid_list = ismarked_list[:]
         for i in range(1, num_context_lines + 1):
-            isvalid_list[:-i] = util_list.or_lists(isvalid_list[:-i], ismarked_list[i:])
-            isvalid_list[i:]  = util_list.or_lists(isvalid_list[i:], ismarked_list[:-i])
+            isvalid_list[:-i] = util_list.or_lists(isvalid_list[:-i],
+                                                   ismarked_list[i:])
+            isvalid_list[i:]  = util_list.or_lists(isvalid_list[i:],
+                                                   ismarked_list[:-i])
         USE_BREAK_LINE = True
         if USE_BREAK_LINE:
             # insert a visual break when there is a break in context
@@ -2627,7 +2637,6 @@ def get_textdiff(text1, text2, num_context_lines=0, ignore_whitespace=False):
                 prev = valid
         else:
             diff_lines = util_list.filter_items(all_diff_lines, isvalid_list)
-        #
     return '\n'.join(diff_lines)
 
 

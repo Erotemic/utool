@@ -633,35 +633,44 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         print('Test exited before show')
         pass
     if nocheckwant is None:
-        nocheckwant = util_arg.get_argflag('--no-checkwant', help_='Turns off checking for results')
+        nocheckwant = util_arg.get_argflag(
+            '--no-checkwant', help_='Turns off checking for results')
     if nocheckwant or want is None or want == '':
         if not nocheckwant:
             print('warning test does not want anything')
     else:
         if want.endswith('\n'):
             want = want[:-1]
-        result = six.text_type(test_locals.get('result', 'NO VARIABLE NAMED result'))
+        result = six.text_type(test_locals.get('result',
+                                               'NO VARIABLE NAMED result'))
         if result != want:
-            errmsg1 = ''
-            try:
-                import utool as ut
-                difftext = ut.get_textdiff(want, result)
+            from utool import util_str
+            msglines = []
+            # Even if they arent exactly the same, the difference might just be
+            # some whitespace characters. Ignore in this case.
+            difftext = util_str.get_textdiff(want, result, ignore_whitespace=True)
+            if difftext:
                 if util_dbg.COLORED_EXCEPTIONS:
                     difftext = ut.color_diff_text(difftext)
-                errmsg1 += ('DIFF/GOT/EXPECTED\n' + difftext + '\n')
-            except ImportError:
-                if ut.STRICT:
-                    raise
-                errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
-                errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
-            else:
+                msglines += [
+                    'DIFF/GOT/EXPECTED',
+                    difftext,
+                ]
                 if VERBOSE_TEST:
-                    errmsg1 += ('REPR_GOT: result=\n%r\n' % (result))
-                    errmsg1 += ('REPR_EXPECTED: want=\n%r\n' % (want))
-            errmsg1 += ''
-            errmsg1 += ('STR_GOT: result=\n%s\n' % (result))
-            errmsg1 += ('STR_EXPECTED: want=\n%s\n' % (want))
-            raise AssertionError('result != want\n' + errmsg1)
+                    msglines += [
+                        'REPR_GOT: result=',
+                        repr(result),
+                        'REPR_EXPECTED: want=',
+                        repr(want),
+                    ]
+                msglines += [
+                    'STR_GOT: result=',
+                    str(result),
+                    'STR_EXPECTED: want=',
+                    str(want),
+                ]
+                errmsg1 = '\n'.join(msglines)
+                raise AssertionError('result != want\n' + errmsg1)
     return test_locals
 
 
@@ -679,7 +688,8 @@ def get_module_testlines(module_list, remove_pyc=True, verbose=True,
     for module in module_list:
         mod_doctest_tup = get_module_doctest_tup(
             module=module, allexamples=True, verbose=verbose)
-        enabled_testtup_list, frame_fpath, all_testflags, module_ = mod_doctest_tup
+        (enabled_testtup_list, frame_fpath,
+                 all_testflags, module_) = mod_doctest_tup
         for testtup in enabled_testtup_list:
             #testflag = testtup[-1]
             testflag = testtup.flag
