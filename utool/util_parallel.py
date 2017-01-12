@@ -348,7 +348,7 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None,
     """ internal serial generator  """
     if nTasks is None:
         nTasks = len(args_list)
-    if verbose:
+    if verbose and not quiet:
         print('[util_parallel._generate_serial] executing %d %s tasks in serial' %
                 (nTasks, get_funcname(func)))
     prog = prog and verbose and nTasks > 1
@@ -539,7 +539,8 @@ def generate(func, args_list, ordered=True, force_serial=None,
     if force_serial or isinstance(__POOL__, int):
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
-        return _generate_serial(func, args_list, prog=prog, nTasks=nTasks, freq=freq, **kwargs)
+        return _generate_serial(func, args_list, prog=prog, quiet=quiet,
+                                nTasks=nTasks, freq=freq, **kwargs)
     else:
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_parallel')
@@ -550,7 +551,8 @@ def generate(func, args_list, ordered=True, force_serial=None,
 
 
 def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
-                     force_serial=False, verbose=None, prog=True, **kwargs):
+                     force_serial=False, quiet=QUIET, verbose=None, prog=True,
+                     **kwargs):
     from utool import util_resources
     # Check conditions under which we force serial
     if force_serial is None:
@@ -581,7 +583,8 @@ def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
         if VERBOSE_PARALLEL or verbose:
             print('[util_parallel.generate] generate_serial')
         for result in _generate_serial(worker, args_gen, prog=prog,
-                                       nTasks=nTasks, freq=freq, **kwargs):
+                                       quiet=quiet, nTasks=nTasks, freq=freq,
+                                       **kwargs):
             yield result
     else:
         from concurrent import futures
@@ -1109,7 +1112,7 @@ def process(func, args_list, args_dict={}, force_serial=None,
     if nTasks is None:
         nTasks = len(args_list)
     if __POOL__ == 1 or force_serial:
-        if not QUIET:
+        if not quiet:
             print('[util_parallel] executing %d %s tasks in serial' %
                   (nTasks, get_funcname(func)))
         result_list = _process_serial(func, args_list, args_dict, nTasks=nTasks,
@@ -1121,7 +1124,7 @@ def process(func, args_list, args_dict={}, force_serial=None,
                             maxtasksperchild=None)
         else:
             pool = __POOL__
-        if not QUIET:
+        if not quiet:
             print('[util_parallel] executing %d %s tasks using %d processes' %
                   (nTasks, get_funcname(func), pool._processes))
         result_list = _process_parallel(func, args_list, args_dict, nTasks=nTasks,
