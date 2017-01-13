@@ -45,11 +45,11 @@ def compare_groupings(groups1, groups2):
     Returns a measure of how disimilar two groupings are
 
     Args:
-        groups1 (list): grouping of items
-        groups2 (list): grouping of items
+        groups1 (list): true grouping of items
+        groups2 (list): predicted grouping of items
 
     CommandLine:
-        python -m utool.util_alg --exec-compare_groupings
+        python -m utool.util_alg compare_groupings
 
     SeeAlso:
         vtool.group_indicies
@@ -84,12 +84,19 @@ def compare_groupings(groups1, groups2):
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
         total_error = 4
+
+    Ignore:
+        # Can this be done via sklearn label analysis?
+        # maybe no... the labels assigned to each component are arbitrary
+        # maybe if we label edges? likely too many labels.
+        groups1 = [[1, 2, 3], [4], [5, 6], [7, 8], [9, 10, 11]]
+        groups2 = [[1, 2, 11], [3, 4], [5, 6], [7], [8, 9], [10]]
     """
     import utool as ut
     # For each group, build mapping from each item to the members the group
-    item_to_others1 = {item: set(_group) - set([item])
+    item_to_others1 = {item: set(_group) - {item}
                        for _group in groups1 for item in _group}
-    item_to_others2 = {item: set(_group) - set([item])
+    item_to_others2 = {item: set(_group) - {item}
                        for _group in groups2 for item in _group}
 
     flat_items1 = ut.flatten(groups1)
@@ -101,8 +108,8 @@ def compare_groupings(groups1, groups2):
     item_to_error = {}
     for item in flat_items:
         # Determine the number of unshared members in each group
-        others1 = item_to_others1.get(item, set([]))
-        others2 = item_to_others2.get(item, set([]))
+        others1 = item_to_others1.get(item, {})
+        others2 = item_to_others2.get(item, {})
         missing1 = others1 - others2
         missing2 = others2 - others1
         error = len(missing1) + len(missing2)
@@ -113,8 +120,8 @@ def compare_groupings(groups1, groups2):
     return total_error
 
 
-def find_grouping_consistencies(groups1, groups2):
-    """
+def find_group_consistencies(groups1, groups2):
+    r"""
     Returns a measure of group consistency
 
     Example:
@@ -122,13 +129,13 @@ def find_grouping_consistencies(groups1, groups2):
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6]]
         >>> groups2 = [[1, 2], [4], [5, 6]]
-        >>> common_groups = find_grouping_consistencies(groups1, groups2)
+        >>> common_groups = find_group_consistencies(groups1, groups2)
         >>> result = ('common_groups = %r' % (common_groups,))
         >>> print(result)
         common_groups = [(5, 6), (4,)]
     """
-    group1_list = set([tuple(sorted(_group)) for _group in groups1])
-    group2_list = set([tuple(sorted(_group)) for _group in groups2])
+    group1_list = {tuple(sorted(_group)) for _group in groups1}
+    group2_list = {tuple(sorted(_group)) for _group in groups2}
     common_groups = list(group1_list.intersection(group2_list))
     return common_groups
 
