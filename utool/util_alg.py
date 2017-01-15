@@ -40,7 +40,7 @@ MM_PER_INCH = 25.4
 FOOT_PER_MILE = 5280
 
 
-def compare_groupings(groups1, groups2):
+def find_group_differences(groups1, groups2):
     r"""
     Returns a measure of how disimilar two groupings are
 
@@ -49,7 +49,7 @@ def compare_groupings(groups1, groups2):
         groups2 (list): predicted grouping of items
 
     CommandLine:
-        python -m utool.util_alg compare_groupings
+        python -m utool.util_alg find_group_differences
 
     SeeAlso:
         vtool.group_indicies
@@ -60,7 +60,7 @@ def compare_groupings(groups1, groups2):
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6], [7, 8], [9, 10, 11]]
         >>> groups2 = [[1, 2, 11], [3, 4], [5, 6], [7], [8, 9], [10]]
-        >>> total_error = compare_groupings(groups1, groups2)
+        >>> total_error = find_group_differences(groups1, groups2)
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
         total_error = 20
@@ -70,7 +70,7 @@ def compare_groupings(groups1, groups2):
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6]]
         >>> groups2 = [[1, 2, 3], [4], [5, 6]]
-        >>> total_error = compare_groupings(groups1, groups2)
+        >>> total_error = find_group_differences(groups1, groups2)
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
         total_error = 0
@@ -80,7 +80,7 @@ def compare_groupings(groups1, groups2):
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6]]
         >>> groups2 = [[1, 2], [4], [5, 6]]
-        >>> total_error = compare_groupings(groups1, groups2)
+        >>> total_error = find_group_differences(groups1, groups2)
         >>> result = ('total_error = %r' % (total_error,))
         >>> print(result)
         total_error = 4
@@ -138,6 +138,51 @@ def find_group_consistencies(groups1, groups2):
     group2_list = {tuple(sorted(_group)) for _group in groups2}
     common_groups = list(group1_list.intersection(group2_list))
     return common_groups
+
+
+def compare_groups(true_groups, pred_groups):
+    r"""
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> true_groups = [[1, 2], [4], [5, 6, 3], [7, 8], [9, 10, 11]]
+        >>> pred_groups = [[1, 2], [3, 4], [5, 6,11], [7], [8, 9], [10]]
+        >>> result = compare_groups(groups1, groups2)
+        >>> print(result)
+        >>> print(ut.repr4(result))
+    """
+    true = {tuple(sorted(_group)) for _group in true_groups}
+    pred = {tuple(sorted(_group)) for _group in pred_groups}
+    common_sets = list(true.intersection(pred))
+    true.difference_update(common_sets)
+    pred.difference_update(common_sets)
+    true_sets = list(map(set, true))
+    pred_sets = list(map(set, pred))
+
+    merge_sets = []
+    split_sets = []
+    hybrid_sets = []
+    for p in pred_sets:
+        flag = True
+        if any(p.issubset(t) for t in true_sets):
+            flag = 0
+            merge_sets.append(p)
+        if any(p.issuperset(t) for t in true_sets):
+            flag = 0
+            split_sets.append(p)
+        if flag:
+            hybrid_sets.append(p)
+    result = {
+        'common': common_sets,
+        'split': split_sets,
+        'merge': merge_sets,
+        'hyrbid': hybrid_sets,
+    }
+    # Find number of consistent groups
+    # Find number of pure splits
+    # Find number of pure merges
+    # Find number of pure hybrid split-merges
+    return result
 
 
 def upper_diag_self_prodx(list_):
