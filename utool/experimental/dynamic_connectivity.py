@@ -250,15 +250,34 @@ class EulerTourTree(object):
         """
         >>> # DISABLE_DOCTEST
         >>> from utool.experimental.dynamic_connectivity import *  # NOQA
-        >>> mst = nx.balanced_tree(2, 3)
+        >>> mst = nx.balanced_tree(2, 4)
         >>> self = EulerTourTree.from_mst(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
         >>> show_avl_tree(self.tour_tree, pnum=(2, 1, 2), fnum=1)
-        >>> pt.show_nx(self.mst, pnum=(2, 1, 1), fnum=1)
+        >>> pt.show_nx(self.to_graph(), pnum=(2, 1, 1), fnum=1)
+
+        >>> a, b = 2, 5
+        >>> other = self.delete_edge(a, b)
+        >>> show_avl_tree(other.tour_tree, pnum=(2, 1, 2), fnum=2)
+        >>> pt.show_nx(other.to_graph(), pnum=(2, 1, 1), fnum=2)
+
+        n = 11
+        a, b = 9, 20
+
+        import utool
+        for timer in utool.Timerit(1):
+            self = EulerTourTree.from_mst(nx.balanced_tree(2, n))
+            with timer:
+                self.delete_edge(a, b)
+
+        import utool
+        for timer in utool.Timerit(5):
+            self = EulerTourTree.from_mst_list_version(nx.balanced_tree(2, n))
+            with timer:
+                self.delete_edge_list_version(a, b)
+
         """
-        self = EulerTourTree()
-        self.mst = mst
         tour = euler_tour_dfs(mst)
         self = EulerTourTree.from_tour(tour)
         # if True:
@@ -285,6 +304,7 @@ class EulerTourTree(object):
                 first_lookup[node] = avl_node.key
             last_lookup[node] = avl_node.key
         self.tour_tree = tree
+        return self
 
     def delete_edge(self, a, b):
         """
@@ -304,25 +324,57 @@ class EulerTourTree(object):
         # assert o_b1 < o_b2
         assert o_b2 < o_a2
 
-        # if False:
-        #     t2_list = self.tour[o_b1:o_b2 + 1]
-        #     t1_list = self.tour[:o_b1] + self.tour[o_a2 + 1:]
+        # ET(T2) inner - is given by the interval of ET (o_b1, o_b2)
+        # Smaller compoment is reconstructed
+        # in amortized O(log(n)) time
+        t2_slice = self.tour_tree[o_b1:o_b2 + 1]
+        t2_tour = list(t2_slice.values())
+        other = EulerTourTree.from_tour(t2_tour)
 
-        if True:
-            tree = self.tour_tree
-            # ET(T2) inner - is given by the interval of ET (o_b1, o_b2)
-            # Smaller compoment is reconstructed
-            # in amortized O(log(n)) time
-            t2_slice = tree[o_b1:o_b2 + 1]
-            t2_tour = list(t2_slice.values())
-            other = EulerTourTree.from_tour(t2_tour)
-
-            # ET(T1) outer - is given by splicing out of ET the sequence
-            # (o_b1, o_a2)
-            t1_splice = tree[o_b1:o_a2 + 1]
-            tree.remove_items(t1_splice)
+        # ET(T1) outer - is given by splicing out of ET the sequence
+        # (o_b1, o_a2)
+        t1_splice = self.tour_tree[o_b1:o_a2 + 1]
+        self.tour_tree.remove_items(t1_splice)
         return other
 
+    @classmethod
+    def from_mst_list_version(EulerTourTree, mst):
+        tour = euler_tour_dfs(mst)
+        self = EulerTourTree.from_tour_list_version(tour)
+        return self
+
+    @classmethod
+    def from_tour_list_version(EulerTourTree, tour):
+        self = EulerTourTree()
+        self.tour = tour
+        tour_order = list(enumerate(tour))
+        self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
+        self.last_lookup = dict(i[::-1] for i in tour_order)
+        return self
+
+    def delete_edge_list_version(self, a, b):
+        if self.first_lookup[a] > self.last_lookup[b]:
+            a, b = b, a
+
+        o_a1 = self.first_lookup[a]
+        o_a2 = self.last_lookup[a]
+        o_b1 = self.first_lookup[b]
+        o_b2 = self.last_lookup[b]
+        assert o_a1 < o_b1
+        # assert o_b1 < o_b2
+        assert o_b2 < o_a2
+
+        t2_list = self.tour[o_b1:o_b2 + 1]
+        other = EulerTourTree.from_tour_list_version(t2_list)
+
+        # ET(T1) outer - is given by splicing out of ET the sequence
+        # (o_b1, o_a2)
+        self.tour = self.tour[:o_b1] + self.tour[o_a2 + 1:]
+        # need to recompute lookups O(n) style
+        tour_order = list(enumerate(self.tour))
+        self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
+        self.last_lookup = dict(i[::-1] for i in tour_order)
+        return other
 
     def reroot(self, s):
         """
@@ -345,6 +397,7 @@ class EulerTourTree(object):
         return new_tree
 
     def to_graph(self):
+        import utool as ut
         return nx.Graph(ut.itertwo(self.tour))
 
     def join_trees(self, t1, t2, e):
