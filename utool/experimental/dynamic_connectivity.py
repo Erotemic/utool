@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+# UNFINISHED - do not use
 from __future__ import print_function, division, absolute_import, unicode_literals
+import collections  # NOQA
 import networkx as nx
 # import bintrees
 # import rbtree
@@ -37,138 +39,64 @@ def euler_tour_dfs(G, source=None):
     return yielder
 
 
-class EulerTourTree(object):
-    """
-    hg clone https://bitbucket.org/mozman/bintrees
+def junk():
+    # import blist
+    # self.first_visit_idxs = dict(i[::-1] for i in tour_order[::-1])
+    # self.last_visit_idxs = dict(i[::-1] for i in tour_order)
 
-    References:
-        https://courses.csail.mit.edu/6.851/spring07/scribe/lec05.pdf
-        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.192.8615&rep=rep1&type=pdf
-        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.208.2351&rep=rep1&type=pdf
-        https://en.wikipedia.org/wiki/Euler_tour_technique
+    # Store a tree by keeping its Euler tour in a balanced binary search
+    # tree, keyed by the index in the tour.
 
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.dynamic_connectivity import *  # NOQA
-        >>> edges = [(1, 2), (1, 6), (1, 5), (2, 3), (2, 4)]
-        >>> edges = [
-        >>>     ('R', 'A'), ('R', 'B'),
-        >>>     ('B', 'C'), ('C', 'D'), ('C', 'E'),
-        >>>     ('B', 'F'), ('B', 'G'),
-        >>> ]
-        >>> #edges = [(1, 2), (2, 3), (3, 4), (4, 5)]
-        >>> mst = nx.Graph(edges)
-        >>> self = EulerTourTree()
-        >>> import plottool as pt
-        >>> pt.qt4ensure()
-        >>> pt.show_nx(mst)
-    """
-    def __init__(self):
-        pass
+    # class EulerVisit(object):
+    #     def __init__(self, num, node):
+    #         self.num = num
+    #         self.node = node
+    #         self.first = None
+    #         self.last = None
 
-    @classmethod
-    def from_mst(EulerTourTree, tour):
-        # import blist
-        self = EulerTourTree()
-        tour = euler_tour_dfs(mst)
-        tour_order = list(enumerate(tour))
+    #     def __repr__(self):
+    #         return ut.repr2(self.__hash__())
 
-        # self.first_visit_idxs = dict(i[::-1] for i in tour_order[::-1])
-        # self.last_visit_idxs = dict(i[::-1] for i in tour_order)
+    #     def __eq__(self, other):
+    #         return self.node == other.node and self.num == other.num
 
-        self.tour_order = tour_order
-        self.tour = tour
+    #     def __lt__(self, other):
+    #         if self != other and self.num == other.num:
+    #             id(self) < id(other)
+    #         return (self.num < other.num)
 
-        # Store a tree by keeping its Euler tour in a balanced binary search
-        # tree, keyed by the index in the tour.
+    #     def __hash__(self):
+    #         return (self.node, self.num)
 
-        # class EulerVisit(object):
-        #     def __init__(self, num, node):
-        #         self.num = num
-        #         self.node = node
-        #         self.first = None
-        #         self.last = None
+    # # Each node in the represented tree holds pointers to the nodes in the
+    # # BST representing the first and last times it was visited
+    # visits = ut.lstarmap(EulerVisit, enumerate(tour))
+    # groups = ut.group_items(visits, tour)
+    # for node, group in groups.items():
+    #     first = min(group)
+    #     last = max(group)
+    #     for visit in group:
+    #         visit.first = first
+    #         visit.last = last
+    # # items = zip(keys, keys)
+    # tree = bintrees.AVLTree(zip(tour_order, visits))
 
-        #     def __repr__(self):
-        #         return ut.repr2(self.__hash__())
+    # import collections
+    # EulerVisit = collections.namedtuple('EulerVisit',
+    #                                     ('node', 'last', 'first'))
+    # tree = bintrees.AVLTree(zip(visits, visits))
+    # avl_node = tree._root
+    # node = avl_node.value.node
+    # for avl_node in flat_nodes:
+    #     node = avl_node.value.node
+    #     first = first_lookup[node]
+    #     last = last_lookup[node]
+    #     avl_node.value = EulerVisit(node, first, last)
 
-        #     def __eq__(self, other):
-        #         return self.node == other.node and self.num == other.num
-
-        #     def __lt__(self, other):
-        #         if self != other and self.num == other.num:
-        #             id(self) < id(other)
-        #         return (self.num < other.num)
-
-        #     def __hash__(self):
-        #         return (self.node, self.num)
-
-        # # Each node in the represented tree holds pointers to the nodes in the
-        # # BST representing the first and last times it was visited
-        # visits = ut.lstarmap(EulerVisit, enumerate(tour))
-        # groups = ut.group_items(visits, tour)
-        # for node, group in groups.items():
-        #     first = min(group)
-        #     last = max(group)
-        #     for visit in group:
-        #         visit.first = first
-        #         visit.last = last
-
-        import bintrees
-        # # items = zip(keys, keys)
-        # tree = bintrees.AVLTree(zip(tour_order, visits))
-
-        # import collections
-        # EulerVisit = collections.namedtuple('EulerVisit',
-        #                                     ('node', 'last', 'first'))
-        class EulerVisit(object):
-            def __init__(self, node, first, last):
-                self.node = node
-                self.last = last
-                self.first = first
-
-            def __repr__(self):
-                return ut.repr2(self.node)
-
-        # tree = bintrees.AVLTree(zip(visits, visits))
-        # avl_node = tree._root
-        def traverse_avl_nodes(avl_node):
-            if not avl_node:
-                raise StopIteration()
-            for _ in traverse_avl_nodes(avl_node.left):
-                yield _
-            yield avl_node
-            for _ in traverse_avl_nodes(avl_node.right):
-                yield _
-
-        tour_values = [(k, EulerVisit(v, None, None)) for k, v in tour_order]
-        tree = bintrees.AVLTree(tour_values)
-
-        import treap
-        treap = treap.treap()
-
-        self.first_lookup = first_lookup = {}
-        self.last_lookup = last_lookup = {}
-        flat_nodes = list(traverse_avl_nodes(tree._root))
-
-        for avl_node in flat_nodes:
-            # node = avl_node.value.node
-            node = avl_node.value
-            if node not in first_lookup:
-                first_lookup[node] = avl_node
-            last_lookup[node] = avl_node
-
-        # for avl_node in flat_nodes:
-        #     node = avl_node.value.node
-        #     first = first_lookup[node]
-        #     last = last_lookup[node]
-        #     avl_node.value = EulerVisit(node, first, last)
-
-        # self.tour = tour
-        # # FIXME: need an implemenation of BBST that allows splicing
-        self.tour_tree = tree
+    # self.tour = tour
+    # # FIXME: need an implemenation of BBST that allows splicing
+    if True:
         """
-
         for k in mst.nodes():
             print(k, self.first_lookup[k].key, self.last_lookup[k].key)
 
@@ -185,34 +113,8 @@ class EulerTourTree(object):
         print('o_b2.key = %r' % (o_b2.key,))
         list(tree.item_slice(o_a1, o_b2))
 
-        slice_ = bintrees.treeslice.TreeSlice(tree, o_a1, o_b2)
+        slice_ = tree[o_a1:o_b2]
         """
-        return self
-
-    def show_bbst(self, tree):
-        import networkx as nx
-        # import igraph as igraphs
-        G = nx.Graph()
-        root = tree._root
-        G.add_node(0)
-        queue = [[tree._root, 0]]
-        index = 0
-        while queue:
-            node = queue[0][0]  # Select front of queue.
-            node_index = queue[0][1]
-            G.node[node_index]['label'] = (node.key, node.value)
-            if node.left is not None:
-                G.add_node(node_index)
-                G.add_edges_from([(node_index, index + 1)])
-                queue.append([node.left, index + 1])
-                index += 1
-            if node.right is not None:
-                G.add_node(node_index)
-                G.add_edges_from([(node_index, index + 1)])
-                queue.append([node.right, index + 1])
-                index += 1
-            queue.pop(0)
-        pt.show_nx(G)
 
     """
     items = list(range(20))
@@ -228,60 +130,199 @@ class EulerTourTree(object):
 
     # I want to delete in O(log(n)), but this seems to take O(n)
     del bst[5:15]
+
+        # class EulerVisit(object):
+        #     def __init__(self, node, first=None, last=None):
+        #         self.node = node
+        #         self.last = last
+        #         self.first = first
+
+        #     def __repr__(self):
+        #         return ut.repr2(self.node)
+        # tour_values = [(k, EulerVisit(v)) for k, v in tour_order]
+    """
+    pass
+
+
+def traverse_avl_nodes_recursive(avl_node):
+    if not avl_node:
+        raise StopIteration()
+    for _ in traverse_avl_nodes(avl_node.left):
+        yield _
+    yield avl_node
+    for _ in traverse_avl_nodes(avl_node.right):
+        yield _
+
+
+def traverse_avl_nodes(root):
+    stack = []
+    node = root
+    while stack or node is not None:
+        if node is not None:
+            stack.append(node)
+            node = node.left
+        else:
+            node = stack.pop()
+            yield node
+            node = node.right
+
+
+def avl_find_node(self, key):
+    node = self._root
+    while node is not None:
+        if key == node.key:
+            return node
+        elif key < node.key:
+            node = node.left
+        else:
+            node = node.right
+
+
+def show_avl_tree(tree, fnum=None, pnum=None):
+    """
+    >>> show_avl_tree(tree, pnum=(2, 1, 2), fnum=1)
+    >>> pt.show_nx(mst, pnum=(2, 1, 1), fnum=1)
+
+    """
+    import networkx as nx
+    # import igraph as igraphs
+    G = nx.Graph()
+    G.add_node(0)
+    queue = [[tree._root, 0]]
+    index = 0
+    while queue:
+        node = queue[0][0]  # Select front of queue.
+        node_index = queue[0][1]
+        G.node[node_index]['label'] = '%s,%s' % (node.key, node.value)
+        if node.left is not None:
+            G.add_node(node_index)
+            G.add_edges_from([(node_index, index + 1)])
+            queue.append([node.left, index + 1])
+            index += 1
+        if node.right is not None:
+            G.add_node(node_index)
+            G.add_edges_from([(node_index, index + 1)])
+            queue.append([node.right, index + 1])
+            index += 1
+        queue.pop(0)
+    import plottool as pt
+    pt.qt4ensure()
+    pt.show_nx(G, fnum=fnum, pnum=pnum)
+
+
+class EulerTourTree(object):
     """
 
-    def cut_edge(self, a, b):
+
+    raise NotImplementedError()
+
+    hg clone https://bitbucket.org/mozman/bintrees
+
+    References:
+        https://courses.csail.mit.edu/6.851/spring07/scribe/lec05.pdf
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.192.8615&rep=rep1&type=pdf
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.208.2351&rep=rep1&type=pdf
+        https://en.wikipedia.org/wiki/Euler_tour_technique
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.dynamic_connectivity import *  # NOQA
+        >>> #edges = [(1, 2), (1, 6), (1, 5), (2, 3), (2, 4)]
+        >>> #edges = [
+        >>> #    ('R', 'A'), ('R', 'B'),
+        >>> #    ('B', 'C'), ('C', 'D'), ('C', 'E'),
+        >>> #    ('B', 'F'), ('B', 'G'),
+        >>> #]
+        >>> #mst = nx.Graph(edges)
+        >>> mst = nx.balanced_tree(2, 11)
+        >>> self = EulerTourTree.from_mst(mst)
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> pt.show_nx(mst)
+
+        >>> mst = nx.balanced_tree(2, 4)
+    """
+    def __init__(self):
+        pass
+
+    @classmethod
+    def from_mst(EulerTourTree, mst):
         """
-        a, b = 'B', 'C'
-        print(self.first_lookup[a].key > self.first_lookup[b].key)
+        >>> # DISABLE_DOCTEST
+        >>> from utool.experimental.dynamic_connectivity import *  # NOQA
+        >>> mst = nx.balanced_tree(2, 3)
+        >>> self = EulerTourTree.from_mst(mst)
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> show_avl_tree(self.tour_tree, pnum=(2, 1, 2), fnum=1)
+        >>> pt.show_nx(self.mst, pnum=(2, 1, 1), fnum=1)
+        """
+        self = EulerTourTree()
+        self.mst = mst
+        tour = euler_tour_dfs(mst)
+        self = EulerTourTree.from_tour(tour)
+        # if True:
+        # else:
+        #     self.first_lookup = dict(
+        #         i[::-1] for i in tour_order[::-1])
+        #     self.last_lookup = dict(
+        #         i[::-1] for i in tour_order)
+        return self
+
+    @classmethod
+    def from_tour(EulerTourTree, tour):
+        import bintrees
+        self = EulerTourTree()
+        self.tour = tour
+        tree = bintrees.AVLTree(list(enumerate(tour)))
+
+        self.first_lookup = first_lookup = {}
+        self.last_lookup = last_lookup = {}
+
+        for avl_node in traverse_avl_nodes(tree._root):
+            node = avl_node.value
+            if node not in first_lookup:
+                first_lookup[node] = avl_node.key
+            last_lookup[node] = avl_node.key
+        self.tour_tree = tree
+
+    def delete_edge(self, a, b):
+        """
+        a, b = (2, 5)
+        print(self.first_lookup[a] > self.first_lookup[b])
         tree = self.tour_tree
         list(tree.item_slice(k1, k2))
         """
-        if self.first_lookup[a].key > self.last_lookup[b].key:
+        if self.first_lookup[a] > self.last_lookup[b]:
             a, b = b, a
+
         o_a1 = self.first_lookup[a]
         o_a2 = self.last_lookup[a]
         o_b1 = self.first_lookup[b]
         o_b2 = self.last_lookup[b]
-        assert o_a1.key < o_b1.key
-        assert o_b1.key < o_b2.key
-        assert o_b2.key < o_a2.key
+        assert o_a1 < o_b1
+        # assert o_b1 < o_b2
+        assert o_b2 < o_a2
 
-        o_b1.value
+        # if False:
+        #     t2_list = self.tour[o_b1:o_b2 + 1]
+        #     t1_list = self.tour[:o_b1] + self.tour[o_a2 + 1:]
 
-        tree = self.tour_tree
-        t2_slice = tree[o_b1.key:o_b2.key + 1]
-        t2 = bintrees.AVLTree(t2_slice)
-        t1_not_keys = tree[o_b1.key, o_a2.key]
+        if True:
+            tree = self.tour_tree
+            # ET(T2) inner - is given by the interval of ET (o_b1, o_b2)
+            # Smaller compoment is reconstructed
+            # in amortized O(log(n)) time
+            t2_slice = tree[o_b1:o_b2 + 1]
+            t2_tour = list(t2_slice.values())
+            other = EulerTourTree.from_tour(t2_tour)
 
-        list(bintrees.treeslice.TreeSlice(tree, o_b1.key, o_b2.key + 1))
+            # ET(T1) outer - is given by splicing out of ET the sequence
+            # (o_b1, o_a2)
+            t1_splice = tree[o_b1:o_a2 + 1]
+            tree.remove_items(t1_splice)
+        return other
 
-        t2_values = list(tree.key_slice(o_b1.key, o_b2.key + 1))
-        print('t2_values = %r' % (t2_values,))
-        t1_not_keys = list(tree.key_slice(o_b1, o_a2 + 1))
-        t1_values = tree.difference(t1_not_values)
-        list(tree.value_slice(o_b1, o_a2))
-        list(tree.value_slice(tree.min_key(), o_a1))
-        list(tree.value_slice(o_a2, tree.max_key()))
-        # if tree[('f', u)] > tree[('f', v)]:
-        #     #     u, v = v, u
-
-        if False:
-            outer1 = self.tour[:o_a1 + 1]
-            outer2 = self.tour[o_b2 + 1:]
-            outer = outer1 + outer2
-            inner = self.tour[o_a1 + 1:o_b2 + 1]
-
-            new1 = EulerTourTree.from_tour(outer)
-            new2 = EulerTourTree.from_tour(inner)
-            return new1, new2
-        # bintrees.AVLTree(outer)
-        # bintrees.AVLTree(inner)
-
-        # list(tree.item_slice(tree.min_item(), tree.max_item()))
-        # list(tree.item_slice(k1, k2))
-        # list(tree.key_slice(k1, k2))
-        # tour_tree._root
 
     def reroot(self, s):
         """
@@ -296,7 +337,7 @@ class EulerTourTree(object):
         """
         # Splice out the first part of the sequence ending with the occurrence before os
         # remove its first occurrence (or),
-        o_s1 = self.first_visit_idxs[s]
+        o_s1 = self.first_lookup[s]
         splice1 = self.tour[1:o_s1]
         rest = self.tour[o_s1 + 1:]
         new_tour = [s] + rest + splice1 + [s]

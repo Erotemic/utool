@@ -13,7 +13,7 @@ class AVLNode(object):
         self.height = 0
         self.balance = 0
 
-    def update_height(self, upwards=True):
+    def update_height(self, upwards=False):
         # If upwards we go up the tree correcting heights and balances,
         # if not we just correct the given node.
         if self.left_child is None:
@@ -62,7 +62,7 @@ class AVLTree(object):
                 return node
             else:
                 ret = self.insert(key=key, node=node)
-                self.balance(ret)
+                self.rebalance(ret)
                 return ret
         # Not a first call.
         if node.key == key:
@@ -75,7 +75,7 @@ class AVLTree(object):
                 child = AVLNode(key=key)
                 child.parent = node
                 node.left_child = child
-                node.update_height()
+                node.update_height(upwards=True)
                 return child
             else:
                 return self.insert(key=key, node=child)
@@ -118,7 +118,7 @@ class AVLTree(object):
                 return self.find(key, node.right_child)
 
     def delete(self, key, node=None):
-        # Delete key from tree.
+        """ Delete key from tree.  """
         if node is None:
             # Initial call.
             node = self.find(key)
@@ -137,7 +137,7 @@ class AVLTree(object):
                 else:
                     parent.left_child = right_child
                 right_child.parent = parent
-                self.balance(parent)
+                self.rebalance(parent)
             else:
                 right_child.parent = None
                 self.root = right_child
@@ -155,7 +155,7 @@ class AVLTree(object):
                     parent.right_child = right_child
                 left_child.parent = parent
 
-                self.balance(parent)
+                self.rebalance(parent)
             else:
                 left_child.parent = None
                 self.root = left_child
@@ -170,7 +170,7 @@ class AVLTree(object):
                     parent.left_child = None
                 else:
                     parent.right_child = None
-                self.balance(parent)
+                self.rebalance(parent)
         else:
             # Node has two childen, swap keys with successor node
             # and delete successor node.
@@ -255,8 +255,8 @@ class AVLTree(object):
             pivot.parent.left_child = pivot
         else:
             pivot.parent.right_child = pivot
-        root.update_height(False)
-        pivot.update_height(False)
+        root.update_height()
+        pivot.update_height()
 
     def left_rotation(self, root):
         left = root.is_left()
@@ -275,11 +275,11 @@ class AVLTree(object):
             pivot.parent.left_child = pivot
         else:
             pivot.parent.right_child = pivot
-        root.update_height(False)
-        pivot.update_height(False)
+        root.update_height()
+        pivot.update_height()
 
-    def balance(self, node):
-        node.update_height(False)
+    def rebalance(self, node):
+        node.update_height()
         if node.balance == 2:
             if node.left_child.balance != -1:
                 # Left-left case.
@@ -290,20 +290,20 @@ class AVLTree(object):
             else:
                 # Left-right case.
                 self.left_rotation(node.left_child)
-                self.balance(node)
+                self.rebalance(node)
         elif node.balance == -2:
             if node.right_child.balance != 1:
                 # Right-right case.
                 self.left_rotation(node)
                 if node.parent.parent is not None:
-                    self.balance(node.parent.parent)
+                    self.rebalance(node.parent.parent)
             else:
                 # Right-left case.
                 self.right_rotation(node.right_child)
-                self.balance(node)
+                self.rebalance(node)
         else:
             if node.parent is not None:
-                self.balance(node.parent)
+                self.rebalance(node.parent)
 
     def sort(lst, ascending=True):
         A = AVLTree()
@@ -329,6 +329,82 @@ class AVLTree(object):
                 ret.append(key)
                 key = A.find_prev(key)
         return ret
+
+    def join_dir(self, other, key):
+        """
+        Returns all elements from t1 and t2 as well as (key, val)
+
+        Just Join for Parallel Ordered Sets
+
+        Args:
+            other (AVLTree): keys must be greater than all keys in self and k
+            key (object): must be greater than self.max() and less then
+                other.min()
+
+        https://dx.doi.org/10.1145%2F2935764.2935768
+        """
+        TL = self.root
+        k = key
+        TR = other.root
+
+        def expose(T):
+            return T.left_child, T.key, T.right_child
+
+        def Node(c, k, T):
+            node = AVLNode(k)
+            node.left_child = c
+            node.right_child = c
+
+        def rotateLeft(T):
+            pass
+
+        def rotateRight(T):
+            pass
+
+        def joinRight(c, k, TR):
+            pass
+
+        l, k_, c = expose(TL)
+
+        if c.height <= TR.height + 1:
+            T_ = Node(c, k, TR)
+            if T_.height <= l.height + 1:
+                return Node(l, k_, T_)
+            else:
+                return rotateLeft(Node(l, k_, rotateRight(T_)))
+        else:
+            T_ = joinRight(c, k, TR)
+            T__ = Node(l, k_, T_)
+            if T_.height <= l.height + 1:
+                return T__
+            else:
+                return rotateLeft(T__)
+
+    def join(TL, k, TR):
+        if TL.height > TR.height + 1:
+            # t2 is higher than t1 by more than 1
+            pass
+            # joinRight
+            # Follow the right spine of t1 until a node c is found that is
+            # balenced with t1.
+            pass
+            # Create a new node to replace c
+            # The left is c, the right is t1 and the key is key
+            pass
+            # The new node has height(c) + 1
+            # if the parent is invalidated then do a double rotate,
+            # if a higher node is invalid just do a single left rotate
+        elif TL.height + 1 < TR.height:
+            # t1 is higher than t2 by more than 1
+            joinLeft
+        else:
+            # t1 and t2 are within 1 height of each other
+            return Node(TL, k, TR)
+
+    def union(self, other):
+        t3, t4 = other.split(self.root)
+        join(self.root, union(self.left, t3)
+        pass
 
     def plot(self, balance=False):
         """
