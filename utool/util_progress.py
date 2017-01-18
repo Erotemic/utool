@@ -24,8 +24,8 @@ print, rrr, profile = util_inject.inject2(__name__)
 default_timer = util_time.default_timer
 
 
-QUIET = util_arg.QUIET
 SILENT = util_arg.SILENT
+VERBOSE = util_arg.VERBOSE
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 AGGROFLUSH = util_arg.get_argflag('--aggroflush')
 PROGGRESS_BACKSPACE = not util_arg.get_argflag(('--screen', '--progress-backspace'))
@@ -347,7 +347,7 @@ class ProgressIter(object):
         self.backspace          = kwargs.get('backspace', kwargs.get('bs', False))
         self.freq               = kwargs.get('freq', 1)
         self.invert_rate        = kwargs.get('invert_rate', False)
-        self.quiet              = kwargs.pop('quiet', QUIET)
+        self.verbose            = kwargs.pop('verbose', True)  # VERBOSE
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
         self.enabled            = kwargs.get('enabled', True)
         self.report_unit        = kwargs.get('report_unit', 'seconds')
@@ -410,7 +410,7 @@ class ProgressIter(object):
         if NO_PROGRESS:
             # IF PROGRESS IS TURNED OFF
             msg = 'Iterating ' + self.lbl + ' with no progress'
-            if not self.quiet:
+            if self.verbose:
                 print(msg)
             #with ut.Timer(msg):
             return iter(self.iterable)
@@ -611,7 +611,7 @@ class ProgressIter(object):
         if not self.prehack:
             if self.backspace:
                 self.display_message()
-            elif not self.quiet:
+            elif self.verbose:
                 start_msg = start_msg_fmt.format(count=self.parent_offset)
                 PROGRESS_WRITE(start_msg + '\n')
 
@@ -747,7 +747,7 @@ class ProgressIter(object):
 
     def display_message(self):
         # HACK to be more like sklearn.extrnals ProgIter version
-        if not self.quiet:
+        if self.verbose:
             try:
                 rate = 1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second
             except ZeroDivisionError:
