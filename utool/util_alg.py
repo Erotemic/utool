@@ -744,6 +744,29 @@ def get_nth_prime(n, max_prime=4100, safe=True):
 
 
 def get_nth_prime_bruteforce(n, start_guess=2, start_num_primes=0):
+    """
+    Args:
+        n (int): the n-th prime (n=2000 takes about a second)
+
+    CommandLine:
+        python -m utool.util_alg get_nth_prime_bruteforce --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> n_list = []
+        >>> time_list = []
+        >>> for n in range(1, 2000 + 2, 500):
+        >>>     with ut.Timer(verbose=0) as t:
+        >>>         get_nth_prime_bruteforce(n)
+        >>>     time_list += [t.ellapsed]
+        >>>     n_list += [n]
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.multi_plot(n_list, [time_list], xlabel='prime', ylabel='time')
+        >>> ut.show_if_requested()
+    """
     guess = start_guess
     num_primes_found = start_num_primes
     while True:

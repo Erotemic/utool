@@ -154,9 +154,11 @@ class Timer(object):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> import utool
-        >>> with utool.Timer('Timer test!'):
-        >>>     prime = utool.get_nth_prime(400)
+        >>> import utool as ut
+        >>> timer = ut.Timer('Timer test!', verbose=1)
+        >>> with timer:
+        >>>     prime = ut.get_nth_prime(400)
+        >>> assert timer.ellapsed > 0
     """
     def __init__(self, msg='', verbose=True, newline=True):
         self.msg = msg
@@ -164,7 +166,6 @@ class Timer(object):
         self.newline = newline
         self.tstart = -1
         self.ellapsed = -1
-        #self.tic()
 
     def tic(self):
         if self.verbose:
@@ -202,20 +203,86 @@ class Timer(object):
 
 class Timerit(object):
     """
-    Iterator that reports the average time for an arbitrary block of code
+    Reports the average time to run a block of code.
+
+    Unlike `timeit`, `Timerit` can handle multiline blocks of code
+
+    Args:
+        num (int): number of times to run the loop
+        label (str): identifier for printing
+        unit (str): reporting unit of time (e.g. 'ms', 's', None)
+
+    CommandLine:
+        python -m utool.util_time Timerit
+        python -m utool.util_time Timerit:0
+        python -m utool.util_time Timerit:1
+
+    Notes:
+        Minimal syntax with less-precise timing
+        ```python
+        import utool as ut
+        for timer in ut.Timerit(100):
+            # <write code to time here>
+        ```
+
+        Full syntax with most-precise timing
+        ```python
+        import utool as ut
+        for timer in ut.Timerit(100):
+            # <write untimed setup code here>
+            with timer:
+                # <write code to time here>
+        ```
+
+        Can also keep track of the Timerit object for extra statistics
+        ```python
+        import utool as ut
+        t1 = ut.Timerit(100)
+        for timer in t1:
+            # <write untimed setup code here>
+            with timer:
+                # <write code to time here>
+        # <you can now access Timerit attributes like t1.total_time>
+        ```
 
     Example:
-        >>> for timer in Timerit(100):
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> num = 15
+        >>> t1 = ut.Timerit(num)
+        >>> for timer in t1:
+        >>>     # <write untimed setup code here> this example has no setup
         >>>     with timer:
-        >>>         <your code>
+        >>>         # <write code to time here> for example...
+        >>>         ut.get_nth_prime_bruteforce(100)
+        >>> # <you can now access Timerit attributes>
+        >>> print('t1.total_time = %r' % (t1.total_time,))
+        >>> assert t1.total_time > 0
+        >>> assert t1.n_loops == t1.num
+        >>> assert t1.n_loops == num
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import utool as ut
+        >>> num = 10000
+        >>> n = 50
+        >>> # If the timer object is unused, time will still be recoreded,
+        >>> # but with less precision.
+        >>> for _ in ut.Timerit(num, 'inprecise'):
+        >>>     ut.get_nth_prime_bruteforce(n)
+        >>> # Using the timer object results in the most precise timeings
+        >>> for timer in ut.Timerit(num, 'precise'):
+        >>>     with timer:
+        >>>         ut.get_nth_prime_bruteforce(n)
     """
-    def __init__(self, num, label=None, verbose=1):
+    def __init__(self, num, label=None, unit=None, verbose=1):
         self.num = num
         self.label = label
         self.times = []
         self.verbose = verbose
         self.total_time = None
         self.n_loops = None
+        self.unit = unit
 
     def __iter__(self):
         import utool as ut
@@ -224,23 +291,47 @@ class Timerit(object):
                 print('Timing for %d loops' % self.num)
             else:
                 print('Timing %s for %d loops.' % (self.label, self.num,))
+        self.n_loops = 0
+        self.total_time = 0
+        # Create a foreground and background timer
+        bg_timer = ut.Timer(verbose=0)   # (ideally this is unused)
+        fg_timer = ut.Timer(verbose=0)   # (used directly by user)
         # Core timing loop
         for i in range(self.num):
-            timer = ut.Timer(verbose=0)
-            yield timer
-            self.times.append(timer.ellapsed)
-        self.total_time = sum(self.times)
-        assert len(self.times) == self.num
-        self.n_loops = len(self.times)
-        ave_secs = self.total_time / self.n_loops
-        if self.verbose > 0:
-            if self.label is None:
-                print('Timing complete, %d loops' % (self.n_loops,))
+            # Start background timer (in case the user doesnt use fg_timer)
+            # Yield foreground timer to let the user run a block of code
+            # When we return from yield the user code will have just finishec
+            # Then record background time + loop overhead
+            bg_timer.tic()
+            yield fg_timer
+            bg_time = bg_timer.toc()
+            # Check if the fg_timer object was used, but fallback on bg_timer
+            if fg_timer.ellapsed >= 0:
+                block_time = fg_timer.ellapsed  # high precision
             else:
-                print('Timing complete for: %s, %d loops' % (self.label, self.n_loops))
-            if self.verbose > 2:
-                print('    body took: %s' % (ut.second_str(self.total_time, unit=None, precision=4)))
-            print('    time per loop : %s' % (ut.second_str(ave_secs, unit=None, precision=4)))
+                block_time = bg_time  # low precision
+            # record timeings
+            self.times.append(block_time)
+            self.total_time += block_time
+            self.n_loops += 1
+        # Timeing complete, print results
+        assert len(self.times) == self.num, 'incorrectly recorded times'
+        if self.verbose > 0:
+            self._print_report(self.verbose)
+
+    def _print_report(self, verbose=1):
+        import utool as ut
+        ave_secs = self.total_time / self.n_loops
+        if self.label is None:
+            print('Timing complete, %d loops' % (self.n_loops,))
+        else:
+            print('Timing complete for: %s, %d loops' % (self.label,
+                                                         self.n_loops))
+        if verbose > 2:
+            body = ut.second_str(self.total_time, unit=self.unit, precision=4)
+            print('    body took: %s' % body)
+        perloop = ut.second_str(ave_secs, unit=self.unit, precision=4)
+        print('    time per loop : %s' % (perloop,))
 
 
 def determine_timestamp_format(datetime_str, warn=True):
