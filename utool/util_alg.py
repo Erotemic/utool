@@ -108,8 +108,8 @@ def find_group_differences(groups1, groups2):
     item_to_error = {}
     for item in flat_items:
         # Determine the number of unshared members in each group
-        others1 = item_to_others1.get(item, {})
-        others2 = item_to_others2.get(item, {})
+        others1 = item_to_others1.get(item, set([]))
+        others2 = item_to_others2.get(item, set([]))
         missing1 = others1 - others2
         missing2 = others2 - others1
         error = len(missing1) + len(missing2)
@@ -138,51 +138,6 @@ def find_group_consistencies(groups1, groups2):
     group2_list = {tuple(sorted(_group)) for _group in groups2}
     common_groups = list(group1_list.intersection(group2_list))
     return common_groups
-
-
-def compare_groups(true_groups, pred_groups):
-    r"""
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
-        >>> true_groups = [[1, 2], [4], [5, 6, 3], [7, 8], [9, 10, 11]]
-        >>> pred_groups = [[1, 2], [3, 4], [5, 6,11], [7], [8, 9], [10]]
-        >>> result = compare_groups(groups1, groups2)
-        >>> print(result)
-        >>> print(ut.repr4(result))
-    """
-    true = {tuple(sorted(_group)) for _group in true_groups}
-    pred = {tuple(sorted(_group)) for _group in pred_groups}
-    common_sets = list(true.intersection(pred))
-    true.difference_update(common_sets)
-    pred.difference_update(common_sets)
-    true_sets = list(map(set, true))
-    pred_sets = list(map(set, pred))
-
-    merge_sets = []
-    split_sets = []
-    hybrid_sets = []
-    for p in pred_sets:
-        flag = True
-        if any(p.issubset(t) for t in true_sets):
-            flag = 0
-            merge_sets.append(p)
-        if any(p.issuperset(t) for t in true_sets):
-            flag = 0
-            split_sets.append(p)
-        if flag:
-            hybrid_sets.append(p)
-    result = {
-        'common': common_sets,
-        'split': split_sets,
-        'merge': merge_sets,
-        'hyrbid': hybrid_sets,
-    }
-    # Find number of consistent groups
-    # Find number of pure splits
-    # Find number of pure merges
-    # Find number of pure hybrid split-merges
-    return result
 
 
 def upper_diag_self_prodx(list_):
