@@ -203,9 +203,10 @@ def _process_serial(func, args_list, args_dict={}, nTasks=None, quiet=QUIET):
     if nTasks is None:
         nTasks = len(args_list)
     result_list = []
+    verbose = not quiet
     lbl = '(serproc) %s: ' % (get_funcname(func),)
     prog_iter = util_progress.ProgressIter(
-        args_list, nTotal=nTasks, lbl=lbl, adjust=True, quiet=quiet)
+        args_list, nTotal=nTasks, lbl=lbl, adjust=True, verbose=verbose)
     # Execute each task sequentially
     for args in prog_iter:
         result = func(*args, **args_dict)
@@ -224,10 +225,11 @@ def _process_parallel(func, args_list, args_dict={}, nTasks=None, quiet=QUIET, p
     # Define progress observers
     if nTasks is None:
         nTasks = len(args_list)
+    verbose = not quiet
     lbl = '(parproc) %s: ' % (get_funcname(func),)
     _prog = util_progress.ProgressIter(
         range(nTasks), nTotal=nTasks, lbl=lbl,
-        adjust=True, quiet=quiet)
+        adjust=True, verbose=verbose)
     _prog_iter = iter(_prog)
     num_tasks_returned_ptr = [0]
     def _callback(result):
@@ -295,13 +297,14 @@ def _generate_parallel(func, args_list, ordered=True, chunksize=None,
 
     # Get iterator with or without progress
     if prog:
+        verbose = not quiet
         lbl = '(pargen) %s: ' % (get_funcname(func),)
         result_generator = util_progress.ProgressIter(
             raw_generator, nTotal=nTasks, lbl=lbl,
             freq=kwargs.get('freq', None),
             backspace=kwargs.get('backspace', True),
             adjust=kwargs.get('adjust', False),
-            quiet=quiet
+            verbose=verbose
         )
 
     else:
@@ -353,13 +356,14 @@ def _generate_serial(func, args_list, prog=True, verbose=True, nTasks=None,
                 (nTasks, get_funcname(func)))
     prog = prog and verbose and nTasks > 1
     # Get iterator with or without progress
+    verbose = verbose or not quiet
     lbl = '(sergen) %s: ' % (get_funcname(func),)
     args_iter = (
         util_progress.ProgressIter(args_list, nTotal=nTasks,
                                    lbl=lbl,
                                    freq=kwargs.get('freq', None),
                                    adjust=kwargs.get('adjust', False),
-                                   quiet=quiet)
+                                   verbose=verbose)
         if prog else args_list
     )
     if __TIME_GENERATE__:
