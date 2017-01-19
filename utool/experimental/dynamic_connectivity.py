@@ -3,6 +3,8 @@
 from __future__ import print_function, division, absolute_import, unicode_literals
 import collections  # NOQA
 import networkx as nx
+import utool as ut
+print, rrr, profile = ut.inject2(__name__)
 # import bintrees
 # import rbtree
 
@@ -210,6 +212,29 @@ def show_avl_tree(tree, fnum=None, pnum=None):
     pt.show_nx(G, fnum=fnum, pnum=pnum)
 
 
+@profile
+def comparison():
+    r"""
+    CommandLine:
+        python -m utool.experimental.dynamic_connectivity comparison --profile
+    """
+    n = 17
+    a, b = 9, 20
+
+    import utool
+    for timer in utool.Timerit(3):
+        self = EulerTourTree.from_mst(nx.balanced_tree(2, n))
+        with timer:
+            self.delete_edge(a, b)
+
+    import utool
+    for timer in utool.Timerit(3):
+        self = EulerTourTree.from_mst_list_version(nx.balanced_tree(2, n))
+        with timer:
+            self.delete_edge_list_version(a, b)
+    pass
+
+
 class EulerTourTree(object):
     """
 
@@ -246,6 +271,7 @@ class EulerTourTree(object):
         pass
 
     @classmethod
+    @profile
     def from_mst(EulerTourTree, mst):
         """
         >>> # DISABLE_DOCTEST
@@ -262,21 +288,6 @@ class EulerTourTree(object):
         >>> show_avl_tree(other.tour_tree, pnum=(2, 1, 2), fnum=2)
         >>> pt.show_nx(other.to_graph(), pnum=(2, 1, 1), fnum=2)
 
-        n = 11
-        a, b = 9, 20
-
-        import utool
-        for timer in utool.Timerit(1):
-            self = EulerTourTree.from_mst(nx.balanced_tree(2, n))
-            with timer:
-                self.delete_edge(a, b)
-
-        import utool
-        for timer in utool.Timerit(5):
-            self = EulerTourTree.from_mst_list_version(nx.balanced_tree(2, n))
-            with timer:
-                self.delete_edge_list_version(a, b)
-
         """
         tour = euler_tour_dfs(mst)
         self = EulerTourTree.from_tour(tour)
@@ -289,23 +300,46 @@ class EulerTourTree(object):
         return self
 
     @classmethod
+    @profile
     def from_tour(EulerTourTree, tour):
         import bintrees
         self = EulerTourTree()
         self.tour = tour
-        tree = bintrees.AVLTree(list(enumerate(tour)))
+        # tree = bintrees.AVLTree(enumerate(tour))
+        tree = bintrees.FastAVLTree(enumerate(tour))
 
         self.first_lookup = first_lookup = {}
         self.last_lookup = last_lookup = {}
 
-        for avl_node in traverse_avl_nodes(tree._root):
-            node = avl_node.value
+        # for avl_node in traverse_avl_nodes(tree._root):
+        for key, node in tree.iter_items():
+            # node = avl_node.value
             if node not in first_lookup:
-                first_lookup[node] = avl_node.key
-            last_lookup[node] = avl_node.key
+                # first_lookup[node] = avl_node.key
+                first_lookup[node] = key
+            # last_lookup[node] = avl_node.key
+            last_lookup[node] = key
         self.tour_tree = tree
         return self
 
+    @classmethod
+    @profile
+    def from_mst_list_version(EulerTourTree, mst):
+        tour = euler_tour_dfs(mst)
+        self = EulerTourTree.from_tour_list_version(tour)
+        return self
+
+    @classmethod
+    @profile
+    def from_tour_list_version(EulerTourTree, tour):
+        self = EulerTourTree()
+        self.tour = tour
+        tour_order = list(enumerate(tour))
+        self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
+        self.last_lookup = dict(i[::-1] for i in tour_order)
+        return self
+
+    @profile
     def delete_edge(self, a, b):
         """
         a, b = (2, 5)
@@ -337,21 +371,7 @@ class EulerTourTree(object):
         self.tour_tree.remove_items(t1_splice)
         return other
 
-    @classmethod
-    def from_mst_list_version(EulerTourTree, mst):
-        tour = euler_tour_dfs(mst)
-        self = EulerTourTree.from_tour_list_version(tour)
-        return self
-
-    @classmethod
-    def from_tour_list_version(EulerTourTree, tour):
-        self = EulerTourTree()
-        self.tour = tour
-        tour_order = list(enumerate(tour))
-        self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
-        self.last_lookup = dict(i[::-1] for i in tour_order)
-        return self
-
+    @profile
     def delete_edge_list_version(self, a, b):
         if self.first_lookup[a] > self.last_lookup[b]:
             a, b = b, a
@@ -371,9 +391,12 @@ class EulerTourTree(object):
         # (o_b1, o_a2)
         self.tour = self.tour[:o_b1] + self.tour[o_a2 + 1:]
         # need to recompute lookups O(n) style
-        tour_order = list(enumerate(self.tour))
-        self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
-        self.last_lookup = dict(i[::-1] for i in tour_order)
+        # maybe we can do better?
+        # Keep old keys
+        if False:
+            tour_order = list(enumerate(self.tour))
+            self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
+            self.last_lookup = dict(i[::-1] for i in tour_order)
         return other
 
     def reroot(self, s):

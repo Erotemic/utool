@@ -3,6 +3,86 @@ https://triangleinequality.wordpress.com/2014/07/15/how-to-balance-your-binary-s
 """
 
 
+def join_dir(self, other, key):
+    """
+    Returns all elements from t1 and t2 as well as (key, val)
+
+    Just Join for Parallel Ordered Sets
+
+    Args:
+        other (AVLTree): keys must be greater than all keys in self and k
+        key (object): must be greater than self.max() and less then
+            other.min()
+
+    https://dx.doi.org/10.1145%2F2935764.2935768
+    https://i.cs.hku.hk/~provinci/training2016/notes2.pdf
+    """
+    TL = self.root
+    k = key
+    TR = other.root
+
+    def expose(T):
+        return T.left_child, T.key, T.right_child
+
+    def Node(c, k, T):
+        node = AVLNode(k)
+        node.left_child = c
+        node.right_child = c
+
+    def rotateLeft(T):
+        pass
+
+    def rotateRight(T):
+        pass
+
+    def joinRight(c, k, TR):
+        pass
+
+    l, k_, c = expose(TL)
+
+    if c.height <= TR.height + 1:
+        T_ = Node(c, k, TR)
+        if T_.height <= l.height + 1:
+            return Node(l, k_, T_)
+        else:
+            return rotateLeft(Node(l, k_, rotateRight(T_)))
+    else:
+        T_ = joinRight(c, k, TR)
+        T__ = Node(l, k_, T_)
+        if T_.height <= l.height + 1:
+            return T__
+        else:
+            return rotateLeft(T__)
+
+
+def join(TL, k, TR):
+    if TL.height > TR.height + 1:
+        # t2 is higher than t1 by more than 1
+        pass
+        # joinRight
+        # Follow the right spine of t1 until a node c is found that is
+        # balenced with t1.
+        pass
+        # Create a new node to replace c
+        # The left is c, the right is t1 and the key is key
+        pass
+        # The new node has height(c) + 1
+        # if the parent is invalidated then do a double rotate,
+        # if a higher node is invalid just do a single left rotate
+    elif TL.height + 1 < TR.height:
+        # t1 is higher than t2 by more than 1
+        joinLeft
+    else:
+        # t1 and t2 are within 1 height of each other
+        return Node(TL, k, TR)
+
+
+def union(self, other):
+    t3, t4 = other.split(self.root)
+    join(self.root, union(self.left, t3)
+    pass
+
+
 class AVLNode(object):
 
     def __init__(self, key):
@@ -329,82 +409,6 @@ class AVLTree(object):
                 ret.append(key)
                 key = A.find_prev(key)
         return ret
-
-    def join_dir(self, other, key):
-        """
-        Returns all elements from t1 and t2 as well as (key, val)
-
-        Just Join for Parallel Ordered Sets
-
-        Args:
-            other (AVLTree): keys must be greater than all keys in self and k
-            key (object): must be greater than self.max() and less then
-                other.min()
-
-        https://dx.doi.org/10.1145%2F2935764.2935768
-        """
-        TL = self.root
-        k = key
-        TR = other.root
-
-        def expose(T):
-            return T.left_child, T.key, T.right_child
-
-        def Node(c, k, T):
-            node = AVLNode(k)
-            node.left_child = c
-            node.right_child = c
-
-        def rotateLeft(T):
-            pass
-
-        def rotateRight(T):
-            pass
-
-        def joinRight(c, k, TR):
-            pass
-
-        l, k_, c = expose(TL)
-
-        if c.height <= TR.height + 1:
-            T_ = Node(c, k, TR)
-            if T_.height <= l.height + 1:
-                return Node(l, k_, T_)
-            else:
-                return rotateLeft(Node(l, k_, rotateRight(T_)))
-        else:
-            T_ = joinRight(c, k, TR)
-            T__ = Node(l, k_, T_)
-            if T_.height <= l.height + 1:
-                return T__
-            else:
-                return rotateLeft(T__)
-
-    def join(TL, k, TR):
-        if TL.height > TR.height + 1:
-            # t2 is higher than t1 by more than 1
-            pass
-            # joinRight
-            # Follow the right spine of t1 until a node c is found that is
-            # balenced with t1.
-            pass
-            # Create a new node to replace c
-            # The left is c, the right is t1 and the key is key
-            pass
-            # The new node has height(c) + 1
-            # if the parent is invalidated then do a double rotate,
-            # if a higher node is invalid just do a single left rotate
-        elif TL.height + 1 < TR.height:
-            # t1 is higher than t2 by more than 1
-            joinLeft
-        else:
-            # t1 and t2 are within 1 height of each other
-            return Node(TL, k, TR)
-
-    def union(self, other):
-        t3, t4 = other.split(self.root)
-        join(self.root, union(self.left, t3)
-        pass
 
     def plot(self, balance=False):
         """

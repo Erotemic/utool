@@ -1380,19 +1380,46 @@ def special_parse_process_python_code(sourcecode):
     #class SpecialVisitor(ast.NodeVisitor):
 
 
-def parse_function_names(sourcecode):
+def parse_function_names(sourcecode, top_level=True):
     """
     Finds all function names in a file without importing it
 
-    sourcecode = ut.readfrom(modpath)
+    Args:
+        sourcecode (str):
+
+    Returns:
+        list: func_names
+
+    CommandLine:
+        python -m utool.util_inspect parse_function_names
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.pyc')
+        >>> fpath = ut.truepath('~/code/bintrees/bintrees/avltree.py')
+        >>> sourcecode = ut.readfrom(fpath)
+        >>> func_names = parse_function_names(sourcecode)
+        >>> result = ('func_names = %s' % (ut.repr2(func_names),))
+        >>> print(result)
     """
     import ast
     func_names = []
-    pt = ast.parse(sourcecode)
+    if six.PY2:
+        import utool as ut
+        sourcecode = ut.ensure_unicode(sourcecode)
+        pt = ast.parse(sourcecode.encode('utf8'))
+    else:
+        pt = ast.parse(sourcecode)
     class FuncVisitor(ast.NodeVisitor):
         def visit_FunctionDef(self, node):
             func_names.append(node.name)
-            ast.NodeVisitor.generic_visit(self, node)
+            if not top_level:
+                ast.NodeVisitor.generic_visit(self, node)
+        def visit_ClassDef(self, node):
+            if not top_level:
+                ast.NodeVisitor.generic_visit(self, node)
     try:
         FuncVisitor().visit(pt)
     except Exception:
