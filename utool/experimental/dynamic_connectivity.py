@@ -217,18 +217,26 @@ def comparison():
     r"""
     CommandLine:
         python -m utool.experimental.dynamic_connectivity comparison --profile
+        python -m utool.experimental.dynamic_connectivity comparison
     """
-    n = 17
+    n = 12
     a, b = 9, 20
+    num = 3
 
     import utool
-    for timer in utool.Timerit(3):
-        self = EulerTourTree.from_mst(nx.balanced_tree(2, n))
+    for timer in utool.Timerit(num, 'old bst version'):
+        self = EulerTourTree.from_mst_bst_version(nx.balanced_tree(2, n))
         with timer:
-            self.delete_edge(a, b)
+            self.delete_edge_bst_version(a, b, new=False)
 
     import utool
-    for timer in utool.Timerit(3):
+    for timer in utool.Timerit(num, 'new bst version'):
+        self = EulerTourTree.from_mst_bst_version(nx.balanced_tree(2, n))
+        with timer:
+            self.delete_edge_bst_version(a, b, new=True)
+
+    import utool
+    for timer in utool.Timerit(num, 'list version'):
         self = EulerTourTree.from_mst_list_version(nx.balanced_tree(2, n))
         with timer:
             self.delete_edge_list_version(a, b)
@@ -260,7 +268,7 @@ class EulerTourTree(object):
         >>> #]
         >>> #mst = nx.Graph(edges)
         >>> mst = nx.balanced_tree(2, 11)
-        >>> self = EulerTourTree.from_mst(mst)
+        >>> self = EulerTourTree.from_mst_bst_version(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
         >>> pt.show_nx(mst)
@@ -272,39 +280,33 @@ class EulerTourTree(object):
 
     @classmethod
     @profile
-    def from_mst(EulerTourTree, mst):
+    def from_mst_bst_version(EulerTourTree, mst):
         """
         >>> # DISABLE_DOCTEST
         >>> from utool.experimental.dynamic_connectivity import *  # NOQA
         >>> mst = nx.balanced_tree(2, 4)
-        >>> self = EulerTourTree.from_mst(mst)
+        >>> self = EulerTourTree.from_mst_bst_version(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
         >>> show_avl_tree(self.tour_tree, pnum=(2, 1, 2), fnum=1)
         >>> pt.show_nx(self.to_graph(), pnum=(2, 1, 1), fnum=1)
 
         >>> a, b = 2, 5
-        >>> other = self.delete_edge(a, b)
+        >>> other = self.delete_edge_bst_version(a, b)
         >>> show_avl_tree(other.tour_tree, pnum=(2, 1, 2), fnum=2)
         >>> pt.show_nx(other.to_graph(), pnum=(2, 1, 1), fnum=2)
 
         """
         tour = euler_tour_dfs(mst)
-        self = EulerTourTree.from_tour(tour)
-        # if True:
-        # else:
-        #     self.first_lookup = dict(
-        #         i[::-1] for i in tour_order[::-1])
-        #     self.last_lookup = dict(
-        #         i[::-1] for i in tour_order)
+        self = EulerTourTree.from_tour_bst_version(tour)
         return self
 
     @classmethod
     @profile
-    def from_tour(EulerTourTree, tour):
+    def from_tour_bst_version(EulerTourTree, tour):
         import bintrees
         self = EulerTourTree()
-        self.tour = tour
+        # self.tour = tour
         # tree = bintrees.AVLTree(enumerate(tour))
         tree = bintrees.FastAVLTree(enumerate(tour))
 
@@ -340,7 +342,7 @@ class EulerTourTree(object):
         return self
 
     @profile
-    def delete_edge(self, a, b):
+    def delete_edge_bst_version(self, a, b, new=False):
         """
         a, b = (2, 5)
         print(self.first_lookup[a] > self.first_lookup[b])
@@ -358,17 +360,30 @@ class EulerTourTree(object):
         # assert o_b1 < o_b2
         assert o_b2 < o_a2
 
-        # ET(T2) inner - is given by the interval of ET (o_b1, o_b2)
-        # Smaller compoment is reconstructed
-        # in amortized O(log(n)) time
-        t2_slice = self.tour_tree[o_b1:o_b2 + 1]
-        t2_tour = list(t2_slice.values())
-        other = EulerTourTree.from_tour(t2_tour)
+        if new:
+            # splice out the inside contiguous range inplace
+            inside, outside = self.tour_tree.splice_inplace(o_b1, o_b2 + 1)
+            # Remove unneeded values
+            outside = outside.splice_inplace(o_b1, o_a2 + 1)[1]
 
-        # ET(T1) outer - is given by splicing out of ET the sequence
-        # (o_b1, o_a2)
-        t1_splice = self.tour_tree[o_b1:o_a2 + 1]
-        self.tour_tree.remove_items(t1_splice)
+            other = EulerTourTree()
+            other.tour_tree = inside
+            # We can reuse these pointers without any modification
+            other.first_lookup = self.first_lookup
+            other.first_lookup = self.last_lookup
+            # Should make an O(n) cleanup step at some point
+        else:
+            # ET(T2) inner - is given by the interval of ET (o_b1, o_b2)
+            # Smaller compoment is reconstructed
+            # in amortized O(log(n)) time
+            t2_slice = self.tour_tree[o_b1:o_b2 + 1]
+            t2_tour = list(t2_slice.values())
+            other = EulerTourTree.from_tour_bst_version(t2_tour)
+
+            # ET(T1) outer - is given by splicing out of ET the sequence
+            # (o_b1, o_a2)
+            t1_splice = self.tour_tree[o_b1:o_a2 + 1]
+            self.tour_tree.remove_items(t1_splice)
         return other
 
     @profile
@@ -416,7 +431,7 @@ class EulerTourTree(object):
         splice1 = self.tour[1:o_s1]
         rest = self.tour[o_s1 + 1:]
         new_tour = [s] + rest + splice1 + [s]
-        new_tree = EulerTourTree.from_tour(new_tour)
+        new_tree = EulerTourTree.from_tour_bst_version(new_tour)
         return new_tree
 
     def to_graph(self):
