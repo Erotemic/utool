@@ -224,20 +224,37 @@ def comparison():
     num = 3
 
     import utool
-    for timer in utool.Timerit(num, 'old bst version'):
-        self = EulerTourTree.from_mst_bst_version(nx.balanced_tree(2, n))
+    for timer in utool.Timerit(num, 'old bst version (PY)'):
+        g = nx.balanced_tree(2, n)
+        self = EulerTourTree.from_mst(g, version='bst', fast=False)
         with timer:
-            self.delete_edge_bst_version(a, b, new=False)
+            self.delete_edge_bst_version(a, b, bstjoin=False)
 
     import utool
-    for timer in utool.Timerit(num, 'new bst version'):
-        self = EulerTourTree.from_mst_bst_version(nx.balanced_tree(2, n))
+    for timer in utool.Timerit(num, 'new bst version (PY) (with join)'):
+        g = nx.balanced_tree(2, n)
+        self = EulerTourTree.from_mst(g, version='bst', fast=False)
         with timer:
-            self.delete_edge_bst_version(a, b, new=True)
+            self.delete_edge_bst_version(a, b, bstjoin=True)
+
+    import utool
+    for timer in utool.Timerit(num, 'old bst version (C)'):
+        g = nx.balanced_tree(2, n)
+        self = EulerTourTree.from_mst(g, version='bst', fast=True)
+        with timer:
+            self.delete_edge_bst_version(a, b, bstjoin=False)
+
+    import utool
+    for timer in utool.Timerit(num, 'new bst version (C) (with join)'):
+        g = nx.balanced_tree(2, n)
+        self = EulerTourTree.from_mst(g, version='bst', fast=True)
+        with timer:
+            self.delete_edge_bst_version(a, b, bstjoin=True)
 
     import utool
     for timer in utool.Timerit(num, 'list version'):
-        self = EulerTourTree.from_mst_list_version(nx.balanced_tree(2, n))
+        g = nx.balanced_tree(2, n)
+        self = EulerTourTree.from_mst(g, version='list')
         with timer:
             self.delete_edge_list_version(a, b)
     pass
@@ -268,7 +285,7 @@ class EulerTourTree(object):
         >>> #]
         >>> #mst = nx.Graph(edges)
         >>> mst = nx.balanced_tree(2, 11)
-        >>> self = EulerTourTree.from_mst_bst_version(mst)
+        >>> self = EulerTourTree.from_mst(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
         >>> pt.show_nx(mst)
@@ -280,12 +297,12 @@ class EulerTourTree(object):
 
     @classmethod
     @profile
-    def from_mst_bst_version(EulerTourTree, mst):
+    def from_mst(EulerTourTree, mst, version='bst', fast=True):
         """
         >>> # DISABLE_DOCTEST
         >>> from utool.experimental.dynamic_connectivity import *  # NOQA
         >>> mst = nx.balanced_tree(2, 4)
-        >>> self = EulerTourTree.from_mst_bst_version(mst)
+        >>> self = EulerTourTree.from_mst(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
         >>> show_avl_tree(self.tour_tree, pnum=(2, 1, 2), fnum=1)
@@ -298,51 +315,46 @@ class EulerTourTree(object):
 
         """
         tour = euler_tour_dfs(mst)
-        self = EulerTourTree.from_tour_bst_version(tour)
+        self = EulerTourTree.from_tour(tour, version=version, fast=fast)
         return self
 
     @classmethod
     @profile
-    def from_tour_bst_version(EulerTourTree, tour):
+    def from_tour(EulerTourTree, tour, version='bst', fast=True):
         import bintrees
         self = EulerTourTree()
-        # self.tour = tour
-        # tree = bintrees.AVLTree(enumerate(tour))
-        tree = bintrees.FastAVLTree(enumerate(tour))
+        self.fast = fast
+        self.version = version
 
-        self.first_lookup = first_lookup = {}
-        self.last_lookup = last_lookup = {}
+        if version == 'bst':
+            # self.tour = tour
+            if fast:
+                tree = bintrees.FastAVLTree(enumerate(tour))
+            else:
+                tree = bintrees.AVLTree(enumerate(tour))
 
-        # for avl_node in traverse_avl_nodes(tree._root):
-        for key, node in tree.iter_items():
-            # node = avl_node.value
-            if node not in first_lookup:
-                # first_lookup[node] = avl_node.key
-                first_lookup[node] = key
-            # last_lookup[node] = avl_node.key
-            last_lookup[node] = key
-        self.tour_tree = tree
-        return self
+            self.first_lookup = first_lookup = {}
+            self.last_lookup = last_lookup = {}
 
-    @classmethod
-    @profile
-    def from_mst_list_version(EulerTourTree, mst):
-        tour = euler_tour_dfs(mst)
-        self = EulerTourTree.from_tour_list_version(tour)
-        return self
+            # for avl_node in traverse_avl_nodes(tree._root):
+            for key, node in tree.iter_items():
+                # node = avl_node.value
+                if node not in first_lookup:
+                    # first_lookup[node] = avl_node.key
+                    first_lookup[node] = key
+                # last_lookup[node] = avl_node.key
+                last_lookup[node] = key
+            self.tour_tree = tree
+        else:
+            self.tour = tour
+            tour_order = list(enumerate(tour))
+            self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
+            self.last_lookup = dict(i[::-1] for i in tour_order)
 
-    @classmethod
-    @profile
-    def from_tour_list_version(EulerTourTree, tour):
-        self = EulerTourTree()
-        self.tour = tour
-        tour_order = list(enumerate(tour))
-        self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
-        self.last_lookup = dict(i[::-1] for i in tour_order)
         return self
 
     @profile
-    def delete_edge_bst_version(self, a, b, new=False):
+    def delete_edge_bst_version(self, a, b, bstjoin=False):
         """
         a, b = (2, 5)
         print(self.first_lookup[a] > self.first_lookup[b])
@@ -360,7 +372,7 @@ class EulerTourTree(object):
         # assert o_b1 < o_b2
         assert o_b2 < o_a2
 
-        if new:
+        if bstjoin:
             # splice out the inside contiguous range inplace
             inside, outside = self.tour_tree.splice_inplace(o_b1, o_b2 + 1)
             # Remove unneeded values
@@ -378,7 +390,8 @@ class EulerTourTree(object):
             # in amortized O(log(n)) time
             t2_slice = self.tour_tree[o_b1:o_b2 + 1]
             t2_tour = list(t2_slice.values())
-            other = EulerTourTree.from_tour_bst_version(t2_tour)
+            other = EulerTourTree.from_tour(t2_tour, version=self.version,
+                                            fast=self.fast)
 
             # ET(T1) outer - is given by splicing out of ET the sequence
             # (o_b1, o_a2)
@@ -400,7 +413,8 @@ class EulerTourTree(object):
         assert o_b2 < o_a2
 
         t2_list = self.tour[o_b1:o_b2 + 1]
-        other = EulerTourTree.from_tour_list_version(t2_list)
+        other = EulerTourTree.from_tour(t2_list, version=self.version,
+                                        fast=self.fast)
 
         # ET(T1) outer - is given by splicing out of ET the sequence
         # (o_b1, o_a2)
@@ -431,7 +445,8 @@ class EulerTourTree(object):
         splice1 = self.tour[1:o_s1]
         rest = self.tour[o_s1 + 1:]
         new_tour = [s] + rest + splice1 + [s]
-        new_tree = EulerTourTree.from_tour_bst_version(new_tour)
+        new_tree = EulerTourTree.from_tour(new_tour, version=self.version,
+                                           fast=self.fast)
         return new_tree
 
     def to_graph(self):
