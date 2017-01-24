@@ -39,6 +39,9 @@ def in_virtual_env():
 
 def get_site_packages_dir():
     """
+    CommandLine:
+        python -m utool.util_sysreq get_site_packages_dir
+
     Notes:
         It seems IPython does not respect virtual environments properly.
         TODO: find a solution

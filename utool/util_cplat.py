@@ -1114,6 +1114,7 @@ def search_env_paths(fname, key_list=None, verbose=None):
 
     CommandLine:
         python -m utool search_env_paths --fname msvcr*.dll
+        python -m utool search_env_paths --fname '*flann*'
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1121,7 +1122,8 @@ def search_env_paths(fname, key_list=None, verbose=None):
         >>> import utool as ut
         >>> fname = 'opencv2/highgui/libopencv_highgui.so'
         >>> fname = ut.get_argval('--fname', default='*')
-        >>> key_list = ['PATH']
+        >>> print('fname = %r' % (fname,))
+        >>> key_list = None # ['PATH']
         >>> found = search_env_paths(fname, key_list)
         >>> print(ut.dict_str(found, nl=True, strvals=True))
 
@@ -1134,6 +1136,7 @@ def search_env_paths(fname, key_list=None, verbose=None):
     # from os.path import join
     if key_list is None:
         key_list = [key for key in os.environ if key.find('PATH') > -1]
+        print('key_list = %r' % (key_list,))
 
     found = ut.ddict(list)
 
