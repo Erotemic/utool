@@ -319,9 +319,13 @@ class Timerit(object):
         if self.verbose > 0:
             self._print_report(self.verbose)
 
+    @property
+    def ave_secs(self):
+        return self.total_time / self.n_loops
+
     def _print_report(self, verbose=1):
         import utool as ut
-        ave_secs = self.total_time / self.n_loops
+        ave_secs = self.ave_secs
         if self.label is None:
             print('Timing complete, %d loops' % (self.n_loops,))
         else:

@@ -41,177 +41,6 @@ def euler_tour_dfs(G, source=None):
     return yielder
 
 
-def junk():
-    # import blist
-    # self.first_visit_idxs = dict(i[::-1] for i in tour_order[::-1])
-    # self.last_visit_idxs = dict(i[::-1] for i in tour_order)
-
-    # Store a tree by keeping its Euler tour in a balanced binary search
-    # tree, keyed by the index in the tour.
-
-    # class EulerVisit(object):
-    #     def __init__(self, num, node):
-    #         self.num = num
-    #         self.node = node
-    #         self.first = None
-    #         self.last = None
-
-    #     def __repr__(self):
-    #         return ut.repr2(self.__hash__())
-
-    #     def __eq__(self, other):
-    #         return self.node == other.node and self.num == other.num
-
-    #     def __lt__(self, other):
-    #         if self != other and self.num == other.num:
-    #             id(self) < id(other)
-    #         return (self.num < other.num)
-
-    #     def __hash__(self):
-    #         return (self.node, self.num)
-
-    # # Each node in the represented tree holds pointers to the nodes in the
-    # # BST representing the first and last times it was visited
-    # visits = ut.lstarmap(EulerVisit, enumerate(tour))
-    # groups = ut.group_items(visits, tour)
-    # for node, group in groups.items():
-    #     first = min(group)
-    #     last = max(group)
-    #     for visit in group:
-    #         visit.first = first
-    #         visit.last = last
-    # # items = zip(keys, keys)
-    # tree = bintrees.AVLTree(zip(tour_order, visits))
-
-    # import collections
-    # EulerVisit = collections.namedtuple('EulerVisit',
-    #                                     ('node', 'last', 'first'))
-    # tree = bintrees.AVLTree(zip(visits, visits))
-    # avl_node = tree._root
-    # node = avl_node.value.node
-    # for avl_node in flat_nodes:
-    #     node = avl_node.value.node
-    #     first = first_lookup[node]
-    #     last = last_lookup[node]
-    #     avl_node.value = EulerVisit(node, first, last)
-
-    # self.tour = tour
-    # # FIXME: need an implemenation of BBST that allows splicing
-    if True:
-        """
-        for k in mst.nodes():
-            print(k, self.first_lookup[k].key, self.last_lookup[k].key)
-
-        print(ut.repr2(tour))
-
-        a, b = 'B', 'C'
-        o_a1 = self.first_lookup[a]
-        o_b1 = self.first_lookup[b]
-        o_a2 = self.last_lookup[a]
-        o_b2 = self.last_lookup[b]
-        print('o_a1.key = %r' % (o_a1.key,))
-        print('o_a2.key = %r' % (o_a2.key,))
-        print('o_b1.key = %r' % (o_b1.key,))
-        print('o_b2.key = %r' % (o_b2.key,))
-        list(tree.item_slice(o_a1, o_b2))
-
-        slice_ = tree[o_a1:o_b2]
-        """
-
-    """
-    items = list(range(20))
-    bst = bintrees.AVLTree(zip(items, items))
-    # Slicing is nice because it just accesses the first and last element
-    sub_slice = bst[5:15]
-
-    # But it seems like if I do anything with the slice all of its items are
-    # expanded and each operation is performed individually
-
-    # I want a subtree (no copying) in O(log(n)), but this seems to take O(n)
-    sub_pointer = bintrees.AVLTree(bst[5:15])
-
-    # I want to delete in O(log(n)), but this seems to take O(n)
-    del bst[5:15]
-
-        # class EulerVisit(object):
-        #     def __init__(self, node, first=None, last=None):
-        #         self.node = node
-        #         self.last = last
-        #         self.first = first
-
-        #     def __repr__(self):
-        #         return ut.repr2(self.node)
-        # tour_values = [(k, EulerVisit(v)) for k, v in tour_order]
-    """
-    pass
-
-
-def traverse_avl_nodes_recursive(avl_node):
-    if not avl_node:
-        raise StopIteration()
-    for _ in traverse_avl_nodes(avl_node.left):
-        yield _
-    yield avl_node
-    for _ in traverse_avl_nodes(avl_node.right):
-        yield _
-
-
-def traverse_avl_nodes(root):
-    stack = []
-    node = root
-    while stack or node is not None:
-        if node is not None:
-            stack.append(node)
-            node = node.left
-        else:
-            node = stack.pop()
-            yield node
-            node = node.right
-
-
-def avl_find_node(self, key):
-    node = self._root
-    while node is not None:
-        if key == node.key:
-            return node
-        elif key < node.key:
-            node = node.left
-        else:
-            node = node.right
-
-
-def show_avl_tree(tree, fnum=None, pnum=None):
-    """
-    >>> show_avl_tree(tree, pnum=(2, 1, 2), fnum=1)
-    >>> pt.show_nx(mst, pnum=(2, 1, 1), fnum=1)
-
-    """
-    import networkx as nx
-    # import igraph as igraphs
-    G = nx.Graph()
-    G.add_node(0)
-    queue = [[tree._root, 0]]
-    index = 0
-    while queue:
-        node = queue[0][0]  # Select front of queue.
-        node_index = queue[0][1]
-        G.node[node_index]['label'] = '%s,%s' % (node.key, node.value)
-        if node.left is not None:
-            G.add_node(node_index)
-            G.add_edges_from([(node_index, index + 1)])
-            queue.append([node.left, index + 1])
-            index += 1
-        if node.right is not None:
-            G.add_node(node_index)
-            G.add_edges_from([(node_index, index + 1)])
-            queue.append([node.right, index + 1])
-            index += 1
-        queue.pop(0)
-    import plottool as pt
-    pt.qt4ensure()
-    pt.show_nx(G, fnum=fnum, pnum=pnum)
-
-
 @profile
 def comparison():
     r"""
@@ -305,12 +134,10 @@ class EulerTourTree(object):
         >>> self = EulerTourTree.from_mst(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
-        >>> show_avl_tree(self.tour_tree, pnum=(2, 1, 2), fnum=1)
         >>> pt.show_nx(self.to_graph(), pnum=(2, 1, 1), fnum=1)
 
         >>> a, b = 2, 5
         >>> other = self.delete_edge_bst_version(a, b)
-        >>> show_avl_tree(other.tour_tree, pnum=(2, 1, 2), fnum=2)
         >>> pt.show_nx(other.to_graph(), pnum=(2, 1, 1), fnum=2)
 
         """
@@ -336,7 +163,6 @@ class EulerTourTree(object):
             self.first_lookup = first_lookup = {}
             self.last_lookup = last_lookup = {}
 
-            # for avl_node in traverse_avl_nodes(tree._root):
             for key, node in tree.iter_items():
                 # node = avl_node.value
                 if node not in first_lookup:
