@@ -345,11 +345,25 @@ class EulerTourTree(object):
                 # last_lookup[node] = avl_node.key
                 last_lookup[node] = key
             self.tour_tree = tree
+        elif version == 'sortedcontainers':
+            """
+            >>> from utool.experimental.dynamic_connectivity import *  # NOQA
+            >>> mst = nx.balanced_tree(2, 4)
+            >>> tour = euler_tour_dfs(mst)
+            >>> self = EulerTourTree()
+
+            """
+            import sortedcontainers
+            tour_order = sortedcontainers.SortedList(enumerate(tour))
+            self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
+            self.last_lookup = dict(i[::-1] for i in tour_order)
+            self.tour_order = tour_order
         else:
             self.tour = tour
             tour_order = list(enumerate(tour))
             self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
             self.last_lookup = dict(i[::-1] for i in tour_order)
+            tour_order.bisect_left((7, 0))
 
         return self
 
