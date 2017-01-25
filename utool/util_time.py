@@ -187,18 +187,13 @@ class Timer(object):
     stop = toc
 
     def __enter__(self):
-        #if self.msg is not None:
-        #    sys.stdout.write('---tic---' + self.msg + '  \n')
         self.tic()
         return self
 
     def __exit__(self, type_, value, trace):
         self.ellapsed = self.toc()
         if trace is not None:
-            #print('[util_time] Error in context manager!: ' + str(value))
-            pass
             return False  # return a falsey value on error
-        #return self.ellapsed
 
 
 class Timerit(object):
