@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import textwrap
 
-__version__ = '1.6.2.dev1'
+__version__ = '1.6.3.dev1'
 
 __DYNAMIC__ = True
 if __DYNAMIC__:
