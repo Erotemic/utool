@@ -643,13 +643,13 @@ def fibonacci_iterative(n):
         n (int):
 
     Returns:
-        int: a
+        int: the n-th fibonacci number
 
     References:
-        http://stackoverflow.com/questions/15047116/a-iterative-algorithm-for-fibonacci-numbers
+        http://stackoverflow.com/questions/15047116/iterative-alg-fib
 
     CommandLine:
-        python -m utool.util_alg --test-fibonacci_iterative
+        python -m utool.util_alg fibonacci_iterative
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -665,6 +665,33 @@ def fibonacci_iterative(n):
     for _ in range(0, n):
         a, b = b, a + b
     return a
+
+
+def fibonacci_approx(n):
+    r"""
+    approximate value (due to numerical errors) of fib(n) using closed form
+    expression
+
+    Args:
+        n (int):
+
+    Returns:
+        int: the n-th fib number
+
+    CommandLine:
+        python -m utool.util_alg fibonacci_approx
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> series = [int(fibonacci_approx(n)) for n in range(20)]
+        >>> result = ('series = %s' % (str(series[0:10]),))
+        >>> print(result)
+    """
+    sqrt_5 = math.sqrt(5)
+    phi = (1 + sqrt_5) / 2
+    return ((phi ** n) - (-phi) ** (-n)) / sqrt_5
 
 fibonacci = fibonacci_iterative
 
