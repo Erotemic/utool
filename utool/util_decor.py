@@ -660,7 +660,7 @@ def memoize(func):
         func:
 
     CommandLine:
-        python -m utool.util_decor --exec-memoize --show
+        python -m utool.util_decor memoize
 
     Example:
         >>> # ENABLE_DOCTEST

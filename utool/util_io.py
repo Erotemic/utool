@@ -194,10 +194,13 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='r
             if aslines:
                 #text = file_.readlines()
                 if six.PY2:
-                    # python2 writes in bytes, so read as bytes then convert to utf8
-                    text = [line.decode('utf8', errors=errors) for line in file_.readlines()]
+                    # python2 writes in bytes, so read as bytes then convert to
+                    # utf8
+                    text = [line.decode('utf8', errors=errors)
+                            for line in file_.readlines()]
                 else:
-                    text = [line.decode('utf8', errors=errors) for line in file_.readlines()]
+                    text = [line.decode('utf8', errors=errors)
+                            for line in file_.readlines()]
                     #text = file_.readlines()
             else:
                 # text = file_.read()
