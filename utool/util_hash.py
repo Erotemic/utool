@@ -217,6 +217,19 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> print(result)
         text = z5lqw0bzt4dmb9yy
 
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> import numpy as np
+        >>> from uuid import UUID
+        >>> data = (UUID('7cd0197b-1394-9d16-b1eb-0d8d7a60aedc'), UUID('c76b54a5-adb6-7f16-f0fb-190ab99409f8'))
+        >>> hashlen = 16
+        >>> alphabet = ALPHABET
+        >>> text = hashstr_arr(data, 'label')
+        >>> result = ('text = %s' % (str(text),))
+        >>> print(result)
+
+
     Example3:
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
@@ -260,9 +273,24 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
             data = data.dumps()
             # data = data.tobytes()
     if isinstance(data, tuple):
-        msg = '[ut] hashing tuples with repr is not a good idea. FIXME'
-        warnings.warn(msg, RuntimeWarning)
-        data = repr(data)  # Hack?
+        # should instead do
+        if False:
+            hasher = hashlib.sha512()
+            items = data
+            for item in items:
+                if isinstance(item, uuid.UUID):
+                    hasher.update(item.bytes_)
+                else:
+                    hasher.update(item)
+            text = hasher.hexdigest()
+            hashstr2 = convert_hexstr_to_bigbase(text, alphabet, bigbase=len(alphabet))
+            # Truncate
+            text = hashstr2[:hashlen]
+            return text
+        else:
+            msg = '[ut] hashing tuples with repr is not a good idea. FIXME'
+            warnings.warn(msg, RuntimeWarning)
+            data = repr(data)  # Hack?
 
     # convert unicode into raw bytes
     if isinstance(data, six.text_type):

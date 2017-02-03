@@ -882,6 +882,11 @@ def get_comparison_operators():
 class HashComparableMetaclass(type):
     """
     Defines extra methods for Configs
+
+    FIXME: this breaks in python3 because
+    anything that overwrites hash overwrites inherited __eq__
+
+    https://docs.python.org/3.6/reference/datamodel.html#object.__hash__
     """
     def __new__(cls, name, bases, dct):
         """
