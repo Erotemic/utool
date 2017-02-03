@@ -630,6 +630,7 @@ def hashable_to_uuid(hashable_):
     CommandLine:
         python -m utool.util_hash --test-hashable_to_uuid
         python3 -m utool.util_hash --test-hashable_to_uuid:1
+        python2 -m utool.util_hash --test-hashable_to_uuid:3
         python2 -m utool.util_hash --test-hashable_to_uuid:1
         python3 -m utool.util_hash --test-hashable_to_uuid:0
 
@@ -667,9 +668,10 @@ def hashable_to_uuid(hashable_):
         >>> uuid_ = hashable_to_uuid(hashable_)
         >>> result = str(uuid_)
         >>> print(result)
-        b1d57811-11d8-4f7b-3fe4-5a0852e59758
+        e864ece8-8880-43b6-7277-c8b2cefe96ad
 
     """
+    print('hashable_ = %r' % (hashable_,))
     # Hash the bytes
     if six.PY3:
         # If hashable_ is text (python3)
@@ -678,10 +680,12 @@ def hashable_to_uuid(hashable_):
         if isinstance(hashable_, str):
             bytes_ = hashable_.encode('utf-8')
             #print('sbytes=%r' % (bytes_,))
+        elif isinstance(hashable_, int):
+            bytes_ = hashable_.to_bytes(4, byteorder='big')
         else:
             #bytes_ = bytearray(hashable_)
-            #bytes_ = bytes(hashable_)
             bytes_ = hashable_
+            # bytes_ = hashable_
             #print('bytes_=%r' % (bytes_,))
     elif six.PY2:
         # If hashable_ is data (python2)
@@ -689,8 +693,12 @@ def hashable_to_uuid(hashable_):
             bytes_ = hashable_
         elif isinstance(hashable_, str):
             bytes_ = hashable_.encode('utf-8')
+        elif isinstance(hashable_, int):
+            import struct
+            bytes_ = struct.pack('>i', hashable_)
         else:
             bytes_ = bytes(hashable_)
+    print('bytes_ = %r' % (bytes_,))
     bytes_sha1 = hashlib.sha1(bytes_)
     # Digest them into a hash
     #hashstr_40 = img_bytes_sha1.hexdigest()

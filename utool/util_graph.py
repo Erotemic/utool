@@ -1980,8 +1980,11 @@ def weighted_diamter(graph, weight=None):
         distances = nx.all_pairs_shortest_path_length(graph)
     else:
         distances = nx.all_pairs_dijkstra_path_length(graph, weight=weight)
-    eccentricities = (max(dists.values()) for node, dists in distances)
-    diameter = max(eccentricities)
+    if isinstance(distances, dict):
+        eccentricities = (max(list(dists.values())) for node, dists in distances.items())
+    else:
+        eccentricities = (max(list(dists.values())) for node, dists in distances)
+    diameter = max(list(eccentricities))
     return diameter
 
 

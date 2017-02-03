@@ -205,10 +205,12 @@ def get_dict_hashid(dict_):
         >>> dict_ = {'a': 'b'}
         >>> dict_ = {'a': {'c': 'd'}}
         >>> #dict_ = {'a': {'c': 'd'}, 1: 143, dict: set}
-        >>> dict_ = {'a': {'c': 'd'}, 1: 143 }
+        >>> #dict_ = {'a': {'c': 'd'}, 1: 143 } non-determenism
         >>> hashid = get_dict_hashid(dict_)
         >>> result = str(hashid)
         >>> print(result)
+        mxgkepoboqjerkhb
+
         oegknoalkrkojumi
     """
     import utool as ut
@@ -1147,9 +1149,9 @@ def dict_find_keys(dict_, val_list):
         ...          'lsh': 6, 'kdtree_single': 4}
         >>> val_list = [1]
         >>> found_dict = dict_find_keys(dict_, val_list)
-        >>> result = ut.repr2(found_dict)
+        >>> result = ut.repr2(ut.map_vals(sorted, found_dict))
         >>> print(result)
-        {1: ['kdtree', 'default']}
+        {1: ['default', 'kdtree']}
     """
     found_dict = {
         search_val: [key for key, val in six.iteritems(dict_)
