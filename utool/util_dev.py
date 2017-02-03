@@ -11,7 +11,7 @@ import weakref
 import itertools
 import functools
 from collections import OrderedDict
-from six.moves import input, zip, range, map
+from six.moves import input, zip, range, map, reduce
 from utool import util_progress
 from os.path import splitext, exists, join, split, relpath
 from utool import util_inject

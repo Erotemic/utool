@@ -366,7 +366,7 @@ class Pref(PrefNode):
             if VERBOSE_PREF:
                 print('[pref.save] I cannot be saved. I have no parents.')
             return False
-        with open(fpath, 'w') as f:
+        with open(fpath, 'wb') as f:
             print('[pref] Saving to ' + fpath)
             pref_dict = self.to_dict()
             pickle.dump(pref_dict, f, protocol=2)  # Use protocol 2 to support python2 and 3
@@ -384,7 +384,7 @@ class Pref(PrefNode):
             #    return msg
         fpath = self.get_fpath()
         try:
-            with open(fpath, 'r') as f:
+            with open(fpath, 'rb') as f:
                 if VERBOSE_PREF:
                     print('load: %r' % fpath)
                 pref_dict = pickle.load(f)

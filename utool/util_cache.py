@@ -596,9 +596,9 @@ def from_json(json_str, allow_pickle=False):
         >>> result = ('val = %s' % (ut.repr2(val),))
         >>> print(result)
     """
-    # if six.PY3:
-    #     if isinstance(json_str, bytes):
-    #         json_str = json_str.decode('utf-8')
+    if six.PY3:
+        if isinstance(json_str, bytes):
+            json_str = json_str.decode('utf-8')
     UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
     object_hook = UtoolJSONEncoder._json_object_hook
     val = json.loads(json_str, object_hook=object_hook)
