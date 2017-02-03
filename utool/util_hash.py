@@ -238,6 +238,9 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         pickle.dumps(data, protocol=2)
 
         python2 -c "import hashlib, numpy; print(hashlib.sha1('ab').hexdigest())"
+        python3 -c "import hashlib, numpy; print(hashlib.sha1('ab'.encode('utf8')).hexdigest())"
+
+        python2 -c "import hashlib, numpy; print(hashlib.sha1('ab').hexdigest())"
         python3 -c "import hashlib, numpy; print(hashlib.sha1(b'ab').hexdigest())"
 
         python2 -c "import hashlib, numpy; print(hashlib.sha1(numpy.array([1, 2])).hexdigest())"
@@ -247,28 +250,31 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         python2 -c "import hashlib, numpy; print(hashlib.sha1(numpy.array(['a', 'b'])).hexdigest())"
         python3 -c "import hashlib, numpy; print(hashlib.sha1(numpy.array([b'a', b'b'])).hexdigest())"
 
-        python -c "import hashlib, numpy; print(hashlib.sha512(numpy.array(['a', 'b'], dtype=object)).hexdigest())"
-        python -c "import hashlib, numpy; print(hashlib.sha512(numpy.array(['a', 'b'], dtype=object)).hexdigest())"
+        python -c "import hashlib, numpy; print(hashlib.sha1(numpy.array(['a', 'b'], dtype=object)).hexdigest())"
+        python -c "import hashlib, numpy; print(hashlib.sha1(numpy.array(['a', 'b'], dtype=object)).hexdigest())"
     """
     if util_type.HAVE_NUMPY and isinstance(data, np.ndarray):
         if data.dtype.kind == 'O':
-            msg = 'hashing ndarrays with dtype=object is unstable'
+            msg = '[ut] hashing ndarrays with dtype=object is unstable'
             warnings.warn(msg, RuntimeWarning)
             # but tobytes is ok, but differs between python 2 and 3 for objects
             data = data.dumps()
             # data = data.tobytes()
     if isinstance(data, tuple):
+        msg = '[ut] hashing tuples with repr is not a good idea. FIXME'
+        warnings.warn(msg, RuntimeWarning)
         data = repr(data)  # Hack?
-    if six.PY3 and isinstance(data, str):
-        # convert unicode into raw bytes
+
+    # convert unicode into raw bytes
+    if isinstance(data, six.text_type):
         data = data.encode('utf-8')
+
     if isinstance(data, stringlike) and len(data) == 0:
         # Make a special hash for empty data
         text = (alphabet[0] * hashlen)
     else:
         # Get a 128 character hex string
         text = hashlib.sha512(data).hexdigest()
-        #if six.PY3:
         # Shorten length of string (by increasing base)
         hashstr2 = convert_hexstr_to_bigbase(text, alphabet, bigbase=len(alphabet))
         # Truncate
