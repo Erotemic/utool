@@ -543,12 +543,20 @@ def augment_uuid(uuid_, *hashables):
     # Python 2 and 3 diverge here because repr returns
     # ascii data in python2 and unicode text in python3
     # it would be nice to
+    warnings.warn('[ut] should not use repr when hashing', RuntimeWarning)
+    def tmprepr(x):
+        y = repr(x)
+        # hack to remove u prefix
+        if isinstance(x, six.string_types):
+            if y.startswith('u'):
+                y = y[1:]
+        return y
     if six.PY2:
-        hashable_text = ''.join(map(repr, hashables))
+        hashable_text = ''.join(map(tmprepr, hashables))
         hashable_data = hashable_text.encode('utf-8')
         #hashable_data = b''.join(map(bytes, hashables))
     elif six.PY3:
-        hashable_text    = ''.join(map(repr, hashables))
+        hashable_text    = ''.join(map(tmprepr, hashables))
         hashable_data = hashable_text.encode('utf-8')
         #hashable_data = b''.join(map(bytes, hashables))
     augmented_data   = uuidhex_data + hashable_data
@@ -621,12 +629,23 @@ def hashable_to_uuid(hashable_):
 
     CommandLine:
         python -m utool.util_hash --test-hashable_to_uuid
+        python3 -m utool.util_hash --test-hashable_to_uuid:1
+        python2 -m utool.util_hash --test-hashable_to_uuid:1
         python3 -m utool.util_hash --test-hashable_to_uuid:0
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> hashable_ = 'foobar'
+        >>> uuid_ = hashable_to_uuid(hashable_)
+        >>> result = str(uuid_)
+        >>> print(result)
+        8843d7f9-2416-211d-e9eb-b963ff4ce281
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> hashable_ = 'foobar'.encode('utf-8')
         >>> uuid_ = hashable_to_uuid(hashable_)
         >>> result = str(uuid_)
         >>> print(result)
@@ -652,8 +671,6 @@ def hashable_to_uuid(hashable_):
 
     """
     # Hash the bytes
-    #try:
-    #print('hashable_=%r' % (hashable_,))
     if six.PY3:
         # If hashable_ is text (python3)
         if isinstance(hashable_, bytes):
@@ -664,7 +681,7 @@ def hashable_to_uuid(hashable_):
         else:
             #bytes_ = bytearray(hashable_)
             #bytes_ = bytes(hashable_)
-            bytes_ = repr(hashable_).encode('utf-8')
+            bytes_ = hashable_
             #print('bytes_=%r' % (bytes_,))
     elif six.PY2:
         # If hashable_ is data (python2)
@@ -674,12 +691,7 @@ def hashable_to_uuid(hashable_):
             bytes_ = hashable_.encode('utf-8')
         else:
             bytes_ = bytes(hashable_)
-            #print('bytes=%r' % (bytes_,))
     bytes_sha1 = hashlib.sha1(bytes_)
-    #except Exception as ex:
-    #    import utool
-    #    utool.printex(ex, keys=[(type, 'bytes_')])
-    #    raise
     # Digest them into a hash
     #hashstr_40 = img_bytes_sha1.hexdigest()
     #hashstr_32 = hashstr_40[0:32]
