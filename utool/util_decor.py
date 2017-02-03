@@ -333,7 +333,7 @@ def debug_function_exceptions(func):
                 frame = t[0]
                 locals_ = frame.f_locals
                 local_repr_dict = {key: ut.trunc_repr(val)
-                                   for key, val in locals_.iteritems()}
+                                   for key, val in locals_.items()}
                 print('LOCALS LEVEL %d' % (level,))
                 print(ut.repr3(local_repr_dict, strvals=True, nl=1))
             print('-- </TRACE LOCALS> --')
