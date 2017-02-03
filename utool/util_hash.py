@@ -671,7 +671,6 @@ def hashable_to_uuid(hashable_):
         e864ece8-8880-43b6-7277-c8b2cefe96ad
 
     """
-    print('hashable_ = %r' % (hashable_,))
     # Hash the bytes
     if six.PY3:
         # If hashable_ is text (python3)
@@ -698,7 +697,6 @@ def hashable_to_uuid(hashable_):
             bytes_ = struct.pack('>i', hashable_)
         else:
             bytes_ = bytes(hashable_)
-    print('bytes_ = %r' % (bytes_,))
     bytes_sha1 = hashlib.sha1(bytes_)
     # Digest them into a hash
     #hashstr_40 = img_bytes_sha1.hexdigest()
