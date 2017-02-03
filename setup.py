@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 """
 pip install git+https://github.com/Erotemic/utool.git@next
 """

@@ -63,8 +63,10 @@ def get_global_dist_packages_dir():
     else:
         candidates = []
         if ut.LINUX:
+            import sys
             candidates += [
-                '/usr/lib/python2.7/dist-packages',
+                '/usr/lib/python%s/dist-packages' % (sys.version[0:3],),
+                '/usr/lib/python%s/dist-packages' % (sys.version[0:1],),
             ]
         else:
             raise NotImplementedError()

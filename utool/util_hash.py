@@ -7,7 +7,6 @@ You should opt to use a hash*27 function over a hash* function.
 
 TODO: the same hashing algorithm should be used everywhere
 Currently there is a mix of sha1, sha256, and sha512 in different places.
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import hashlib
@@ -32,7 +31,7 @@ HASH_LEN = 16
 ALPHABET_16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                'a', 'b', 'c', 'd', 'e', 'f']
 
-# A large base-54 alphabet (all chars are valid for filenames but not # pretty)
+# A large base-54 alphabet (all chars are valid for filenames but not pretty)
 ALPHABET_54 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
