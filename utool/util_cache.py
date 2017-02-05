@@ -462,12 +462,6 @@ def make_utool_json_encoder(allow_pickle=False):
                 return json.JSONEncoder.default(self, obj)
             elif hasattr(obj, '__getstate__'):
                 return obj.__getstate__()
-            #elif isinstance(obj, uuid.UUID):
-            #    func = encoders[UUID_TAG]
-            #    return {UUID_TAG: func(obj)}
-            #elif isinstance(obj, object):
-            #    func = encoders[PYOBJECT_TAG]
-            #    return {PYOBJECT_TAG: func(obj)}
             else:
                 for type_, tag in type_to_tag.items():
                     if isinstance(obj, type_):
@@ -481,7 +475,6 @@ def make_utool_json_encoder(allow_pickle=False):
 
         @classmethod
         def _json_object_hook(cls, value, verbose=False, **kwargs):
-            #print('value = %r' % (value,))
             if len(value) == 1:
                 tag, text = list(value.items())[0]
                 if tag in decoders:
@@ -493,12 +486,6 @@ def make_utool_json_encoder(allow_pickle=False):
                     return obj
             else:
                 return value
-            #if cls.JSON_PYOBJ_TAG in value:
-            #    text = value[cls.JSON_PYOBJ_TAG]
-            #    return pickle.loads(codecs.decode(text.encode(), 'base64'))
-            #elif cls.UUID_TAG in value:
-            #    text = value[cls.UUID_TAG]
-            #    return uuid.UUID(text)
             return value
     return UtoolJSONEncoder
 
@@ -530,6 +517,8 @@ def to_json(val, allow_pickle=False, pretty=False):
         >>>     '{"foo": "not a dict"}',
         >>>     1.3,
         >>>     [1],
+        >>>     # {1: 1, 2: 2, 3: 3}, cant use integer keys
+        >>>     {1, 2, 3},
         >>>     slice(1, None, 1),
         >>>     b'an ascii string',
         >>>     np.array([1, 2, 3]),

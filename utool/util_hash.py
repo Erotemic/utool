@@ -580,7 +580,7 @@ def combine_uuids(uuids, ordered=True, salt=''):
         python -m utool.util_hash combine_uuids
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import utool as ut
         >>> uuids = [hashable_to_uuid('one'), hashable_to_uuid('two'), hashable_to_uuid('three')]
@@ -596,6 +596,20 @@ def combine_uuids(uuids, ordered=True, salt=''):
             UUID('2b8c46b7-8d0d-23c6-a81e-3eb453b2eb04'),
             UUID('2b8c46b7-8d0d-23c6-a81e-3eb453b2eb04'),
         ]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> import utool as ut
+        >>> uuids = [uuid.UUID('5ff6b34e-7d8f-ef32-5fad-489266acd2ae'),
+        >>>          uuid.UUID('f2400146-ec12-950b-1489-668228e155a8'),
+        >>>          uuid.UUID('037d6f31-8c73-f961-1fe4-d616442a1e86'),
+        >>>          uuid.UUID('ca45d6e2-e648-09cc-a49e-e71c6fa3b3f3')]
+        >>> ordered = True
+        >>> salt = u''
+        >>> result = combine_uuids(uuids, ordered, salt)
+        >>> print(result)
+        1dabc66b-b564-676a-99b4-5cae7a9e7294
     """
     if len(uuids) == 0:
         return get_zero_uuid()
@@ -604,8 +618,9 @@ def combine_uuids(uuids, ordered=True, salt=''):
     else:
         if not ordered:
             uuids = sorted(uuids)
-        sep = six.b(str('-'))
-        pref = six.b(str(salt) + str(sep) + str(len(uuids)))
+        sep_str = str('-')
+        sep = six.b(sep_str)
+        pref = six.b(str(salt) + sep_str + str(len(uuids)))
         combined_bytes = pref + sep.join([u.bytes for u in uuids])
         combined_uuid = hashable_to_uuid(combined_bytes)
         return combined_uuid
