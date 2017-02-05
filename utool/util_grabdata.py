@@ -551,7 +551,7 @@ TESTIMG_URL_DICT = {
 
 def get_valid_test_imgkeys():
     r""" returns valid keys for grab_test_imgpath """
-    return list(TESTIMG_URL_DICT.keys())
+    return sorted(TESTIMG_URL_DICT.keys())
 
 
 def clear_test_img_cache():
