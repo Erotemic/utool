@@ -31,9 +31,17 @@ def nx_topsort_rank(graph, nodes=None):
     nodes = flat_node_order_
     """
     import utool as ut
-    topsort = list(nx.topological_sort(graph))
-    node_to_top_rank = ut.make_index_lookup(topsort)
-    toprank = ut.dict_take(node_to_top_rank, nodes)
+    if True:
+        # Determenistic version
+        dag_ranks = nx_dag_node_rank(graph, nodes)
+        toprank = ut.argsort(dag_ranks, list(map(str, nodes)))
+    else:
+        # Non-determenistic version
+        dag_ranks = nx_dag_node_rank(graph, nodes)
+        topsort = list(nx.topological_sort(graph))
+        print('topsort = %r' % (topsort,))
+        node_to_top_rank = ut.make_index_lookup(topsort)
+        toprank = ut.dict_take(node_to_top_rank, nodes)
     return toprank
 
 
@@ -280,7 +288,7 @@ def nx_all_nodes_between(graph, source, target, data=False):
             'specify sink if there is not only one')
         target = sinks[0]
     all_simple_paths = list(nx.all_simple_paths(graph, source, target))
-    nodes = list(ut.union_ordered(ut.flatten(all_simple_paths)))
+    nodes = sorted(set.union(*map(set, all_simple_paths)))
     return nodes
 
 
@@ -1616,7 +1624,8 @@ def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
 @profile
 def bfs_conditional(G, source, reverse=False, keys=True, data=False,
                     yield_nodes=True, yield_condition=None,
-                    continue_condition=None, visited_nodes=None):
+                    continue_condition=None, visited_nodes=None,
+                    yield_source=False):
     """
     Produce edges in a breadth-first-search starting at source, but only return
     nodes that satisfiy a condition, and only iterate past a node if it
@@ -1660,7 +1669,7 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         visited_nodes = set(visited_nodes)
 
     if source not in visited_nodes:
-        if yield_nodes:
+        if yield_nodes and yield_source:
             yield source
         visited_nodes.add(source)
         new_edges = neighbors(source)

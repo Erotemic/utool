@@ -591,10 +591,10 @@ def combine_uuids(uuids, ordered=True, salt=''):
         >>> result = ut.repr4([combo1, combo2, combo3, combo4])
         >>> print(result)
         [
-            UUID('ce60fdb8-6b94-c77b-108c-1ff9579dde0d'),
-            UUID('57f6e6c8-7ddc-162d-42bf-29013fe399ed'),
-            UUID('2b8c46b7-8d0d-23c6-a81e-3eb453b2eb04'),
-            UUID('2b8c46b7-8d0d-23c6-a81e-3eb453b2eb04'),
+            UUID('83ee781f-8646-ccba-0ed8-13842825c12a'),
+            UUID('52bbb33f-612e-2ab8-a62c-2f46e5b1edc8'),
+            UUID('945cadab-e834-e581-0f74-62f106d20d81'),
+            UUID('945cadab-e834-e581-0f74-62f106d20d81'),
         ]
 
     Example:
@@ -685,6 +685,14 @@ def hashable_to_uuid(hashable_):
         >>> print(result)
         e864ece8-8880-43b6-7277-c8b2cefe96ad
 
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> hashable_ = [1, 2, 3]
+        >>> uuid_ = hashable_to_uuid(hashable_)
+        >>> result = str(uuid_)
+        >>> print(result)
+
     """
     # Hash the bytes
     if six.PY3:
@@ -696,6 +704,8 @@ def hashable_to_uuid(hashable_):
             #print('sbytes=%r' % (bytes_,))
         elif isinstance(hashable_, int):
             bytes_ = hashable_.to_bytes(4, byteorder='big')
+        elif isinstance(hashable_, (list, tuple)):
+            bytes_ = str(hashable_).encode('utf-8')
         else:
             #bytes_ = bytearray(hashable_)
             bytes_ = hashable_
@@ -710,9 +720,19 @@ def hashable_to_uuid(hashable_):
         elif isinstance(hashable_, int):
             import struct
             bytes_ = struct.pack('>i', hashable_)
+        elif isinstance(hashable_, (list, tuple)):
+            bytes_ = str(hashable_).encode('utf-8')
         else:
+            # bytes_ = bytes(hashable_)
             bytes_ = bytes(hashable_)
-    bytes_sha1 = hashlib.sha1(bytes_)
+    print('hashable_ = %r' % (hashable_,))
+    print('bytes_ = %r' % (bytes_,))
+    try:
+        bytes_sha1 = hashlib.sha1(bytes_)
+    except TypeError:
+        print('hashable_ = %r' % (hashable_,))
+        print('bytes_ = %r' % (bytes_,))
+        raise
     # Digest them into a hash
     #hashstr_40 = img_bytes_sha1.hexdigest()
     #hashstr_32 = hashstr_40[0:32]
