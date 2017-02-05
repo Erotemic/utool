@@ -31,8 +31,9 @@ def nx_topsort_rank(graph, nodes=None):
     nodes = flat_node_order_
     """
     import utool as ut
-    if True:
+    if False:
         # Determenistic version
+        # Ok, this doesn't work.
         dag_ranks = nx_dag_node_rank(graph, nodes)
         toprank = ut.argsort(dag_ranks, list(map(str, nodes)))
     else:
