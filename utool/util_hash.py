@@ -725,8 +725,8 @@ def hashable_to_uuid(hashable_):
         else:
             # bytes_ = bytes(hashable_)
             bytes_ = bytes(hashable_)
-    print('hashable_ = %r' % (hashable_,))
-    print('bytes_ = %r' % (bytes_,))
+    # print('hashable_ = %r' % (hashable_,))
+    # print('bytes_ = %r' % (bytes_,))
     try:
         bytes_sha1 = hashlib.sha1(bytes_)
     except TypeError:
