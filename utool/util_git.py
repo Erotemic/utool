@@ -376,11 +376,12 @@ class Repo(util_dev.NiceRepr):
         if repo._modname is not None:
             aliases.append(repo._modname)
         aliases.extend(repo._modname_hints[:])
-        if repo.dpath and exists(repo.dpath):
-            reponame = repo._find_modname_from_repo()
-            if reponame is not None:
-                aliases.append(reponame)
+        # if repo.dpath and exists(repo.dpath):
+        #     reponame = repo._find_modname_from_repo()
+        #     if reponame is not None:
+        #         aliases.append(reponame)
         aliases.append(repo.reponame)
+        aliases.append(repo.reponame.lower())
         import utool as ut
         aliases = ut.unique(aliases)
         return aliases
