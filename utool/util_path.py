@@ -115,6 +115,9 @@ def tail(fpath, n=2, trailing=True):
 
 
 def unexpanduser(path):
+    r"""
+    Replaces home directory with '~'
+    """
     homedir = expanduser('~')
     if path.startswith(homedir):
         path = '~' + path[len(homedir):]
