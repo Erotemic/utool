@@ -40,7 +40,7 @@ def nx_topsort_rank(graph, nodes=None):
         # Non-determenistic version
         dag_ranks = nx_dag_node_rank(graph, nodes)
         topsort = list(nx.topological_sort(graph))
-        print('topsort = %r' % (topsort,))
+        # print('topsort = %r' % (topsort,))
         node_to_top_rank = ut.make_index_lookup(topsort)
         toprank = ut.dict_take(node_to_top_rank, nodes)
     return toprank
@@ -625,7 +625,7 @@ def nx_delete_None_edge_attr(graph, edges=None):
         for edge in graph.edges():
             u, v = edge
             data = graph[u][v]
-            for key in data.keys():
+            for key in list(data.keys()):
                 try:
                     if data[key] is None:
                         del data[key]
@@ -642,7 +642,7 @@ def nx_delete_None_node_attr(graph, nodes=None):
         nodes = list(graph.nodes())
     for node in graph.nodes():
         data = graph.node[node]
-        for key in data.keys():
+        for key in list(data.keys()):
             try:
                 if data[key] is None:
                     del data[key]
