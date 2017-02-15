@@ -201,6 +201,12 @@ class Repo(util_dev.NiceRepr):
                  modname=None, pythoncmd=None):
         # modname might need to be called egg?
         import utool as ut
+        if url is not None and '.git@' in url:
+            # parse out specific branch
+            repo.default_branch = url.split('@')[-1]
+            url = '@'.join(url.split('@')[:-1])
+        else:
+            repo.default_branch = None
         repo.url = url
         repo._modname = None
         if modname is None:
@@ -436,7 +442,12 @@ class Repo(util_dev.NiceRepr):
         print('[git] check repo exists at %s' % (repo.dpath))
         if not exists(repo.dpath):
             _cd(dirname(repo.dpath))
-            _syscmd('git clone ' + repo.url)
+            print('repo.default_branch = %r' % (repo.default_branch,))
+            if repo.default_branch is None:
+                _syscmd('git clone {url}'.format(url=repo.url))
+            else:
+                _syscmd('git clone -b {branchname} {url}'.format(
+                    branchname=repo.default_branch, url=repo.url))
 
     def owner(repo):
         url_parts = re.split('[/:]', repo.url)
