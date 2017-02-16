@@ -1398,7 +1398,7 @@ def parse_function_names(sourcecode, top_level=True):
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.pyc')
-        >>> fpath = ut.truepath('~/code/bintrees/bintrees/avltree.py')
+        >>> #fpath = ut.truepath('~/code/bintrees/bintrees/avltree.py')
         >>> sourcecode = ut.readfrom(fpath)
         >>> func_names = parse_function_names(sourcecode)
         >>> result = ('func_names = %s' % (ut.repr2(func_names),))
@@ -1412,11 +1412,13 @@ def parse_function_names(sourcecode, top_level=True):
         pt = ast.parse(sourcecode.encode('utf8'))
     else:
         pt = ast.parse(sourcecode)
+
     class FuncVisitor(ast.NodeVisitor):
         def visit_FunctionDef(self, node):
             func_names.append(node.name)
             if not top_level:
                 ast.NodeVisitor.generic_visit(self, node)
+
         def visit_ClassDef(self, node):
             if not top_level:
                 ast.NodeVisitor.generic_visit(self, node)

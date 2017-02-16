@@ -1213,8 +1213,10 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         hist_[item] += weight
     hist_ = dict(hist_)
     if ordered:
-        import utool as ut
-        key_order = ut.sortedby(list(hist_.keys()), list(hist_.values()))
+        # import utool as ut
+        # key_order = ut.sortedby(list(hist_.keys()), list(hist_.values()))
+        getval = op.itemgetter(1)
+        key_order = [key for (key, value) in sorted(hist_.items(), key=getval)]
         hist_ = order_dict_by(hist_, key_order)
     return hist_
 
