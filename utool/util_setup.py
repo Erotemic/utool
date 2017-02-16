@@ -544,6 +544,27 @@ def presetup_commands(setup_fpath, kwargs):
 presetup = presetup_commands
 
 
+# def parse_package_version(fpath='__init__.py', varname='__version__'):
+#     """ Statically parse the version number from __init__.py """
+#     # from os.path import dirname, join
+#     import ast
+#     # repo_dpath = dirname(__file__)
+#     # file_fpath = join(repo_dpath, 'ibeis', '__init__.py')
+#     # file_fpath = join(repo_dpath, 'ibeis', 'control', 'DB_SCHEMA_CURRENT.py')
+#     with open(fpath) as file_:
+#         sourcecode = file_.read()
+#     pt = ast.parse(sourcecode)
+
+#     class VersionVisitor(ast.NodeVisitor):
+#         def visit_Assign(self, node):
+#             for target in node.targets:
+#                 if target.id == varname:
+#                     self.version = node.value.s
+#     visitor = VersionVisitor()
+#     visitor.visit(pt)
+#     return visitor.version
+
+
 def parse_package_for_version(name):
     """
     Searches for a variable named __version__ in name's __init__.py file and
