@@ -206,6 +206,7 @@ def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_import import *  # NOQA
+        >>> import utool as ut
         >>> import ibeis
         >>> package = ibeis
         >>> ignore_prefix = ['ibeis.tests', 'ibeis.control.__SQLITE3__',
@@ -215,7 +216,7 @@ def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
         >>> with_mod = True
         >>> result = package_contents(package, with_pkg, with_mod,
         >>>                           ignore_prefix, ignore_suffix)
-        >>> print(ut.list_str(result))
+        >>> print(ut.repr2(result))
     """
     import pkgutil
     if not hasattr(package, '__path__'):
