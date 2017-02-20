@@ -1703,8 +1703,10 @@ def find_doctestable_modnames(dpath_list=None, exclude_doctests_fnames=[],
                          include_patterns=['*.py'], exclude_dirs=exclude_dirs,
                          recursive=True)[0]
     exclude_doctests_fnames = set(exclude_doctests_fnames)
+
     def is_not_excluded(fpath):
         return basename(fpath) not in exclude_doctests_fnames
+
     def is_in_package(fpath):
         return exists(join(dirname(fpath), '__init__.py'))
     fpath_list = list(filter(is_in_package, fpath_list))
@@ -1723,6 +1725,7 @@ def find_untested_modpaths(dpath_list=None, exclude_doctests_fnames=[], exclude_
                                                recursive=True,
                                                inverse=True)
     exclude_doctests_fnames = set(list(exclude_doctests_fnames) + ['__init__.py'])
+
     def is_not_excluded(fpath):
         fname = basename(fpath)
         return (not fname.startswith('_')) and fname not in exclude_doctests_fnames
@@ -1748,7 +1751,12 @@ class ExitTestException(Exception):
 
 def qt4ensure():
     import plottool as pt
-    pt.qt4ensure()
+    pt.qtensure()
+
+
+def qtensure():
+    import plottool as pt
+    pt.qtensure()
 
 
 def quit_if_noshow():

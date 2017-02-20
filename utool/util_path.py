@@ -1713,10 +1713,15 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
         print('[sedfile] regexpr=%r' % regexpr)
         print('[sedfile] repl=%r' % repl)
         print('[sedfile] force=%r' % force)
-    with open(fpath, 'r') as file:
-        file_lines = file.readlines()
-        # Search each line for the desired regexpr
-        new_file_lines = [re.sub(regexpr, repl, line) for line in file_lines]
+
+    import utool as ut
+    file_lines = ut.readfrom(fpath, aslines=True, verbose=False)
+    # with open(fpath, 'r') as file:
+    #     import utool
+    #     with utool.embed_on_exception_context:
+    #         file_lines = file.readlines()
+    # Search each line for the desired regexpr
+    new_file_lines = [re.sub(regexpr, repl, line) for line in file_lines]
 
     changed_lines = [(newline, line)
                      for newline, line in zip(new_file_lines, file_lines)
@@ -1749,8 +1754,9 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
         # Write back to file
         if force:
             print(' ! WRITING CHANGES')
-            with open(fpath, 'w') as file:
-                file.write(new_file.encode('utf8'))
+            ut.writeto(fpath, new_file)
+            # with open(fpath, 'w') as file:
+            #     file.write(new_file.encode('utf8'))
         else:
             print(' dry run')
         return changed_lines
