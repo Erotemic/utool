@@ -749,12 +749,16 @@ def grab_file_remote_hash(file_url, hash_list, verbose=False):
             print('[utool] Checking remote hash URL %r' % (hash_url, ))
 
         # Get the actual hash from the remote server, save in memory
-        resp = requests.get(hash_url)
-        hash_remote = six.text_type(resp.content.strip())
+        try:
+            resp = requests.get(hash_url)
+            hash_remote = six.text_type(resp.content.strip())
+        except requests.exceptions.ConnectionError:
+            hash_remote = ''
 
         # Verify response is of an actual hash
         try:
             # Check correct length
+            assert hash_remote is not None
             assert len(hash_remote) == int(hasher.digest_size * 2)
             # Check number is hexidecimal
             int(hash_remote, 16)
