@@ -347,6 +347,7 @@ class ProgressIter(object):
         self.backspace          = kwargs.get('backspace', kwargs.get('bs', False))
         self.freq               = kwargs.get('freq', 1)
         self.invert_rate        = kwargs.get('invert_rate', False)
+        self.auto_invert_rate   = kwargs.get('auto_invert_rate', True)
         self.verbose            = kwargs.pop('verbose', True)  # VERBOSE
         #self.report_unit       = kwargs.get('report_unit', 'minutes')
         self.enabled            = kwargs.get('enabled', True)
@@ -521,11 +522,22 @@ class ProgressIter(object):
             msg_head = [CLEAR_BEFORE] + msg_head
 
         msg_tail = [
-            ('rate={rate:3.3f} seconds/iter, '
-             if invert_rate else 'rate={rate:4.2f} Hz,'),
-            ('' if nTotal == 0 else ' etr={etr},'),
+            (
+                'rate={rate:4.2f} sec/iter, '
+                if invert_rate else
+                'rate={rate:4.2f} Hz,'
+            ),
+            (
+                ''
+                if nTotal == 0 else
+                ' etr={etr},'
+            ),
             ' ellapsed={ellapsed},',
-            (' wall={wall} ' + tzname if with_wall else ''),
+            (
+                ' wall={wall} ' + tzname
+                if with_wall
+                else ''
+            ),
             # backslash-r is a carrage return and undoes all previous output on
             # a written line
             (' {extra}'),
@@ -748,6 +760,12 @@ class ProgressIter(object):
     def display_message(self):
         # HACK to be more like sklearn.extrnals ProgIter version
         if self.verbose:
+            instant_invert_rate = self.iters_per_second < 0.1
+            if self.auto_invert_rate and self.invert_rate != instant_invert_rate:
+                self.invert_rate = instant_invert_rate
+                self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
+                                                         self.invert_rate,
+                                                         self.backspace)
             try:
                 rate = 1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second
             except ZeroDivisionError:
