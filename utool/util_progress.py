@@ -651,7 +651,7 @@ class ProgressIter(object):
         USE_RECORD = True
         # use last 64 times to compute a more stable average rate
         measure_between_time = collections.deque([], maxlen=self.est_window)
-        measure_est_seconds = collections.deque([], maxlen=self.est_window)
+        # measure_est_seconds = collections.deque([], maxlen=self.est_window)
 
         # Wrap the for loop with a generator
         for self.count, item in enumerate(self.iterable, start=start):
@@ -683,11 +683,11 @@ class ProgressIter(object):
                 else:
                     iters_left = nTotal - self.count
                     est_etr = iters_left / (iters_per_second + 1E-9)
-                    if USE_RECORD:
-                        measure_est_seconds.append(est_etr)
-                        est_seconds_left = sum(measure_est_seconds) / len(measure_est_seconds)
-                    else:
-                        est_seconds_left = est_etr
+                    # if USE_RECORD:
+                    #     measure_est_seconds.append(est_etr)
+                    #     est_seconds_left = sum(measure_est_seconds) / len(measure_est_seconds)
+                    # else:
+                    est_seconds_left = est_etr
                 self.est_seconds_left = est_seconds_left
 
                 # /future
@@ -766,10 +766,7 @@ class ProgressIter(object):
                 self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
                                                          self.invert_rate,
                                                          self.backspace)
-            try:
-                rate = 1.0 / self.iters_per_second if self.invert_rate else self.iters_per_second
-            except ZeroDivisionError:
-                rate = np.nan
+            rate = 1.0 / (self.iters_per_second + 1E-9) if self.invert_rate else self.iters_per_second
             msg = self.msg_fmtstr.format(
                 count=self.count,
                 rate=rate,
