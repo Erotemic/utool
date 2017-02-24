@@ -757,6 +757,7 @@ class ProgressIter(object):
             instant_invert_rate = self.iters_per_second < 0.1
             if self.auto_invert_rate and self.invert_rate != instant_invert_rate:
                 self.invert_rate = instant_invert_rate
+                nTotal = self.nTotal * self.parent_nTotal  # hack
                 self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
                                                          self.invert_rate,
                                                          self.backspace)
