@@ -864,7 +864,7 @@ def testdata_graph():
         >>> import utool as ut
         >>> (graph, G) = testdata_graph()
         >>> import plottool as pt
-        >>> ut.ensure_pylab_qt4()
+        >>> ut.ensureqt()
         >>> pt.show_nx(G, layout='pygraphviz')
         >>> ut.show_if_requested()
     """

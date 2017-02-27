@@ -2634,12 +2634,12 @@ def get_submodules_from_dpath(dpath, only_packages=False, recursive=True):
 
 def pylab_qt4():
     import plottool as pt
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
 
 
-def ensure_pylab_qt4():
+def ensureqt():
     import plottool as pt
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
 
 
 class DictLike_old(object):

@@ -97,6 +97,8 @@ class EulerTourTree(object):
 
     hg clone https://bitbucket.org/mozman/bintrees
 
+    git clone git@github.com:Erotemic/bintrees.git
+
     References:
         https://courses.csail.mit.edu/6.851/spring07/scribe/lec05.pdf
         http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.192.8615&rep=rep1&type=pdf
@@ -297,11 +299,94 @@ class EulerTourTree(object):
         pass
 
 
-class EulerTourForest(object):
-    pass
+class DummyEulerTourForest(object):
+    """
+    maintain a forests of euler tour trees
+
+    This is a bad implementation, but will let us use the DynConnGraph api
+    """
+    def __init__(self, nodes=None):
+        # mapping from root node to tree
+        self.trees = {}
+        if nodes is not None:
+            for node in nodes:
+                self.add_node(node)
+
+    def _check_node_type(self, node):
+        if not isinstance(node, (int, str)):
+            raise ValueError('only primative int/str objects can be nodes')
+
+    def add_node(self, node):
+        self._check_node_type(node)
+        root = self.find_root(node)
+        if root is None:
+            # self.trees[node] = EulerTourTree(node)
+            new_root = nx.Graph()
+            new_root.add_node(node)
+            self.trees[node] = new_root
+
+    def has_edge(self, u, v):
+        return any(tree.has_edge(u, v) for tree in self.components())
+
+    def find_root(self, node):
+        for root, subgraph in self.trees.items():
+            if subgraph.has_node(node):
+                return root
+
+    def subtree(self, node):
+        root = self.find_root(node)
+        subtree = self.trees[root]
+        return subtree
+
+    def remove_edge(self, u, v):
+        ru = self.find_root(u)
+        rv = self.find_root(v)
+        assert ru == rv
+        subtree = self.trees[ru]
+        del self.trees[ru]
+        subtree.remove_edge(u, v)
+        for new_tree in nx.connected_component_subgraphs(subtree):
+            if new_tree.has_node(u):
+                self.trees[u] = new_tree
+            elif new_tree.has_node(v):
+                self.trees[v] = new_tree
+        # raise NotImplementedError('remove edge')
+
+    def add_edge(self, u, v):
+        print('[euler_tour_forest] add_edge(%r, %r)' % (u, v))
+        if self.has_edge(u, v):
+            return
+        ru = self.find_root(u)
+        rv = self.find_root(v)
+        if ru is None:
+            self.add_node(u)
+            ru = u
+        if rv is None:
+            self.add_node(v)
+            rv = v
+        assert ru is not rv, (
+            'u=%r, v=%r not disjoint, can only join disjoint edges' % (u, v))
+        assert ru in self.trees, 'ru must be a root node'
+        assert rv in self.trees, 'rv must be a root node'
+        subtree1 = self.trees[ru]
+        subtree2 = self.trees[rv]
+        del self.trees[rv]
+        new_tree = nx.compose(subtree1, subtree2)
+        new_tree.add_edge(u, v)
+        self.trees[ru] = new_tree
+        print(list(new_tree.nodes()))
+        assert nx.is_connected(new_tree)
+        assert nx.is_tree(new_tree)
+
+    def components(self):
+        return self.trees.values()
+
+    def to_graph(self):
+        graph = nx.compose_all(self.components())
+        return graph
 
 
-class DynamicConnectivity(object):
+class DynConnGraph(object):
     """
     Stores a spanning forest with Euler Tour Trees
 
@@ -312,6 +397,25 @@ class DynamicConnectivity(object):
 
         https://www.cs.princeton.edu/courses/archive/fall03/cs528/handouts/Poly%20logarithmic.pdf
         http://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf
+        http://courses.csail.mit.edu/6.854/16/Projects/B/dynamic-graphs-survey.pdf
+        http://dl.acm.org/citation.cfm?id=502095
+        http://delivery.acm.org/10.1145/510000/502095/p723-holm.pdf?ip=128.213.17.14&id=502095&acc=ACTIVE%20SERVICE&key=7777116298C9657D%2EAF047EA360787914%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&CFID=905563744&CFTOKEN=37809688&__acm__=1488222284_4ae91dd7a761430ee714f0c69c17b772
+
+    Notes:
+        Paper uses level 0 at top, but video lecture uses floor(log(n)) as top.
+
+        All edges start at level floor(log(n)).
+        The level of each edge will change over time, but cannot decrease below zero.
+
+
+    Notes:
+        Going to store
+
+        Let G[i] = subgraph graph at level i. (
+            contains only edges of level i or greater)
+        Let F[i] be Euler tour forest to correspond with G[i].
+
+        G[log(n)] = full graph
 
     Notes:
         Invariant 1 Every connected component of G_i has at most 2^i vertices.
@@ -321,94 +425,199 @@ class DynamicConnectivity(object):
                 F[log(n)] is the minimum spanning forest of G_{log(n)},
                 where the weight of an edge is its level.
 
+                F[0] is a maximum spanning forest if using 0 as top level
+
     CommandLine:
-        python -m ibeis.algo.hots.dynamic_connectivity DynamicConnectivity --show
+        python -m utool.experimental.dynamic_connectivity DynConnGraph --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.dynamic_connectivity import *  # NOQA
+        >>> from utool.experimental.dynamic_connectivity import *  # NOQA
+        >>> import networkx as nx
         >>> import utool as ut
         >>> import plottool as pt
-        >>> pt.qt4ensure()
         >>> graph = nx.Graph([
         >>>    (0, 1), (0, 2), (0, 3), (1, 3), (2, 4), (3, 4), (2, 3),
         >>>    (5, 6), (5, 7), (5, 8), (6, 8), (7, 9), (8, 9), (7, 8),
         >>> ])
-        >>> pt.show_nx(graph)
+        >>> graph = nx.generators.cycle_graph(5)
+        >>> self = DynConnGraph(graph)
+        >>> pt.qtensure()
+        >>> pt.show_nx(self.graph, fnum=1)
+        >>> self.show_internals(fnum=2)
+        >>> self.remove_edge(1, 2)
+        >>> self.show_internals(fnum=3)
+        >>> self.remove_edge(3, 4)
+        >>> self.show_internals(fnum=4)
         >>> ut.show_if_requested()
     """
 
+    def show_internals(self, fnum=None):
+        import plottool as pt
+        pt.qtensure()
+
+        pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=len(self.forests))
+        for level, forest in enumerate(self.forests):
+            pt.show_nx(forest.to_graph(), title='level=%r' % (level,),
+                       fnum=fnum, pnum=pnum_())
+
+    def _init_forests():
+        """
+        F[i] is a spanning forest of G[i].
+        F[i] is stored as an EulerTourTree
+
+        F[floor(log(n))] - used to support connectivity queries
+
+        F[0] has fewest edges
+        F[log(n)] has most edges
+
+        Invariant 2 F[0] ⊆ F[1] ⊆ F[2] ⊆ ... ⊆ F[log(n)].
+            In other words:
+                F[i] = F[log(n)] ∩ G_i, and
+                F[log(n)] is the minimum spanning forest of G_{log(n)},
+                where the weight of an edge is its level.
+            F[i] is a min. spanning forest w.r.t level, otherwise invariant 2 is not satisfied
+        """
+        pass
+
     def __init__(self, graph):
         # List of forests at each level
-        self.graph = graph
-        self.n = graph.number_of_nodes()
-        # stores the level of each edges
+        # self.graph = graph
+        self.graph = nx.Graph()
         self.level = {}
-        self.F = []
+        self.forests = [DummyEulerTourForest()]
 
+        for u, v in graph.edges():
+            self.add_edge(u, v)
+
+        # self.n = graph.number_of_nodes()
+        # stores the level of each edges
         # First add all tree edges at level 0
         # Then add non-tree edges at higher levels
         # Store each forest as a nx.Graph?
 
-        forests = []
-        current_level = list(nx.connected_component_subgraphs(graph))
-        while current_level:
-            next_level = []
-            for subgraph in current_level:
-                mst = nx.minimum_spanning_tree(subgraph)
-                # mst_tour = find_euler_tour(mst)
-                forests.append(mst)
-                residual = nx.difference(subgraph, mst)
-                if residual.number_of_edges():
-                    next_level.append(residual)
-            current_level = next_level
-            print('current_level = %r' % (current_level,))
+        # forests = []
+        # current_level = list(nx.connected_component_subgraphs(graph))
+        # while current_level:
+        #     next_level = []
+        #     for subgraph in current_level:
+        #         mst = nx.minimum_spanning_tree(subgraph)
+        #         # mst_tour = find_euler_tour(mst)
+        #         forests.append(mst)
+        #         residual = nx.difference(subgraph, mst)
+        #         if residual.number_of_edges():
+        #             next_level.append(residual)
+        #     current_level = next_level
+        #     print('current_level = %r' % (current_level,))
 
-    def insert(self, u, v):
-        e = (u, v)
-        # First set the level of `e` to 0
-        self.level[e] = 0
+    def add_edge(self, u, v):
+        """
+        O(log(n))
+        """
+        # print('add_edge u, v = %r, %r' % (u, v,))
+        if self.graph.has_edge(u, v):
+            return
+        for node in (u, v):
+            if not self.graph.has_node(node):
+                self.graph.add_node(node)
+            for Fi in self.forests:
+                Fi.add_node(node)
+        # First set the level of (u, v) to 0
+        self.level[(u, v)] = 0
         # update the adjacency lists of u and v
         self.graph.add_edge(u, v)
         # If u and v are in separate trees in F_0, add e to F_0
-        F0 = self.F[0]
-        if F0.find(u) is not F0.find(v):
-            F0.union(u, v)
-        # if F0[u]['tree_label'] != F0[v]['tree_label']:
-        # if F0[u]['tree_label'] != F0[v]['tree_label']:
-        #     F0.add_edge(u, v)
+        ru = self.forests[0].find_root(u)
+        rv = self.forests[0].find_root(v)
+        if ru is not rv:
+            # If they are in different connected compoments merge compoments
+            self.forests[0].add_edge(u, v)
 
-    def delete(self, u, v):
-        # Remove edge e = (u, v) from the graph.
-        # we first remove e from the adjacency lists of u and v.
-        # If e is not in F[log(n)], we’re done
-        # Otherwise:
-        # 1. Delete e from Fi for all i ≥ level(e).
-        #     * Now we want to look for a replacement edge to reconnect u and v.
-        #     * Note that the replacement edge cannot be at a level less than
-        #     level(e) by Invariant 2 (recall that each Fi is a minimum spanning forest).
-        #     * We will start searching for a replacement edge at level(e) to
-        #     preserve the Invariant refinv:subset.
-        # We will look for this replacement edge by doing the following:
-        # 2. For i = level(e) to log n:
-        # (a) Let Tu be the tree containing u, and let Tv be the tree
-        #     containing v. WLOG, assume |Tv| ≤ |Tu|.
-        # (b) By Invariant 1, we know that |Tu| + |Tv| ≤ 2^{i},
-        #     so |Tv| ≤ 2^{i−1}.
-        #     This means that we can afford to push all edges of Tv down to
-        #     level i − 1.
-        # (c) For each edge (x, y) at level i with x in Tv:
-        #    i. If y is in Tu, add (x, y) to Fi, Fi+1, . . . , Flog n, and stop.
-        #    ii. Otherwise set level(x, y) ← i − 1.
-        pass
+    def remove_edge(self, u, v):
+        """
+        Using notation where 0 is top level
+
+        Intuitively speaking, when the level of a nontree edge is increased, it
+        is because we have discovered that its end points are close enough in F
+        to fit in a smaller tree on a higher level.
+        """
+        # Remove (u, v) from represented graph
+        print('Dynamically removing uv=(%r, %r)' % (u, v))
+        self.graph.remove_edge(u, v)
+        e = (u, v)
+        # Remove edge e = (u, v) from all graphs.
+        if not self.forests[0].has_edge(u, v):
+            # If (u, v) is a non-tree edge, simply delete it.
+            # Nothing else to do.
+            return
+        # If (u, v) is a tree edge we delete it and search for a replacement.
+        # Delete from all higher levels
+        for i in reversed(range(0, self.level[e] + 1)):
+            self.forests[i].remove_edge(u, v)
+
+        # Determine if another edge that connects u and v exists.
+        # (This must be an edge r, level[r] <= level[e])
+        # (Find max possible level[r] <= level[e])
+        for i in reversed(range(0, self.level[e] + 1)):
+            # Tu != Tw b/c (u, v) was just deleted from all forests
+            Tu = self.forests[i].subtree(u)
+            print('Tu = %r' % (list(Tu.nodes()),))
+            Tv = self.forests[i].subtree(v)
+            print('Tv = %r' % (list(Tv.nodes()),))
+            # Relabel so len(Tu) <= len(Tv)
+            # This ensures len(Tu) < 2 ** (floor(log(n)) - i)
+            if len(Tu) > len(Tv):
+                Tu, Tv = Tv, Tu
+                # Note len(Tu) <= 2 * (len(Tu) + len(Tv) + 1)
+            # We can afford to push all of Tu's edges to the next level and
+            # still preserve invariant 1.
+            seen_ = set([])
+            for x in Tu.nodes():
+                # Visit all edges INCIDENT (in real graph) to nodes in Tu.
+                # This lets us find non-tree edges to make a tree edge
+                seen_.add(x)
+                for y in self.graph.neighbors(x):
+                    if y in seen_:
+                        continue
+                    # print('Check replacement edge xy=(%r, %r)' % (x, y))
+                    if y in Tv:
+                        print('* Found replacement xy=(%r, %r)' % (x, y))
+                        # edge (x, y) is a replacement edge.
+                        # add (x, y) to prev forests F[0:i+1]
+                        # This is the only place edges are added to forets of
+                        # higher levels.
+                        if len(self.forests) == i + 1:
+                            self.forests.append(DummyEulerTourForest(self.graph.nodes()))
+                        for j in range(0, i + 2):
+                            print('* Add replacment to F[j=%r]' % (j,))
+                            # Need euler tree augmentation for outgoing level edges
+                            self.forests[j].add_edge(x, y)
+                        return
+                    else:
+                        print('* Charging xy=(%r, %r)' % (x, y))
+                        # charge --- add (x, y) to next level
+                        # this pays for our search in an amortized sense
+                        # (ie, the next search at this level wont consider this)
+                        if len(self.forests) == i + 1:
+                            self.forests.append(DummyEulerTourForest(self.graph.nodes()))
+                        if self.forests[i].has_edge(x, y):
+                            self.forests[i + 1].add_edge(x, y)
+                        #     # assert False, 'we got it, should add it?'
+                        self.level[(x, y)] = i + 1
 
     def is_connected(self, u, v):
-        # Check if vertices u and v are connected.
-        # Query F_{log(n)} to see if u and v are in the same tree.
-        # This can be done by checking F_{log(n)} if Findroot(u) = Findroot(v).
-        # This costs O(log n/ log log n) using B-tree based Euler-Tour trees.
-        self.F[-1]
-        pass
+        """
+        Check if vertices u and v are connected.
+        Query top level forest F[0] to see if u and v are in the same tree.
+        This can be done by checking F_{log(n)} if Findroot(u) = Findroot(v).
+        This costs O(log(n) / log(log(n))) using B-tree based Euler-Tour trees.
+        but this trades off with a O(log^2(n)/log(log(n))) update
+        This is O(log(n)) otherwise
+        """
+        ru = self.forests[0].find_root(u)
+        rv = self.forests[0].find_root(v)
+        return ru == rv
+
 
 if __name__ == '__main__':
     r"""

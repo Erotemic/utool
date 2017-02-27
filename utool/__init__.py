@@ -369,7 +369,7 @@ if DOELSE:
                                 compile_cython, copy_text_to_clipboard,
                                 delayed_retry_gen, dev_ipython_copypaster,
                                 disable_garbage_collection,
-                                enable_garbage_collection, ensure_pylab_qt4,
+                                enable_garbage_collection, ensureqt,
                                 ensure_str_list, exec_funckw, execstr_funckw,
                                 extract_timeit_setup, find_exe,
                                 find_interesting_stats, fix_super_reload_error,
