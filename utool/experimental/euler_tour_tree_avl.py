@@ -20,16 +20,16 @@ def euler_tour_dfs(G, source=None):
         visited.add(start)
         stack = [(start, iter(G[start]))]
         while stack:
-            parent, children = stack[-1]
+            parent, kids = stack[-1]
             try:
-                child = next(children)
+                child = next(kids)
                 if child not in visited:
                     # yielder += [[parent, child]]
                     yielder += [parent]
                     visited.add(child)
                     stack.append((child, iter(G[child])))
             except StopIteration:
-                if stack:
+                if len(stack) > 0:
                     last = stack[-1]
                     yielder += [last[0]]
                 stack.pop()
@@ -45,21 +45,31 @@ class Node(ut.NiceRepr):
         self.right = None
         self.parent = None
         if key is None:
-            key = object()
+            key = object()  # for networkx
         self.key = key
         self.value = value
         self.balance = 0
 
     @property
-    def children(self):
+    def kids(self):
         return (self.left, self.right)
+
+    def __iter__(self):
+        return iter(EulerTourTree(root=self))
 
     @property
     def val(self):
         return self.value
 
     def __nice__(self):
-        return str(self.value)
+        with_neighbors = False
+        if with_neighbors:
+            def value(node):
+                return None if node is None else node.value
+            return '({})-{}-({}, {})'.format(
+                value(self.parent), self.value, value(self.left), value(self.right))
+        else:
+            return str(self.value)
 
     @property
     def xdata(self):
@@ -72,7 +82,7 @@ class Node(ut.NiceRepr):
         self.balance = data
 
     def set_child(self, direction, other):
-        if other:
+        if other is not None:
             other.parent = self
         self[direction] = other
 
@@ -132,14 +142,91 @@ class EulerTourTree(ut.NiceRepr):
         >>> self = EulerTourTree(tour)
         >>> print(self)
         >>> assert list(self) == tour
-
-
     """
     def __init__(self, iterable=None, root=None):
         self.root = root
         if iterable is not None:
             for value in iterable:
                 self.root = avl_insert_dir(self.root, Node(value=value))
+
+    def join(self, other):
+        self.root = avl_join2(self.root, other.root)
+        other.root = None
+        return self
+
+    def reroot(self, first_node, last_node):
+        """
+        Notes:
+            ● Split the tour into three parts: S₁, R, and S₂, where R consists
+              of the nodes between the first and last occurrence of the new
+              root r.
+            ● Delete the first node in S₁.
+            ● Concatenate R, S₂, S₁, {r}.
+
+        CommandLine:
+            python -m utool.experimental.euler_tour_tree_avl reroot
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> import networkx as nx
+            >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
+            >>> edges = list(nx.balanced_tree(2, 1).edges())
+            >>> tour = euler_tour_dfs(nx.Graph(edges))
+            >>> self = EulerTourTree(tour)
+            >>> print('old_tour = %r' % (self,))
+            >>> nodes = list(self._traverse_nodes())
+            >>> self.first_lookup = {node.value: node for node in nodes[::-1]}
+            >>> self.last_lookup = {node.value: node for node in nodes[::1]}
+            >>> new_root_val = 2
+            >>> first_node = self.first_lookup[new_root_val]
+            >>> last_node = self.last_lookup[new_root_val]
+            >>> self.reroot(first_node, last_node)
+            >>> print('new_tour = %r' % (self,))
+            >>> ut.quit_if_noshow()
+            >>> ut.show_if_requested()
+        """
+        # tour = list(self)
+        # print('tour     = %r' % (tour,))
+        S1, rest, first_node = avl_split(self.root, first_node)
+        R, S2, last_node = avl_split(rest, last_node)
+        # make split inclusive
+        avl_insert_dir(R, first_node, 0)
+        avl_insert_dir(R, last_node, 1)
+        # old_tour_parts = [S1, R, S2]
+        # old_tour = ut.flatten([list(p) for p in old_tour_parts if p])
+        # print('old_tour = %r' % (old_tour,))
+        # assert tour == old_tour
+        if S1 is None:
+            new_S1 = None
+        else:
+            new_S1, first = avl_split_first(S1)
+        new_last = Node(value=last_node.value)
+        new_tour_parts = [R, S2, new_S1, new_last]
+        new_tour = ut.flatten([list(p) for p in new_tour_parts if p])
+        print('new_tour = <XXXXXXXXX     %r' % (new_tour,))
+        new_root = avl_join2(R, S2)
+        new_root = avl_join2(new_root, new_S1)
+        new_last = avl_join2(new_root, new_last)
+        self.root = new_last
+
+        # TODO: fix lookups
+        self.last_lookup[new_last.value] = new_last
+
+        nodes = list(self._traverse_nodes())
+        new_first_lookup = {node.value: node for node in nodes[::-1]}
+        new_last_lookup = {node.value: node for node in nodes[::1]}
+
+        for key in new_last_lookup.keys():
+            old_last = self.last_lookup[key]
+            new_last = new_last_lookup[key]
+            if old_last is not new_last:
+                print('key=%r needs last update' % (key,))
+
+        for key in new_last_lookup.keys():
+            old_first = self.first_lookup[key]
+            new_first = new_first_lookup[key]
+            if old_first is not new_first:
+                print('key=%r needs first update' % (key,))
 
     def copy(self):
         import copy
@@ -174,13 +261,15 @@ class EulerTourTree(ut.NiceRepr):
                 return node
 
     def _assert_nodes(self):
+        if self.root is not None:
+            assert self.root.parent is None, 'must be root'
         for count, node in enumerate(self._traverse_nodes()):
             if node.left:
                 assert node.left.parent is node, 'left child problem, %d' % count
             if node.right:
                 assert node.right.parent is node, 'right child problem, %d' % count
             if node.parent:
-                assert node in node.parent.children, 'parent problem, %d' % count
+                assert node in node.parent.kids, 'parent problem, %d' % count
 
     def _traverse_nodes(self):
         """ Debugging function (exposes cython nodes as dummy nodes) """
@@ -204,7 +293,7 @@ class EulerTourTree(ut.NiceRepr):
             graph.add_node(u)  # Minor redundancy
             # Set node properties
             graph.node[u]['value'] = node.value
-            if labels:
+            if labels is not None:
                 label = ','.join([str(getattr(node, k)) for k in labels])
                 graph.node[u]['label'] = label
             if node.left is not None:
@@ -221,15 +310,24 @@ class EulerTourTree(ut.NiceRepr):
                     graph.edge[u][v]['label'] = 'R'
         return graph
 
+    @property
+    def repr_tree(self):
+        """
+        reconstruct represented tree as a DiGraph to
+        preserve the current rootedness
+        """
+        import utool as ut
+        import networkx as nx
+        repr_tree = nx.DiGraph()
+        for u, v in ut.itertwo(self.values()):
+            if not repr_tree.has_edge(v, u):
+                repr_tree.add_edge(u, v)
+        return repr_tree
+
     def show_nx(self, labels=['value'], edge_labels=False, fnum=None):
         import plottool as pt
         graph = self.to_networkx(labels=labels, edge_labels=edge_labels)
         pt.show_nx(graph, fnum=fnum)
-
-    def join(self, other):
-        self.root = avl_join2(self.root, other.root)
-        other.root = None
-        return self
 
     def print_tree(self):
         ascii_tree(self.root)
@@ -278,6 +376,40 @@ def ascii_tree(root, name=None):
 
 def height(node):
     return node.balance if node is not None else -1
+
+
+def avl_release_kids(node):
+    """
+    splits a node from its kids maintaining parent pointers
+    """
+    left, right = node.left, node.right
+    if left is not None:
+        # assert left.parent is node
+        left.parent = None
+    if right is not None:
+        # assert right.parent is node
+        right.parent = None
+    node.balance = 0
+    node.left = None
+    node.right = None
+    return node, left, right
+
+
+def avl_release_parent(node):
+    """
+    removes the parent of a child
+    """
+    parent = node.parent
+    if parent is not None:
+        if parent.right is node:
+            parent.right = None
+        elif parent.left is node:
+            parent.left = None
+        else:
+            raise AssertionError('impossible state')
+        node.parent = None
+        parent.balance = max(height(parent.right), height(parent.left)) + 1
+    return node, parent
 
 
 def avl_rotate_single(root, direction):
@@ -456,11 +588,11 @@ def avl_join(t1, t2, node):
         # FIXME keep track of count if possible
         if DEBUG_JOIN:
             print('Join Case 2')
-        return avl_insert_dir(t2, node, 1)
+        return avl_insert_dir(t2, node, 0)
     elif t2 is None:
         if DEBUG_JOIN:
             print('Join Case 3')
-        return avl_insert_dir(t1, node, 0)
+        return avl_insert_dir(t1, node, 1)
 
     h1 = height(t1)
     h2 = height(t2)
@@ -496,13 +628,33 @@ def avl_split_last(root):
     """
     if root is None:
         raise IndexError('Empty tree has no maximum element')
-    root, left, right = avl_release_children(root)
+    root, left, right = avl_release_kids(root)
     if right is None:
         new_root, last_node = left, root
     else:
         new_right, last_node = avl_split_last(right)
         new_root = avl_join(left, new_right, root)
     return (new_root, last_node)
+
+
+def avl_split_first(root):
+    """
+    Removes the minimum element from the tree
+
+    Returns:
+        tuple: new_root, first_node
+
+    O(log(n)) = O(height(root))
+    """
+    if root is None:
+        raise IndexError('Empty tree has no maximum element')
+    root, left, right = avl_release_kids(root)
+    if left is None:
+        new_root, first_node = right, root
+    else:
+        new_left, first_node = avl_split_first(left)
+        new_root = avl_join(new_left, right, root)
+    return (new_root, first_node)
 
 
 def avl_join2(t1, t2):
@@ -521,18 +673,6 @@ def avl_join2(t1, t2):
     else:
         new_left, last_node = avl_split_last(t1)
         return avl_join(new_left, t2, last_node)
-
-
-def avl_release_children(root):
-    left, right = root.left, root.right
-    if left:
-        left.parent = None
-    if right:
-        right.parent = None
-    root.balance = 0
-    root.left = None
-    root.right = None
-    return root, left, right
 
 
 def avl_new_top(t1, t2, top, direction=0):
@@ -562,6 +702,7 @@ def backtrace_root(node):
         >>> root = self.root
         >>> node = self.get_node(5)
         >>> self.print_tree()
+        >>> print('node = %r' % (node,))
         >>> rpath = backtrace_root(node)
         >>> print('rpath = %r' % (rpath,))
     """
@@ -581,6 +722,46 @@ def backtrace_root(node):
     return rpath
 
 
+def test_avl_split(verbose=1):
+    for num in range(0, 20):
+        for index in range(num):
+            if verbose:
+                print('------')
+                print('num = %r' % (num,))
+                print('index = %r' % (index,))
+            try:
+                tree0 = EulerTourTree(ut.chr_range(num))
+                tour = list(tree0)
+                tree0._assert_nodes()
+                if verbose >= 2:
+                    tree0.print_tree()
+                if verbose:
+                    print('tree0 = %r' % (tree0,))
+                node = tree0.get_node(index)
+                if verbose:
+                    print('node = %s' % (node,))
+                part1, part2, bnode = avl_split(tree0.root, node)
+                tree1 = EulerTourTree(root=part1)
+                tree2 = EulerTourTree(root=part2)
+                if verbose >= 2:
+                    tree1.print_tree(), tree2.print_tree()
+                if verbose:
+                    print('tree1 = %r' % (tree1,))
+                    print('tree2 = %r' % (tree2,))
+                # Should correspond to a split in the tour list
+                assert bnode.left is None, 'bnode must be split'
+                assert bnode.right is None, 'bnode must be split'
+                assert bnode.parent is None, 'bnode must be split'
+                assert bnode is node, 'node must be same'
+                ut.assert_eq(list(tree1), tour[:index])
+                ut.assert_eq(list(tree2), tour[index + 1:])
+                tree1._assert_nodes(), tree2._assert_nodes()
+            except Exception:
+                print('num = %r' % (num,))
+                print('index = %r' % (index,))
+                raise
+
+
 def avl_split(root, node):
     """
     O(log(n))
@@ -588,15 +769,95 @@ def avl_split(root, node):
     Args:
         root (Node): tree root
         node (Node): node to split at
+
     Returns:
-        puple: (tl, tr)
+        puple: (tl, tr, node)
             tl contains all keys in the tree less than node
             tr contains all keys in the tree greater than node
+            node is the node we split out
+
+    CommandLine:
+        python -m utool.experimental.euler_tour_tree_avl avl_split
+
+    Example:
+        >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
+        >>> self = EulerTourTree(ut.chr_range(10))
+        >>> self.print_tree()
+        >>> node = self.get_node(5)
+        >>> part1, part2, bnode = avl_split(self.root, node)
+        >>> ascii_tree(part1)
+        >>> ascii_tree(part2)
+        >>> ascii_tree(bnode)
+
+    Example:
+        >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
+        >>> test_avl_split(verbose=2)
     """
+    DEBUG_SPLIT = 0
+
     # Get the backtrace to the root
     rpath = backtrace_root(node)
+    if len(rpath) > 0:
+        assert rpath[-1][0] is root
+    if DEBUG_SPLIT:
+        print('======== SPLIT (PY)')
+        print('rpath = %s' % (rpath,))
+        print('node = %s' % (node,))
+
     # We start by knowing where the node is
-    l, r = avl_release_children(node)
+    # This is the base case of the recursive function
+    bnode, part1, part2 = avl_release_kids(node)
+    assert bnode is node
+    if DEBUG_SPLIT:
+        print('bnode = %s' % (bnode,))
+        print(' * part1 = %s' % (part1,))
+        print(' * part2 = %s' % (part2,))
+    avl_release_parent(bnode)
+
+    # We have split out the node we care about.
+    # Now, we need to recombine the tree in an ordered fashion
+
+    # Retrace the the stack that would have been
+    # generated by the old recursive key-based split
+    for count, (node, direction) in enumerate(rpath):
+        if DEBUG_SPLIT:
+            print('+--- Iter {}'.format(count))
+            print(' * node = %s' % (node,))
+            print(' * direction = %r' % (direction,))
+        node, left, right = avl_release_kids(node)
+        avl_release_parent(node)
+        if DEBUG_SPLIT:
+            print(' * left = %s' % (left,))
+            print(' * right = %s' % (right,))
+        # At `node` we would have decided to go `direction`
+        if direction == 0:
+            # left is case 1
+            if DEBUG_SPLIT:
+                print(' * Case 1')
+                print(' * Join %s + %s + %s' % (part2, node, right))
+            new_right = avl_join(part2, right, node)
+            part1 = part1
+            part2 = new_right
+        elif direction == 1:
+            # right is case 1
+            if DEBUG_SPLIT:
+                print(' * Case 2')
+                print(' * Join %s + %s + %s' % (left, node, part1))
+            new_left = avl_join(left, part1, node)
+            part1 = new_left
+            part2 = part2
+        else:
+            raise AssertionError('impossible state')
+        if DEBUG_SPLIT:
+            print('     * part1 = %s' % (part1,))
+            print('     * part2 = %s' % (part2,))
+            print('+--- End Iter {}'.format(count))
+    if DEBUG_SPLIT:
+        print('RETURN')
+        print(' * part1 = %s' % (part1,))
+        print(' * part2 = %s' % (part2,))
+        print(' * bnode = %s' % (bnode,))
+    return (part1, part2, bnode)
 
 
 def avl_split_old(root, key):
@@ -614,32 +875,32 @@ def avl_split_old(root, key):
         b = False
         bv = None
     else:
-        l, r = root.left, root.right
+        left, right = root.left, root.right
         t_key = root.key
         t_val = root.value
         if key == t_key:
             if DEBUG_SPLIT:
                 print('Split Case Hit')
-            part1 = l
-            part2 = r
+            part1 = left
+            part2 = right
             b = True
             bv = t_val
         elif key < t_key:
             if DEBUG_SPLIT:
                 print('Split Case Recurse 1')
-            ll, lr, b, bv = avl_split(l, key)
+            ll, lr, b, bv = avl_split(left, key)
             if DEBUG_SPLIT:
                 print('Split Case Up 1')
-            new_right = avl_join(lr, r, t_key, t_val)
+            new_right = avl_join(lr, right, t_key, t_val)
             part1 = ll
             part2 = new_right
         else:
             if DEBUG_SPLIT:
                 print('Split Case Recurse 2')
-            rl, rr, b, bv = avl_split(r, key)
+            rl, rr, b, bv = avl_split(right, key)
             if DEBUG_SPLIT:
                 print('Split Case Up 2')
-            new_left = avl_join(l, rl, t_key, t_val)
+            new_left = avl_join(left, rl, t_key, t_val)
             part1 = new_left
             part2 = rr
     if DEBUG_SPLIT:
