@@ -2117,7 +2117,7 @@ def debug_consec_list(list_):
     return missing_vals, missing_indices, duplicate_items
 
 
-def find_duplicate_items(items):
+def find_duplicate_items(items, k=2):
     r"""
     Args:
         items (list):
