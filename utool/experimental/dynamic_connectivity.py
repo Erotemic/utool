@@ -55,41 +55,41 @@ def comparison():
     import utool
     for timer in utool.Timerit(num, 'old bst version (PY)'):
         g = nx.balanced_tree(2, n)
-        self = EulerTourTree.from_mst(g, version='bst', fast=False)
+        self = TestETT.from_tree(g, version='bst', fast=False)
         with timer:
             self.delete_edge_bst_version(a, b, bstjoin=False)
 
     import utool
     for timer in utool.Timerit(num, 'new bst version (PY) (with join)'):
         g = nx.balanced_tree(2, n)
-        self = EulerTourTree.from_mst(g, version='bst', fast=False)
+        self = TestETT.from_tree(g, version='bst', fast=False)
         with timer:
             self.delete_edge_bst_version(a, b, bstjoin=True)
 
     import utool
     for timer in utool.Timerit(num, 'old bst version (C)'):
         g = nx.balanced_tree(2, n)
-        self = EulerTourTree.from_mst(g, version='bst', fast=True)
+        self = TestETT.from_tree(g, version='bst', fast=True)
         with timer:
             self.delete_edge_bst_version(a, b, bstjoin=False)
 
     import utool
     for timer in utool.Timerit(num, 'new bst version (C) (with join)'):
         g = nx.balanced_tree(2, n)
-        self = EulerTourTree.from_mst(g, version='bst', fast=True)
+        self = TestETT.from_tree(g, version='bst', fast=True)
         with timer:
             self.delete_edge_bst_version(a, b, bstjoin=True)
 
     import utool
     for timer in utool.Timerit(num, 'list version'):
         g = nx.balanced_tree(2, n)
-        self = EulerTourTree.from_mst(g, version='list')
+        self = TestETT.from_tree(g, version='list')
         with timer:
             self.delete_edge_list_version(a, b)
     pass
 
 
-class EulerTourTree(object):
+class TestETT(object):
     """
 
 
@@ -107,7 +107,7 @@ class EulerTourTree(object):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.dynamic_connectivity import *  # NOQA
+        >>> from utool.experimental.dynamic_connectivity import *  # NOQA
         >>> #edges = [(1, 2), (1, 6), (1, 5), (2, 3), (2, 4)]
         >>> #edges = [
         >>> #    ('R', 'A'), ('R', 'B'),
@@ -116,7 +116,7 @@ class EulerTourTree(object):
         >>> #]
         >>> #mst = nx.Graph(edges)
         >>> mst = nx.balanced_tree(2, 11)
-        >>> self = EulerTourTree.from_mst(mst)
+        >>> self = TestETT.from_tree(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
         >>> pt.show_nx(mst)
@@ -128,30 +128,30 @@ class EulerTourTree(object):
 
     @classmethod
     @profile
-    def from_mst(EulerTourTree, mst, version='bst', fast=True):
+    def from_tree(TestETT, mst, version='bst', fast=True):
         """
         >>> # DISABLE_DOCTEST
         >>> from utool.experimental.dynamic_connectivity import *  # NOQA
         >>> mst = nx.balanced_tree(2, 4)
-        >>> self = EulerTourTree.from_mst(mst)
+        >>> self = TestETT.from_tree(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
-        >>> pt.show_nx(self.to_graph(), pnum=(2, 1, 1), fnum=1)
+        >>> pt.show_nx(self.to_networkx(), pnum=(2, 1, 1), fnum=1)
 
         >>> a, b = 2, 5
         >>> other = self.delete_edge_bst_version(a, b)
-        >>> pt.show_nx(other.to_graph(), pnum=(2, 1, 1), fnum=2)
+        >>> pt.show_nx(other.to_networkx(), pnum=(2, 1, 1), fnum=2)
 
         """
         tour = euler_tour_dfs(mst)
-        self = EulerTourTree.from_tour(tour, version=version, fast=fast)
+        self = TestETT.from_tour(tour, version=version, fast=fast)
         return self
 
     @classmethod
     @profile
-    def from_tour(EulerTourTree, tour, version='bst', fast=True):
+    def from_tour(TestETT, tour, version='bst', fast=True):
         import bintrees
-        self = EulerTourTree()
+        self = TestETT()
         self.fast = fast
         self.version = version
 
@@ -178,7 +178,7 @@ class EulerTourTree(object):
             >>> from utool.experimental.dynamic_connectivity import *  # NOQA
             >>> mst = nx.balanced_tree(2, 4)
             >>> tour = euler_tour_dfs(mst)
-            >>> self = EulerTourTree()
+            >>> self = TestETT()
 
             """
             import sortedcontainers
@@ -192,7 +192,6 @@ class EulerTourTree(object):
             self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
             self.last_lookup = dict(i[::-1] for i in tour_order)
             tour_order.bisect_left((7, 0))
-
         return self
 
     @profile
@@ -220,7 +219,7 @@ class EulerTourTree(object):
             # Remove unneeded values
             outside = outside.splice_inplace(o_b1, o_a2 + 1)[1]
 
-            other = EulerTourTree()
+            other = TestETT()
             other.tour_tree = inside
             # We can reuse these pointers without any modification
             other.first_lookup = self.first_lookup
@@ -232,7 +231,7 @@ class EulerTourTree(object):
             # in amortized O(log(n)) time
             t2_slice = self.tour_tree[o_b1:o_b2 + 1]
             t2_tour = list(t2_slice.values())
-            other = EulerTourTree.from_tour(t2_tour, version=self.version,
+            other = TestETT.from_tour(t2_tour, version=self.version,
                                             fast=self.fast)
 
             # ET(T1) outer - is given by splicing out of ET the sequence
@@ -255,7 +254,7 @@ class EulerTourTree(object):
         assert o_b2 < o_a2
 
         t2_list = self.tour[o_b1:o_b2 + 1]
-        other = EulerTourTree.from_tour(t2_list, version=self.version,
+        other = TestETT.from_tour(t2_list, version=self.version,
                                         fast=self.fast)
 
         # ET(T1) outer - is given by splicing out of ET the sequence
@@ -287,15 +286,246 @@ class EulerTourTree(object):
         splice1 = self.tour[1:o_s1]
         rest = self.tour[o_s1 + 1:]
         new_tour = [s] + rest + splice1 + [s]
-        new_tree = EulerTourTree.from_tour(new_tour, version=self.version,
+        new_tree = TestETT.from_tour(new_tour, version=self.version,
                                            fast=self.fast)
         return new_tree
 
-    def to_graph(self):
+    def to_networkx(self):
         import utool as ut
         return nx.Graph(ut.itertwo(self.tour))
 
     def join_trees(self, t1, t2, e):
+        pass
+
+
+# class AVLMaster(object):
+#     def __init__(self, master=None):
+#         self.master = None
+
+
+# class AVLKey(object):
+#     def __init__(self, master=None):
+#         self.master = None
+
+
+class EulerTourTree(object):
+    """
+    CommandLine:
+        python -m utool.experimental.dynamic_connectivity EulerTourTree --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.experimental.dynamic_connectivity import *  # NOQA
+        >>> #mst = nx.balanced_tree(2, 2)
+        >>> edges = [
+        >>>     ('R', 'A'), ('R', 'B'),
+        >>>     ('B', 'C'), ('C', 'D'), ('C', 'E'),
+        >>>     ('B', 'F'), ('B', 'G'),
+        >>> ]
+        >>> mst = nx.Graph(edges)
+        >>> self = EulerTourTree.from_tree(mst)
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> fnum = 1
+        >>> pnum_ = pt.make_pnum_nextgen(1, 3)
+        >>> pt.show_nx(mst, pnum=pnum_(), fnum=fnum)
+        >>> pt.show_nx(self.to_networkx(), pnum=pnum_(), fnum=fnum)
+        >>> pt.show_nx(self.tour_tree.to_networkx(labels=['key', 'value']), pnum=pnum_(), fnum=fnum)
+        >>> print(self.tour)
+        >>> print(self.first_lookup)
+        >>> print(self.last_lookup)
+        >>> ut.show_if_requested()
+    """
+    def __init__(self):
+        # node attributes in reprsented graph
+        self.first_lookup = {}
+        self.last_lookup = {}
+
+        # structure stored in auxillary graph
+        self.tour_tree = None
+        # self.tour = None
+
+    def to_networkx(self):
+        import utool as ut
+
+        # n = list(self.tour_tree._traverse_nodes())[0]
+
+        # return nx.Graph(ut.itertwo(self.tour))
+        # In order traversal of the tree is the tour order
+        # return nx.Graph(ut.itertwo(self.tour_tree.values()))
+        tour = (n.value for n in self.tour_tree._traverse_nodes())
+        graph = nx.Graph(ut.itertwo(tour))
+        return graph
+
+    def find_root(self, node):
+
+        pass
+
+    @classmethod
+    @profile
+    def from_tree(EulerTourTree, mst, fast=True, start=0):
+        tour = euler_tour_dfs(mst)
+        self = EulerTourTree.from_tour(tour, fast=fast, start=0)
+        return self
+
+    @classmethod
+    @profile
+    def from_tour(EulerTourTree, tour, fast=False, start=0):
+        import bintrees
+        self = EulerTourTree()
+        self.fast = fast
+
+        if fast:
+            tour_tree = bintrees.FastAVLTree(enumerate(tour, start=start))
+        else:
+            tour_tree = bintrees.AVLTree(enumerate(tour, start=start))
+
+        self.first_lookup = first_lookup = {}
+        self.last_lookup = last_lookup = {}
+
+        for key, node in tour_tree.iter_items():
+            # node = avl_node.value
+            if node not in first_lookup:
+                # first_lookup[node] = avl_node.key
+                first_lookup[node] = key
+            # last_lookup[node] = avl_node.key
+            last_lookup[node] = key
+
+        self.tour_tree = tour_tree
+        # self.tour = tour
+        tour_order = list(enumerate(tour))
+        self.first_lookup = dict(i[::-1] for i in tour_order[::-1])
+        self.last_lookup = dict(i[::-1] for i in tour_order)
+        # tour_order.bisect_left((7, 0))
+        return self
+
+    def join(self, other):
+        pass
+
+    @profile
+    def cut(self, a, b, bstjoin=False):
+        """
+        cuts edge (a, b) into two parts because this is a tree
+
+        a, b = (2, 5)
+        print(self.first_lookup[a] > self.first_lookup[b])
+        tree = self.tour_tree
+        list(tree.item_slice(k1, k2))
+        """
+        if self.first_lookup[a] > self.last_lookup[b]:
+            a, b = b, a
+
+        o_a1 = self.first_lookup[a]
+        o_a2 = self.last_lookup[a]
+        o_b1 = self.first_lookup[b]
+        o_b2 = self.last_lookup[b]
+        assert o_a1 < o_b1
+        # assert o_b1 < o_b2
+        assert o_b2 < o_a2
+
+        # splice out the inside contiguous range inplace
+        inside, outside = self.tour_tree.splice_inplace(o_b1, o_b2 + 1)
+        # Remove unneeded values
+        outside = outside.splice_inplace(o_b1, o_a2 + 1)[1]
+
+        other = EulerTourTree()
+        other.tour_tree = inside
+        # We can reuse these pointers without any modification
+        other.first_lookup = self.first_lookup
+        other.first_lookup = self.last_lookup
+        # Should make an O(n) cleanup step at some point
+        return other
+
+    def reroot(self, s):
+        """
+        s = 3
+        s = 'B'
+
+        Let os denote any occurrence of s.
+        Splice out the first part of the sequence ending with the occurrence before os,
+        remove its first occurrence (or),
+        and tack this on to the end of the sequence which now begins with os.
+        Add a new occurrence os to the end.
+        """
+        # Splice out the first part of the sequence ending with the occurrence before os
+        # remove its first occurrence (or),
+        o_s1 = self.first_lookup[s]
+        splice1 = self.tour[1:o_s1]
+        rest = self.tour[o_s1 + 1:]
+        new_tour = [s] + rest + splice1 + [s]
+        new_tree = TestETT.from_tour(new_tour, fast=self.fast)
+        return new_tree
+
+
+class BinaryNode(object):
+    def __init__(self, value, parent=None, left=None, right=None):
+        self.value = value
+        self.parent = parent
+        self.children = [left, right]
+        self._dir = 0
+
+    @property
+    def left(self):
+        return self.children[0]
+
+    @left.setter
+    def left(self, other):
+        self.children[0] = other
+
+    @property
+    def right(self):
+        return self.children[1]
+
+    @right.setter
+    def right(self, other):
+        self.children[1] = other
+
+    def set_child(self, other, dir_):
+        other.parent = self
+        self.children[dir_] = other
+
+
+class EulerTourForest(object):
+    def __init__(self):
+        self.aux_trees = {}
+        self.first = {}
+        self.last = {}
+        self.n_nodes = 0
+        # import bintrees
+        # self._cls = bintrees.AVLTree
+
+    def has_node(self, node):
+        return node in self.first
+
+    def add_node(self, node):
+        if not self.has_node(node):
+            binnode = BinaryNode(node)
+            self.aux_trees[node] = binnode
+            self.first[node] = binnode
+            self.last[node] = binnode
+
+    def find_root(self, node):
+        return self.first[node]
+
+    def reroot(self, old, new):
+        assert old == new
+        return new
+
+    def add_edge(self, u, v):
+        """
+        self = EulerTourForest()
+        self.add_node(1)
+        self.add_node(2)
+        u, v = 1, 2
+        """
+        # ubin = self.find_root(u)
+        ru = self.find_root(u)
+        rv = self.find_root(v)
+        ru = self.reroot(ru, u)
+        rv = self.reroot(rv, v)
+
+        ubin.set_child(vbin)
+
         pass
 
 
@@ -381,7 +611,7 @@ class DummyEulerTourForest(object):
     def components(self):
         return self.trees.values()
 
-    def to_graph(self):
+    def to_networkx(self):
         graph = nx.compose_all(self.components())
         return graph
 
@@ -458,7 +688,7 @@ class DynConnGraph(object):
 
         pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=len(self.forests))
         for level, forest in enumerate(self.forests):
-            pt.show_nx(forest.to_graph(), title='level=%r' % (level,),
+            pt.show_nx(forest.to_networkx(), title='level=%r' % (level,),
                        fnum=fnum, pnum=pnum_())
 
     def _init_forests():
