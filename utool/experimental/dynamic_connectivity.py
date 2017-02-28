@@ -308,6 +308,88 @@ class TestETT(object):
 #         self.master = None
 
 
+class EulerTourList(object):
+    """
+    load-list representation of an Euler tour inspired by sortedcontainers
+
+    this doesnt work for the same reason keyed bintrees dont work
+
+    the indexing needs to be implicit, but this has explicit indexes
+    """
+
+    def __init__(self, iterable, load=1000):
+        self.first = {}
+        self.last = {}
+        self._len = 0
+        self._cumlen = []
+        self._lists = []
+        self._load = load
+        self._twice = load * 2
+        self._half = load >> 1
+        self._offset = 0
+
+        if iterable is not None:
+            self.update(iterable)
+
+    def __iter__(self):
+        import itertools as it
+        return it.chain.from_iterable(self._lists)
+
+    def __repr__(self):
+        return 'EulerTourList(' + str(list(self)) + ')'
+
+    def join(self, other):
+        r"""
+        Args:
+            other (?):
+
+        CommandLine:
+            python -m sortedcontainers.sortedlist join2
+
+        Example:
+            >>> from utool.experimental.dynamic_connectivity import *  # NOQA
+            >>> self = EulerTourList([1, 2, 3, 2, 4, 2, 1], load=3)
+            >>> other = EulerTourList([0, 5, 9, 5, 0], load=3)
+            >>> result = self.join(other)
+            >>> print(result)
+        """
+        assert self._load == other._load, 'loads must be the same'
+        self._lists.extend(other._lists)
+        self._cumlen.extend([c + self._len for c in other._cumlen])
+        self._len += other._len
+
+    def split(self, pos, idx):
+        (pos, idx) = self._pos(index)
+        left_part = self._lists[0:pos + 1]
+        right_part = self._lists[pos + 1:0]
+
+        left_last = left_part[-1][:idx]
+        right_first = left_part[-1][idx:]
+
+        if left_last:
+            left_part[-1] = left_last
+        else:
+            del left_part[-1]
+        if right_first:
+            right_part.insert(0, right_first)
+
+        other = EulerTourList()
+        other._list = right_part
+
+    def append(self, value):
+        pass
+
+    def update(self, iterable):
+        _lists = self._lists
+        values = list(iterable)
+
+        _load = self._load
+        _lists.extend(values[pos:(pos + _load)]
+                      for pos in range(0, len(values), _load))
+        self._cumlen = ut.cumsum(map(len, _lists))
+        self._len = len(values)
+
+
 class EulerTourTree(object):
     """
     CommandLine:
