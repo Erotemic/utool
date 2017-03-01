@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import networkx as nx
 import utool as ut
 
 MAXSTACK = 32
@@ -34,6 +35,41 @@ def euler_tour_dfs(G, source=None):
                     yielder += [last[0]]
                 stack.pop()
     return yielder
+
+
+def euler_tour(G, node=None, seen=None, visited=None):
+    """
+    definition from
+    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.192.8615&rep=rep1&type=pdf
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
+        >>> edges = [
+        >>>     ('R', 'A'), ('R', 'B'),
+        >>>     ('B', 'C'), ('C', 'D'), ('C', 'E'),
+        >>>     ('B', 'F'), ('B', 'G'),
+        >>> ]
+        >>> G = nx.Graph(edges)
+        >>> node = list(G.nodes())[0]
+        >>> et1 = euler_tour(G, node)
+        >>> et2 = euler_tour_dfs(G, node)
+    """
+    if node is None:
+        node = next(G.nodes())
+    if visited is None:
+        assert nx.is_tree(G)
+        visited = []
+    if seen is None:
+        seen = set([])
+    visited.append(node)
+    for c in G.neighbors(node):
+        if c in seen:
+            continue
+        seen.add(c)
+        euler_tour(G, c, seen, visited)
+        visited.append(node)
+    return visited
 
 
 class Node(ut.NiceRepr):
@@ -107,8 +143,15 @@ class Node(ut.NiceRepr):
 
 class EulerTourTree(ut.NiceRepr):
     """
+    TODO: generalize out the binary tree sequence part
+
     CommandLine:
         python -m utool.experimental.euler_tour_tree_avl EulerTourTree
+
+    References:
+        Randomized Dynamic Graph Algorithms with Polylogarithmic Time per Operation
+        Henzinger and King 1995
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.192.8615&rep=rep1&type=pdf
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -137,7 +180,7 @@ class EulerTourTree(ut.NiceRepr):
         >>>     ('B', 'C'), ('C', 'D'), ('C', 'E'),
         >>>     ('B', 'F'), ('B', 'G'),
         >>> ]
-        >>> tour = euler_tour_dfs(nx.Graph(edges))
+        >>> tour = euler_tour(nx.Graph(edges))
         >>> print(tour)
         >>> self = EulerTourTree(tour)
         >>> print(self)
@@ -154,14 +197,30 @@ class EulerTourTree(ut.NiceRepr):
         other.root = None
         return self
 
+    def min_elem(self):
+        if self.root is None:
+            raise ValueError('no min element')
+        node = self.root
+        while node.left is not None:
+            node = node.left
+        return node.value
+
     def reroot(self, first_node, last_node):
         """
         Notes:
-            ● Split the tour into three parts: S₁, R, and S₂, where R consists
-              of the nodes between the first and last occurrence of the new
-              root r.
-            ● Delete the first node in S₁.
-            ● Concatenate R, S₂, S₁, {r}.
+            ● Pick any occurrence of the new root r.
+            ● Split the tour into A and B, where B is the
+            part of the tour before r.
+            ● Delete the first node of A and append r.
+            ● Concatenate B and A.
+
+            To change the root of T from r to s:
+                Let os denote any occurrence of s.
+                Splice out the first part of the sequence ending with the
+                occurrence before or,
+                remove its first occurrence (or), and
+                tack this on to the end of the sequence which now begins with os.
+                Add a new occurrence os to the end.
 
         CommandLine:
             python -m utool.experimental.euler_tour_tree_avl reroot
@@ -170,14 +229,21 @@ class EulerTourTree(ut.NiceRepr):
             >>> # DISABLE_DOCTEST
             >>> import networkx as nx
             >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
-            >>> edges = list(nx.balanced_tree(2, 1).edges())
-            >>> tour = euler_tour_dfs(nx.Graph(edges))
+            >>> edges = [
+            >>>     ('R', 'A'), ('R', 'B'),
+            >>>     ('B', 'C'), ('C', 'D'), ('C', 'E'),
+            >>>     ('B', 'F'), ('B', 'G'),
+            >>> ]
+            >>> edges = list(nx.balanced_tree(2, 2).edges())
+            >>> tour = euler_tour(nx.Graph(edges))
             >>> self = EulerTourTree(tour)
             >>> print('old_tour = %r' % (self,))
             >>> nodes = list(self._traverse_nodes())
             >>> self.first_lookup = {node.value: node for node in nodes[::-1]}
-            >>> self.last_lookup = {node.value: node for node in nodes[::1]}
-            >>> new_root_val = 2
+            >>> self.last_lookup = {node.value: node for node in nodes}
+            >>> new_root_val = list(self)[445 % (len(tour) - 1)]
+            >>> new_root_val = 5
+            >>> print('new_root_val = %r' % (new_root_val,))
             >>> first_node = self.first_lookup[new_root_val]
             >>> last_node = self.last_lookup[new_root_val]
             >>> self.reroot(first_node, last_node)
@@ -185,29 +251,56 @@ class EulerTourTree(ut.NiceRepr):
             >>> ut.quit_if_noshow()
             >>> ut.show_if_requested()
         """
+        min_elem = self.min_elem()
+        if min_elem  == first_node.value:
+            print('Already rooted there')
+            return
         # tour = list(self)
         # print('tour     = %r' % (tour,))
-        S1, rest, first_node = avl_split(self.root, first_node)
-        R, S2, last_node = avl_split(rest, last_node)
-        # make split inclusive
-        avl_insert_dir(R, first_node, 0)
-        avl_insert_dir(R, last_node, 1)
+        # B is the part before R
+        # A is the part after R (with first element removed)
+        B, A, first_node = avl_split(self.root, first_node)
+        print('Splice out first part of sequence ending before os')
+        print('B = %r' % ([] if B is None else list(B),))
+        print('Remove its first occurrence or')
+        B, old_root = (B, B) if B is None else avl_split_first(B)
+        print('B = %r' % ([] if B is None else list(B),))
+        print('The rest of the sequence now begins with os')
+        A = avl_insert_dir(A, first_node, 0)
+        print('A = %r' % (list(A),))
+        print('Tack the first part onto the end')
+        EulerTourTree(root=A)._assert_nodes('A')
+        EulerTourTree(root=B)._assert_nodes('B')
+        C = avl_join2(A, B)
+        EulerTourTree(root=C)._assert_nodes('C')
+        print('C = %r' % (list(C),))
+        print('Add a new occurrence os to the end')
+        new_last = Node(value=last_node.value)
+        C = avl_insert_dir(C, new_last, 1)
+        print('C = %r' % (list(C),))
+
+        EulerTourTree(root=B)._assert_nodes()
+        EulerTourTree(root=A)._assert_nodes()
+        # EulerTourTree(root=first_node)._assert_nodes()
+
+        # EulerTourTree(root=B).print_tree()
+        # EulerTourTree(root=A).print_tree()
+        # EulerTourTree(root=first_node).print_tree()
+
+        # B = avl_insert_dir(B, new_last, 1)
+        # print('B = %r' % ([] if B is None else list(B),))
+        # print('A = %r' % (list(A),))
+
+        # EulerTourTree(root=A).print_tree()
+
         # old_tour_parts = [S1, R, S2]
         # old_tour = ut.flatten([list(p) for p in old_tour_parts if p])
         # print('old_tour = %r' % (old_tour,))
         # assert tour == old_tour
-        if S1 is None:
-            new_S1 = None
-        else:
-            new_S1, first = avl_split_first(S1)
-        new_last = Node(value=last_node.value)
-        new_tour_parts = [R, S2, new_S1, new_last]
-        new_tour = ut.flatten([list(p) for p in new_tour_parts if p])
-        print('new_tour = <XXXXXXXXX     %r' % (new_tour,))
-        new_root = avl_join2(R, S2)
-        new_root = avl_join2(new_root, new_S1)
-        new_last = avl_join2(new_root, new_last)
-        self.root = new_last
+        # new_tour_parts = [A, B]
+        # new_tour = ut.flatten([list(p) for p in new_tour_parts if p])
+        print('new_tour = %r' % (list(C)))
+        self.root = C
 
         # TODO: fix lookups
         self.last_lookup[new_last.value] = new_last
@@ -220,13 +313,13 @@ class EulerTourTree(ut.NiceRepr):
             old_last = self.last_lookup[key]
             new_last = new_last_lookup[key]
             if old_last is not new_last:
-                print('key=%r needs last update' % (key,))
+                print('key=%r needs LAST_DICT update' % (key,))
 
         for key in new_last_lookup.keys():
             old_first = self.first_lookup[key]
             new_first = new_first_lookup[key]
             if old_first is not new_first:
-                print('key=%r needs first update' % (key,))
+                print('key=%r needs FIRST_DICT update' % (key,))
 
     def copy(self):
         import copy
@@ -260,8 +353,20 @@ class EulerTourTree(ut.NiceRepr):
             if count == index:
                 return node
 
-    def _assert_nodes(self):
-        if self.root is not None:
+    def _assert_nodes(self, name=None):
+        if False and self.root is not None:
+            if self.root.parent is not None:
+                treestr = self.get_ascii_tree()
+                msg = ut.codeblock(
+                    r'''
+                    Root cannot have a parent.
+                    name = {}
+                    root = {}
+                    root.parent = {}
+                    '''.format(name, self.root, self.root.parent)
+                )
+                msg = msg + '\n' + treestr
+                raise AssertionError(msg)
             assert self.root.parent is None, 'must be root'
         for count, node in enumerate(self._traverse_nodes()):
             if node.left:
@@ -270,6 +375,8 @@ class EulerTourTree(ut.NiceRepr):
                 assert node.right.parent is node, 'right child problem, %d' % count
             if node.parent:
                 assert node in node.parent.kids, 'parent problem, %d' % count
+        if name:
+            print('Nodes in {} are ok'.format(name))
 
     def _traverse_nodes(self):
         """ Debugging function (exposes cython nodes as dummy nodes) """
@@ -332,6 +439,14 @@ class EulerTourTree(ut.NiceRepr):
     def print_tree(self):
         ascii_tree(self.root)
 
+    def get_ascii_tree(self):
+        import drawtree
+        import ubelt as ub
+        root = self.root
+        with ub.CaptureStdout() as cap:
+            drawtree.drawtree.drawtree(root)
+        return cap.text
+
 
 def ascii_tree(root, name=None):
     import drawtree
@@ -340,6 +455,9 @@ def ascii_tree(root, name=None):
         root = root.root
     with ub.CaptureStdout() as cap:
         drawtree.drawtree.drawtree(root)
+    if name is not None:
+        print('+---')
+        print('Tree(%s)' % (name,))
     print(cap.text)
     # if False:
     #     # Modified BFS with placeholders
@@ -424,9 +542,13 @@ def avl_rotate_single(root, direction):
             b             a       c
              \
               c
+
+    a = root
+    save = root.right
     """
     other_side = 1 - direction
     save = root[other_side]
+    save.parent = root.parent
     # root[other_side] = save[direction]
     # save[direction] = root
     root.set_child(other_side, save[direction])
@@ -509,12 +631,15 @@ def avl_join_dir_recursive(t1, t2, node, direction):
             t_rotate = avl_rotate_single(t_, direction)
             if _DEBUG_JOIN_DIR:
                 ascii_tree(t_rotate, 't_rotate')
+                EulerTourTree(root=t_rotate)._assert_nodes('t_rotate')
             t_merge = avl_new_top(rest, t_rotate, large, other_side)
             if _DEBUG_JOIN_DIR:
                 ascii_tree(t_merge, 't_merge')
+                EulerTourTree(root=t_merge)._assert_nodes('t_merge')
             new_root = avl_rotate_single(t_merge, other_side)
             if _DEBUG_JOIN_DIR:
                 ascii_tree(new_root, 'new_root')
+                EulerTourTree(root=new_root)._assert_nodes('new_root')
             return new_root
     else:
         # Traverse down the spine in the appropriate direction
@@ -525,7 +650,7 @@ def avl_join_dir_recursive(t1, t2, node, direction):
         elif direction == 1:
             t_ = avl_join_dir_recursive(spine, t2, node, direction)
         else:
-            assert False
+            raise AssertionError('invalid direction')
         t__ = avl_new_top(t_, rest, large, direction)
         if height(t_) <= hrest + 1:
             if _DEBUG_JOIN_DIR:
@@ -535,6 +660,7 @@ def avl_join_dir_recursive(t1, t2, node, direction):
             if _DEBUG_JOIN_DIR:
                 print('JOIN DIR (Case 4)')
             return avl_rotate_single(t__, other_side)
+    assert False, 'should never get here'
 
 
 def avl_join(t1, t2, node):
@@ -583,37 +709,39 @@ def avl_join(t1, t2, node):
     if t1 is None and t2 is None:
         if DEBUG_JOIN:
             print('Join Case 1')
-        return node
+        top = node
     elif t1 is None:
         # FIXME keep track of count if possible
         if DEBUG_JOIN:
             print('Join Case 2')
-        return avl_insert_dir(t2, node, 0)
+        top = avl_insert_dir(t2, node, 0)
     elif t2 is None:
         if DEBUG_JOIN:
             print('Join Case 3')
-        return avl_insert_dir(t1, node, 1)
-
-    h1 = height(t1)
-    h2 = height(t2)
-    if h1 > h2 + 1:
-        if DEBUG_JOIN:
-            print('Join Case 4')
-        top = avl_join_dir_recursive(t1, t2, node, 1)
-    elif h2 > h1 + 1:
-        if DEBUG_JOIN:
-            print('Join Case 5')
-            ascii_tree(t1)
-            ascii_tree(t2)
-
-        top = avl_join_dir_recursive(t1, t2, node, 0)
-        if DEBUG_JOIN:
-            ascii_tree(top)
+        top = avl_insert_dir(t1, node, 1)
     else:
-        if DEBUG_JOIN:
-            print('Join Case 6')
-        # Insert at the top of the tree
-        top = avl_new_top(t1, t2, node, 0)
+        h1 = height(t1)
+        h2 = height(t2)
+        if h1 > h2 + 1:
+            if DEBUG_JOIN:
+                print('Join Case 4')
+            top = avl_join_dir_recursive(t1, t2, node, 1)
+            if DEBUG_JOIN:
+                ascii_tree(t1, 'top')
+        elif h2 > h1 + 1:
+            if DEBUG_JOIN:
+                print('Join Case 5')
+                ascii_tree(t1)
+                ascii_tree(t2)
+
+            top = avl_join_dir_recursive(t1, t2, node, 0)
+            if DEBUG_JOIN:
+                ascii_tree(top)
+        else:
+            if DEBUG_JOIN:
+                print('Join Case 6')
+            # Insert at the top of the tree
+            top = avl_new_top(t1, t2, node, 0)
     return top
 
 
@@ -668,11 +796,38 @@ def avl_join2(t1, t2):
 
     For AVL-Trees the rank r(t1) = height(t1) - 1
     """
-    if t1 is None:
-        return t2
+    if t1 is None and t2 is None:
+        new_root = None
+    elif t2 is None:
+        new_root = t1
+    elif t1 is None:
+        new_root = t2
     else:
         new_left, last_node = avl_split_last(t1)
-        return avl_join(new_left, t2, last_node)
+
+        debug = 0
+
+        if debug:
+            EulerTourTree(root=new_left)._assert_nodes('new_left')
+            EulerTourTree(root=last_node)._assert_nodes('last_node')
+            EulerTourTree(root=t2)._assert_nodes('t2')
+
+            print('new_left')
+            EulerTourTree(root=new_left).print_tree()
+
+            print('last_node')
+            EulerTourTree(root=last_node).print_tree()
+
+            print('t2')
+            EulerTourTree(root=t2).print_tree()
+
+        new_root = avl_join(new_left, t2, last_node)
+
+        if debug:
+            print('new_root')
+            EulerTourTree(root=new_root).print_tree()
+            EulerTourTree(root=last_node)._assert_nodes('new_root')
+    return new_root
 
 
 def avl_new_top(t1, t2, top, direction=0):
@@ -941,7 +1096,7 @@ def avl_insert_dir(root, new_node, direction=1):
     """
     if root is None:
         return new_node
-    assert new_node.parent is None
+    assert new_node.parent is None, str((new_node, new_node.parent))
     assert new_node.left is None
     assert new_node.right is None
     assert root.parent is None

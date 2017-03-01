@@ -108,14 +108,14 @@ class TestETT(object):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.experimental.dynamic_connectivity import *  # NOQA
-        >>> #edges = [(1, 2), (1, 6), (1, 5), (2, 3), (2, 4)]
-        >>> #edges = [
-        >>> #    ('R', 'A'), ('R', 'B'),
-        >>> #    ('B', 'C'), ('C', 'D'), ('C', 'E'),
-        >>> #    ('B', 'F'), ('B', 'G'),
-        >>> #]
-        >>> #mst = nx.Graph(edges)
-        >>> mst = nx.balanced_tree(2, 11)
+        >>> edges = [(1, 2), (1, 6), (1, 5), (2, 3), (2, 4)]
+        >>> edges = [
+        >>>     ('R', 'A'), ('R', 'B'),
+        >>>     ('B', 'C'), ('C', 'D'), ('C', 'E'),
+        >>>     ('B', 'F'), ('B', 'G'),
+        >>> ]
+        >>> mst = nx.Graph(edges)
+        >>> #mst = nx.balanced_tree(2, 11)
         >>> self = TestETT.from_tree(mst)
         >>> import plottool as pt
         >>> pt.qt4ensure()
@@ -706,6 +706,11 @@ class DynConnGraph(object):
         https://courses.csail.mit.edu/6.851/spring14/lectures/L20.pdf
         https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html
         http://cs.stackexchange.com/questions/33595/what-is-the-most-efficient-algorithm-and-data-structure-for-maintaining-connecte
+
+        https://www.cs.princeton.edu/courses/archive/fall03/cs528/handouts/Poly%20logarithmic.pdf
+
+        DEFINES ET-Trees
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.192.8615&rep=rep1&type=pdf
 
         https://www.cs.princeton.edu/courses/archive/fall03/cs528/handouts/Poly%20logarithmic.pdf
         http://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf
