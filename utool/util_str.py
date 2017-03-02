@@ -2769,11 +2769,18 @@ def bubbletext(text, font='cybermedium'):
         return bubble_text
 
 
-def closet_words(query, options, num=1):
+def closet_words(query, options, num=1, subset=False):
     import utool as ut
+    ranked_list = []
+    if subset:
+        query_ = query.lower()
+        superset = [opt for opt in options if query_ in opt.lower()]
+        ranked_list = superset[0:num]
+        num -= len(ranked_list)
     dist_list = ut.edit_distance(query, options)
-    ranked_list = ut.sortedby(options, dist_list)
-    return ranked_list[0:num]
+    ranked_list = ranked_list + ut.sortedby(options, dist_list)[0:num]
+    ranked_list = ut.unique(ranked_list)
+    return ranked_list
 
 
 def to_title_caps(underscore_case):
