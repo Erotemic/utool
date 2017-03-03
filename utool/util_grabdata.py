@@ -1140,9 +1140,30 @@ def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
     General function to push or pull a directory from a remote server to a
     local path
 
+    Args:
+        src_uri (str):
+        dst_uri (str):
+        exclude_dirs (list): (default = [])
+        port (int): (default = 22)
+        dryrun (bool): (default = False)
+
     References:
         http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/
-        http://serverfault.com/questions/219013/show-progress-in-rsync
+
+    CommandLine:
+        python -m utool.util_grabdata rsync
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_grabdata import *  # NOQA
+        >>> import utool as ut
+        >>> src_uri = 'local/path/file.txt'
+        >>> dst_uri = 'host.cs.college.edge:/remove/path/file.txt'
+        >>> exclude_dirs = []
+        >>> port = 22
+        >>> dryrun = False
+        >>> result = rsync(src_uri, dst_uri, exclude_dirs, port, dryrun)
+        >>> print(result)
 
     Notes (rsync commandline options):
         rsync [OPTION]... SRC [SRC]... DEST
