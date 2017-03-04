@@ -475,6 +475,37 @@ def and_iters(*args):
     return (all(tup) for tup in zip(*args))
 
 
+def random_combinations(items, size, num=None, rng=None):
+    """
+    Yields `num` combinations of length `size` from items in random order
+    """
+    import scipy
+    import itertools as it
+    import numpy as np
+    import utool as ut
+    rng = ut.ensure_rng(rng)
+    if num is None:
+        num = np.inf
+    # Ensure we dont request more than is possible
+    n_max = int(scipy.misc.comb(len(items), size))
+    num = min(n_max, num)
+    if num > n_max // 2:
+        # If num is too big just generate all combinations and shuffle them
+        combos = list(it.combinations(items, size))
+        rng.shuffle(combos)
+        for combo in combos[:num]:
+            yield combo
+    else:
+        # Otherwise yield randomly until we get something we havent seen
+        items = list(items)
+        combos = set()
+        while len(combos) < num:
+            combo = tuple(sorted(rng.choice(items, size, replace=False)))
+            if combo not in combos:
+                combos.add(combo)
+                yield combo
+
+
 if __name__ == '__main__':
     """
     CommandLine:
