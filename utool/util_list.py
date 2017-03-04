@@ -1533,8 +1533,13 @@ def argsort(*args, **kwargs):
     return sortedby2(index_list, *args, **kwargs)
 
 
-def argmax(list_):
+def argmax(input_):
     """
+    Returns index / key of the item with the largest value.
+
+    Args:
+        input_ (dict or list):
+
     References:
         http://stackoverflow.com/questions/16945518/python-argmin-argmax
 
@@ -1543,11 +1548,23 @@ def argmax(list_):
         %timeit list_.index(max(list_))
         %timeit max(enumerate(list_), key=itemgetter(1))
     """
-    return list_.index(max(list_))
+    if isinstance(input_, dict):
+        return list(input_.keys())[argmax(list(input_.values()))]
+    else:
+        return input_.index(max(input_))
 
 
 def argmin(list_):
-    return list_.index(min(list_))
+    """
+    Returns index / key of the item with the smallest value.
+
+    Args:
+        input_ (dict or list):
+    """
+    if isinstance(input_, dict):
+        return list(input_.keys())[argmin(list(input_.values()))]
+    else:
+        return input_.index(min(input_))
 
 
 def index_complement(index_list, len_=None):
