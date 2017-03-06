@@ -186,6 +186,31 @@ def deterministic_shuffle(list_, seed=0, rng=None):
     rng.shuffle(list_)
     return list_
 
+def shuffle(list_, seed=0, rng=None):
+    r"""
+    Shuffles a list inplace and then returns it for convinience
+
+    Args:
+        list_ (list or ndarray): list to shuffl
+        rng (RandomState or int): seed or random number gen
+
+    Returns:
+        list: this is the input, but returned for convinience
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> list1 = [1, 2, 3, 4, 5, 6]
+        >>> list2 = shuffle(list(list1), rng=1)
+        >>> assert list1 != list2
+        >>> result = str(list2)
+        >>> print(result)
+        [3, 2, 5, 1, 4, 6]
+    """
+    rng = ensure_rng(seed if rng is None else rng)
+    rng.shuffle(list_)
+    return list_
+
 
 def random_sample(list_, nSample, strict=False, rng=None, seed=None):
     """
