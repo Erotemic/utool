@@ -24,12 +24,27 @@ def quantum_random():
     return data32
 
 
-def ensure_rng(rng):
-    if rng is None:
-        rng = np.random
-    if isinstance(rng, int):
-        rng = np.random.RandomState(seed=rng)
+def ensure_rng(rng, impl='numpy'):
+    """
+    Returns a random number generator
+    """
+    import random
+    if impl == 'numpy':
+        if rng is None:
+            rng = np.random
+        elif isinstance(rng, int):
+            rng = np.random.RandomState(seed=rng)
+        # elif isinstance(rng, random.Random):
+        #     assert False
+    else:
+        if rng is None:
+            rng = random
+        elif isinstance(rng, int):
+            rng = random.Random(rng)
+        # elif isinstance(rng, np.random.RandomState):
+        #     assert False
     return rng
+
 
 
 def random_indexes(max_index, subset_size=None, seed=None, rng=None):

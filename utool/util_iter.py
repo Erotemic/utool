@@ -478,18 +478,53 @@ def and_iters(*args):
 def random_combinations(items, size, num=None, rng=None):
     """
     Yields `num` combinations of length `size` from items in random order
+
+    Args:
+        items (?):
+        size (?):
+        num (None): (default = None)
+        rng (RandomState):  random number generator(default = None)
+
+    Yields:
+        tuple: combo
+
+    CommandLine:
+        python -m utool.util_iter random_combinations
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> import utool as ut
+        >>> items = list(range(10))
+        >>> size = 3
+        >>> num = 5
+        >>> rng = 0
+        >>> combos = list(random_combinations(items, size, num, rng))
+        >>> result = ('combos = %s' % (ut.repr2(combos),))
+        >>> print(result)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_iter import *  # NOQA
+        >>> import utool as ut
+        >>> items = list(zip(range(10), range(10)))
+        >>> size = 3
+        >>> num = 5
+        >>> rng = 0
+        >>> combos = list(random_combinations(items, size, num, rng))
+        >>> result = ('combos = %s' % (ut.repr2(combos),))
+        >>> print(result)
     """
     import scipy
     import itertools as it
     import numpy as np
     import utool as ut
-    rng = ut.ensure_rng(rng)
-    if num is None:
-        num = np.inf
+    rng = ut.ensure_rng(rng, impl='python')
+    num_ = np.inf if num is None else num
     # Ensure we dont request more than is possible
     n_max = int(scipy.misc.comb(len(items), size))
-    num = min(n_max, num)
-    if num > n_max // 2:
+    num_ = min(n_max, num_)
+    if num is not None and num_ > n_max // 2:
         # If num is too big just generate all combinations and shuffle them
         combos = list(it.combinations(items, size))
         rng.shuffle(combos)
@@ -499,8 +534,9 @@ def random_combinations(items, size, num=None, rng=None):
         # Otherwise yield randomly until we get something we havent seen
         items = list(items)
         combos = set()
-        while len(combos) < num:
-            combo = tuple(sorted(rng.choice(items, size, replace=False)))
+        while len(combos) < num_:
+            # combo = tuple(sorted(rng.choice(items, size, replace=False)))
+            combo = tuple(sorted(rng.sample(items, size)))
             if combo not in combos:
                 combos.add(combo)
                 yield combo
