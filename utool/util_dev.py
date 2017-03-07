@@ -3464,11 +3464,11 @@ class PriorityQueue(NiceRepr):
         # Effectively O(1)
         _heap = self._heap
         _dict = self._dict
-        val, key = heapq[0]
+        val, key = _heap[0]
         # Remove items marked for lazy deletion as they are encountered
         while key not in _dict or _dict[key] != val:
             heapq.heappop(_heap)
-            val, key = heapq[0]
+            val, key = _heap[0]
         return key
 
     def pop(self):

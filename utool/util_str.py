@@ -274,7 +274,7 @@ def codeblock(block_str):
     Convinience function for defining code strings. Esspecially useful for
     templated code.
     """
-    return unindent(block_str).strip('\n')
+    return textwrap.dedent(block_str).strip('\n')
 
 
 def flatten_textlines(text):

@@ -214,6 +214,9 @@ class Repo(util_dev.NiceRepr):
         repo._modname_hints = ut.ensure_iterable(modname)
         repo.dpath = None
         repo.scripts = {}
+        if pythoncmd is None:
+            import sys
+            pythoncmd = sys.executable
         repo.pythoncmd = pythoncmd
 
         if dpath is None and repo.url is not None and code_dir is not None:
@@ -340,6 +343,14 @@ class Repo(util_dev.NiceRepr):
         gitbranch = gitrepo.branches[branch]
         remote = gitbranch.tracking_branch().remote_name
         return remote
+
+    def set_branch_remote(repo, branch, remote, remote_branch=None):
+        if remote_branch is None:
+            remote_branch = branch
+        fmt = 'git branch --set-upstream-to={remote}/{remote_branch} {branch} '
+        cmd = fmt.format(branch=branch, remote=remote,
+                         remote_branch=remote_branch)
+        repo.issue(cmd)
 
     @property
     def active_branch(repo):
@@ -503,6 +514,11 @@ class Repo(util_dev.NiceRepr):
                 break
         msg = 'tried %s' % (', '.join(tried))
         return found, msg, errors
+
+    def is_cloned(repo):
+        from os.path import exists
+        if not exists(repo.dpath):
+            return False
 
     def check_installed(repo):
         import utool as ut
@@ -695,10 +711,11 @@ class Repo(util_dev.NiceRepr):
 
     def _parse_merge_conflict_fpaths(repo, out):
         fpaths = []
-        for line in out.split('\n'):
-            pref = 'CONFLICT (content): Merge conflict in '
-            if line.startswith(pref):
-                fpaths.append(join(repo.dpath, line[len(pref):]))
+        if out is not None:
+            for line in out.split('\n'):
+                pref = 'CONFLICT (content): Merge conflict in '
+                if line.startswith(pref):
+                    fpaths.append(join(repo.dpath, line[len(pref):]))
         return fpaths
 
     def _handle_abort_merge_rebase(repo, out):
@@ -767,8 +784,9 @@ class Repo(util_dev.NiceRepr):
 
     def python_develop(repo):
         import utool as ut
-        repo.issue('{pythoncmd} setup.py develop'.format(
-            pythoncmd=repo.pythoncmd), sudo=not ut.in_virtual_env())
+        repo.issue('{pythoncmd} -m pip install -e {dpath}'.format(
+            pythoncmd=repo.pythoncmd, dpath=repo.dpath),
+            sudo=not ut.in_virtual_env())
 
     def is_gitrepo(repo):
         gitdir = join(repo.dpath, '.git')

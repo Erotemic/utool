@@ -287,6 +287,7 @@ def check_module_installed(modname):
         python -m utool.util_import check_module_installed --show --verbimp --modname=this
         python -m utool.util_import check_module_installed --show --verbimp --modname=guitool
         python -m utool.util_import check_module_installed --show --verbimp --modname=guitool.__PYQT__
+        python -m utool.util_import check_module_installed --show --verbimp --modname=ibeis.scripts.iccv
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -300,6 +301,16 @@ def check_module_installed(modname):
         >>> assert 'this' not in sys.modules, 'module(this) should not have ever been imported'
     """
     import pkgutil
+    if '.' in modname:
+        # Prevent explicit import if possible
+        parts = modname.split('.')
+        base = parts[0]
+        submods = parts[1:]
+        loader = pkgutil.find_loader(base)
+        if loader is not None:
+            # TODO: check to see if path to the submod exists
+            submods
+            return True
     loader = pkgutil.find_loader(modname)
     is_installed = loader is not None
     return is_installed
