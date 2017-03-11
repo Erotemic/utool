@@ -289,7 +289,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
             return text
         else:
             msg = '[ut] hashing tuples with repr is not a good idea. FIXME'
-            warnings.warn(msg, RuntimeWarning)
+            # warnings.warn(msg, RuntimeWarning)
             data = repr(data)  # Hack?
 
     # convert unicode into raw bytes

@@ -3396,9 +3396,15 @@ class PriorityQueue(NiceRepr):
         >>> items = dict(a=42, b=29, c=40, d=95, e=10)
         >>> self = ut.PriorityQueue(items)
         >>> print(self)
+        >>> assert len(self) == 5
+        >>> print(self.pop())
+        >>> assert len(self) == 4
+        >>> print(self.pop())
+        >>> assert len(self) == 3
         >>> print(self.pop())
         >>> print(self.pop())
         >>> print(self.pop())
+        >>> assert len(self) == 0
     """
     def __init__(self, items=None, ascending=True):
         # Use a heap for the priority queue aspect
@@ -3410,7 +3416,7 @@ class PriorityQueue(NiceRepr):
             self.update(items)
 
     def _rebuild(self):
-        # O(N) time
+        # Worst Case O(N)
         self._heap = [(v, k) for k, v in self._dict.items()]
         heapq.heapify(self._heap)
 
@@ -3424,11 +3430,12 @@ class PriorityQueue(NiceRepr):
         return key in self._dict
 
     def __getitem__(self, key):
-        # Effectively O(1)
+        # Worse Case O(1)
         return self._dict[key]
 
     def __setitem__(self, key, val):
-        # Effectively O(1)
+        # Ammortized O(1)
+        assert not np.isnan(val), 'no nan in PQ'
         self._dict[key] = val
         if len(self._heap) > 2 * len(self._dict):
             # When the heap grows larger than 2 * len(self), we rebuild it from
@@ -3461,7 +3468,10 @@ class PriorityQueue(NiceRepr):
                 pass
 
     def peek(self):
-        # Effectively O(1)
+        """
+        Peek at the next item in the queue
+        """
+        # Ammortized O(1)
         _heap = self._heap
         _dict = self._dict
         val, key = _heap[0]
@@ -3469,11 +3479,14 @@ class PriorityQueue(NiceRepr):
         while key not in _dict or _dict[key] != val:
             heapq.heappop(_heap)
             val, key = _heap[0]
-        return key
+        return key, val
 
     def pop(self):
+        """
+        Pop the next item off the queue
+        """
         try:
-            # Effectively O(1)
+            # Ammortized O(1)
             _heap = self._heap
             _dict = self._dict
             val, key = heapq.heappop(_heap)

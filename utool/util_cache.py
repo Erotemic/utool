@@ -281,7 +281,8 @@ def tryload_cache_list(dpath, fname, cfgstr_list, verbose=False):
 
 
 @profile
-def tryload_cache_list_with_compute(use_cache, dpath, fname, cfgstr_list, compute_fn, *args):
+def tryload_cache_list_with_compute(use_cache, dpath, fname, cfgstr_list,
+                                    compute_fn, *args):
     """
     tries to load data, but computes it if it can't give a compute function
     """
@@ -289,8 +290,12 @@ def tryload_cache_list_with_compute(use_cache, dpath, fname, cfgstr_list, comput
     if use_cache is False:
         data_list = [None] * len(cfgstr_list)
         ismiss_list = [True] * len(cfgstr_list)
+        # Don't load or save, just compute
+        data_list = compute_fn(ismiss_list, *args)
+        return data_list
     else:
-        data_list, ismiss_list = tryload_cache_list(dpath, fname, cfgstr_list, verbose=False)
+        data_list, ismiss_list = tryload_cache_list(dpath, fname, cfgstr_list,
+                                                    verbose=False)
     num_total = len(cfgstr_list)
     if any(ismiss_list):
         # Compute missing values
