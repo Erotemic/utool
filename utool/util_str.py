@@ -3418,7 +3418,7 @@ def split_sentences2(text, debug=0):
             #print('len(sep_list_group2) = %r' % (len(sep_list_group2),))
             print('full_pattern = %s' % (full_pattern,))
             #print('split_list = %r' % (split_list,))
-            print('sentence_list = %s' % (ut.list_str(sentence_list),))
+            print('sentence_list = %s' % (ut.repr2(sentence_list),))
             print('sep_list = %s' % ((sep_list),))
             print('</SPLIT DBG>')
         # ******* #
@@ -3530,7 +3530,7 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
                 #print('len(sep_list_group2) = %r' % (len(sep_list_group2),))
                 print('full_pattern = %s' % (full_pattern,))
                 #print('split_list = %r' % (split_list,))
-                print('sentence_list = %s' % (ut.list_str(sentence_list),))
+                print('sentence_list = %s' % (ut.repr2(sentence_list),))
                 print('sep_list = %s' % ((sep_list),))
                 print('</SPLIT DBG>')
             # ******* #
