@@ -463,6 +463,8 @@ def make_utool_json_encoder(allow_pickle=False):
                 return obj.tolist()
             elif six.PY3 and isinstance(obj, bytes):
                 return obj.decode('utf-8')
+            elif isinstance(obj, (set, frozenset)):
+                return json.JSONEncoder.default(self, list(obj))
             elif isinstance(obj, util_type.PRIMATIVE_TYPES):
                 return json.JSONEncoder.default(self, obj)
             elif hasattr(obj, '__getstate__'):
@@ -530,6 +532,7 @@ def to_json(val, allow_pickle=False, pretty=False):
         >>>     ut.get_zero_uuid(),
         >>>     ut.LazyDict(x='fo'),
         >>>     ut.LazyDict,
+        >>>     {'x': {'a', 'b', 'cde'}, 'y': [1]}
         >>> ]
         >>> #val = ut.LazyDict(x='fo')
         >>> allow_pickle = True
@@ -552,7 +555,7 @@ def to_json(val, allow_pickle=False, pretty=False):
         >>> print(result)
         >>> print('original = ' + ut.repr3(val, nl=1))
         >>> print('reconstructed = ' + ut.repr3(reload_val, nl=1))
-        >>> assert reload_val[6] == val[6]
+        >>> assert reload_val[6] == val[6].tolist()
         >>> assert reload_val[6] is not val[6]
     """
     UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)

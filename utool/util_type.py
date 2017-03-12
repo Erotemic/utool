@@ -91,7 +91,8 @@ for float_type_ in VALID_FLOAT_TYPES:
 
 
 PRIMATIVE_TYPES = (
-    tuple(six.string_types) + (bytes, list, dict, int, float, bool, type(None))
+    tuple(six.string_types) + (bytes, list, dict, set, frozenset, int, float,
+                               bool, type(None))
 )
 
 
