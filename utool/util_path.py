@@ -896,6 +896,9 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
     r"""
     Globs directory for pattern
 
+    DEPRICATED:
+        use pathlib.glob instead
+
     Args:
         dpath (str): directory path or pattern
         pattern (str or list): pattern or list of patterns
