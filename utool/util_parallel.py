@@ -1209,6 +1209,9 @@ class KillableProcess(multiprocessing.Process):
     Simple subclass of multiprocessing.Process
     Gives an additional method to kill all children
     as well as itself. calls this function on delete.
+
+    DEPRICATE, do not kill processes. It is not a good idea.
+    It can cause deadlocks.
     """
 
     #def __del__(self):
@@ -1255,6 +1258,9 @@ def _async_raise(tid, excobj):
 
 class KillableThread(threading.Thread):
     """
+    DEPRICATE, do not kill threads. It is not a good idea.
+    It can cause deadlocks.
+
     References:
         http://code.activestate.com/recipes/496960-thread2-killable-threads/
         http://tomerfiliba.com/recipes/Thread2/
