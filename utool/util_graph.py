@@ -1982,6 +1982,7 @@ def nx_mincut_edges_weighted(G, s, t, capacity='weight'):
         for p2_node in partitions[1]:
             if G.has_edge(p1_node, p2_node):
                 edge_cut_list.append((p1_node, p2_node))
+    # assert edge_cut_list == nx_edges_between(G, partitions[0], partitions[1])
     return edge_cut_list
 
 
