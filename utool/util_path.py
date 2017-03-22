@@ -276,7 +276,7 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
 
 
 def augpath(path, augsuf='', augext='', augpref='', augdir=None, newext=None,
-            newfname=None, ensure=False):
+            newfname=None, ensure=False, prefix=None, suffix=None):
     """
     augments end of path before the extension.
 
@@ -309,6 +309,10 @@ def augpath(path, augsuf='', augext='', augpref='', augdir=None, newext=None,
         >>> print(result)
         backup/somefile_aug2.bak
     """
+    if prefix is not None:
+        augpref = prefix
+    if suffix is not None:
+        augsuf = suffix
     # Breakup path
     dpath, fname = split(path)
     fname_noext, ext = splitext(fname)

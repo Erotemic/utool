@@ -1761,7 +1761,8 @@ def qtensure():
 
 def quit_if_noshow():
     import utool as ut
-    if not (ut.get_argflag(('--show', '--save')) or ut.inIPython()):
+    saverequest = ut.get_argval('--save', default=None)
+    if not (saverequest or ut.get_argflag(('--show', '--save')) or ut.inIPython()):
         raise ExitTestException('This should be caught gracefully by ut.run_test')
 
 

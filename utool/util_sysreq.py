@@ -34,7 +34,14 @@ def in_virtual_env():
         >>> print(result)
     """
     import sys
-    return hasattr(sys, 'real_prefix')
+    has_venv = False
+    if hasattr(sys, 'real_prefix'):
+        # For virtualenv module
+        has_venv = True
+    elif hasattr(sys, 'base_prefix'):
+        # For venv module
+        has_venv = sys.base_prefix != sys.prefix
+    return has_venv
 
 
 def get_site_packages_dir():

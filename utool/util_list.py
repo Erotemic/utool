@@ -1528,9 +1528,24 @@ def argsort(*args, **kwargs):
         *args: multiple lists to sort by
         **kwargs:
             reverse (bool): sort order is descending if True else acscending
+
+    CommandLine:
+        python -m utool.util_list argsort
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> result = ut.argsort({'a': 3, 'b': 2, 'c': 100})
+        >>> print(result)
     """
-    index_list = list(range(len(args[0])))
-    return sortedby2(index_list, *args, **kwargs)
+    if len(args) == 1 and isinstance(args[0], dict):
+        dict_ = args[0]
+        index_list = list(dict_.keys())
+        value_list = list(dict_.values())
+        return sortedby2(index_list, value_list)
+    else:
+        index_list = list(range(len(args[0])))
+        return sortedby2(index_list, *args, **kwargs)
 
 
 def argmax(input_):
