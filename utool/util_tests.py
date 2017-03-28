@@ -1955,13 +1955,13 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
 
 
 def _cmd_modify_src(testsrc):
-    # testsrc = 'import IPython; import utool as ut; ut.qt4ensure()\n' + testsrc
+    # testsrc = 'import IPython; import utool as ut; ut.qtensure()\n' + testsrc
     # testsrc += '\nimport IPython; IPython.embed()'
     # testsrc += '\nimport utool as ut; ut.embed()'
     import utool as ut
     pline = 'print(%r)' % ut.highlight_code(ut.indent(testsrc, '>>> '))
-    testsrc += '\nimport utool as ut; ' + pline + '; ut.qt4ensure(); ut.embed()'
-    # testsrc += '\nimport utool as ut; ut.qt4ensure(); ut.embed()'
+    testsrc += '\nimport utool as ut; ' + pline + '; ut.qtensure(); ut.embed()'
+    # testsrc += '\nimport utool as ut; ut.qtensure(); ut.embed()'
     return testsrc
 
 
