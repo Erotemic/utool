@@ -339,7 +339,6 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
                 visited_edges.pop()
 
 
-@profile
 def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
                      assume_sparse=True):
     r"""
@@ -547,7 +546,6 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
                     yield n1, n2
 
 
-@profile
 def nx_delete_node_attr(graph, key, nodes=None):
     if nodes is None:
         nodes = list(graph.nodes())
@@ -572,7 +570,6 @@ def nx_delete_node_attr(graph, key, nodes=None):
     return removed
 
 
-@profile
 def nx_delete_edge_attr(graph, key, edges=None):
     """
     Removes an attributes from specific edges in the graph
@@ -603,7 +600,6 @@ def nx_delete_edge_attr(graph, key, edges=None):
     return removed
 
 
-@profile
 def nx_delete_None_edge_attr(graph, edges=None):
     removed = 0
     if graph.is_multigraph():
@@ -635,7 +631,6 @@ def nx_delete_None_edge_attr(graph, edges=None):
     return removed
 
 
-@profile
 def nx_delete_None_node_attr(graph, nodes=None):
     removed = 0
     if nodes is None:
@@ -652,7 +647,6 @@ def nx_delete_None_node_attr(graph, nodes=None):
     return removed
 
 
-@profile
 def nx_set_default_node_attributes(graph, key, val):
     unset_nodes = [n for n, d in graph.nodes(data=True) if key not in d]
     if isinstance(val, dict):
@@ -662,7 +656,6 @@ def nx_set_default_node_attributes(graph, key, val):
     nx.set_node_attributes(graph, key, values)
 
 
-@profile
 def nx_set_default_edge_attributes(graph, key, val):
     unset_edges = [(u, v) for u, v, d in graph.edges(data=True) if key not in d]
     if isinstance(val, dict):
@@ -1622,7 +1615,6 @@ def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
             queue.popleft()
 
 
-@profile
 def bfs_conditional(G, source, reverse=False, keys=True, data=False,
                     yield_nodes=True, yield_condition=None,
                     continue_condition=None, visited_nodes=None,

@@ -362,13 +362,6 @@ def ensure_colvec(arr):
     return arr
 
 
-#def escape_latex(unescaped_latex_str):
-#    ret = unescaped_latex_str
-#    ret = ret.replace('#', '\\#')
-#    ret = ret.replace('%', '\\%')
-#    ret = ret.replace('_', '\\_')
-#    return ret
-
 def escape_latex(text):
     r"""
     Args:
@@ -378,7 +371,7 @@ def escape_latex(text):
         str: the message escaped to appear correctly in LaTeX
 
     References:
-        http://stackoverflow.com/questions/16259923/how-can-i-escape-latex-special-characters-inside-django-templates
+        http://stackoverflow.com/questions/16259923/how-can-i-escape-characters
     """
     conv = {
         '&': r'\&',
@@ -394,7 +387,8 @@ def escape_latex(text):
         '<': r'\textless',
         '>': r'\textgreater',
     }
-    regex = re.compile('|'.join(re.escape(unicode(key)) for key in sorted(conv.keys(), key=lambda item: - len(item))))
+    import six
+    regex = re.compile('|'.join(re.escape(six.text_type(key)) for key in sorted(conv.keys(), key=lambda item: - len(item))))
     return regex.sub(lambda match: conv[match.group()], text)
 
 
@@ -403,14 +397,6 @@ def replace_all(str_, repltups):
     for ser, rep in repltups:
         ret = re.sub(ser, rep, ret)
     return ret
-
-
-def make_table2(row_lbls, col_lbls, values, **kwargs):
-    tablekw = dict(title=None, table_position='[ht!]', astable=True,
-                   centerline=False, col_sep='', multicol_sep='|',
-                   AUTOFIX_LATEX=False)
-    tablekw.update(kwargs)
-    return make_score_tabular(row_lbls, col_lbls, values, **tablekw)
 
 
 def make_score_tabular(
@@ -888,12 +874,6 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
     return figure_str
 
 
-def _tabular_header_and_footer(col_layout):
-    tabular_head = textwrap.dedent(r'\begin{tabular}{|%s|}' % col_layout)
-    tabular_tail = textwrap.dedent(r'\end{tabular}')
-    return tabular_head, tabular_tail
-
-
 def long_substr(strlist):
     # Longest common substring
     # http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
@@ -963,7 +943,6 @@ def latex_sanitize_command_name(_cmdname):
         >>> print(result)
         FooBar
     """
-    import re
     import utool as ut
     command_name = _cmdname
     try:
@@ -995,34 +974,6 @@ def latex_sanitize_command_name(_cmdname):
     command_name = ut.to_camel_case('_'.join(str_list), mixed=True)
     return command_name
 
-
-def get_bibtex_dict(bib_fpath):
-    r"""
-    Args:
-        bib_fpath (str):
-
-    Returns:
-        dict: bibtex_dict
-
-    CommandLine:
-        python -m utool.util_latex --test-get_bibtex_dict
-        pip install bibtexparser
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_latex import *  # NOQA
-        >>> import utool as ut
-        >>> bib_fpath = ut.truepath('~/latex/crall-candidacy-2015/My_Library_clean.bib')
-        >>> bibtex_dict = get_bibtex_dict(bib_fpath)
-        >>> result = ('bibtex_dict = %s' % (str(bibtex_dict),))
-        >>> print(result)
-    """
-    import bibtexparser
-    import utool as ut
-    bibtex_str   = ut.readfrom(bib_fpath, verbose=False)
-    bib_database = bibtexparser.loads(bibtex_str)
-    bibtex_dict  = bib_database.get_entry_dict()
-    return bibtex_dict
 
 if __name__ == '__main__':
     """

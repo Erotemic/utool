@@ -26,6 +26,7 @@ if util_type.HAVE_NUMPY:
 
 # default length of hash codes
 HASH_LEN = 16
+HASH_LEN2 = 32
 
 # HEX alphabet
 ALPHABET_16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -161,6 +162,232 @@ if six.PY2:
     stringlike = (basestring, bytes)
 if six.PY3:
     stringlike = (str, bytes)
+
+
+def _covert_to_hashable(data):
+    if isinstance(data, six.binary_type):
+        hashable = data
+        prefix = b'TXT'
+    elif util_type.HAVE_NUMPY and isinstance(data, np.ndarray):
+        if data.dtype.kind == 'O':
+            msg = '[ut] hashing ndarrays with dtype=object is unstable'
+            warnings.warn(msg, RuntimeWarning)
+        hashable = data.dumps()
+        prefix = b'NDARR'
+    elif isinstance(data, six.text_type):
+        # convert unicode into bytes
+        hashable = data.encode('utf-8')
+        prefix = b'TXT'
+    elif isinstance(data, uuid.UUID):
+        hashable = data.bytes_
+        prefix = b'UUID'
+    elif isinstance(data, int):
+        warnings.warn('[util_hash] Hashing ints is slow, numpy is prefered')
+        hashable = data.to_bytes(4, byteorder='big')
+        prefix = b'INT'
+    # elif isinstance(data, float):
+    #     hashable = repr(data).encode('utf8')
+    #     prefix = b'FLT'
+    else:
+        raise TypeError('unknown hashable type=%r' % (type(data)))
+        # import bencode
+        # hashable = bencode.Bencoder.encode(data).encode('utf-8')
+        # prefix = b'BEN'
+    prefix = b''
+    return prefix, hashable
+
+
+def _update_hasher(hasher, data):
+    """
+    This is the clear winner over the generate version
+
+    Ignore:
+        import utool
+        rng = np.random.RandomState(0)
+        # str1 = rng.rand(0).dumps()
+        str1 = b'SEP'
+        str2 = rng.rand(10000).dumps()
+        for timer in utool.Timerit(100, label='twocall'):
+            hasher = hashlib.sha256()
+            with timer:
+                hasher.update(str1)
+                hasher.update(str2)
+        a = hasher.hexdigest()
+        for timer in utool.Timerit(100, label='concat'):
+            hasher = hashlib.sha256()
+            with timer:
+                hasher.update(str1 + str2)
+        b = hasher.hexdigest()
+        assert a == b
+        # CONCLUSION: Faster to concat in case of prefixes and seps
+
+        nested_data = {'1': [rng.rand(100), '2', '3'],
+                       '2': ['1', '2', '3', '4', '5'],
+                       '3': [('1', '2'), ('3', '4'), ('5', '6')]}
+        data = list(nested_data.values())
+
+
+        for timer in utool.Timerit(1000, label='cat-generate'):
+            hasher = hashlib.sha256()
+            with timer:
+                hasher.update(b''.join(_bytes_generator(data)))
+
+        for timer in utool.Timerit(1000, label='inc-generate'):
+            hasher = hashlib.sha256()
+            with timer:
+                for b in _bytes_generator(data):
+                    hasher.update(b)
+
+        for timer in utool.Timerit(1000, label='inc-generate'):
+            hasher = hashlib.sha256()
+            with timer:
+                for b in _bytes_generator(data):
+                    hasher.update(b)
+
+        for timer in utool.Timerit(1000, label='chunk-inc-generate'):
+            hasher = hashlib.sha256()
+            import ubelt as ub
+            with timer:
+                for chunk in ub.chunks(_bytes_generator(data), 5):
+                    hasher.update(b''.join(chunk))
+
+        for timer in utool.Timerit(1000, label='inc-update'):
+            hasher = hashlib.sha256()
+            with timer:
+                _update_hasher(hasher, data)
+
+        data = ut.lorium_ipsum()
+        hashstr3(data)
+        ut.hashstr27(data)
+        %timeit hashstr3(data)
+        %timeit ut.hashstr27(repr(data))
+
+        for timer in utool.Timerit(100, label='twocall'):
+            hasher = hashlib.sha256()
+            with timer:
+                hashstr3(data)
+
+        hasher = hashlib.sha256()
+        hasher.update(memoryview(np.array([1])))
+        print(hasher.hexdigest())
+
+        hasher = hashlib.sha256()
+        hasher.update(np.array(['1'], dtype=object))
+        print(hasher.hexdigest())
+
+    """
+    if isinstance(data, (tuple, list)):
+        # try to nest quickly without recursive calls
+        SEP = b'SEP'
+        iter_prefix = b'ITER'
+        # if isinstance(data, tuple):
+        #     iter_prefix = b'TUP'
+        # else:
+        #     iter_prefix = b'LIST'
+        iter_ = iter(data)
+        hasher.update(iter_prefix)
+        try:
+            for item in iter_:
+                prefix, hashable = _covert_to_hashable(data)
+                binary_data = SEP + prefix + hashable
+                # b''.join([SEP, prefix, hashable])
+                hasher.update(binary_data)
+        except TypeError:
+            # need to use recursive calls
+            # Update based on current item
+            _update_hasher(hasher, item)
+            for item in iter_:
+                # Ensure the items have a spacer between them
+                hasher.update(SEP)
+                _update_hasher(hasher, item)
+    else:
+        prefix, hashable = _covert_to_hashable(data)
+        binary_data = prefix + hashable
+        # b''.join([prefix, hashable])
+        hasher.update(binary_data)
+
+
+def _bytes_generator(data):
+    if isinstance(data, (tuple, list)):
+        # Ensure there is a iterable prefix with a spacer item
+        SEP = b'SEP'
+        iter_prefix = b'ITER'
+        # if isinstance(data, tuple):
+        #     iter_prefix = b'TUP'
+        # else:
+        #     iter_prefix = b'LIST'
+        iter_ = iter(data)
+        yield iter_prefix
+        try:
+            # try to nest quickly without recursive calls
+            for item in iter_:
+                prefix, hashable = _covert_to_hashable(data)
+                yield SEP
+                yield prefix
+                yield hashable
+        except TypeError:
+            # recover from failed item and then continue iterating using slow
+            # recursive calls
+            yield SEP
+            for bytes_ in _bytes_generator(item):
+                yield bytes_
+            for item in iter_:
+                yield SEP
+                for bytes_ in _bytes_generator(item):
+                    yield bytes_
+    else:
+        prefix, hashable = _covert_to_hashable(data)
+        yield prefix
+        yield hashable
+
+
+def hashstr3(data, hashlen=None, alphabet=None):
+    r"""
+    Get a unique hash depending on the state of the data.
+
+    Args:
+        data (object): any sort of loosely organized data
+        hashlen (None): (default = None)
+        alphabet (None): (default = None)
+
+    Returns:
+        str: text -  hash string
+
+    CommandLine:
+        python -m utool.util_hash hashstr3
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> import utool as ut
+        >>> print(ut.hashstr3('1'))
+        >>> print(ut.hashstr3(['1']))
+        >>> print(ut.hashstr3(tuple(['1'])))
+        >>> print(ut.hashstr3(b'12'))
+        >>> print(ut.hashstr3([b'1', b'2']))
+        >>> print(ut.hashstr3(['1', '2', '3']))
+        >>> print(ut.hashstr3(['1', np.array([1,2,3]), '3']))
+        >>> print(ut.hashstr3('123'))
+        >>> rng = np.random.RandomState(0)
+        >>> print(ut.hashstr3(rng.rand(100000)))
+    """
+    if alphabet is None:
+        alphabet = ALPHABET_27
+    if hashlen is None:
+        hashlen = HASH_LEN2
+    if isinstance(data, stringlike) and len(data) == 0:
+        # Make a special hash for empty data
+        text = (alphabet[0] * hashlen)
+    else:
+        hasher = hashlib.sha512()
+        _update_hasher(hasher, data)
+        # Get a 128 character hex string
+        text = hasher.hexdigest()
+        # Shorten length of string (by increasing base)
+        hashstr2 = convert_hexstr_to_bigbase(text, alphabet, bigbase=len(alphabet))
+        # Truncate
+        text = hashstr2[:hashlen]
+        return text
 
 
 def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
@@ -329,7 +556,31 @@ valid_filename_ascii_chars()
 
 
 def convert_hexstr_to_bigbase(hexstr, alphabet=ALPHABET, bigbase=BIGBASE):
-    """ Packs a long hexstr into a shorter length string with a larger base
+    r"""
+    Packs a long hexstr into a shorter length string with a larger base
+
+    Ignore:
+        # Determine the length savings with lossless conversion
+        import sympy as sy
+        consts = dict(hexbase=16, hexlen=256, bigbase=27)
+        symbols = sy.symbols('hexbase, hexlen, bigbase, newlen')
+        haexbase, hexlen, bigbase, newlen = symbols
+        eqn = sy.Eq(16 ** hexlen,  bigbase ** newlen)
+        newlen_ans = sy.solve(eqn, newlen)[0].subs(consts).evalf()
+        print('newlen_ans = %r' % (newlen_ans,))
+
+        # for a 27 char alphabet we can get 216
+        print('Required length for lossless conversion len2 = %r' % (len2,))
+
+        def info(base, len):
+            bits = base ** len
+            print('base = %r' % (base,))
+            print('len = %r' % (len,))
+            print('bits = %r' % (bits,))
+        info(16, 256)
+        info(27, 16)
+        info(27, 64)
+        info(27, 216)
     """
     x = int(hexstr, 16)  # first convert to base 16
     if x == 0:

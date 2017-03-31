@@ -1262,7 +1262,17 @@ class ParamInfo(util_dev.NiceRepr):
         for hideif in pi.hideif_list:
             if callable(hideif):
                 hide = hideif(cfg)
+            elif (isinstance(hideif, six.string_types) and
+                  hideif.startswith(':')):
+                # advanced hideif parsing
+                print('Checking hide for {}'.format(pi.varname))
+                code = hideif[1:]
+                filename = '<{}>.__hideif__'.format(pi.varname)
+                evalable = compile(code, filename, 'eval')
+                hide = eval(evalable, cfg)
+                print('hide = %r' % (hide,))
             else:
+                # just a value wrt to this param
                 hide = getattr(cfg,  pi.varname) == hideif
             if hide:
                 return True

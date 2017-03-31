@@ -404,6 +404,23 @@ def make_module_profile_func(module_name=None, module_prefix='[???]', module=Non
     return profile_withfuncname_filter
 
 
+DEBUG_SLOW_IMPORT = False
+if DEBUG_SLOW_IMPORT:
+    # Find which modules take the longest to import
+    import ubelt as ub
+    tt = ub.Timer(verbose=False)
+    tt.tic()
+    import_times = {}
+    PREV_MODNAME = None
+
+    def check_debug_import_times():
+        import utool as ut
+        from utool import util_inject
+        print(ut.align(ut.repr4(ut.sort_dict(util_inject.import_times, 'vals'), precision=4), ':'))
+        # ututil_inject.import_times
+        # pass
+
+
 def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=0, via=None):
     """
     Use in modules that do not have inject in them
@@ -419,7 +436,18 @@ def noinject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, 
         fmtdict = dict(N=N, lineno=lineno, callername=callername,
                        modname=module_name, suff=suff)
         msg = '[util_inject] N={N} {modname} is imported by {callername} at lineno={lineno}{suff}'.format(**fmtdict)
+
+        if DEBUG_SLOW_IMPORT:
+            global PREV_MODNAME
+            seconds = tt.toc()
+            import_times[(PREV_MODNAME, module_name)] = seconds
+            PREV_MODNAME = module_name
+
         builtins.print(msg)
+
+        if DEBUG_SLOW_IMPORT:
+            tt.tic()
+        # builtins.print(elapsed)
         if EXIT_ON_INJECT_MODNAME == module_name:
             builtins.print('...exiting')
             assert False, 'exit in inject requested'

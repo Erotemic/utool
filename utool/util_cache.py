@@ -243,7 +243,7 @@ def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None, enabled=True):
         if big_verbose:
             print('[util_cache] About to read file of size %s' % (ut.byte_str2(nbytes),))
     try:
-        with ut.Timer(fpath, verbose=big_verbose and verbose > 2):
+        with ut.Timer(fpath, verbose=big_verbose and verbose > 3):
             data = util_io.load_data(fpath, verbose=verbose > 2)
     except (EOFError, IOError, ImportError) as ex:
         print('CORRUPTED? fpath = %s' % (fpath,))
@@ -344,7 +344,11 @@ class Cacher(object):
 
     def load(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
-        assert cfgstr is not None, 'must specify cfgstr in constructor or call'
+        # assert cfgstr is not None, 'must specify cfgstr in constructor or call'
+        if cfgstr is None:
+            import warnings
+            warnings.warn('No cfgstr given in Cacher constructor or call')
+            cfgstr = ''
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
         # TODO: use the computed fpath from this object instead
@@ -360,13 +364,17 @@ class Cacher(object):
         """
         if cfgstr is None:
             cfgstr = self.cfgstr
-        assert cfgstr is not None, (
-            'must specify cfgstr in constructor or call')
+        if cfgstr is None:
+            import warnings
+            warnings.warn('No cfgstr given in Cacher constructor or call')
+            cfgstr = ''
+        # assert cfgstr is not None, (
+        #     'must specify cfgstr in constructor or call')
         try:
             if self.verbose > 1:
                 print('[cache] tryload fname=%s' % (self.fname,))
-                if self.verbose > 2:
-                    print('[cache] cfgstr=%r' % (cfgstr,))
+                # if self.verbose > 2:
+                #     print('[cache] cfgstr=%r' % (cfgstr,))
             return self.load(cfgstr)
         except IOError:
             if self.verbose > 0:
@@ -383,7 +391,11 @@ class Cacher(object):
         if not self.enabled:
             return
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
-        assert cfgstr is not None, 'must specify cfgstr in constructor or call'
+        # assert cfgstr is not None, 'must specify cfgstr in constructor or call'
+        if cfgstr is None:
+            import warnings
+            warnings.warn('No cfgstr given in Cacher constructor or call')
+            cfgstr = ''
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
         if self.verbose > 0:
