@@ -84,6 +84,7 @@ if six.PY2:
     BooleanType = types.BooleanType
     FloatType = types.FloatType
 elif six.PY3:
+    import types
 
     __STR__ = str
     IntType  = int
