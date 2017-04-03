@@ -3284,6 +3284,14 @@ def length_hint(obj, default=0):
         return hint
 
 
+def partial_order(list_, part):
+    list_items = set(list_)
+    part_items = set(part)
+    begin = [p for p in part if p in list_items]
+    end = [item for item in list_ if item not in part_items]
+    return begin + end
+
+
 if __name__ == '__main__':
     """
     CommandLine:
