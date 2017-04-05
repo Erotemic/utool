@@ -1024,6 +1024,7 @@ class InteractiveIter(object):
             print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
         if iiter.num_items == 0:
             raise StopIteration
+        # TODO: replace with ub.ProgIter
         mark_, end_ = util_progress.log_progress(total=iiter.num_items,
                                                  lbl='interaction: ', freq=1)
         prompt_on_start = False

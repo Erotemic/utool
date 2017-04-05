@@ -178,11 +178,11 @@ def make_module_print_func(module):
                 """ debugging logging builtins.print """
                 from utool._internal.meta_util_dbg import get_caller_name
                 calltag = ''.join(('[caller:', get_caller_name(N=DEBUG_PRINT_N), ']' ))
-                util_logging.__UTOOL_PRINT__(calltag, *args)
+                util_logging._utool_print()(calltag, *args)
         else:
             def print(*args):
                 """ logging builtins.print """
-                util_logging.__UTOOL_PRINT__(*args)
+                util_logging._utool_print()(*args)
     return print
 
 
@@ -195,12 +195,12 @@ def make_module_write_func(module):
         if __AGGROFLUSH__:
             def print_(*args):
                 """ aggressive logging stdout.write """
-                util_logging.__UTOOL_WRITE__(*args)
-                util_logging.__UTOOL_FLUSH__()
+                util_logging._utool_write()(*args)
+                util_logging._utool_flush()()
         else:
             def print_(*args):
                 """ logging stdout.write """
-                util_logging.__UTOOL_WRITE__(*args)
+                util_logging._utool_write()(*args)
     return print_
 
 
@@ -227,21 +227,21 @@ def inject_print_functions(module_name=None, module_prefix='[???]',
                 """ debugging logging builtins.print """
                 from utool._internal.meta_util_dbg import get_caller_name
                 calltag = ''.join(('[caller:', get_caller_name(N=DEBUG_PRINT_N), ']' ))
-                util_logging.__UTOOL_PRINT__(calltag, *args)
+                util_logging._utool_print()(calltag, *args)
         else:
             def print(*args):
                 """ logging builtins.print """
-                util_logging.__UTOOL_PRINT__(*args)
+                util_logging._utool_print()(*args)
 
         if __AGGROFLUSH__:
             def print_(*args):
                 """ aggressive logging stdout.write """
-                util_logging.__UTOOL_WRITE__(*args)
-                util_logging.__UTOOL_FLUSH__()
+                util_logging._utool_write()(*args)
+                util_logging._utool_flush()()
         else:
             def print_(*args):
                 """ logging stdout.write """
-                util_logging.__UTOOL_WRITE__(*args)
+                util_logging._utool_write()(*args)
 
         # turn on module debugging with command line flags
         dotpos = module.__name__.rfind('.')

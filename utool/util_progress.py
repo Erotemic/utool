@@ -36,16 +36,6 @@ FORCE_ALL_PROGRESS = util_arg.get_argflag(('--force-all-progress',))
 DEBUG_FREQ_ADJUST = util_arg.get_argflag('--debug-adjust-freq')
 
 
-#PROGRESS_WRITE = sys.stdout.write
-#PROGRESS_FLUSH = sys.stdout.flush
-
-# FIXME: if this is loaded before logging beings
-# progress will not be logged
-#PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
-PROGRESS_WRITE = print
-PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
-
-
 def test_progress():
     """
     CommandLine:
@@ -567,16 +557,11 @@ class ProgressIter(object):
         # SETUP VARIABLES
         # HACK: reaquire logging print funcs in case they have changed
         if self.stream is None:
-            PROGRESS_WRITE = util_logging.__UTOOL_WRITE__
-            PROGRESS_FLUSH = util_logging.__UTOOL_FLUSH__
+            self.write = util_logging._utool_write()
+            self.flush = util_logging._utool_flush()
         else:
-            PROGRESS_WRITE = lambda msg: self.stream.write(msg)  # NOQA
-            PROGRESS_FLUSH = lambda: self.stream.flush()  # NOQA
-        #import sys
-        #PROGRESS_WRITE = sys.stdout.write
-        #PROGRESS_FLUSH = sys.stdout.flush
-        self.flush = PROGRESS_FLUSH
-        self.write = PROGRESS_WRITE
+            self.write = lambda msg: self.stream.write(msg)  # NOQA
+            self.flush = lambda: self.stream.flush()  # NOQA
 
         nTotal        = self.nTotal * self.parent_nTotal  # hack
         freq          = self.freq
@@ -615,7 +600,7 @@ class ProgressIter(object):
                                                  self.backspace)
 
         try:
-            PROGRESS_FLUSH()
+            util_logging._utool_flush()()
         except IOError as ex:
             # There is some weird error when doing progress in IPython notebook
             if util_arg.VERBOSE:
@@ -625,12 +610,12 @@ class ProgressIter(object):
                 self.display_message()
             elif self.verbose:
                 start_msg = start_msg_fmt.format(count=self.parent_offset)
-                PROGRESS_WRITE(start_msg + '\n')
+                util_logging._utool_write()(start_msg + '\n')
 
             self._cursor_at_newline = not self.backspace
 
             try:
-                PROGRESS_FLUSH()
+                util_logging._utool_flush()()
             except IOError as ex:
                 # There is some weird error when doing progress in IPython notebook
                 if util_arg.VERBOSE:
@@ -901,8 +886,8 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
             pass
         return mark_progress, end_progress
     else:
-        write_fn = PROGRESS_WRITE
-        flush_fn = PROGRESS_FLUSH
+        write_fn = util_logging._utool_write()
+        flush_fn = util_logging._utool_flush()
         # build format string for displaying progress
         fmt_str = progress_str(nTotal, lbl=lbl, repl=repl, approx=approx,
                                backspace=backspace)
@@ -944,25 +929,6 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         if start:
             mark_progress(-1)
         return mark_progress, end_progress
-
-
-def simple_progres_func(verbosity, msg, progchar='.'):
-    def mark_progress0(*args):
-        pass
-
-    def mark_progress1(*args):
-        PROGRESS_WRITE(progchar)
-
-    def mark_progress2(*args):
-        print(msg % args)
-
-    if verbosity == 0:
-        mark_progress = mark_progress0
-    elif verbosity == 1:
-        mark_progress = mark_progress1
-    elif verbosity == 2:
-        mark_progress = mark_progress2
-    return mark_progress
 
 
 if __name__ == '__main__':

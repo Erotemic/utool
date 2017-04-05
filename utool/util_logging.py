@@ -37,20 +37,47 @@ __UTOOL_ROOT_LOGGER__ = None
 __CURRENT_LOG_FPATH__ = None
 
 # Remeber original python values
-__PYTHON_STDOUT__ = sys.stdout
-__PYTHON_PRINT__  = builtins.print
-__PYTHON_WRITE__  = __PYTHON_STDOUT__.write
-__PYTHON_FLUSH__  = __PYTHON_STDOUT__.flush
+# __PYTHON_STDOUT__ = sys.stdout
+# __PYTHON_PRINT__  = builtins.print
+# __PYTHON_WRITE__  = __PYTHON_STDOUT__.write
+# __PYTHON_FLUSH__  = __PYTHON_STDOUT__.flush
 
 # Initialize utool values
-__UTOOL_STDOUT__    = __PYTHON_STDOUT__
-__UTOOL_PRINT__     = __PYTHON_PRINT__
-__UTOOL_PRINTDBG__  = __PYTHON_PRINT__
+__UTOOL_STDOUT__    = None
+__UTOOL_PRINT__     = None
 
 # TODO: Allow write and flush to have a logging equivalent
-__UTOOL_WRITE__     = __PYTHON_WRITE__
-__UTOOL_FLUSH__     = __PYTHON_FLUSH__
+__UTOOL_WRITE__     = None
+__UTOOL_FLUSH__     = None
 __UTOOL_WRITE_BUFFER__ = []
+
+
+def _utool_stdout():
+    if __UTOOL_STDOUT__ is not None:
+        return __UTOOL_STDOUT__
+    else:
+        return sys.stdout
+
+
+def _utool_write():
+    if __UTOOL_WRITE__ is not None:
+        return __UTOOL_WRITE__
+    else:
+        return sys.stdout.write
+
+
+def _utool_flush():
+    if __UTOOL_FLUSH__ is not None:
+        return __UTOOL_FLUSH__
+    else:
+        return sys.stdout.flush
+
+
+def _utool_print():
+    if __UTOOL_PRINT__ is not None:
+        return __UTOOL_PRINT__
+    else:
+        return builtins.print
 
 
 __STR__ = six.text_type
@@ -145,13 +172,12 @@ def debug_logging_iostreams():
     print('__IN_MAIN_PROCESS__ = %r' % (__IN_MAIN_PROCESS__,))
     print('__UTOOL_ROOT_LOGGER__ = %r' % (__UTOOL_ROOT_LOGGER__,))
     print('__CURRENT_LOG_FPATH__ = %r' % (__CURRENT_LOG_FPATH__,))
-    print('__PYTHON_STDOUT__ = %r' % (__PYTHON_STDOUT__,))
-    print('__PYTHON_PRINT__ = %r' % (__PYTHON_PRINT__,))
-    print('__PYTHON_WRITE__ = %r' % (__PYTHON_WRITE__,))
-    print('__PYTHON_FLUSH__ = %r' % (__PYTHON_FLUSH__,))
+    # print('__PYTHON_STDOUT__ = %r' % (__PYTHON_STDOUT__,))
+    # print('__PYTHON_PRINT__ = %r' % (__PYTHON_PRINT__,))
+    # print('__PYTHON_WRITE__ = %r' % (__PYTHON_WRITE__,))
+    # print('__PYTHON_FLUSH__ = %r' % (__PYTHON_FLUSH__,))
     print('__UTOOL_STDOUT__ = %r' % (__UTOOL_STDOUT__,))
     print('__UTOOL_PRINT__ = %r' % (__UTOOL_PRINT__,))
-    print('__UTOOL_PRINTDBG__ = %r' % (__UTOOL_PRINTDBG__,))
     print('__UTOOL_FLUSH__ = %r' % (__UTOOL_FLUSH__,))
     print('__UTOOL_WRITE__ = %r' % (__UTOOL_WRITE__,))
     print(' --- </DEBUG IOSTREAMS> --')
@@ -360,11 +386,11 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         >>> sys.argv.append('--verb-logging')
         >>> import utool as ut
         >>> ut.start_logging()
-        >>> ut.util_logging.__UTOOL_PRINT__('hello world')
-        >>> ut.util_logging.__UTOOL_WRITE__('writing1')
-        >>> ut.util_logging.__UTOOL_WRITE__('writing2\n')
-        >>> ut.util_logging.__UTOOL_WRITE__('writing3')
-        >>> ut.util_logging.__UTOOL_FLUSH__()
+        >>> ut.util_logging._utool_print()('hello world')
+        >>> ut.util_logging._utool_write()('writing1')
+        >>> ut.util_logging._utool_write()('writing2\n')
+        >>> ut.util_logging._utool_write()('writing3')
+        >>> ut.util_logging._utool_flush()()
         >>> handler = ut.util_logging.__UTOOL_ROOT_LOGGER__.handlers[0]
         >>> current_log_fpath = handler.stream.name
         >>> current_log_text = ut.read_from(current_log_fpath)
@@ -389,7 +415,6 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
     """
     global __UTOOL_ROOT_LOGGER__
     global __UTOOL_PRINT__
-    global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
     global __CURRENT_LOG_FPATH__
@@ -407,7 +432,7 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         # Print what is about to happen
         if VERBOSE or LOGGING_VERBOSE:
             startmsg = ('logging to log_fpath=%r' % log_fpath)
-            __UTOOL_PRINT__(startmsg)
+            _utool_print()(startmsg)
         # Create root logger
         __UTOOL_ROOT_LOGGER__ = logging.getLogger('root')
         __UTOOL_ROOT_LOGGER__.setLevel('DEBUG')
@@ -482,7 +507,6 @@ def start_logging(log_fpath=None, mode='a', appname='default', log_dir=None):
         __UTOOL_WRITE__    = utool_write
         __UTOOL_FLUSH__    = utool_flush
         __UTOOL_PRINT__    = utool_print
-        __UTOOL_PRINTDBG__ = utool_printdbg
         # Test out our shiney new logger
         if VERBOSE or LOGGING_VERBOSE:
             __UTOOL_PRINT__('<__LOG_START__>')
@@ -502,23 +526,21 @@ def stop_logging():
     """
     global __UTOOL_ROOT_LOGGER__
     global __UTOOL_PRINT__
-    global __UTOOL_PRINTDBG__
     global __UTOOL_WRITE__
     global __UTOOL_FLUSH__
     if __UTOOL_ROOT_LOGGER__ is not None:
         # Flush remaining buffer
         if VERBOSE or LOGGING_VERBOSE:
-            __UTOOL_PRINT__('<__LOG_STOP__>')
-        __UTOOL_FLUSH__()
+            _utool_print()()('<__LOG_STOP__>')
+        _utool_flush()()
         # Remove handlers
         for h in __UTOOL_ROOT_LOGGER__.handlers[:]:
             __UTOOL_ROOT_LOGGER__.removeHandler(h)
         # Reset objects
         __UTOOL_ROOT_LOGGER__ = None
-        __UTOOL_PRINT__    = __PYTHON_PRINT__
-        __UTOOL_PRINTDBG__ = __PYTHON_PRINT__
-        __UTOOL_WRITE__    = __PYTHON_WRITE__
-        __UTOOL_FLUSH__    = __PYTHON_FLUSH__
+        __UTOOL_PRINT__    = None
+        __UTOOL_WRITE__    = None
+        __UTOOL_FLUSH__    = None
 
 # HAVE TO HACK THIS IN FOR UTOOL SPECIAL CASE ONLY
 # OTHER MODULE CAN USE NOINJECT
