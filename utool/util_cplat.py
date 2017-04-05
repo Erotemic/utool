@@ -1201,7 +1201,7 @@ def change_term_title(title):
 
          printf "\e]2;newtitle\a";
 
-        echo -en "\033]0;DocTest /home/joncrall/code/ibeis/ibeis/algo/hots/graph_iden.py --test-AnnotInference._make_state_delta\a"
+        echo -en "\033]0;DocTest /home/joncrall/code/ibeis/ibeis.algo.graph.core.py --test-AnnotInference._make_state_delta\a"
 
     Example:
         >>> # DISABLE_DOCTEST

@@ -1745,8 +1745,13 @@ def show_was_requested():
     #return ut.get_argflag('--show') or ut.inIPython()
 
 
-class ExitTestException(Exception):
-    pass
+try:
+    # Use ExitTestException from ubelt if possible
+    import ubelt as ub
+    ExitTestException = ub.util_test.ExitTestException
+except ImportError:
+    class ExitTestException(Exception):
+        pass
 
 
 def qt4ensure():
