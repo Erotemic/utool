@@ -552,7 +552,7 @@ def ibeis_user_profile():
     ]
     self.project_exclude_dirs = [
         '_graveyard', '_broken', 'CompilerIdCXX', 'CompilerIdC', 'build',
-        'old', '_old_qt_hs_matcher',
+        'old', '_old_qt_hs_matcher', 'htmlcov'
     ]
     self.project_exclude_patterns = ['_grave*', '_autogen_explicit_controller*']
     return self

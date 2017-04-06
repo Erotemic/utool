@@ -608,7 +608,7 @@ def nx_delete_None_edge_attr(graph, edges=None):
         for edge in edges:
             u, v, k = edge
             data = graph[u][v][k]
-            for key in data.keys():
+            for key in list(data.keys()):
                 try:
                     if data[key] is None:
                         del data[key]

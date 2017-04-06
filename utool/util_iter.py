@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-import itertools
+import itertools as it
 import functools
 import operator
 from six.moves import zip, range, zip_longest, reduce
-from itertools import chain, cycle
 from utool import util_inject
 from utool._internal import meta_util_iter
 print, rrr, profile = util_inject.inject2(__name__)
@@ -47,7 +46,7 @@ def next_counter(start=0, step=1):
         >>> print(result)
         [1, 2, 3]
     """
-    count_gen = itertools.count(start, step)
+    count_gen = it.count(start, step)
     next_ = functools.partial(six.next, count_gen)
     return next_
 
@@ -125,11 +124,11 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         >>> print(result)
         window_list = [(1, 2, 3), (3, 4, 5), (5, 6, 1)]
     """
-    # itertools.tee may be slow, but works on all iterables
-    iter_list = itertools.tee(iterable, size)
+    # it.tee may be slow, but works on all iterables
+    iter_list = it.tee(iterable, size)
     if wrap:
         # Secondary iterables need to be cycled for wraparound
-        iter_list = [iter_list[0]] + list(map(itertools.cycle, iter_list[1:]))
+        iter_list = [iter_list[0]] + list(map(it.cycle, iter_list[1:]))
     # Step each iterator the approprate number of times
     try:
         for count, iter_ in enumerate(iter_list[1:], start=1):
@@ -140,7 +139,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     else:
         _window_iter = zip(*iter_list)
         # Account for the step size
-        window_iter = itertools.islice(_window_iter, 0, None, step)
+        window_iter = it.islice(_window_iter, 0, None, step)
         return window_iter
 
 
@@ -191,10 +190,10 @@ def itertwo(iterable, wrap=False):
         >>> print(result)
         edges = [(1, 2), (2, 3), (3, 4)]
     """
-    # itertools.tee may be slow, but works on all iterables
-    iter1, iter2 = itertools.tee(iterable, 2)
+    # it.tee may be slow, but works on all iterables
+    iter1, iter2 = it.tee(iterable, 2)
     if wrap:
-        iter2 = itertools.cycle(iter2)
+        iter2 = it.cycle(iter2)
     try:
         six.next(iter2)
     except StopIteration:
@@ -224,7 +223,7 @@ def iter_compress(item_iter, flag_iter):
         >>> print(result)
         [2, 3, 5]
     """
-    # TODO: Just use itertools.compress
+    # TODO: Just use it.compress
     true_items = (item for (item, flag) in zip(item_iter, flag_iter) if flag)
     return true_items
 
@@ -262,7 +261,7 @@ def ifilter_Nones(iter_):
 def iflatten(list_):
     r""" flattens a list iteratively """
     # very fast flatten
-    flat_iter = chain.from_iterable(list_)
+    flat_iter = it.chain.from_iterable(list_)
     return flat_iter
 
 
@@ -403,7 +402,7 @@ def ichunks_cycle(iterable, chunksize):
     sentinal = object()
     copied_iterators = [iter(iterable)] * chunksize
     chunks_with_sentinals = zip_longest(*copied_iterators, fillvalue=sentinal)
-    bordervalues = cycle(iter(iterable))
+    bordervalues = it.cycle(iter(iterable))
     # Yeild smaller chunks without sentinals
     for chunk in chunks_with_sentinals:
         if len(chunk) > 0:
@@ -466,7 +465,7 @@ def interleave(args):
         [1, 'A', 2, 'B', 3, 'C', 4, 'D', 5, 'E']
     """
     arg_iters = list(map(iter, args))
-    cycle_iter = cycle(arg_iters)
+    cycle_iter = it.cycle(arg_iters)
     for iter_ in cycle_iter:
         yield six.next(iter_)
 
@@ -516,7 +515,6 @@ def random_combinations(items, size, num=None, rng=None):
         >>> print(result)
     """
     import scipy
-    import itertools as it
     import numpy as np
     import utool as ut
     rng = ut.ensure_rng(rng, impl='python')

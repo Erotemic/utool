@@ -16,6 +16,7 @@ from utool import util_progress
 from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
 from utool import util_dict
+from utool import util_const
 from utool import util_arg
 from utool import util_decor
 try:
@@ -3434,6 +3435,9 @@ class PriorityQueue(NiceRepr):
         # Worse Case O(1)
         return self._dict[key]
 
+    def get(self, key, default=None):
+        return self._dict.get(key, default)
+
     def __setitem__(self, key, val):
         # Ammortized O(1)
         assert not np.isnan(val), 'no nan in PQ'
@@ -3482,10 +3486,17 @@ class PriorityQueue(NiceRepr):
             val, key = _heap[0]
         return key, val
 
-    def pop(self):
+    def pop(self, key=util_const.NoParam, default=util_const.NoParam):
         """
         Pop the next item off the queue
         """
+        # Dictionary pop if key is specified
+        if key is not util_const.NoParam:
+            if default is util_const.NoParam:
+                return self._dict.pop(key)
+            else:
+                return self._dict.pop(key, default)
+        # Otherwise do a heap pop
         try:
             # Ammortized O(1)
             _heap = self._heap
