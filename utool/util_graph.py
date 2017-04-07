@@ -705,7 +705,10 @@ def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
             edges_ = G.edges(keys=True, data=True)
         else:
             edges_ = G.edges(data=True)
-        return ((x[:-1], x[-1][key]) for x in edges_ if key in x[-1])
+        if default is util_const.NoParam:
+            return ((x[:-1], x[-1][key]) for x in edges_ if key in x[-1])
+        else:
+            return ((x[:-1], x[-1].get(key, default)) for x in edges_)
     else:
         if check_exist:
             # ignore edges that don't exist
