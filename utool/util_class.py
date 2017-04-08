@@ -519,9 +519,7 @@ def inject_func_as_method(self, func, method_name=None, class_=None,
     setattr(self, method_name, new_method)
 
 
-def inject_func_as_property(self, func, method_name=None, class_=None,
-                            allow_override=False, allow_main=False,
-                            verbose=True):
+def inject_func_as_property(self, func, method_name=None, class_=None):
     """
     WARNING:
         properties are more safely injected using metaclasses
@@ -534,6 +532,13 @@ def inject_func_as_property(self, func, method_name=None, class_=None,
     #new_method = func.__get__(self, self.__class__)
     new_property = property(func)
     setattr(self.__class__, method_name, new_property)
+
+
+def inject_func_as_unbound_method(class_, func, method_name=None):
+    """ This is actually quite simple """
+    if method_name is None:
+        method_name = get_funcname(func)
+    setattr(class_, method_name, func)
 
 
 def makeForwardingMetaclass(forwarding_dest_getter, whitelist, base_class=object):
