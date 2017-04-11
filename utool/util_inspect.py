@@ -1447,8 +1447,8 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
         >>> import utool as ut
         >>> sourcecode = ut.codeblock(
                 '''
-                warped_patch1_list, warped_patch2_list = list(zip(*ut.ichunks(data, 2)))
-                interact_patches(labels, warped_patch1_list, warped_patch2_list, flat_metadata, **kwargs)
+                x, y = list(zip(*ut.ichunks(data, 2)))
+                somecall(arg1, arg2, arg3=4, **kwargs)
                 import sys
                 sys.badcall(**kwargs)
                 def foo():
@@ -1462,8 +1462,6 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
         >>> print('child_funcnamess = %r' % (child_funcnamess,))
         >>> assert 'foo2' not in child_funcnamess, 'foo2 should not be found'
         >>> assert 'bar' in child_funcnamess, 'bar should be found'
-
-    Notes:
     """
     import ast
     sourcecode = 'from __future__ import print_function\n' + sourcecode
@@ -1518,17 +1516,29 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
             else:
                 raise NotImplementedError(
                     'do not know how to parse: node.func = %r' % (node.func,))
-            kwargs = node.kwargs
-            kwargs_name = None if kwargs is None else kwargs.id
-            if funcname is not None and kwargs_name == target_kwargs_name:
-                child_funcnamess.append(funcname)
-            if debug:
-                print('funcname = %r' % (funcname,))
-                print('kwargs_name = %r' % (kwargs_name,))
+            if six.PY2:
+                kwargs = node.kwargs
+                kwargs_name = None if kwargs is None else kwargs.id
+                if funcname is not None and kwargs_name == target_kwargs_name:
+                    child_funcnamess.append(funcname)
+                if debug:
+                    print('funcname = %r' % (funcname,))
+                    print('kwargs_name = %r' % (kwargs_name,))
+            else:
+                if node.keywords:
+                    for kwargs in node.keywords:
+                        if kwargs.arg is None:
+                            kwargs_name = kwargs.value.id
+                            if funcname is not None and kwargs_name == target_kwargs_name:
+                                child_funcnamess.append(funcname)
+                            if debug:
+                                print('funcname = %r' % (funcname,))
+                                print('kwargs_name = %r' % (kwargs_name,))
             ast.NodeVisitor.generic_visit(self, node)
     try:
         KwargParseVisitor().visit(pt)
     except Exception:
+        raise
         pass
         #import utool as ut
         #if ut.SUPER_STRICT:
