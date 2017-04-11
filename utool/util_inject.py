@@ -7,6 +7,7 @@ Basic use case is to extend the print function into a logging function
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import builtins, range, zip, map  # NOQA
 #import builtins
+import six
 import sys
 import functools
 from utool._internal import meta_util_six
@@ -396,9 +397,18 @@ def make_module_profile_func(module_name=None, module_prefix='[???]', module=Non
 
     def profile_withfuncname_filter(func):
         # Test to see if this function is specified
-        if _profile_func_flag(meta_util_six.get_funcname(func)):
+        funcname = meta_util_six.get_funcname(func)
+        if _profile_func_flag(funcname):
             if __DEBUG_PROF__:
                 print('profile func %r' % (func,))
+            # if isinstance(func, six.class_types):
+            #     for k in func.__dict__.keys():
+            #         if k.startswith('_'):
+            #             continue
+            #         v = getattr(func, k)
+            #         if str(type(v)) == 'function':
+            #             setattr(func, k, PROFILE_FUNC(v))
+            # else:
             return PROFILE_FUNC(func)
         return func
     return profile_withfuncname_filter

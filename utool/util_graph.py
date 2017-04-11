@@ -696,7 +696,7 @@ def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam):
 
 
 def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
-                      check_exist=True):
+                      check_exist=False):
     """
     Improved generator version of nx.get_edge_attributes
     """
