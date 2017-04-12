@@ -1367,15 +1367,14 @@ def repr2(obj_, **kwargs):
     Attempt to replace repr more configurable
     pretty version that works the same in both 2 and 3
     """
-    if isinstance(obj_, (dict, list, tuple)):
-        if isinstance(obj_, dict):
-            kwitems = dict(nl=False, hack_liststr=True)
-            kwitems.update(kwargs)
-            return dict_str(obj_, **kwitems)
-        if isinstance(obj_, (list, tuple)):
-            kwitems = dict(nl=False)
-            kwitems.update(kwargs)
-            return list_str(obj_, **kwitems)
+    if isinstance(obj_, (list, tuple, set, frozenset)):
+        kwitems = dict(nl=False)
+        kwitems.update(kwargs)
+        return list_str(obj_, **kwitems)
+    elif isinstance(obj_, dict):
+        kwitems = dict(nl=False, hack_liststr=True)
+        kwitems.update(kwargs)
+        return dict_str(obj_, **kwitems)
     else:
         kwitems = dict(with_dtype=False)
         kwitems.update(kwargs)
@@ -1617,12 +1616,15 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
                                     packed=packed_,
                                     label_list=label_list, **listkw)
     is_tuple = isinstance(list_, tuple)
+    is_set = isinstance(list_, (set, frozenset))
     is_one_tuple = (is_tuple and len(list_) <= 1)
     if nobraces:
         leftbrace, rightbrace = '', ''
     else:
         if is_tuple:
             leftbrace, rightbrace  = '(', ')'
+        elif is_set:
+            leftbrace, rightbrace  = '{', '}'
         else:
             leftbrace, rightbrace  = '[', ']'
 
@@ -1649,7 +1651,6 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     else:
         sequence_str = itemsep.join(itemstr_list)
         # hack away last comma except in 1-tuple case
-        is_one_tuple = (is_tuple and len(list_) <= 1)
         if listkw.get('trailing_comma', True):
             # Only do this if the first item did not happen
             if not is_one_tuple:
@@ -1705,7 +1706,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             else:
                 return list_str(val, newlines=newlines, precision=precision,
                                 strvals=strvals)
-        if hack_liststr and isinstance(val, (list, tuple)):
+        if hack_liststr and isinstance(val, (list, tuple, set, frozenset)):
             #print('**dictkw = %r' % (dictkw,))
             #print('newlines = %r' % (newlines,))
             #print('LIST')
@@ -1815,7 +1816,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
             #print('val = %r' % (id(val),))
             #print('val = %r' % (val.keys(),))
             return dict_str(val, **common_kw)
-        if isinstance(val, (tuple, list)):
+        if isinstance(val, (tuple, list, set, frozenset)):
             common_kw.update(dict(label_list=sublabels, **listkws))
             return list_str(val, **common_kw)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
@@ -1836,7 +1837,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
     _valstr = recursive_valfunc if recursive else valfunc
 
     def make_item_str(item, label=None):
-        if isinstance(label, (list, tuple)):
+        if isinstance(label, (list, tuple, set, frozenset)):
             val_str = _valstr(item, label)
         else:
             val_str = _valstr(item)

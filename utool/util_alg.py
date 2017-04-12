@@ -140,6 +140,193 @@ def find_group_consistencies(groups1, groups2):
     return common_groups
 
 
+def compare_groups(true_groups, pred_groups):
+    r"""
+    Finds how predictions need to be modified to match the true grouping.
+
+    Notes:
+        pred_merges - the merges needed that would need to be done for the
+            pred_groups to match true_groups.
+        pred_hybrid - the hybrid split/merges needed that would need to be done
+            for the pred_groups to match true_groups.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> true_groups = [
+        >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
+        >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
+        >>> ]
+        >>> pred_groups = [
+        >>>     [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11],
+        >>>     [7], [8, 9], [10], [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
+        >>> ]
+        >>> comparisons = ut.compare_groups(true_groups, pred_groups)
+        >>> print(comparisons)
+        >>> print(ut.repr4(comparisons))
+        {
+            'common': {{1, 2}},
+            'pred_hybrid': {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
+            'pred_merges': [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
+            'pred_splits': [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
+            'true_hybrid': {{9, 10, 11}, {8, 7}, {4}, {3, 5, 6}, {50}},
+            'true_merges': [{12, 13, 14}, {32, 33, 34, 35, 31}],
+            'true_splits': [{{22, 23}, {20, 21}}, {{41, 42, 43, 44}, {45}}],
+        }
+    """
+    import utool as ut
+    true = {frozenset(_group) for _group in true_groups}
+    pred = {frozenset(_group) for _group in pred_groups}
+
+    # Find the groups that are exactly the same
+    common = true.intersection(pred)
+
+    true_sets = true.difference(common)
+    pred_sets = pred.difference(common)
+
+    # connected compoment lookups
+    pred_conn = {p: frozenset(ps) for ps in pred for p in ps}
+    true_conn = {t: frozenset(ts) for ts in true for t in ts}
+
+    # How many predictions can be merged into perfect pieces?
+    # For each true sets, find if it can be made via merging pred sets
+    pred_merges = []
+    true_merges = []
+    for ts in true_sets:
+        ccs = set([pred_conn.get(t, frozenset()) for t in ts])
+        if frozenset.union(*ccs) == ts:
+            # This is a pure merge
+            pred_merges.append(ccs)
+            true_merges.append(ts)
+
+    # How many predictions can be split into perfect pieces?
+    true_splits = []
+    pred_splits = []
+    for ps in pred_sets:
+        ccs = set([true_conn.get(p, frozenset()) for p in ps])
+        if frozenset.union(*ccs) == ps:
+            # This is a pure merge
+            true_splits.append(ccs)
+            pred_splits.append(ps)
+
+    pred_merges_flat = ut.flatten(pred_merges)
+    true_splits_flat = ut.flatten(true_splits)
+
+    pred_hybrid = frozenset(map(frozenset, pred_sets)).difference(
+        set(pred_splits + pred_merges_flat))
+
+    true_hybrid = frozenset(map(frozenset, true_sets)).difference(
+        set(true_merges + true_splits_flat))
+
+    comparisons = {
+        'common': common,
+        # 'true_splits_flat': true_splits_flat,
+        'true_splits': true_splits,
+        'true_merges': true_merges,
+        'true_hybrid': true_hybrid,
+        'pred_splits': pred_splits,
+        'pred_merges': pred_merges,
+        # 'pred_merges_flat': pred_merges_flat,
+        'pred_hybrid': pred_hybrid,
+    }
+    return comparisons
+
+
+def grouping_delta(old_groups, new_groups):
+    r"""
+    Finds what happened to the old groups to form the new groups.
+
+    Notes:
+        merges - which old groups were merged into a single new group.
+        splits - which old groups were split into multiple new groups.
+        hybrid - which old groups had split/merge actions applied.
+        unchanged - which old groups are the same as new groups.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> old_groups = [
+        >>>     [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11],
+        >>>     [7], [8, 9], [10], [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
+        >>> ]
+        >>> new_groups = [
+        >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
+        >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
+        >>> ]
+        >>> group_delta = ut.grouping_delta(old_groups, new_groups)
+        >>> print(ut.repr4(group_delta, nl=2))
+        {
+            'common': {{1, 2}},
+            'pred_hybrid': {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
+            'pred_merges': [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
+            'pred_splits': [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
+            'true_hybrid': {{9, 10, 11}, {8, 7}, {4}, {3, 5, 6}, {50}},
+            'true_merges': [{12, 13, 14}, {32, 33, 34, 35, 31}],
+            'true_splits': [{{22, 23}, {20, 21}}, {{41, 42, 43, 44}, {45}}],
+        }
+    """
+    import utool as ut
+    new = {frozenset(_group) for _group in new_groups}
+    old = {frozenset(_group) for _group in old_groups}
+
+    # Find the groups that are exactly the same
+    unchanged = new.intersection(old)
+
+    new_sets = new.difference(unchanged)
+    old_sets = old.difference(unchanged)
+
+    # connected compoment lookups
+    old_conn = {p: frozenset(ps) for ps in old for p in ps}
+    new_conn = {t: frozenset(ts) for ts in new for t in ts}
+
+    # How many oldictions can be merged into perfect pieces?
+    # For each new sets, find if it can be made via merging old sets
+    old_merges = []
+    new_merges = []
+    for ts in new_sets:
+        ccs = set([old_conn.get(t, frozenset()) for t in ts])
+        if frozenset.union(*ccs) == ts:
+            # This is a pure merge
+            old_merges.append(ccs)
+            new_merges.append(ts)
+
+    # How many oldictions can be split into perfect pieces?
+    new_splits = []
+    old_splits = []
+    for ps in old_sets:
+        ccs = set([new_conn.get(p, frozenset()) for p in ps])
+        if frozenset.union(*ccs) == ps:
+            # This is a pure merge
+            new_splits.append(ccs)
+            old_splits.append(ps)
+
+    old_merges_flat = ut.flatten(old_merges)
+    new_splits_flat = ut.flatten(new_splits)
+
+    old_hybrid = frozenset(map(frozenset, old_sets)).difference(
+        set(old_splits + old_merges_flat))
+
+    new_hybrid = frozenset(map(frozenset, new_sets)).difference(
+        set(new_merges + new_splits_flat))
+
+    group_delta = {
+        'unchanged': unchanged,
+        'splits': {
+            'old': old_splits,
+            'new': new_splits
+        },
+        'merges': {
+            'old': old_merges,
+            'new': new_merges,
+        },
+        'hybrid': {
+            'old': old_hybrid,
+            'new': new_hybrid,
+        },
+    }
+    return group_delta
+
+
 def upper_diag_self_prodx(list_):
     """
     upper diagnoal of cartesian product of self and self.

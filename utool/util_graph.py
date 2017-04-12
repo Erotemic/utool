@@ -681,18 +681,43 @@ def nx_get_default_node_attributes(graph, key, default=None):
     return attr_dict
 
 
-def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam):
+def nx_gen_node_values(G, key, nodes, default=util_const.NoParam):
+    """
+    Generates attributes values of specific nodes
+    """
+    if default is util_const.NoParam:
+        return (G.node[n][key] for n in nodes)
+    else:
+        return (G.node[n].get(key, default) for n in nodes)
+
+
+def nx_gen_edge_values(G, key, edges, default=util_const.NoParam):
+    """
+    Generates attributes values of specific edges
+    """
+    if default is util_const.NoParam:
+        return (G.edge[u][v][key] for u, v in edges)
+    else:
+        return (G.edge[u][v].get(key, default) for u, v in edges)
+
+
+def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
+                      check_exist=False):
     """
     Improved generator version of nx.get_node_attributes
     """
     if nodes is None:
-        return ((n, d[key]) for n, d in G.node.items() if key in d)
+        node_data = ((n, d[key]) for n, d in G.node.items() if key in d)
     else:
-        node_data = ((n, G.node[n]) for n in nodes)
-        if default is util_const.NoParam:
-            return ((n, d[key]) for n, d in node_data if key in d)
+        if check_exist:
+            nodes = [n for n in nodes if n in G.node]
+        if not check_exist or default is util_const.NoParam:
+            value_gen = nx_gen_node_values(G, key, nodes, default=default)
+            node_data = zip(nodes, value_gen)
         else:
-            return ((n, d.get(key, default)) for n, d in node_data)
+            data_gen = (G.node[n] for n in nodes)
+            node_data = (d[key] for n, d in zip(nodes, data_gen) if key in d)
+    return node_data
 
 
 def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
