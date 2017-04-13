@@ -1271,49 +1271,6 @@ def tuples_to_unique_scalars(tup_list):
 STAT_KEY_ORDER = ['max', 'min', 'mean', 'sum', 'std', 'nMin', 'nMax', 'shape', 'num_nan']
 
 
-def find_interesting_stats(stat_dict, col_lbls=None, lbl=None):
-    #argfind = np.argmax
-    import utool as ut
-    # select indices of interest
-    sel_indices = []
-    #statstr_kw = dict(precision=3, newlines=True, lbl=lbl, align=True)
-    for key in ['max', 'mean', 'sum']:
-        if key not in stat_dict:
-            continue
-        sortx  = np.argsort(stat_dict[key])
-        if len(sortx) > 4:
-            sel_sortx = sortx.take([0, 1, -2, -1])
-        else:
-            sel_sortx = sortx
-        sel_indices.extend(sel_sortx)
-    sel_indices = ut.unique_ordered(sel_indices)
-    sel_stat_dict = ut.get_dict_column(stat_dict, sel_indices)
-    sel_stat_dict = ut.order_dict_by(sel_stat_dict, STAT_KEY_ORDER)
-    return sel_stat_dict, sel_indices
-
-
-#def jagged_stats_str(arr, use_nan=True, lbl=None):
-#    """
-#    builds stats over all columns in arr. Can find interesting column labels
-
-#    Args:
-#        arr (?):  list of potentially non-parallel lists
-#        use_nan (bool):
-#        lbl (None):
-#    """
-#    stat_dict = get_jagged_stats(arr, use_nan=use_nan)
-#    statstr_kw = dict(precision=3, newlines=True, lbl=lbl, align=True)
-#    stat_str =  get_stats_str(stat_dict=stat_dict, **statstr_kw)
-#    REPORT_INTERESTING = True
-#    if REPORT_INTERESTING and col_lbls is not None:
-#        pass
-
-#    #import utool as ut
-#    #ut.embed()
-
-#    return stat_str
-
-
 def get_jagged_stats(arr_list, **kwargs):
     r"""
     Args:
@@ -1329,12 +1286,9 @@ def get_jagged_stats(arr_list, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
         >>> import utool as ut
-        >>> # build test data
         >>> kwargs = dict(use_nan=True)
         >>> arr_list = [[1, 2, 3, 4], [3, 10], [np.nan, 3, 3, 3]]
-        >>> # execute function
         >>> stats_dict = get_jagged_stats(arr_list, **kwargs)
-        >>> # verify results
         >>> result = ut.align(str(ut.dict_str(stats_dict)), ':')
         >>> print(result)
         {
@@ -1357,19 +1311,20 @@ def get_jagged_stats(arr_list, **kwargs):
     return stats_dict
 
 
-def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use_median=False):
+def get_stats(list_, axis=None, use_nan=False, use_sum=False,
+              use_median=False, size=False):
     """
-    TODO:
-        depricate datacast
-
     Args:
         list_ (listlike): values to get statistics of
-        axis (int): if ``list_`` is ndarray then this specifies the axis
+        axis (int): if `list_` is ndarray then this specifies the axis
 
     Returns:
-        OrderedDict: stat_dict - dictionary of common numpy statistics
+        OrderedDict: stats: dictionary of common numpy statistics
             (min, max, mean, std, nMin, nMax, shape)
 
+    SeeAlso:
+        print_stats
+        get_stats_str
 
     CommandLine:
         python -m utool.util_dev --test-get_stats
@@ -1383,8 +1338,8 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
         >>> axis = 0
         >>> np.random.seed(0)
         >>> list_ = np.random.rand(10, 2).astype(np.float32)
-        >>> stat_dict = get_stats(list_, axis, use_nan=False)
-        >>> result = str(utool.dict_str(stat_dict))
+        >>> stats = get_stats(list_, axis, use_nan=False)
+        >>> result = str(utool.dict_str(stats))
         >>> print(result)
         {
             'max': np.array([ 0.96366274,  0.92559665], dtype=np.float32),
@@ -1405,101 +1360,62 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, datacast=None, use
         >>> rng = np.random.RandomState(0)
         >>> list_ = rng.randint(0, 42, size=100).astype(np.float32)
         >>> list_[4] = np.nan
-        >>> stat_dict = get_stats(list_, axis, use_nan=True)
-        >>> result = str(utool.dict_str(stat_dict))
+        >>> stats = get_stats(list_, axis, use_nan=True)
+        >>> result = str(utool.repr2(stats, precision=1, strkeys=True))
         >>> print(result)
-        {
-            'max': 41.0,
-            'min': 0.0,
-            'mean': 20.0,
-            'std': 13.177115,
-            'nMin': 7,
-            'nMax': 3,
-            'shape': (100,),
-            'num_nan': 1,
-        }
-
-    Examples1:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_dev import *  # NOQA
-        >>> import numpy as np
-        >>> import utool
-        >>> axis = 0
-        >>> rng = np.random.RandomState(0)
-        >>> list_ = rng.randint(0, 42, size=100).astype(np.int32)
-        >>> stat_dict = get_stats(list_, axis, use_nan=True)
-        >>> result = str(utool.dict_str(stat_dict))
-        >>> print(result)
-        {
-            'max': 41,
-            'min': 0,
-            'mean': 19.889999,
-            'std': 13.156668,
-            'nMin': 7,
-            'nMax': 3,
-            'shape': (100,),
-            'num_nan': 0,
-        }
-
-    SeeAlso:
-        print_stats
-        get_stats_str
+        {max: 41.0, min: 0.0, mean: 20.0, std: 13.2, nMin: 7, nMax: 3, shape: (100,), num_nan: 1}
     """
-    if datacast is None:
-        datacast = np.float32
+    datacast = np.float32
     # Assure input is in numpy format
     if isinstance(list_, np.ndarray):
         nparr = list_
     elif isinstance(list_, list):
         nparr = np.array(list_)
     else:
-        list_ = list(list_)
-        nparr = np.array(list_)
+        nparr = np.array(list(list_))
     # Check to make sure stats are feasible
-    if len(list_) == 0:
-        stat_dict = {'empty_list': True}
+    if len(nparr) == 0:
+        stats = OrderedDict([('empty_list', True)])
+        if size:
+            stats['size'] = 0
     else:
-        #import utool as ut
-        #if np.any(np.isnan(nparr)):
-        #    ut.embed()
-        # Compute stats
         if use_nan:
             min_val = np.nanmin(nparr, axis=axis)
             max_val = np.nanmax(nparr, axis=axis)
             mean_ = np.nanmean(nparr, axis=axis)
             std_  = np.nanstd(nparr, axis=axis)
-            # TODO report num nans
         else:
             min_val = nparr.min(axis=axis)
             max_val = nparr.max(axis=axis)
             mean_ = nparr.mean(axis=axis)
             std_  = nparr.std(axis=axis)
-        # number of entries with min val
+        # number of entries with min/max val
         nMin = np.sum(nparr == min_val, axis=axis)
-        # number of entries with min val
         nMax = np.sum(nparr == max_val, axis=axis)
-        stats_list = [
+        stats = OrderedDict([
             ('max',   (max_val)),
             ('min',   (min_val)),
             ('mean',  datacast(mean_)),
             ('std',   datacast(std_)),
             ('nMin',  np.int32(nMin)),
             ('nMax',  np.int32(nMax)),
-            ('shape', nparr.shape),  # repr(nparr.shape)),
-        ]
+        ])
+        if size:
+            stats['size'] = nparr.size
+        else:
+            stats['shape'] = nparr.shape
         if use_median:
-            #stats_list.append(('med', np.nanmedian(nparr).astype(np.int)))
-            stats_list.append(('med', np.nanmedian(nparr)))
+            stats['med'] = np.nanmedian(nparr)
         if use_nan:
-            stats_list.append(('num_nan', np.isnan(nparr).sum()))
+            stats['num_nan'] = np.isnan(nparr).sum()
         if use_sum:
             sumfunc = np.nansum if use_nan else np.sum
-            stats_list.append(('sum', sumfunc(nparr, axis=axis)))
-        stat_dict = OrderedDict(stats_list)
-    return stat_dict
+            stats['sum'] = sumfunc(nparr, axis=axis)
+    return stats
 
 
 get_statdict = get_stats
+stats_dict = get_stats
 
 
 def set_overlaps(set1, set2, s1='s1', s2='s2'):
