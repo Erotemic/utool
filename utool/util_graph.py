@@ -1796,12 +1796,14 @@ def graph_info(graph, ignore=None, stats=False, verbose=False):
 
 
 def get_graph_bounding_box(graph):
-    import utool as ut
+    # import utool as ut
     import vtool as vt
     #nx.get_node_attrs = nx.get_node_attributes
     nodes = list(graph.nodes())
-    pos_list = ut.take(nx.get_node_attributes(graph, 'pos'), nodes)
-    shape_list = ut.take(nx.get_node_attributes(graph, 'size'), nodes)
+    # pos_list = nx_gen_node_values(graph, 'pos', nodes, default=(0, 0))
+    # shape_list = nx_gen_node_values(graph, 'size', nodes, default=(1, 1))
+    shape_list = nx_gen_node_values(graph, 'size', nodes)
+    pos_list = nx_gen_node_values(graph, 'pos', nodes)
 
     node_extents = np.array([
         vt.extent_from_bbox(vt.bbox_from_center_wh(xy, wh))
