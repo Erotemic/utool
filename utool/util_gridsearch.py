@@ -551,7 +551,7 @@ def parse_nestings(string, only_curl=False):
     return parsed_blocks
 
 
-def parse_cfgstr3(string):
+def parse_cfgstr3(string, debug=None):
     r"""
     http://stackoverflow.com/questions/4801403/how-can-i-use-pyparsing-to-parse-nested-expressions-that-have-mutiple-opener-clo
 
@@ -574,9 +574,24 @@ def parse_cfgstr3(string):
         >>> print(result)
         cfgdict = {'b': [1, 2]}
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> cfgopt_strs = 'myprefix=False,sentence_break=False'
+        >>> cfgdict = parse_cfgstr3(cfgopt_strs, debug=True)
+        >>> print('cfgopt_strs = %r' % (cfgopt_strs,))
+        >>> result = ('cfgdict = %s' % (ut.repr2(cfgdict),))
+        >>> print(result)
+        cfgdict = {'b': [1, 2]}
     """
     import utool as ut  # NOQA
     import pyparsing as pp
+
+    if debug is None:
+        debug_ = ut.VERBOSE
+    else:
+        debug_ = debug
 
     def as_tagged(parent, doctag=None, namedItemsOnly=False):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
@@ -646,8 +661,8 @@ def parse_cfgstr3(string):
     STRING = (pp.quotedString.copy()).setResultsName('quotedstring')
     NUM    = pp.Word(pp.nums).setResultsName('num')
     NAME   = pp.Regex('[a-zA-Z_][a-zA-Z_0-9]*')
-    key    = pp.Word(pp.alphanums).setResultsName('key')  # identifier
     atom   = (NAME | NUM | STRING).setResultsName('atom')
+    key    = pp.Word(pp.alphanums + '_').setResultsName('key')  # identifier
 
     nest_body = pp.Forward().setResultsName('nest_body')
     nestedParens   = combine_nested('(', ')', content=nest_body, name='paren')
@@ -671,8 +686,6 @@ def parse_cfgstr3(string):
 
     # Assignments only allowed at outer level
     assign_body = item + pp.ZeroOrMore(pp.Suppress(',') + item)
-
-    debug_ = ut.VERBOSE
 
     if len(string) > 0:
         tokens = assign_body.parseString(string)

@@ -3351,8 +3351,6 @@ def format_multiple_paragraph_sentences(text, debug=False, **kwargs):
         ut.colorprint('[fmt] tofmt_block_list = ' +
                       ut.repr3(tofmt_block_list), 'white')
 
-    #print(pattern)
-    #print(separators)
     # apply formatting
     #if debug:
     #    ut.colorprint('--- FORMAT SENTENCE --- ', 'white')
