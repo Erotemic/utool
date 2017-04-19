@@ -224,7 +224,7 @@ def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None, enabled=True):
         verbose = VERBOSE_CACHE
     if not USE_CACHE or not enabled:
         if verbose > 1:
-            print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r'
+            print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
                     (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
     fpath = _args2_fpath(dpath, fname, cfgstr, ext)
