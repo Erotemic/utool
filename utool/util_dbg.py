@@ -299,9 +299,8 @@ def fix_embed_globals():
         frame.f_globals['_did_embed_fix'] = True
     """
 
-
-def embed(parent_locals=None, parent_globals=None, exec_lines=None,
-          remove_pyqt_hook=True, N=0):
+def _wip_embed(parent_locals=None, parent_globals=None, exec_lines=None,
+               remove_pyqt_hook=True, N=0):
     """
     Starts interactive session. Similar to keyboard command in matlab.
     Wrapper around IPython.embed
@@ -421,98 +420,139 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
         print(ex)
-    NEW_METHOD = False
-    if NEW_METHOD:
-        user_ns = globals()
-        user_ns = globals().copy()
-        user_ns.update(locals())
-        if parent_globals is not None:
-            user_ns.update(parent_globals)
-        if parent_locals is not None:
-            user_ns.update(parent_locals)
-        orig_argv = sys.argv  # NOQA
-        print('About to start_ipython')
-        config = IPython.Config()
-        exec_lines_ = [
-            '%pylab qt4',
-            'print("Entered IPYTHON via utool")',
-            'print("Entry Point: %r" % (ut.get_parent_frame(N=11).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_parent_frame(N=10).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_parent_frame(N=9).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_parent_frame(N=8).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_parent_frame(N=7).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_parent_frame(N=6).f_code.co_name,))',
-            #'print("Entry Point: %r" % (ut.get_parent_frame(N=5).f_code.co_name,))',
-            #execstr_dict(parent_locals)
-        ] + ut.ensure_str_list(exec_lines if exec_lines is not None else [])
-        config.InteractiveShellApp.exec_lines = exec_lines_
-        print('Exec Lines: ')
-        print(ut.indentjoin(exec_lines_, '\n    >>> '))
-        IPython.start_ipython(config=config, argv=[], user_ns=user_ns)
-        # Exit python immediately if specifed
-        if user_ns.get('qqq', False) or vars.get('qqq', False) or user_ns.get('EXIT_NOW', False):
-            print('[utool.embed] EXIT_NOW or qqq specified')
-            sys.exit(1)
-    else:
-        #from IPython.config.loader import Config
-        # cfg = Config()
-        #config_dict = {}
-        #if exec_lines is not None:
-        #    config_dict['exec_lines'] = exec_lines
-        #IPython.embed(**config_dict)
-        print('[util]  Get stack location with: ')
-        print('[util] ut.get_parent_frame(N=8).f_code.co_name')
-        print('[util] set EXIT_NOW or qqq to True(ish) to hard exit on unembed')
-        #print('set iup to True to draw plottool stuff')
-        print('[util] call %pylab qt4 to get plottool stuff working')
-        once = True
-        # Allow user to set iup and redo the loop
-        while once or vars().get('iup', False):
-            if not once:
-                # SUPER HACKY WAY OF GETTING FIGURES ON THE SCREEN BETWEEN UPDATES
-                #vars()['iup'] = False
-                # ALL YOU NEED TO DO IS %pylab qt4
-                print('re-emebeding')
-                #import plottool as pt
-                #pt.update()
-                #(pt.present())
-                for _ in range(100):
-                    time.sleep(.01)
+    user_ns = globals()
+    user_ns = globals().copy()
+    user_ns.update(locals())
+    if parent_globals is not None:
+        user_ns.update(parent_globals)
+    if parent_locals is not None:
+        user_ns.update(parent_locals)
+    orig_argv = sys.argv  # NOQA
+    print('About to start_ipython')
+    config = IPython.Config()
+    exec_lines_ = [
+        '%pylab qt4',
+        'print("Entered IPYTHON via utool")',
+        'print("Entry Point: %r" % (ut.get_parent_frame(N=11).f_code.co_name,))',
+        #'print("Entry Point: %r" % (ut.get_parent_frame(N=10).f_code.co_name,))',
+        #'print("Entry Point: %r" % (ut.get_parent_frame(N=9).f_code.co_name,))',
+        #'print("Entry Point: %r" % (ut.get_parent_frame(N=8).f_code.co_name,))',
+        #'print("Entry Point: %r" % (ut.get_parent_frame(N=7).f_code.co_name,))',
+        #'print("Entry Point: %r" % (ut.get_parent_frame(N=6).f_code.co_name,))',
+        #'print("Entry Point: %r" % (ut.get_parent_frame(N=5).f_code.co_name,))',
+        #execstr_dict(parent_locals)
+    ] + ut.ensure_str_list(exec_lines if exec_lines is not None else [])
+    config.InteractiveShellApp.exec_lines = exec_lines_
+    print('Exec Lines: ')
+    print(ut.indentjoin(exec_lines_, '\n    >>> '))
+    IPython.start_ipython(config=config, argv=[], user_ns=user_ns)
+    # Exit python immediately if specifed
+    if user_ns.get('qqq', False) or vars.get('qqq', False) or user_ns.get('EXIT_NOW', False):
+        print('[utool.embed] EXIT_NOW or qqq specified')
+        sys.exit(1)
 
-            once = False
-            #vars().get('iup', False):
-            print('[util] calling IPython.embed()')
-            """
-            Notes:
-                /usr/local/lib/python2.7/dist-packages/IPython/terminal/embed.py
-                IPython.terminal.embed.InteractiveShellEmbed
 
-                # instance comes from  IPython.config.configurable.SingletonConfigurable.instance
-            """
-            #c = IPython.Config()
-            #c.InteractiveShellApp.exec_lines = [
-            #    '%pylab qt4',
-            #    '%gui qt4',
-            #    "print 'System Ready!'",
-            #]
-            #IPython.embed(config=c)
+def embed(parent_locals=None, parent_globals=None, exec_lines=None,
+          remove_pyqt_hook=True, N=0):
+    """
+    Starts interactive session. Similar to keyboard command in matlab.
+    Wrapper around IPython.embed
+
+    """
+    import utool as ut
+    from functools import partial
+    import IPython
+
+    if parent_globals is None:
+        parent_globals = get_parent_frame(N=N).f_globals
+    if parent_locals is None:
+        parent_locals = get_parent_frame(N=N).f_locals
+
+    stackdepth = N  # NOQA
+    getframe = partial(ut.get_parent_frame, N=N)  # NOQA
+
+    # exec(execstr_dict(parent_globals, 'parent_globals'))
+    # exec(execstr_dict(parent_locals,  'parent_locals'))
+    print('')
+    print('================')
+    print(ut.bubbletext('EMBEDDING'))
+    print('================')
+    print('[util] embedding')
+    try:
+        if remove_pyqt_hook:
             try:
-                IPython.embed()
-            except RuntimeError as ex:
-                ut.printex(ex, 'Failed to open ipython')
-            #config = IPython.terminal.ipapp.load_default_config()
-            #config.InteractiveShellEmbed = config.TerminalInteractiveShell
-            #module = sys.modules[parent_globals['__name__']]
-            #config['module'] = module
-            #config['module'] = module
-            #embed2(stack_depth=N + 2 + 1)
-            #IPython.embed(config=config)
-            #IPython.embed(config=config)
-            #IPython.embed(module=module)
-            # Exit python immediately if specifed
-            if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
-                print('[utool.embed] EXIT_NOW specified')
-                sys.exit(1)
+                import guitool
+                guitool.remove_pyqt_input_hook()
+            except (ImportError, ValueError, AttributeError) as ex:
+                #print(ex)
+                printex(ex, iswarning=True)
+                pass
+            # make qt not loop forever (I had qflag loop forever with this off)
+    except ImportError as ex:
+        print(ex)
+
+    #from IPython.config.loader import Config
+    # cfg = Config()
+    #config_dict = {}
+    #if exec_lines is not None:
+    #    config_dict['exec_lines'] = exec_lines
+    #IPython.embed(**config_dict)
+    print('[util]  Get stack location with: ')
+    print('[util] ut.get_parent_frame(N=8).f_code.co_name')
+    print('[util] set EXIT_NOW or qqq to True(ish) to hard exit on unembed')
+    #print('set iup to True to draw plottool stuff')
+    print('[util] call %pylab qt4 to get plottool stuff working')
+    once = True
+    # Allow user to set iup and redo the loop
+    while once or vars().get('iup', False):
+        if not once:
+            # SUPER HACKY WAY OF GETTING FIGURES ON THE SCREEN BETWEEN UPDATES
+            #vars()['iup'] = False
+            # ALL YOU NEED TO DO IS %pylab qt4
+            print('re-emebeding')
+            #import plottool as pt
+            #pt.update()
+            #(pt.present())
+            for _ in range(100):
+                time.sleep(.01)
+
+        once = False
+        #vars().get('iup', False):
+        print('[util] calling IPython.embed()')
+        """
+        Notes:
+            /usr/local/lib/python2.7/dist-packages/IPython/terminal/embed.py
+            IPython.terminal.embed.InteractiveShellEmbed
+
+            # instance comes from  IPython.config.configurable.SingletonConfigurable.instance
+        """
+        #c = IPython.Config()
+        #c.InteractiveShellApp.exec_lines = [
+        #    '%pylab qt4',
+        #    '%gui qt4',
+        #    "print 'System Ready!'",
+        #]
+        #IPython.embed(config=c)
+        parent_ns = parent_globals.copy()
+        parent_ns.update(parent_locals)
+        locals().update(parent_ns)
+        try:
+            IPython.embed()
+        except RuntimeError as ex:
+            ut.printex(ex, 'Failed to open ipython')
+        #config = IPython.terminal.ipapp.load_default_config()
+        #config.InteractiveShellEmbed = config.TerminalInteractiveShell
+        #module = sys.modules[parent_globals['__name__']]
+        #config['module'] = module
+        #config['module'] = module
+        #embed2(stack_depth=N + 2 + 1)
+        #IPython.embed(config=config)
+        #IPython.embed(config=config)
+        #IPython.embed(module=module)
+        # Exit python immediately if specifed
+        if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
+            print('[utool.embed] EXIT_NOW specified')
+            sys.exit(1)
 
 
 def embed2(**kwargs):
@@ -1424,10 +1464,13 @@ class EmbedOnException(object):
             # Grab the context of the frame where the failure occurred
             trace_globals = trace.tb_frame.f_globals
             trace_locals = trace.tb_frame.f_locals
-            execstr_trace_g = ut.execstr_dict(trace_globals, 'trace_globals')
-            execstr_trace_l = ut.execstr_dict(trace_locals, 'trace_locals')
-            execstr_trace = execstr_trace_g + '\n' + execstr_trace_l
-            exec(execstr_trace)
+            trace_ns = trace_globals.copy()
+            trace_ns.update(trace_locals)
+            # execstr_trace_g = ut.execstr_dict(trace_globals, 'trace_globals')
+            # execstr_trace_l = ut.execstr_dict(trace_locals, 'trace_locals')
+            # execstr_trace = execstr_trace_g + '\n' + execstr_trace_l
+            # exec(execstr_trace)
+            locals().update(trace_ns)
             ut.embed()
 
 # maybe this will be easier to type?

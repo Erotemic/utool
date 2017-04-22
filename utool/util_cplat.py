@@ -18,6 +18,12 @@ from six.moves import zip
 print, rrr, profile = util_inject.inject2(__name__)
 print_ = util_inject.make_module_write_func(__name__)
 
+try:
+    import pathlib
+    HAVE_PATHLIB = True
+except ImportError:
+    HAVE_PATHLIB = False
+
 COMPUTER_NAME = platform.node()
 
 OS_TYPE = meta_util_cplat.OS_TYPE
@@ -563,6 +569,9 @@ def view_directory(dname=None, fname=None, verbose=True):
     from utool.util_arg import STRICT
     from utool.util_path import checkpath
     # from utool.util_str import SINGLE_QUOTE, DOUBLE_QUOTE
+
+    if HAVE_PATHLIB and isinstance(dname, pathlib.Path):
+        dname = str(dname)
 
     if verbose:
         print('[cplat] view_directory(%r) ' % dname)

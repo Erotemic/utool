@@ -29,6 +29,12 @@ from utool._internal.meta_util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIE
 print, rrr, profile = util_inject.inject2(__name__)
 print_ = util_inject.make_module_write_func(__name__)
 
+try:
+    import pathlib
+    HAVE_PATHLIB = True
+except ImportError:
+    HAVE_PATHLIB = False
+
 
 PRINT_CALLER = util_arg.get_argflag('--print-caller')  # FIXME: name
 
@@ -611,6 +617,8 @@ def ensuredir(path_, verbose=None, info=False, mode=0o1777):
         verbose = VERYVERBOSE
     if isinstance(path_, (list, tuple)):
         path_ = join(*path_)
+    if HAVE_PATHLIB and isinstance(path_, pathlib.Path):
+        path_ = str(path_)
     if not checkpath(path_, verbose=verbose, info=info):
         if verbose:
             print('[util_path] mkdir(%r)' % path_)
