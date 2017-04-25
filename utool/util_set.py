@@ -8,17 +8,17 @@ print, rrr, profile = util_inject.inject2(__name__)
 
 
 class _Link(object):
-    __slots__ = 'prev', 'next', 'key', '__weakref__'
+    __slots__ = ('prev', 'next', 'key', '__weakref__')
 
 
 class OrderedSet(collections.MutableSet):
     """ Set the remembers the order elements were added
      Big-O running times for all methods are the same as for regular sets.
-     The internal self.__map dictionary maps keys to links in a doubly linked list.
+     The internal self._map dictionary maps keys to links in a doubly linked list.
      The circular doubly linked list starts and ends with a sentinel element.
      The sentinel element never gets deleted (this simplifies the algorithm).
      The prev/next links are weakref proxies (to prevent circular references).
-     Individual links are kept alive by the hard reference in self.__map.
+     Individual links are kept alive by the hard reference in self._map.
      Those hard references disappear when a key is deleted from an OrderedSet.
 
     References:
@@ -28,23 +28,23 @@ class OrderedSet(collections.MutableSet):
     """
 
     def __init__(self, iterable=None):
-        self.__root = root = _Link()         # sentinel node for doubly linked list
+        self._root = root = _Link()  # sentinel node for doubly linked list
         root.prev = root.next = root
-        self.__map = {}                     # key --> link
+        self._map = {}  # key --> link
         if iterable is not None:
             self |= iterable
 
     def __len__(self):
-        return len(self.__map)
+        return len(self._map)
 
     def __contains__(self, key):
-        return key in self.__map
+        return key in self._map
 
     def add(self, key):
         # Store new key in a new link at the end of the linked list
-        if key not in self.__map:
-            self.__map[key] = link = _Link()
-            root = self.__root
+        if key not in self._map:
+            self._map[key] = link = _Link()
+            root = self._root
             last = root.prev
             link.prev, link.next, link.key = last, root, key
             last.next = root.prev = weakref.proxy(link)
@@ -54,16 +54,16 @@ class OrderedSet(collections.MutableSet):
         return self.add(key)
 
     def discard(self, key):
-        # Remove an existing item using self.__map to find the link which is
+        # Remove an existing item using self._map to find the link which is
         # then removed by updating the links in the predecessor and successors.
-        if key in self.__map:
-            link = self.__map.pop(key)
+        if key in self._map:
+            link = self._map.pop(key)
             link.prev.next = link.next
             link.next.prev = link.prev
 
     def __iter__(self):
         # Traverse the linked list in order.
-        root = self.__root
+        root = self._root
         curr = root.next
         while curr is not root:
             yield curr.key
@@ -71,7 +71,7 @@ class OrderedSet(collections.MutableSet):
 
     def __reversed__(self):
         # Traverse the linked list in reverse order.
-        root = self.__root
+        root = self._root
         curr = root.prev
         while curr is not root:
             yield curr.key
@@ -104,7 +104,49 @@ class OrderedSet(collections.MutableSet):
         return cls(lists_)
 
     def __getitem__(self, index):
-        return list(self)[index]
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import utool as ut
+            >>> self = ut.oset([1, 2, 3])
+            >>> assert self[0] == 1
+            >>> assert self[1] == 2
+            >>> assert self[2] == 3
+            >>> ut.assert_raises(IndexError, self.__getitem__, 3)
+            >>> assert self[-1] == 3
+            >>> assert self[-2] == 2
+            >>> assert self[-3] == 1
+            >>> ut.assert_raises(IndexError, self.__getitem__, -4)
+        """
+        if index < 0:
+            iter_ = self.__reversed__
+            index_ = -1 - index
+        else:
+            index_ = index
+            iter_ = self.__iter__
+        if index_ >= len(self):
+            raise IndexError('index %r out of range %r' % (index, len(self)))
+        for count, item in zip(range(index_ + 1), iter_()):
+            pass
+        return item
+
+    def index(self, item):
+        """
+        Find the index of `item` in the OrderedSet
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import utool as ut
+            >>> self = ut.oset([1, 2, 3])
+            >>> assert self.index(1) == 0
+            >>> assert self.index(2) == 1
+            >>> assert self.index(3) == 2
+            >>> ut.assert_raises(ValueError, self.index, 4)
+        """
+        for count, other in enumerate(self):
+            if item == other:
+                return count
+        raise ValueError('%r is not in OrderedSet' % (item,))
 
 
 # alias
