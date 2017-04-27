@@ -1644,8 +1644,8 @@ def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
 
 
 def bfs_conditional(G, source, reverse=False, keys=True, data=False,
-                    yield_nodes=True, yield_condition=None,
-                    continue_condition=None, visited_nodes=None,
+                    yield_nodes=True, yield_if=None,
+                    continue_if=None, visited_nodes=None,
                     yield_source=False):
     """
     Produce edges in a breadth-first-search starting at source, but only return
@@ -1662,18 +1662,25 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         >>> import utool as ut
         >>> G = nx.Graph()
         >>> G.add_edges_from([(1, 2), (1, 3), (2, 3), (2, 4)])
+        >>> continue_if = lambda G, child, edge: True
         >>> result = list(ut.bfs_conditional(G, 1, yield_nodes=False))
         >>> print(result)
         [(1, 2), (1, 3), (2, 1), (2, 3), (2, 4), (3, 1), (3, 2), (4, 2)]
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> import networkx as nx
         >>> import utool as ut
         >>> G = nx.Graph()
-        >>> G.add_edges_from([(1, 2), (1, 3), (2, 3), (2, 4)])
-        >>> result = list(ut.bfs_conditional(G, 1, visited_nodes=[2]))
+        >>> continue_if = lambda G, child, edge: (child % 2 == 0)
+        >>> yield_if = lambda G, child, edge: (child % 2 == 1)
+        >>> G.add_edges_from([(0, 1), (1, 3), (3, 5), (5, 10),
+        >>>                   (4, 3), (3, 6),
+        >>>                   (0, 2), (2, 4), (4, 6), (6, 10)])
+        >>> result = list(ut.bfs_conditional(G, 0, continue_if=continue_if,
+        >>>                                  yield_if=yield_if))
         >>> print(result)
-        [1, 3]
+        [1, 3, 5]
     """
     if reverse and hasattr(G, 'reverse'):
         G = G.reverse()
@@ -1704,15 +1711,15 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
             child = edge[1]
             if yield_nodes:
                 if child not in visited_nodes:
-                    if yield_condition is None or yield_condition(G, child, edge):
+                    if yield_if is None or yield_if(G, child, edge):
                         yield child
             else:
-                if yield_condition is None or yield_condition(G, child, edge):
+                if yield_if is None or yield_if(G, child, edge):
                     yield edge
-            # Add children to queue if the condition is satisfied
-            if continue_condition is None or continue_condition(G, child, edge):
-                if child not in visited_nodes:
-                    visited_nodes.add(child)
+            if child not in visited_nodes:
+                visited_nodes.add(child)
+                # Add new children to queue if the condition is satisfied
+                if continue_if is None or continue_if(G, child, edge):
                     new_edges = neighbors(child)
                     if isinstance(new_edges, list):
                         new_edges = iter(new_edges)
