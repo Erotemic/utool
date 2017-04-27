@@ -359,6 +359,7 @@ class ProgressIter(object):
         self.parent_index       = kwargs.pop('parent_index', 0)
         self.parent_nTotal      = kwargs.pop('parent_nTotal', 1)
         self.parent_offset      = self.parent_index * self.nTotal
+        self._cursor_at_newline = True
 
         # Window sizes for estimates
         self.est_window         = kwargs.pop('est_window', 64)

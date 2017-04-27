@@ -1621,22 +1621,30 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             test_funcname = test_funcname_
             func_ = getattr(module, test_funcname, None)
         if func_ is not None:
-            # varargs = ut.get_cmdline_varargs()
-            varargs = force_enable_testnames[1:]
             testno = 0
-            modpath = ut.get_modname_from_modpath(module.__file__)
-            # Create dummy doctest
-            src = ut.codeblock(
-                '''
-                # DUMMY_DOCTEST
-                from {modpath} import *  # NOQA
-                args = {varargs}
-                result = {test_funcname_}(*args)
-                print(result)
-                ''').format(
-                    modpath=modpath,
-                    test_funcname_=test_funcname_,
-                    varargs=repr(varargs))
+            try:
+                # hack to get classmethods to read their example using
+                # the ubelt port
+                from ubelt.meta import docscrape_google
+                blocks = docscrape_google.split_google_docblocks(func_.__doc__)
+                src = dict(blocks)['Example']
+                src = '\n'.join([line[4:] for line in src.split('\n')])
+            except ImportError:
+                # varargs = ut.get_cmdline_varargs()
+                varargs = force_enable_testnames[1:]
+                modpath = ut.get_modname_from_modpath(module.__file__)
+                # Create dummy doctest
+                src = ut.codeblock(
+                    '''
+                    # DUMMY_DOCTEST
+                    from {modpath} import *  # NOQA
+                    args = {varargs}
+                    result = {test_funcname_}(*args)
+                    print(result)
+                    ''').format(
+                        modpath=modpath,
+                        test_funcname_=test_funcname_,
+                        varargs=repr(varargs))
             testtup = TestTuple(test_funcname_, testno, src, want=None,
                                 flag='--exec-' + test_funcname_,
                                 frame_fpath=frame_fpath, mode='exec', total=1,

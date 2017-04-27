@@ -899,6 +899,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> module = ut.util_tests if modname is None else ut.import_modname(modname)
         >>> debug_key = ut.get_argval('--debugkey', type_=str, default=None)
         >>> kwargs['debug_key'] = debug_key
+        >>> kwargs['include_inherited'] = True
         >>> doctestable_list = list(iter_module_doctestable(module, **kwargs))
         >>> func_names = sorted(ut.get_list_column(doctestable_list, 0))
         >>> print(ut.list_str(func_names))
@@ -909,7 +910,8 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
     valid_func_types = [
         types.FunctionType, types.BuiltinFunctionType, classmethod,
         staticmethod,
-        #types.MethodType, types.BuiltinMethodType,
+        types.MethodType,  # handles classmethod
+        # types.BuiltinMethodType,
     ]
     if include_builtin:
         valid_func_types += [
