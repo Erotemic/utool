@@ -1224,6 +1224,27 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     return hist_
 
 
+def range_hist(items, bins):
+    """
+    Bins items into a discrete histogram by values and/or ranges.
+
+        items = [1, 2, 3, 4, 5, 6, 7]
+        bins = [0, 1, 2, (3, float('inf'))]
+        ut.range_hist(items, bins)
+    """
+    big_hist = ut.dict_hist(items)
+    hist = ut.odict([(b, 0) for b in bins])
+
+    for k, v in big_hist.items():
+        for b in bins:
+            if isinstance(b, (list, tuple)):
+                if k >= b[0] and k < b[1]:
+                    hist[b] += v
+            elif k == b:
+                hist[b] += v
+    return hist
+
+
 def dict_hist_cumsum(hist_, reverse=True):
     """ VERY HACKY """
     import utool as ut
