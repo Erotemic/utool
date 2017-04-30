@@ -446,6 +446,7 @@ class XCtrl(object):
                 available_windows = ut.cmd2('wmctrl -l')['out']
                 msg = 'No window matches pattern=%r' % (pattern,)
                 msg += '\navailable windows are:\n%s' % (available_windows,)
+                print(msg)
                 raise Exception(msg)
             win_id = None
         elif len(winid_candidates) == 1:
