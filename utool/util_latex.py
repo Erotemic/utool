@@ -3,7 +3,7 @@
 TODO: box and whisker
 http://tex.stackexchange.com/questions/115210/boxplot-in-latex
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import range, map, zip
 import os
 import re
@@ -62,7 +62,7 @@ def compress_pdf(pdf_fpath, output_fname=None):
     return output_pdf_fpath
 
 
-def make_full_document(text, title=None, preamp_decl={}):
+def make_full_document(text, title=None, preamp_decl={}, preamb_extra=None):
     r"""
     dummy preamble and document to wrap around latex fragment
 
@@ -90,27 +90,20 @@ def make_full_document(text, title=None, preamp_decl={}):
     doc_preamb = ut.codeblock(r'''
     %\documentclass{article}
     \documentclass[10pt,twocolumn,letterpaper]{article}
-
-    \usepackage[english=nohyphenation]{hyphsubst}
-    \usepackage{times}
-    \usepackage{amsmath}
-    \usepackage{amsthm}
-    \usepackage{amssymb}
-    \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
-    \usepackage{mathtools}
-    \usepackage{algorithm}
-    \usepackage{ulem}
-    \normalem
-    \usepackage{graphicx,adjustbox}
-    \usepackage{multirow}
     \usepackage[T1]{fontenc}
-    \usepackage{booktabs}
-    \usepackage[margin=1.25in]{geometry}
-    \usepackage{caption}
+
+    \usepackage{times}
+    \usepackage{epsfig}
+    \usepackage{graphicx}
+    \usepackage{amsmath,amsthm,amssymb}
+    \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+    \usepackage{multirow}
     \usepackage{subcaption}
 
     %\pagenumbering{gobble}
     ''')
+    if preamb_extra is not None:
+        doc_preamb += '\n' +  preamb_extra + '\n'
     if title is not None:
         preamp_decl['title'] = title
 
@@ -132,7 +125,8 @@ def make_full_document(text, title=None, preamp_decl={}):
     return text_
 
 
-def render_latex_text(input_text, nest_in_doc=False, appname='utool', verbose=None):
+def render_latex_text(input_text, nest_in_doc=False, preamb_extra=None,
+                      appname='utool', verbose=None):
     """ testing function """
     import utool as ut
     if verbose is None:
@@ -140,12 +134,16 @@ def render_latex_text(input_text, nest_in_doc=False, appname='utool', verbose=No
     dpath = ut.get_app_resource_dir(appname)
     # put a latex framgent in a full document
     print(input_text)
-    pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath, verbose=verbose)
+    pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath,
+                                      preamb_extra=preamb_extra,
+                                      verbose=verbose)
     ut.startfile(pdf_fpath)
     return pdf_fpath
 
 
-def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None, title=None, nest_in_doc=None, **kwargs):
+def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True,
+                       fname=None, title=None, preamb_extra=None,
+                       nest_in_doc=None, **kwargs):
     r"""
     pdflatex -shell-escape --synctex=-1 -src-specials -interaction=nonstopmode /home/joncrall/code/ibeis/tmptex/latex_formatter_temp.tex
 
@@ -199,7 +197,8 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True, fname=None,
     #import matplotlib as mpl
     #verbose = True
     if nest_in_doc or (nest_in_doc is None and input_text.find('documentclass') == -1):
-        text = make_full_document(input_text, title=title)
+        text = make_full_document(input_text, title=title,
+                                  preamb_extra=preamb_extra)
     #text = make_full_document(input_text, title=title)
     cwd = os.getcwd()
     if dpath is None:
