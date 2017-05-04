@@ -87,20 +87,20 @@ def make_full_document(text, title=None, preamp_decl={}, preamb_extra=None):
         >>> print(result)
     """
     import utool as ut
-    doc_preamb = ut.codeblock(r'''
-    %\documentclass{article}
-    \documentclass[10pt,twocolumn,letterpaper]{article}
-    \usepackage[T1]{fontenc}
+    doc_preamb = ut.codeblock('''
+    %\\documentclass{article}
+    \\documentclass[10pt,twocolumn,letterpaper]{article}
+    \\usepackage[T1]{fontenc}
 
-    \usepackage{times}
-    \usepackage{epsfig}
-    \usepackage{graphicx}
-    \usepackage{amsmath,amsthm,amssymb}
-    \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
-    \usepackage{multirow}
-    \usepackage{subcaption}
+    \\usepackage{times}
+    \\usepackage{epsfig}
+    \\usepackage{graphicx}
+    \\usepackage{amsmath,amsthm,amssymb}
+    \\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+    \\usepackage{multirow}
+    \\usepackage{subcaption}
 
-    %\pagenumbering{gobble}
+    %\\pagenumbering{gobble}
     ''')
     if preamb_extra is not None:
         doc_preamb += '\n' +  preamb_extra + '\n'

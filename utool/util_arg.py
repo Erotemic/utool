@@ -258,8 +258,9 @@ def get_argflag(argstr_, default=False, help_='', return_specified=None,
 #@profile
 def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                return_specified=None, argv=None, verbose=None,
-               debug=None, return_was_specified=False):
-    r""" Returns a value of an argument specified on the command line after some flag
+               debug=None, return_was_specified=False, pos=None):
+    r"""
+    Returns a value of an argument specified on the command line after some flag
 
     Args:
         argstr_ (str or tuple): string or tuple of strings denoting the command line values to parse
@@ -269,6 +270,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         smartcast (bool): tries to be smart about casting the parsed strings (default = True)
         return_specified (bool): (default = False)
         argv (None): override sys.argv with custom command line vector (default = None)
+        pos (int): if specified the argument can also be found in position `pos` of the command line varargs
 
     TODO:
         depricate return_was_specified
@@ -458,11 +460,11 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                             if debug:
                                 print('[get_argval] ... argstr=%r' % (argstr,))
                                 print('[get_argval] ... Found type_=%r argx=%r' % (type_, argx,))
-                            if type_ is None:
-                                #arg_after = util_type.try_cast(argv[argx + 1], type_)
-                                arg_after = util_type.smart_cast2(argv[argx + 1])
-                            else:
-                                arg_after = util_type.try_cast(argv[argx + 1], type_)
+                            arg_after = argv[argx + 1]
+                            if type_ is not None:
+                                arg_after = util_type.try_cast(arg_after, type_)
+                            elif smartcast:
+                                arg_after = util_type.smart_cast2(arg_after)
                         if was_specified:
                             print('WARNING: argstr=%r already specified' % (argstr,))
                         was_specified = True
@@ -473,9 +475,6 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                         # HACK FOR LIST. TODO INTEGRATE
                         if verbose:
                             print('[get_argval] ... Found equal list')
-
-                        #import IPython
-                        #IPython.embed()
                         val_after_ = val_after.rstrip(']').lstrip('[')
                         if True:
                             # Hacker way to be less hacky about parsing lists
@@ -510,6 +509,16 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         if ut.SUPER_STRICT:
             raise
         pass
+    if not was_specified and pos is not None:
+        varargs = get_cmdline_varargs(argv)
+        if len(varargs) > pos:
+            arg_after = varargs[pos]
+            assert type_ is not list, 'list not handled yet'
+            if type_ is not None:
+                arg_after = util_type.try_cast(arg_after, type_)
+            elif smartcast:
+                arg_after = util_type.smart_cast2(arg_after)
+
     if verbose:
         print('[get_argval] ... Parsed arg_after=%r, was_specified=%r' % (arg_after, was_specified))
     if return_specified:
@@ -1135,6 +1144,9 @@ def get_cmdline_varargs(argv=None):
             pos_end = len(argv)
     cmdline_varargs = argv[pos_start:pos_end]
     return cmdline_varargs
+
+
+get_varargs = get_cmdline_varargs
 
 
 # alias

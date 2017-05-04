@@ -126,8 +126,9 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
             return
     verbose = _rectify_verb_write(verbose)
     if verbose:
-        n = None if verbose > 1 else 2
-        print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=n))
+        # n = None if verbose > 1 else 2
+        # print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=n))
+        print('[util_io] * Writing to text file: {}'.format(fpath))
 
     backup = False and exists(fpath)
     if backup:
