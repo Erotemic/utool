@@ -1626,10 +1626,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 # hack to get classmethods to read their example using
                 # the ubelt port
                 from ubelt.meta import docscrape_google
+                if func_.__doc__ is None:
+                    raise TypeError
                 blocks = docscrape_google.split_google_docblocks(func_.__doc__)
                 src = dict(blocks)['Example']
                 src = '\n'.join([line[4:] for line in src.split('\n')])
-            except (ImportError, KeyError):
+            except (ImportError, KeyError, TypeError):
                 # varargs = ut.get_cmdline_varargs()
                 varargs = force_enable_testnames[1:]
                 modpath = ut.get_modname_from_modpath(module.__file__)
