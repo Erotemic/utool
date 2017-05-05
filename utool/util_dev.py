@@ -2607,6 +2607,19 @@ class DictLike_old(object):
 class ClassAttrDictProxy(util_dict.DictLike):
     """
     Allows class attributes to be specified using dictionary syntax
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_dev import *  # NOQA
+        >>> import utool as ut
+        >>> class Foo(object):
+        >>>     def __init__(self):
+        >>>         self.attr1 = 'foo'
+        >>>         self.attr2 = 'bar'
+        >>>         self.proxy = ut.ClassAttrDictProxy(self, ['attr1', 'attr2'])
+        >>> self = Foo()
+        >>> self.proxy['attr2'] = 'baz'
+        >>> assert self.attr2 == 'baz', 'should have changed in object'
     """
     def __init__(self, obj, keys, attrs=None):
         if attrs is None:

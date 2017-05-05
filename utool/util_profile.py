@@ -222,29 +222,6 @@ def clean_lprof_file(input_fname, output_fname=None):
     return output_text
 
 
-#if __name__ == '__main__':
-#    # Only profiled functions that are run are printed
-#    """
-#    Commandline:
-#        utprof_cleaner.py <input_fname> [output_fname]
-#        utprof_cleaner.py <input_fname> [output_fname]
-
-#        utprof_cleaner.py raw_profile.vsone_pipeline.py.2015-01-27_20-11-33.raw.prof
-#    """
-#    print('[profile_cleaner] __main__')
-#    input_fname = sys.argv[1]
-#    output_fname = sys.argv[2] if len(sys.argv) > 2 else None
-#    print('[profile_cleaner] cleaning')
-#    output_text = clean_lprof_file(input_fname, output_fname)
-#    print('[profile_cleaner] dumping')
-#    if output_fname is not None:
-#        # Output to file
-#        with open(output_fname, 'w') as file2_:
-#            file2_.write(output_text)
-#    else:
-#        print(output_text)
-
-
 if __name__ == '__main__':
     r"""
     CommandLine:

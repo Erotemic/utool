@@ -1246,14 +1246,67 @@ def flag_unique_items(list_):
 
     Returns:
         flag_list
+
+    Timing:
+        import random
+        import utool as ut
+
+        def random_items(n, m):
+            rng = random.Random(0)
+            return [rng.randint(0, n) for _ in range(m)]
+
+        m = 1000
+
+        def method1(list_):
+            seen = set()
+            def unseen(item):
+                if item in seen:
+                    return False
+                seen.add(item)
+                return True
+            flag_list = [unseen(item) for item in list_]
+            return flag_list
+
+        def method2(list_):
+            return ut.index_to_boolmask([list_.index(x) for x in set(list_)], len(list_))
+
+        def method3(list_):
+            return ut.index_to_boolmask(dict(zip(reversed(list_), reversed(range(len(list_))))).values(), len(list_))
+
+
+        import ubelt as ub
+        ub.Timerit.DEFAULT_VERBOSE = False
+
+        import plottool as pt
+        ut.qtensure()
+        exps = [0, .25, .5, .75, 1, 2]
+        pnum_ = pt.make_pnum_nextgen(nSubplots=len(exps))
+        current = ut.flag_unique_items
+
+        for count, exp in ut.ProgIter(list(enumerate(exps, start=1))):
+            ydatas = ut.ddict(list)
+            xdata = []
+            for m in ut.ProgIter(list(range(0, 10000, 100)), freq=1):
+                xdata.append(m)
+                num = 10
+                n = int(m ** exp)
+                list_ = random_items(n=n, m=m)
+                ydatas['method1'].append(ub.Timerit(num).call(method1, list_))
+                ydatas['method2'].append(ub.Timerit(num).call(method2, list_))
+                ydatas['method3'].append(ub.Timerit(num).call(method3, list_))
+                ydatas['current'].append(ub.Timerit(num).call(current, list_))
+
+                # assert method1(list_) == method3(list_)
+                # assert method1(list_) == current(list_)
+
+            pt.multi_plot(
+                xdata, list(ydatas.values()), label_list=list(ydatas.keys()),
+                ylabel='time', title=str(exp), fnum=1, pnum=pnum_())
+
     """
-    seen = set()
-    def unseen(item):
-        if item in seen:
-            return False
-        seen.add(item)
-        return True
-    flag_list = [unseen(item) for item in list_]
+    len_ = len(list_)
+    item_to_index = dict(zip(reversed(list_), reversed(range(len_))))
+    flag_list = index_to_boolmask(item_to_index.values(), len_)
     return flag_list
 
 
@@ -1569,7 +1622,7 @@ def argmax(input_):
         return input_.index(max(input_))
 
 
-def argmin(list_):
+def argmin(input_):
     """
     Returns index / key of the item with the smallest value.
 
@@ -3084,36 +3137,38 @@ def list_reshape(list_, new_shape, trail=False):
     return newlist
 
 
-def index_to_boolmask(index_list, maxval=None):
+def index_to_boolmask(indices, maxval=None):
     r"""
+    Constructs a list of booleans where an item is True if its position is in
+    `indices` otherwise it is False.
+
     Args:
-        index_list (list):
-        maxval (None): (default = None)
+        indices (list): list of integer indices
+        maxval (int): length of the returned list. If not specified
+            this is inverred from `indices`
 
     Returns:
-        list: mask
+        list: mask: list of booleans. mask[idx] is True if idx in indices
 
     SeeAlso:
         vt.index_to_boolmask numpy version
 
     CommandLine:
-        python -m vtool.other --exec-index_to_boolmask
+        python -m vtool.other index_to_boolmask
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
-        >>> index_list = [0, 1, 4]
+        >>> indices = [0, 1, 4]
         >>> maxval = 5
-        >>> mask = ut.index_to_boolmask(index_list, maxval)
-        >>> result = ('mask = %s' % (ut.repr2(mask, nl=0)))
-        >>> print(result)
-        mask = [True, True, False, False, True]
+        >>> mask = ut.index_to_boolmask(indices, maxval)
+        >>> assert mask == [True, True, False, False, True]
     """
     if maxval is None:
-        maxval = max(index_list) + 1
+        indices = list(indices)
+        maxval = max(indices) + 1
     mask = [False] * maxval
-    for index in index_list:
+    for index in indices:
         mask[index] = True
     return mask
 

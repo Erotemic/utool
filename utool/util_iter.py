@@ -189,6 +189,33 @@ def itertwo(iterable, wrap=False):
         >>> ut.assert_eq(len(list(iterable)), 0, 'iterable should have been used up')
         >>> print(result)
         edges = [(1, 2), (2, 3), (3, 4)]
+
+    Timeit:
+        >>> import vtool as vt
+        >>> import utool as ut
+        >>> # itertwo is slower than zip slicing on python lists
+        >>> # but faster on numpy arrays
+        >>> setup = ut.codeblock(
+            '''
+            import random
+            import utool as ut
+            import numpy as np
+            rng = random.Random(0)
+            iterable = [rng.randint(0, 2000) for _ in range(100000)]
+            iterable2 = np.array(iterable)
+            ''')
+        >>> stmt_list = ut.codeblock(
+            '''
+            list(zip(iterable, iterable[1:]))
+            list(ut.itertwo(iterable))
+            list(ut.iter_window(iterable, 2))
+            list(zip(iterable2, iterable2[1:]))
+            list(zip(iterable2.tolist(), iterable2.tolist()[1:]))
+            list(ut.itertwo(iterable2))
+            list(ut.itertwo(iterable2.tolist()))
+            ''').split('\n')
+        >>> passed, times, outputs = ut.timeit_compare(stmt_list, setup, iterations=10)
+
     """
     # it.tee may be slow, but works on all iterables
     iter1, iter2 = it.tee(iterable, 2)
