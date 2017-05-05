@@ -1823,7 +1823,8 @@ def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
             if test_classname in module_.__dict__:
                 test_module = module_
                 test_class = test_module.__dict__[test_classname]
-                test_func = test_class.__dict__[test_funcname]
+                test_func = getattr(test_class, test_funcname)
+                # test_class.__dict__[test_funcname]
 
     if test_func is None:
         print('Did not find any function named %r ' % (test_funcname,))

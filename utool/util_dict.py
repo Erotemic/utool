@@ -1362,13 +1362,22 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=op.add):
         >>> print(result)
         mergedict_ = {'b': 2, 'c': 3}
     """
-    keys3 = set(dict1.keys()).intersection(set(dict2.keys()))
+    isect_keys = set(dict1.keys()).intersection(set(dict2.keys()))
     if combine:
-        # TODO: depcirate this
-        dict3 = {key: combine_op(dict1[key], dict2[key]) for key in keys3}
+        # TODO: depricate this
+        dict_isect = {k: combine_op(dict1[k], dict2[k]) for k in isect_keys}
     else:
-        dict3 = {key: dict1[key] for key in keys3 if dict1[key] == dict2[key]}
-    return dict3
+        # maintain order if possible
+        if isinstance(dict1, OrderedDict):
+            isect_keys_ = [k for k in dict1.keys() if k in isect_keys]
+            _dict_cls = OrderedDict
+        else:
+            isect_keys_ = isect_keys
+            _dict_cls = dict
+        dict_isect = _dict_cls(
+            (k, dict1[k]) for k in isect_keys_ if dict1[k] == dict2[k]
+        )
+    return dict_isect
 
 
 def dict_isect_combine(dict1, dict2, combine_op=op.add):
