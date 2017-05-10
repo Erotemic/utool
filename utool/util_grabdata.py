@@ -1084,8 +1084,14 @@ def read_s3_contents(bucket, key, auth_access_id=None, auth_secret_key=None,
         # Alternatively, use user defaults, located in ~/.boto
         s3 = boto.connect_s3()
         bucket = s3.get_bucket(bucket)
-    key = bucket.get_key(key)
-    contents = key.get_contents_as_string()
+    try:
+        key_ = bucket.get_key(key)
+        assert key_ is not None
+    except AssertionError:
+        key = urllib.unquote(key).decode('utf8')
+        key_ = bucket.get_key(key)
+        assert key_ is not None
+    contents = key_.get_contents_as_string()
     return contents
 
 
