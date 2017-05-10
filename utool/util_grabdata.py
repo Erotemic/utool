@@ -1107,8 +1107,14 @@ def grab_s3_contents(fpath, bucket, key, auth_access_id=None, auth_secret_key=No
         # Alternatively, use user defaults, located in ~/.boto
         s3 = boto.connect_s3()
         bucket = s3.get_bucket(bucket)
-    key = bucket.get_key(key)
-    key.get_contents_to_filename(fpath)
+    try:
+        key_ = bucket.get_key(key)
+        assert key_ is not None
+    except AssertionError:
+        key = urllib.unquote(key).decode('utf8')
+        key_ = bucket.get_key(key)
+        assert key_ is not None
+    key_.get_contents_to_filename(fpath)
 
 
 def scp_pull(remote_path, local_path='.', remote='localhost', user=None):
