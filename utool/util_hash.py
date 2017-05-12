@@ -179,7 +179,7 @@ def _covert_to_hashable(data):
         hashable = data.encode('utf-8')
         prefix = b'TXT'
     elif isinstance(data, uuid.UUID):
-        hashable = data.bytes_
+        hashable = data.bytes
         prefix = b'UUID'
     elif isinstance(data, int):
         warnings.warn('[util_hash] Hashing ints is slow, numpy is prefered')
@@ -276,7 +276,7 @@ def _update_hasher(hasher, data):
         print(hasher.hexdigest())
 
     """
-    if isinstance(data, (tuple, list)):
+    if isinstance(data, (tuple, list, zip)):
         # try to nest quickly without recursive calls
         SEP = b'SEP'
         iter_prefix = b'ITER'
@@ -341,6 +341,7 @@ def _bytes_generator(data):
         yield hashable
 
 
+@profile
 def hashstr3(data, hashlen=None, alphabet=None):
     r"""
     Get a unique hash depending on the state of the data.
@@ -506,7 +507,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
             items = data
             for item in items:
                 if isinstance(item, uuid.UUID):
-                    hasher.update(item.bytes_)
+                    hasher.update(item.bytes)
                 else:
                     hasher.update(item)
             text = hasher.hexdigest()
@@ -815,6 +816,7 @@ def augment_uuid(uuid_, *hashables):
     return augmented_uuid_
 
 
+@profile
 def combine_uuids(uuids, ordered=True, salt=''):
     """
     Creates a uuid that specifies a group of UUIDS
@@ -823,6 +825,7 @@ def combine_uuids(uuids, ordered=True, salt=''):
         uuids (list): list of uuid objects
         ordered (bool): if False uuid order changes the resulting combined uuid
             otherwise the uuids are considered an orderless set
+        salt (str): salts the resulting hash
 
     Returns:
         uuid.UUID: combined uuid
@@ -834,19 +837,18 @@ def combine_uuids(uuids, ordered=True, salt=''):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import utool as ut
-        >>> uuids = [hashable_to_uuid('one'), hashable_to_uuid('two'), hashable_to_uuid('three')]
+        >>> uuids = [hashable_to_uuid('one'), hashable_to_uuid('two'),
+        >>>          hashable_to_uuid('three')]
         >>> combo1 = combine_uuids(uuids, ordered=True)
         >>> combo2 = combine_uuids(uuids[::-1], ordered=True)
         >>> combo3 = combine_uuids(uuids, ordered=False)
         >>> combo4 = combine_uuids(uuids[::-1], ordered=False)
-        >>> result = ut.repr4([combo1, combo2, combo3, combo4])
+        >>> result = ut.repr4([combo1, combo2, combo3, combo4], nobr=True)
         >>> print(result)
-        [
-            UUID('83ee781f-8646-ccba-0ed8-13842825c12a'),
-            UUID('52bbb33f-612e-2ab8-a62c-2f46e5b1edc8'),
-            UUID('945cadab-e834-e581-0f74-62f106d20d81'),
-            UUID('945cadab-e834-e581-0f74-62f106d20d81'),
-        ]
+        UUID('83ee781f-8646-ccba-0ed8-13842825c12a'),
+        UUID('52bbb33f-612e-2ab8-a62c-2f46e5b1edc8'),
+        UUID('945cadab-e834-e581-0f74-62f106d20d81'),
+        UUID('945cadab-e834-e581-0f74-62f106d20d81'),
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -869,12 +871,41 @@ def combine_uuids(uuids, ordered=True, salt=''):
     else:
         if not ordered:
             uuids = sorted(uuids)
-        sep_str = str('-')
-        sep = six.b(sep_str)
-        pref = six.b(str(salt) + sep_str + str(len(uuids)))
-        combined_bytes = pref + sep.join([u.bytes for u in uuids])
+        sep_str = '-'
+        sep_byte = six.b(sep_str)
+        pref = six.b('{}{}{}'.format(salt, sep_str, len(uuids)))
+        combined_bytes = pref + sep_byte.join([u.bytes for u in uuids])
         combined_uuid = hashable_to_uuid(combined_bytes)
         return combined_uuid
+
+
+if six.PY3:
+    def _ensure_hashable_bytes(hashable_):
+        # If hashable_ is text (python3)
+        if isinstance(hashable_, bytes):
+            return hashable_
+        elif isinstance(hashable_, str):
+            return hashable_.encode('utf-8')
+        elif isinstance(hashable_, int):
+            return hashable_.to_bytes(4, byteorder='big')
+        elif isinstance(hashable_, (list, tuple)):
+            return str(hashable_).encode('utf-8')
+        else:
+            return hashable_
+elif six.PY2:
+    import struct
+    def _ensure_hashable_bytes(hashable_):
+        # If hashable_ is data (python2)
+        if isinstance(hashable_, bytes):
+            return hashable_
+        elif isinstance(hashable_, str):
+            return hashable_.encode('utf-8')
+        elif isinstance(hashable_, int):
+            return struct.pack('>i', hashable_)
+        elif isinstance(hashable_, (list, tuple)):
+            return str(hashable_).encode('utf-8')
+        else:
+            return bytes(hashable_)
 
 
 def hashable_to_uuid(hashable_):
@@ -895,89 +926,31 @@ def hashable_to_uuid(hashable_):
 
     CommandLine:
         python -m utool.util_hash --test-hashable_to_uuid
-        python3 -m utool.util_hash --test-hashable_to_uuid:1
-        python2 -m utool.util_hash --test-hashable_to_uuid:3
-        python2 -m utool.util_hash --test-hashable_to_uuid:1
-        python3 -m utool.util_hash --test-hashable_to_uuid:0
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
-        >>> hashable_ = 'foobar'
-        >>> uuid_ = hashable_to_uuid(hashable_)
-        >>> result = str(uuid_)
+        >>> import utool as ut
+        >>> hashables = [
+        >>>     'foobar',
+        >>>     'foobar'.encode('utf-8'),
+        >>>     u'foobar',
+        >>>     10,
+        >>>     [1, 2, 3],
+        >>> ]
+        >>> uuids = []
+        >>> for hashable_ in hashables:
+        >>>     uuid_ = hashable_to_uuid(hashable_)
+        >>>     uuids.append(uuid_)
+        >>> result = ut.repr4(ut.lmap(str, uuids), strvals=True, nobr=True)
         >>> print(result)
-        8843d7f9-2416-211d-e9eb-b963ff4ce281
-
-    Example0:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_hash import *  # NOQA
-        >>> hashable_ = 'foobar'.encode('utf-8')
-        >>> uuid_ = hashable_to_uuid(hashable_)
-        >>> result = str(uuid_)
-        >>> print(result)
-        8843d7f9-2416-211d-e9eb-b963ff4ce281
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_hash import *  # NOQA
-        >>> hashable_ = u'foobar'
-        >>> uuid_ = hashable_to_uuid(hashable_)
-        >>> result = str(uuid_)
-        >>> print(result)
-        8843d7f9-2416-211d-e9eb-b963ff4ce281
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_hash import *  # NOQA
-        >>> hashable_ = 10
-        >>> uuid_ = hashable_to_uuid(hashable_)
-        >>> result = str(uuid_)
-        >>> print(result)
-        e864ece8-8880-43b6-7277-c8b2cefe96ad
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_hash import *  # NOQA
-        >>> hashable_ = [1, 2, 3]
-        >>> uuid_ = hashable_to_uuid(hashable_)
-        >>> result = str(uuid_)
-        >>> print(result)
-
+        8843d7f9-2416-211d-e9eb-b963ff4ce281,
+        8843d7f9-2416-211d-e9eb-b963ff4ce281,
+        8843d7f9-2416-211d-e9eb-b963ff4ce281,
+        e864ece8-8880-43b6-7277-c8b2cefe96ad,
+        a01eda32-e4e0-b139-3274-e91d1b3e9ecf,
     """
-    # Hash the bytes
-    if six.PY3:
-        # If hashable_ is text (python3)
-        if isinstance(hashable_, bytes):
-            bytes_ = hashable_
-        if isinstance(hashable_, str):
-            bytes_ = hashable_.encode('utf-8')
-            #print('sbytes=%r' % (bytes_,))
-        elif isinstance(hashable_, int):
-            bytes_ = hashable_.to_bytes(4, byteorder='big')
-        elif isinstance(hashable_, (list, tuple)):
-            bytes_ = str(hashable_).encode('utf-8')
-        else:
-            #bytes_ = bytearray(hashable_)
-            bytes_ = hashable_
-            # bytes_ = hashable_
-            #print('bytes_=%r' % (bytes_,))
-    elif six.PY2:
-        # If hashable_ is data (python2)
-        if isinstance(hashable_, bytes):
-            bytes_ = hashable_
-        elif isinstance(hashable_, str):
-            bytes_ = hashable_.encode('utf-8')
-        elif isinstance(hashable_, int):
-            import struct
-            bytes_ = struct.pack('>i', hashable_)
-        elif isinstance(hashable_, (list, tuple)):
-            bytes_ = str(hashable_).encode('utf-8')
-        else:
-            # bytes_ = bytes(hashable_)
-            bytes_ = bytes(hashable_)
-    # print('hashable_ = %r' % (hashable_,))
-    # print('bytes_ = %r' % (bytes_,))
+    bytes_ = _ensure_hashable_bytes(hashable_)
     try:
         bytes_sha1 = hashlib.sha1(bytes_)
     except TypeError:
@@ -985,16 +958,10 @@ def hashable_to_uuid(hashable_):
         print('bytes_ = %r' % (bytes_,))
         raise
     # Digest them into a hash
-    #hashstr_40 = img_bytes_sha1.hexdigest()
-    #hashstr_32 = hashstr_40[0:32]
     hashbytes_20 = bytes_sha1.digest()
     hashbytes_16 = hashbytes_20[0:16]
     uuid_ = uuid.UUID(bytes=hashbytes_16)
     return uuid_
-
-
-def deterministic_uuid(hashable):
-    return hashable_to_uuid(hashable)
 
 
 def random_uuid():

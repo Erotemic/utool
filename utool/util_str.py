@@ -1488,6 +1488,10 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         else:
             return '{}'
 
+    if dictkw.pop('stritems', False):
+        dictkw['strkeys'] = True
+        strvals = True
+
     newlines_ = _rectify_countdown_or_bool(newlines)
     truncate_ = _rectify_countdown_or_bool(truncate)
 

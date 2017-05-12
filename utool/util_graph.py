@@ -309,10 +309,15 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
         cutoff = len(G) - 1
     if cutoff < 1:
         return
+    import utool as ut
     import six
     visited_nodes = [source]
     visited_edges = []
-    edge_stack = [iter(G.edges(source, keys=keys, data=data))]
+    if G.is_multigraph():
+        get_neighbs = ut.partial(G.edges, keys=keys, data=data)
+    else:
+        get_neighbs = ut.partial(G.edges, data=data)
+    edge_stack = [iter(get_neighbs(source))]
     while edge_stack:
         children_edges = edge_stack[-1]
         child_edge = six.next(children_edges, None)
@@ -328,7 +333,7 @@ def nx_all_simple_edge_paths(G, source, target, cutoff=None, keys=False,
             elif child_node not in visited_nodes:
                 visited_nodes.append(child_node)
                 visited_edges.append(child_edge)
-                edge_stack.append(iter(G.edges(child_node, keys=keys, data=data)))
+                edge_stack.append(iter(get_neighbs(child_node)))
         else:
             for edge in [child_edge] + list(children_edges):
                 if edge[1] == target:
@@ -691,63 +696,268 @@ def nx_gen_node_values(G, key, nodes, default=util_const.NoParam):
         return (G.node[n].get(key, default) for n in nodes)
 
 
-def nx_gen_edge_values(G, key, edges, default=util_const.NoParam):
-    """
-    Generates attributes values of specific edges
-    """
-    if default is util_const.NoParam:
-        return (G.edge[u][v][key] for u, v in edges)
-    else:
-        return (G.edge[u][v].get(key, default) for u, v in edges)
-
-
 def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
-                      check_exist=False):
+                      on_missing='error', on_keyerr='default'):
     """
     Improved generator version of nx.get_node_attributes
+
+    Args:
+        on_missing (str): Strategy for handling nodes missing from G.
+            Can be {'error', 'default', 'filter'}.  defaults to 'error'.
+        on_keyerr (str): Strategy for handling keys missing from node dicts.
+            Can be {'error', 'default', 'filter'}.  defaults to 'default'
+            if default is specified, otherwise defaults to 'error'.
+
+    Notes:
+        strategies are:
+            error - raises an error if key or node does not exist
+            default - returns node, but uses value specified by default
+            filter - skips the node
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> G = nx.Graph([(1, 2), (2, 3)])
+        >>> nx.set_node_attributes(G, 'part', {1: 'bar', 3: 'baz'})
+        >>> nodes = [1, 2, 3, 4]
+        >>> #
+        >>> assert len(list(ut.nx_gen_node_attrs(G, 'part', default=None, on_missing='error', on_keyerr='default'))) == 3
+        >>> assert len(list(ut.nx_gen_node_attrs(G, 'part', default=None, on_missing='error', on_keyerr='filter'))) == 2
+        >>> ut.assert_raises(KeyError, list, ut.nx_gen_node_attrs(G, 'part', on_missing='error', on_keyerr='error'))
+        >>> #
+        >>> assert len(list(ut.nx_gen_node_attrs(G, 'part', nodes, default=None, on_missing='filter', on_keyerr='default'))) == 3
+        >>> assert len(list(ut.nx_gen_node_attrs(G, 'part', nodes, default=None, on_missing='filter', on_keyerr='filter'))) == 2
+        >>> ut.assert_raises(KeyError, list, ut.nx_gen_node_attrs(G, 'part', nodes, on_missing='filter', on_keyerr='error'))
+        >>> #
+        >>> assert len(list(ut.nx_gen_node_attrs(G, 'part', nodes, default=None, on_missing='default', on_keyerr='default'))) == 4
+        >>> assert len(list(ut.nx_gen_node_attrs(G, 'part', nodes, default=None, on_missing='default', on_keyerr='filter'))) == 2
+        >>> ut.assert_raises(KeyError, list, ut.nx_gen_node_attrs(G, 'part', nodes, on_missing='default', on_keyerr='error'))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> # ALL CASES
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> G = nx.Graph([(1, 2), (2, 3)])
+        >>> nx.set_node_attributes(G, 'full', {1: 'A', 2: 'B', 3: 'C'})
+        >>> nx.set_node_attributes(G, 'part', {1: 'bar', 3: 'baz'})
+        >>> nodes = [1, 2, 3, 4]
+        >>> attrs = dict(ut.nx_gen_node_attrs(G, 'full'))
+        >>> input_grid = {
+        >>>     'nodes': [None, (1, 2, 3, 4)],
+        >>>     'key': ['part', 'full'],
+        >>>     'default': [util_const.NoParam, None],
+        >>> }
+        >>> inputs = ut.all_dict_combinations(input_grid)
+        >>> kw_grid = {
+        >>>     'on_missing': ['error', 'default', 'filter'],
+        >>>     'on_keyerr': ['error', 'default', 'filter'],
+        >>> }
+        >>> kws = ut.all_dict_combinations(kw_grid)
+        >>> for in_ in inputs:
+        >>>     for kw in kws:
+        >>>         kw2 = ut.dict_union(kw, in_)
+        >>>         #print(kw2)
+        >>>         on_missing = kw['on_missing']
+        >>>         on_keyerr = kw['on_keyerr']
+        >>>         if on_keyerr == 'default' and in_['default'] is util_const.NoParam:
+        >>>             on_keyerr = 'error'
+        >>>         will_miss = False
+        >>>         will_keyerr = False
+        >>>         if on_missing == 'error':
+        >>>             if in_['key'] == 'part' and in_['nodes'] is not None:
+        >>>                 will_miss = True
+        >>>             if in_['key'] == 'full' and in_['nodes'] is not None:
+        >>>                 will_miss = True
+        >>>         if on_keyerr == 'error':
+        >>>             if in_['key'] == 'part':
+        >>>                 will_keyerr = True
+        >>>             if on_missing == 'default':
+        >>>                 if in_['key'] == 'full' and in_['nodes'] is not None:
+        >>>                     will_keyerr = True
+        >>>         want_error = will_miss or will_keyerr
+        >>>         gen = ut.nx_gen_node_attrs(G, **kw2)
+        >>>         try:
+        >>>             attrs = list(gen)
+        >>>         except KeyError:
+        >>>             if not want_error:
+        >>>                 raise AssertionError('should not have errored')
+        >>>         else:
+        >>>             if want_error:
+        >>>                 raise AssertionError('should have errored')
+
     """
+    if on_missing is None:
+        on_missing = 'error'
+    if default is util_const.NoParam and on_keyerr == 'default':
+        on_keyerr = 'error'
     if nodes is None:
-        node_data = ((n, d[key]) for n, d in G.node.items() if key in d)
+        nodes = G.nodes()
+    # Generate `node_data` nodes and data dictionary
+    if on_missing == 'error':
+        node_data = ((n, G.node[n]) for n in nodes)
+    elif on_missing == 'filter':
+        node_data = ((n, G.node[n]) for n in nodes if n in G)
+    elif on_missing == 'default':
+        node_data = ((n, G.node.get(n, {})) for n in nodes)
     else:
-        if check_exist:
-            nodes = [n for n in nodes if n in G.node]
-        if not check_exist or default is util_const.NoParam:
-            value_gen = nx_gen_node_values(G, key, nodes, default=default)
-            node_data = zip(nodes, value_gen)
-        else:
-            data_gen = (G.node[n] for n in nodes)
-            node_data = (d[key] for n, d in zip(nodes, data_gen) if key in d)
-    return node_data
+        raise KeyError('on_missing={}'.format(on_missing))
+    # Get `node_attrs` desired value out of dictionary
+    if on_keyerr == 'error':
+        node_attrs = ((n, d[key]) for n, d in node_data)
+    elif on_keyerr == 'filter':
+        node_attrs = ((n, d[key]) for n, d in node_data if key in d)
+    elif on_keyerr == 'default':
+        node_attrs = ((n, d.get(key, default)) for n, d in node_data)
+    else:
+        raise KeyError('on_keyerr={}'.format(on_keyerr))
+    return node_attrs
+
+
+def nx_gen_edge_values(G, key, edges, default=util_const.NoParam,
+                       on_missing='error', on_keyerr='default'):
+    """
+    Generates attributes values of specific edges
+
+    Args:
+        on_missing (str): Strategy for handling nodes missing from G.
+            Can be {'error', 'default'}.  defaults to 'error'.
+        on_keyerr (str): Strategy for handling keys missing from node dicts.
+            Can be {'error', 'default'}.  defaults to 'default'
+            if default is specified, otherwise defaults to 'error'.
+    """
+    if on_missing is None:
+        on_missing = 'error'
+    if on_keyerr is None:
+        on_keyerr = 'default'
+    if default is util_const.NoParam and on_keyerr == 'default':
+        on_keyerr = 'error'
+    # Generate `data_iter` edges and data dictionary
+    if on_missing == 'error':
+        data_iter = (G.edge[u][v] for u, v in edges)
+    elif on_missing == 'default':
+        data_iter = (G.edge[u][v] if G.has_edge(u, v) else {}
+                     for u, v in edges)
+    else:
+        raise KeyError('on_missing={}'.format(on_missing))
+    # Get `value_iter` desired value out of dictionary
+    if on_keyerr == 'error':
+        value_iter = (d[key] for d in data_iter)
+    elif on_keyerr == 'default':
+        value_iter = (d.get(key, default) for d in data_iter)
+    else:
+        raise KeyError('on_keyerr={}'.format(on_keyerr))
+    return value_iter
+    # if default is util_const.NoParam:
+    #     return (G.edge[u][v][key] for u, v in edges)
+    # else:
+    #     return (G.edge[u][v].get(key, default) for u, v in edges)
 
 
 def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
-                      check_exist=False):
+                      on_missing='error', on_keyerr='default'):
     """
     Improved generator version of nx.get_edge_attributes
+
+    Args:
+        on_missing (str): Strategy for handling nodes missing from G.
+            Can be {'error', 'default', 'filter'}.  defaults to 'error'.
+            is on_missing is not error, then we allow any edge even if the
+            endpoints are not in the graph.
+        on_keyerr (str): Strategy for handling keys missing from node dicts.
+            Can be {'error', 'default', 'filter'}.  defaults to 'default'
+            if default is specified, otherwise defaults to 'error'.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> G = nx.Graph([(1, 2), (2, 3), (3, 4)])
+        >>> nx.set_edge_attributes(G, 'part', {(1, 2): 'bar', (2, 3): 'baz'})
+        >>> edges = [(1, 2), (2, 3), (3, 4), (4, 5)]
+        >>> func = ut.partial(ut.nx_gen_edge_attrs, G, 'part', default=None)
+        >>> #
+        >>> assert len(list(func(on_missing='error', on_keyerr='default'))) == 3
+        >>> assert len(list(func(on_missing='error', on_keyerr='filter'))) == 2
+        >>> ut.assert_raises(KeyError, list, func(on_missing='error', on_keyerr='error'))
+        >>> #
+        >>> assert len(list(func(edges, on_missing='filter', on_keyerr='default'))) == 3
+        >>> assert len(list(func(edges, on_missing='filter', on_keyerr='filter'))) == 2
+        >>> ut.assert_raises(KeyError, list, func(edges, on_missing='filter', on_keyerr='error'))
+        >>> #
+        >>> assert len(list(func(edges, on_missing='default', on_keyerr='default'))) == 4
+        >>> assert len(list(func(edges, on_missing='default', on_keyerr='filter'))) == 2
+        >>> ut.assert_raises(KeyError, list, func(edges, on_missing='default', on_keyerr='error'))
     """
+    if on_missing is None:
+        on_missing = 'error'
+    if default is util_const.NoParam and on_keyerr == 'default':
+        on_keyerr = 'error'
+
     if edges is None:
         if G.is_multigraph():
-            edges_ = G.edges(keys=True, data=True)
+            raise NotImplementedError('')
+            # uvk_iter = G.edges(keys=True)
         else:
-            edges_ = G.edges(data=True)
-        if default is util_const.NoParam:
-            return ((x[:-1], x[-1][key]) for x in edges_ if key in x[-1])
-        else:
-            return ((x[:-1], x[-1].get(key, default)) for x in edges_)
+            edges = G.edges()
+    # Generate `edge_data` edges and data dictionary
+    if on_missing == 'error':
+        edge_data = (((u, v), G.edge[u][v]) for u, v in edges)
+    elif on_missing == 'filter':
+        edge_data = (((u, v), G.edge[u][v]) for u, v in edges if G.has_edge(u, v))
+    elif on_missing == 'default':
+        edge_data = (((u, v), G.edge[u][v])
+                     if G.has_edge(u, v) else ((u, v), {})
+                     for u, v in edges)
     else:
-        if check_exist:
-            # ignore edges that don't exist
-            uv_iter = (e for e in edges if G.has_edge(*e))
-        else:
-            uv_iter = edges
-        uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+        raise KeyError('on_missing={}'.format(on_missing))
+    # Get `edge_attrs` desired value out of dictionary
+    if on_keyerr == 'error':
+        edge_attrs = ((e, d[key]) for e, d in edge_data)
+    elif on_keyerr == 'filter':
+        edge_attrs = ((e, d[key]) for e, d in edge_data if key in d)
+    elif on_keyerr == 'default':
+        edge_attrs = ((e, d.get(key, default)) for e, d in edge_data)
+    else:
+        raise KeyError('on_keyerr={}'.format(on_keyerr))
+    return edge_attrs
 
-        if default is util_const.NoParam:
-            # return (((u, v), d[key]) for u, v, d in uvd_iter if key in d)
-            return (((u, v), d[key]) for u, v, d in uvd_iter)
-        else:
-            uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
-            return (((u, v), d.get(key, default)) for u, v, d in uvd_iter)
+    # if edges is None:
+    #     if G.is_multigraph():
+    #         edges_ = G.edges(keys=True, data=True)
+    #     else:
+    #         edges_ = G.edges(data=True)
+    #     if default is util_const.NoParam:
+    #         return ((x[:-1], x[-1][key]) for x in edges_ if key in x[-1])
+    #     else:
+    #         return ((x[:-1], x[-1].get(key, default)) for x in edges_)
+
+    # else:
+    #     if on_missing == 'error':
+    #         uv_iter = edges
+    #         uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+    #     elif on_missing == 'filter':
+    #         # filter edges that don't exist
+    #         uv_iter = (e for e in edges if G.has_edge(*e))
+    #         uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+    #     elif on_missing == 'default':
+    #         # Return default data as if it existed
+    #         uvd_iter = (
+    #             (u, v, G.edge[u][v])
+    #             if G.has_edge(u, v) else
+    #             (u, v, {})
+    #             for u, v in uv_iter
+    #         )
+    #     else:
+    #         raise KeyError('on_missing={}'.format(on_missing))
+
+    #     if default is util_const.NoParam:
+    #         # return (((u, v), d[key]) for u, v, d in uvd_iter if key in d)
+    #         return (((u, v), d[key]) for u, v, d in uvd_iter)
+    #     else:
+    #         uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+    #         return (((u, v), d.get(key, default)) for u, v, d in uvd_iter)
 
 
 def nx_from_node_edge(nodes=None, edges=None):

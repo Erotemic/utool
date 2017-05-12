@@ -1433,6 +1433,7 @@ def set_overlaps(set1, set2, s1='s1', s2='s2'):
     return overlaps
 
 get_overlaps = set_overlaps
+get_setdiff_info = set_overlaps
 
 # --- Info Strings ---
 

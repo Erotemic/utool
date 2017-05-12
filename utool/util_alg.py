@@ -2068,6 +2068,37 @@ def apply_grouping(items, groupxs):
     return [util_list.list_take(items, xs) for xs in groupxs]
 
 
+def iapply_grouping(items, groupxs):
+    r"""
+    Iterates over groups from group_indicies
+
+    Args:
+        items (list): items to group
+        groupxs (list of list of ints): grouped lists of indicies
+
+    SeeAlso:
+        vt.apply_grouping - optimized numpy version
+        ut.group_indices
+
+    CommandLine:
+        python -m utool.util_alg --exec-apply_grouping --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> idx2_groupid = [2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3]
+        >>> items        = [1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9]
+        >>> (keys, groupxs) = ut.group_indices(idx2_groupid)
+        >>> grouped_items = list(ut.iapply_grouping(items, groupxs))
+        >>> result = ut.repr2(grouped_items)
+        >>> print(result)
+        [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]
+    """
+    for xs in groupxs:
+        yield [items[x] for x in xs]
+
+
 def ungroup(grouped_items, groupxs, maxval=None, fill=None):
     """
     Ungroups items

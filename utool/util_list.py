@@ -1352,6 +1352,7 @@ def unique_ordered(list_):
         >>> print(result)
         unique_list = [4, 6, 0, 1, 2]
     """
+    list_ = list(list_)
     flag_list = flag_unique_items(list_)
     unique_list = compress(list_, flag_list)
     return unique_list

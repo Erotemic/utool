@@ -370,6 +370,10 @@ class Cacher(object):
             cfgstr = ''
         # assert cfgstr is not None, (
         #     'must specify cfgstr in constructor or call')
+        if not self.enabled:
+            if self.verbose > 0:
+                print('[cache] ... %s Cacher disabled' % (self.fname))
+            return None
         try:
             if self.verbose > 1:
                 print('[cache] tryload fname=%s' % (self.fname,))
