@@ -342,6 +342,9 @@ class Cacher(object):
         fpath = _args2_fpath(self.dpath, self.fname, self.cfgstr, self.ext)
         return fpath
 
+    def exists(self, cfgstr=None):
+        return exists(self.get_fpath())
+
     def load(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
         # assert cfgstr is not None, 'must specify cfgstr in constructor or call'

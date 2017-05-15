@@ -3380,6 +3380,10 @@ class PriorityQueue(NiceRepr):
             # Simply append the new value
             heapq.heappush(self._heap, (val, key))
 
+    def clear(self):
+        self._heap.clear()
+        self._dict.clear()
+
     def __delitem__(self, key):
         del self._dict[key]
 

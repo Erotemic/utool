@@ -188,6 +188,13 @@ def _covert_to_hashable(data):
     # elif isinstance(data, float):
     #     hashable = repr(data).encode('utf8')
     #     prefix = b'FLT'
+    elif util_type.HAVE_NUMPY and isinstance(data, np.int64):
+        return _covert_to_hashable(int(data))
+    elif util_type.HAVE_NUMPY and isinstance(data, np.float64):
+        a, b = float(data).as_integer_ratio()
+        hashable = (a.to_bytes(8, byteorder='big') +
+                    b.to_bytes(8, byteorder='big'))
+        prefix = b'FLOAT'
     else:
         raise TypeError('unknown hashable type=%r' % (type(data)))
         # import bencode

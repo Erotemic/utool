@@ -1531,7 +1531,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         item_list (list): a list of items to group
         groupid_list (list): a corresponding list of item groupids
         sorted_ (bool): if True preserves the ordering of items within groups
-            (default = True)
+            (default = True) FIXME. the opposite is true
 
     Returns:
         dict: groupid_to_items: maps a groupid to a list of items
@@ -1557,7 +1557,7 @@ def group_items(item_list, groupid_list, sorted_=True):
     """
     pair_list_ = list(zip(groupid_list, item_list))
     if sorted_:
-        # Sort by groupid for cache efficiency
+        # Sort by groupid for cache efficiency (does this even do anything?)
         try:
             pair_list = sorted(pair_list_, key=op.itemgetter(0))
         except TypeError:
