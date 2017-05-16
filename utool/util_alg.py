@@ -232,9 +232,22 @@ def compare_groups(true_groups, pred_groups):
     return comparisons
 
 
-def grouping_delta(old_groups, new_groups):
+def grouping_delta(old, new):
     r"""
     Finds what happened to the old groups to form the new groups.
+
+    Args:
+        old (set of frozenset): old grouping
+        new (set of frozenset): new grouping
+
+    Returns:
+        dict: delta: dictionary of changes containing the merges, splits,
+            unchanged, and hybrid cases. Except for unchanged, case a subdict
+            with new and old keys.  For splits / merges, one of these contains
+            nested sequences to indicate what the split / merge is.
+
+    TODO:
+        incorporate addition / deletion of elements?
 
     Notes:
         merges - which old groups were merged into a single new group.
@@ -254,30 +267,37 @@ def grouping_delta(old_groups, new_groups):
         >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
         >>> ]
         >>> group_delta = ut.grouping_delta(old_groups, new_groups)
-        >>> print(ut.repr4(group_delta, nl=2))
-        {
-            'common': {{1, 2}},
-            'pred_hybrid': {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
-            'pred_merges': [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
-            'pred_splits': [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
-            'true_hybrid': {{9, 10, 11}, {8, 7}, {4}, {3, 5, 6}, {50}},
-            'true_merges': [{12, 13, 14}, {32, 33, 34, 35, 31}],
-            'true_splits': [{{22, 23}, {20, 21}}, {{41, 42, 43, 44}, {45}}],
-        }
+        >>> result = ut.repr4(group_delta, nl=2, nobr=True, strkeys=True)
+        >>> print(result)
+        hybrid: {
+            new: {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
+            old: {{9, 10, 11}, {8, 7}, {4}, {3, 5, 6}, {50}},
+        },
+        merges: {
+            new: [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
+            old: [{{22, 23}, {20, 21}}, {{41, 42, 43, 44}, {45}}],
+        },
+        splits: {
+            new: [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
+            old: [{12, 13, 14}, {32, 33, 34, 35, 31}],
+        },
+        unchanged: {
+            {1, 2},
+        },
     """
     import utool as ut
-    new = {frozenset(_group) for _group in new_groups}
-    old = {frozenset(_group) for _group in old_groups}
+    _new = {frozenset(_group) for _group in old}
+    _old = {frozenset(_group) for _group in new}
 
     # Find the groups that are exactly the same
-    unchanged = new.intersection(old)
+    unchanged = _new.intersection(_old)
 
-    new_sets = new.difference(unchanged)
-    old_sets = old.difference(unchanged)
+    new_sets = _new.difference(unchanged)
+    old_sets = _old.difference(unchanged)
 
     # connected compoment lookups
-    old_conn = {p: frozenset(ps) for ps in old for p in ps}
-    new_conn = {t: frozenset(ts) for ts in new for t in ts}
+    old_conn = {p: frozenset(ps) for ps in _old for p in ps}
+    new_conn = {t: frozenset(ts) for ts in _new for t in ts}
 
     # How many oldictions can be merged into perfect pieces?
     # For each new sets, find if it can be made via merging old sets
@@ -325,6 +345,38 @@ def grouping_delta(old_groups, new_groups):
         },
     }
     return group_delta
+
+
+def grouping_delta_stats(old, new):
+    """
+    Returns statistics about grouping changes
+
+    Args:
+        old (set of frozenset): old grouping
+        new (set of frozenset): new grouping
+
+    Returns:
+        pd.DataFrame: df: data frame of size statistics
+    """
+    import pandas as pd
+    import utool as ut
+    group_delta = ut.grouping_delta(old, new)
+    stats = ut.odict()
+    unchanged = group_delta['unchanged']
+    splits = group_delta['splits']
+    merges = group_delta['merges']
+    hybrid = group_delta['hybrid']
+    statsmap = ut.partial(lambda x: ut.stats_dict(map(len, x), size=True))
+    stats['unchanged'] = statsmap(unchanged)
+    stats['old_split'] = statsmap(splits['old'])
+    stats['new_split'] = statsmap(ut.flatten(splits['new']))
+    stats['old_merge'] = statsmap(ut.flatten(merges['old']))
+    stats['new_merge'] = statsmap(merges['new'])
+    stats['old_hybrid'] = statsmap(hybrid['old'])
+    stats['new_hybrid'] = statsmap(hybrid['new'])
+    df = pd.DataFrame.from_dict(stats, orient='index')
+    df = df.loc[list(stats.keys())]
+    return df
 
 
 def upper_diag_self_prodx(list_):

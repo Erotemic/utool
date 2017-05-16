@@ -3447,7 +3447,8 @@ def split_sentences2(text, debug=0):
 
 
 def format_single_paragraph_sentences(text, debug=False, myprefix=True,
-                                      sentence_break=True, max_width=73):
+                                      sentence_break=True, max_width=73,
+                                      sepcolon=True):
     r"""
     helps me separatate sentences grouped in paragraphs that I have a
     difficult time reading due to dyslexia
@@ -3495,6 +3496,9 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
         print(ut.colorprint(msgblock('postflat', repr(text_)), 'yellow'))
 
     raw_sep_chars = ['.', '?', '!', ':']
+    if not sepcolon:
+        raw_sep_chars.remove(':')
+
     USE_REGEX_SPLIT = True
 
     def split_sentences(text_):
