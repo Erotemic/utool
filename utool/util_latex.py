@@ -90,6 +90,7 @@ def make_full_document(text, title=None, preamp_decl={}, preamb_extra=None):
     doc_preamb = ut.codeblock('''
     %\\documentclass{article}
     \\documentclass[10pt,twocolumn,letterpaper]{article}
+    % \\usepackage[utf8]{inputenc}
     \\usepackage[T1]{fontenc}
 
     \\usepackage{times}
@@ -99,15 +100,19 @@ def make_full_document(text, title=None, preamp_decl={}, preamb_extra=None):
     \\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
     \\usepackage{multirow}
     \\usepackage{subcaption}
+    \\usepackage{booktabs}
 
     %\\pagenumbering{gobble}
     ''')
     if preamb_extra is not None:
+        if isinstance(preamb_extra, (list, tuple)):
+            preamb_extra = '\n'.join(preamb_extra)
         doc_preamb += '\n' +  preamb_extra + '\n'
     if title is not None:
         preamp_decl['title'] = title
 
-    decl_lines = [r'\{key}{{{val}}}'.format(key=key, val=val) for key, val in preamp_decl.items()]
+    decl_lines = [r'\{key}{{{val}}}'.format(key=key, val=val)
+                  for key, val in preamp_decl.items()]
     doc_decllines = '\n'.join(decl_lines)
 
     doc_header = ut.codeblock(
@@ -131,9 +136,9 @@ def render_latex_text(input_text, nest_in_doc=False, preamb_extra=None,
     import utool as ut
     if verbose is None:
         verbose = ut.VERBOSE
-    dpath = ut.get_app_resource_dir(appname)
+    dpath = ut.ensure_app_resource_dir(appname, 'latex_tmp')
     # put a latex framgent in a full document
-    print(input_text)
+    # print(input_text)
     pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath,
                                       preamb_extra=preamb_extra,
                                       verbose=verbose)
@@ -215,9 +220,11 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True,
     #jpg_fpath = splitext(text_fpath)[0] + '.jpg'
     try:
         os.chdir(text_dir)
+        # print(text)
         util_io.write_to(text_fpath, text)
-        pdflatex_args = ('pdflatex', '-shell-escape', '--synctex=-1', '-src-specials', '-interaction=nonstopmode')
-        args = pdflatex_args + (text_fpath,)
+        latex_args = ('lualatex', '-shell-escape', '--synctex=-1',
+                         '-src-specials', '-interaction=nonstopmode')
+        args = latex_args + (text_fpath,)
         util_cplat.cmd(*args, verbose=verbose, **kwargs)
         assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
     except Exception as ex:
@@ -252,8 +259,10 @@ def render(input_text, fnum=1, dpath=None, verbose=True):
     try:
         os.chdir(text_dir)
         util_io.write_to(text_fpath, text)
-        pdflatex_args = ('pdflatex', '-shell-escape', '--synctex=-1', '-src-specials', '-interaction=nonstopmode')
-        args = pdflatex_args + (text_fpath,)
+        # latex_args = ('pdflatex', '-shell-escape', '--synctex=-1', '-src-specials', '-interaction=nonstopmode')
+        latex_args = ('lualatex', '-shell-escape', '--synctex=-1',
+                         '-src-specials', '-interaction=nonstopmode')
+        args = latex_args + (text_fpath,)
         util_cplat.cmd(*args, verbose=verbose)
         assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
         # convert latex pdf to jpeg
