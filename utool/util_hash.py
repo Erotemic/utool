@@ -16,6 +16,7 @@ import six
 import uuid
 import random
 import warnings
+from six.moves import zip, map
 from utool import util_inject
 from utool import util_path
 from utool import util_type
@@ -159,12 +160,31 @@ def hashstr_arr(arr, lbl='arr', pathsafe=False, **kwargs):
 
 
 if six.PY2:
-    stringlike = (basestring, bytes)
+    stringlike = (basestring, bytes)  # NOQA
 if six.PY3:
-    stringlike = (str, bytes)
+    stringlike = (str, bytes)  # NOQA
 
 
 def _covert_to_hashable(data):
+    r"""
+    Args:
+        data (?):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m utool.util_hash _covert_to_hashable
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> from utool.util_hash import _covert_to_hashable  # NOQA
+        >>> import utool as ut
+        >>> data = np.array([1], dtype=np.int64)
+        >>> result = _covert_to_hashable(data)
+        >>> print(result)
+    """
     if isinstance(data, six.binary_type):
         hashable = data
         prefix = b'TXT'
@@ -172,7 +192,9 @@ def _covert_to_hashable(data):
         if data.dtype.kind == 'O':
             msg = '[ut] hashing ndarrays with dtype=object is unstable'
             warnings.warn(msg, RuntimeWarning)
-        hashable = data.dumps()
+            hashable = data.dumps()
+        else:
+            hashable = data.tobytes()
         prefix = b'NDARR'
     elif isinstance(data, six.text_type):
         # convert unicode into bytes
@@ -182,8 +204,9 @@ def _covert_to_hashable(data):
         hashable = data.bytes
         prefix = b'UUID'
     elif isinstance(data, int):
-        warnings.warn('[util_hash] Hashing ints is slow, numpy is prefered')
-        hashable = data.to_bytes(4, byteorder='big')
+        # warnings.warn('[util_hash] Hashing ints is slow, numpy is prefered')
+        hashable = _int_to_bytes(data)
+        # hashable = data.to_bytes(4, byteorder='big')
         prefix = b'INT'
     # elif isinstance(data, float):
     #     hashable = repr(data).encode('utf8')
@@ -206,7 +229,8 @@ def _covert_to_hashable(data):
 
 def _update_hasher(hasher, data):
     """
-    This is the clear winner over the generate version
+    This is the clear winner over the generate version.
+    Used by hashstr3
 
     Ignore:
         import utool
@@ -284,6 +308,15 @@ def _update_hasher(hasher, data):
 
     """
     if isinstance(data, (tuple, list, zip)):
+        needs_iteration = True
+    elif (util_type.HAVE_NUMPY and isinstance(data, np.ndarray) and
+          data.dtype.kind == 'O'):
+        # ndarrays of objects cannot be hashed directly.
+        needs_iteration = True
+    else:
+        needs_iteration = False
+
+    if needs_iteration:
         # try to nest quickly without recursive calls
         SEP = b'SEP'
         iter_prefix = b'ITER'
@@ -314,38 +347,39 @@ def _update_hasher(hasher, data):
         hasher.update(binary_data)
 
 
-def _bytes_generator(data):
-    if isinstance(data, (tuple, list)):
-        # Ensure there is a iterable prefix with a spacer item
-        SEP = b'SEP'
-        iter_prefix = b'ITER'
-        # if isinstance(data, tuple):
-        #     iter_prefix = b'TUP'
-        # else:
-        #     iter_prefix = b'LIST'
-        iter_ = iter(data)
-        yield iter_prefix
-        try:
-            # try to nest quickly without recursive calls
-            for item in iter_:
-                prefix, hashable = _covert_to_hashable(data)
-                yield SEP
-                yield prefix
-                yield hashable
-        except TypeError:
-            # recover from failed item and then continue iterating using slow
-            # recursive calls
-            yield SEP
-            for bytes_ in _bytes_generator(item):
-                yield bytes_
-            for item in iter_:
-                yield SEP
-                for bytes_ in _bytes_generator(item):
-                    yield bytes_
-    else:
-        prefix, hashable = _covert_to_hashable(data)
-        yield prefix
-        yield hashable
+# def _bytes_generator(data):
+#     # SLOWER METHOD
+#     if isinstance(data, (tuple, list)):
+#         # Ensure there is a iterable prefix with a spacer item
+#         SEP = b'SEP'
+#         iter_prefix = b'ITER'
+#         # if isinstance(data, tuple):
+#         #     iter_prefix = b'TUP'
+#         # else:
+#         #     iter_prefix = b'LIST'
+#         iter_ = iter(data)
+#         yield iter_prefix
+#         try:
+#             # try to nest quickly without recursive calls
+#             for item in iter_:
+#                 prefix, hashable = _covert_to_hashable(data)
+#                 yield SEP
+#                 yield prefix
+#                 yield hashable
+#         except TypeError:
+#             # recover from failed item and then continue iterating using slow
+#             # recursive calls
+#             yield SEP
+#             for bytes_ in _bytes_generator(item):
+#                 yield bytes_
+#             for item in iter_:
+#                 yield SEP
+#                 for bytes_ in _bytes_generator(item):
+#                     yield bytes_
+#     else:
+#         prefix, hashable = _covert_to_hashable(data)
+#         yield prefix
+#         yield hashable
 
 
 @profile
@@ -365,19 +399,33 @@ def hashstr3(data, hashlen=None, alphabet=None):
         python -m utool.util_hash hashstr3
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import utool as ut
-        >>> print(ut.hashstr3('1'))
-        >>> print(ut.hashstr3(['1']))
-        >>> print(ut.hashstr3(tuple(['1'])))
-        >>> print(ut.hashstr3(b'12'))
-        >>> print(ut.hashstr3([b'1', b'2']))
-        >>> print(ut.hashstr3(['1', '2', '3']))
-        >>> print(ut.hashstr3(['1', np.array([1,2,3]), '3']))
-        >>> print(ut.hashstr3('123'))
+        >>> counter = [0]
+        >>> failed = []
+        >>> def check_hash(input_, want=None):
+        >>>     count = counter[0] = counter[0] + 1
+        >>>     got = ut.hashstr3(input_)
+        >>>     print('({}) {}'.format(count, got))
+        >>>     if want is not None and not got.startswith(want):
+        >>>         failed.append((got, input_, count, want))
+        >>> check_hash('1', 'wuvrng')
+        >>> check_hash(['1'], 'dekbfpby')
+        >>> check_hash(tuple(['1']), 'dekbfpby')
+        >>> check_hash(b'12', 'marreflbv')
+        >>> check_hash([b'1', b'2'], 'nwfs')
+        >>> check_hash(['1', '2', '3'], 'arfrp')
+        >>> check_hash(['1', np.array([1,2,3]), '3'], 'uyqwcq')
+        >>> check_hash('123', 'ehkgxk')
+        >>> check_hash(zip([1, 2, 3], [4, 5, 6]), 'mjcpwa')
+        >>> import numpy as np
         >>> rng = np.random.RandomState(0)
-        >>> print(ut.hashstr3(rng.rand(100000)))
+        >>> check_hash(rng.rand(100000), 'bdwosuey')
+        >>> for got, input_, count, want in failed:
+        >>>     print('failed {} on {}'.format(count, input_))
+        >>>     print('got={}, want={}'.format(got, want))
+        >>> assert not failed
     """
     if alphabet is None:
         alphabet = ALPHABET_27
@@ -884,6 +932,13 @@ def combine_uuids(uuids, ordered=True, salt=''):
         combined_bytes = pref + sep_byte.join([u.bytes for u in uuids])
         combined_uuid = hashable_to_uuid(combined_bytes)
         return combined_uuid
+
+if six.PY3:
+    def _int_to_bytes(int_):
+        return int_.to_bytes(4, byteorder='big')
+else:
+    def _int_to_bytes(int_):
+        return struct.pack('>i', int_)
 
 
 if six.PY3:
