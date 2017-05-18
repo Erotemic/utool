@@ -153,6 +153,7 @@ def compare_groups(true_groups, pred_groups):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> true_groups = [
         >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
         >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
@@ -163,7 +164,8 @@ def compare_groups(true_groups, pred_groups):
         >>> ]
         >>> comparisons = ut.compare_groups(true_groups, pred_groups)
         >>> print(comparisons)
-        >>> print(ut.repr4(comparisons))
+        >>> result = ut.repr4(comparisons)
+        >>> print(result)
         {
             'common': {{1, 2}},
             'pred_hybrid': {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
@@ -258,6 +260,7 @@ def grouping_delta(old, new):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> old_groups = [
         >>>     [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11],
         >>>     [7], [8, 9], [10], [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]

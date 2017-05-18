@@ -838,7 +838,7 @@ def combine_uuids(uuids, ordered=True, salt=''):
         uuid.UUID: combined uuid
 
     CommandLine:
-        python -m utool.util_hash combine_uuids
+        python -m utool.util_hash --test-combine_uuids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -879,8 +879,8 @@ def combine_uuids(uuids, ordered=True, salt=''):
         if not ordered:
             uuids = sorted(uuids)
         sep_str = '-'
-        sep_byte = six.b(sep_str)
-        pref = six.b('{}{}{}'.format(salt, sep_str, len(uuids)))
+        sep_byte = six.binary_type(six.b(sep_str))
+        pref = six.binary_type(six.b('{}{}{}'.format(salt, sep_str, len(uuids))))
         combined_bytes = pref + sep_byte.join([u.bytes for u in uuids])
         combined_uuid = hashable_to_uuid(combined_bytes)
         return combined_uuid
