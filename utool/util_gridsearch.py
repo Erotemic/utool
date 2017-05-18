@@ -583,7 +583,7 @@ def parse_cfgstr3(string, debug=None):
         >>> print('cfgopt_strs = %r' % (cfgopt_strs,))
         >>> result = ('cfgdict = %s' % (ut.repr2(cfgdict),))
         >>> print(result)
-        cfgdict = {'b': [1, 2]}
+        cfgdict = {'myprefix': False, 'sentence_break': False}
     """
     import utool as ut  # NOQA
     import pyparsing as pp

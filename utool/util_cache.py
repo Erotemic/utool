@@ -483,7 +483,9 @@ def make_utool_json_encoder(allow_pickle=False):
             elif six.PY3 and isinstance(obj, bytes):
                 return obj.decode('utf-8')
             elif isinstance(obj, (set, frozenset)):
-                return json.JSONEncoder.default(self, list(obj))
+                return list(obj)
+                # return json.JSONEncoder.default(self, list(obj))
+                # return [json.JSONEncoder.default(o) for o in obj]
             elif isinstance(obj, util_type.PRIMATIVE_TYPES):
                 return json.JSONEncoder.default(self, obj)
             elif hasattr(obj, '__getstate__'):

@@ -1399,7 +1399,7 @@ def parse_function_names(sourcecode, top_level=True):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
-        >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.pyc')
+        >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.py')
         >>> #fpath = ut.truepath('~/code/bintrees/bintrees/avltree.py')
         >>> sourcecode = ut.readfrom(fpath)
         >>> func_names = parse_function_names(sourcecode)
@@ -1411,7 +1411,8 @@ def parse_function_names(sourcecode, top_level=True):
     if six.PY2:
         import utool as ut
         sourcecode = ut.ensure_unicode(sourcecode)
-        pt = ast.parse(sourcecode.encode('utf8'))
+        encoded = sourcecode.encode('utf8')
+        pt = ast.parse(encoded)
     else:
         pt = ast.parse(sourcecode)
 
