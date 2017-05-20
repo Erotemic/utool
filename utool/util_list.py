@@ -21,29 +21,43 @@ if util_type.HAVE_NUMPY:
 # --- List Allocations ---
 
 
-def lmap(func, iter_, **kwargs):
+def emap(func, iter_, **kwargs):
     """
-    list map - eagerly evaulates map like in python2
-    (but you aren't using that right?)
+    Eager version of the builtin map function.
+    This provides the same functionality as python2 map.
+
+    Note this is inefficient and should only be used when prototyping and
+    debugging.
+
+    Extended functionality supports passing common kwargs to all functions
     """
     return [func(arg, **kwargs) for arg in iter_]
     # return list(map(func, iter_))
 
 
-def lstarmap(func, iter_, **kwargs):
+def estarmap(func, iter_, **kwargs):
     """
-    list map - eagerly evaulates map like in python2
-    (but you aren't using that right?)
+    Eager version of it.starmap from itertools
+
+    Note this is inefficient and should only be used when prototyping and
+    debugging.
     """
     return [func(*arg, **kwargs) for arg in iter_]
 
 
-def lzip(*args):
+def ezip(*args):
     """
-    list zip - eagerly evaulates zip like in python2
-    (but you aren't using that right?)
+    Eager version of the builtin zip function.
+    This provides the same functionality as python2 zip.
+
+    Note this is inefficient and should only be used when prototyping and
+    debugging.
     """
     return list(zip(*args))
+
+lmap = emap
+lzip = ezip
+lstarmap = estarmap
 
 
 def maplen(iter_):

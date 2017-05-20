@@ -751,11 +751,8 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_latex import *  # NOQA
-        >>> # build test data
         >>> fpath_list = ['figures/foo.png']
-        >>> # execute function
         >>> figure_str = get_latex_figure_str(fpath_list)
-        >>> # verify results
         >>> result = str(figure_str)
         >>> print(result)
     """
@@ -798,20 +795,21 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
                 subchar = chr(65 + count)
             else:
                 subchar = str(count)
+            parts = []
             subfigure_str = ''
             if len(fpath_list) > 1:
-                subfigure_str += '\\begin{subfigure}[h]{' + graphics_sizestr + '}\n'
-                subfigure_str += '\\centering\n'
+                parts.append('\\begin{subfigure}[h]{' + graphics_sizestr + '}')
+                parts.append('\\centering')
+            graphics_part = '\\includegraphics[width=%s]{%s}' % (width_str, fpath,)
             if use_frame:
-                subfigure_str += '\\fbox{'
-            subfigure_str += '\\includegraphics[width=%s]{%s}' % (width_str, fpath,)
-            if use_frame:
-                subfigure_str += '}'
+                parts.append('\\fbox{%s}' % (graphics_part,))
+            else:
+                parts.append(graphics_part)
             if use_sublbls is True or use_sublbls is None and len(fpath_list) > 1:
-                subfigure_str += '\\caption{}'
-                subfigure_str += '\\label{sub:' + sublbl_prefix + subchar + '}\n'
+                parts.append('\\caption{}\\label{sub:' + sublbl_prefix + subchar + '}')
             if len(fpath_list) > 1:
-                subfigure_str += '\\end{subfigure}'
+                parts.append('\\end{subfigure}')
+            subfigure_str = ''.join(parts)
             graphics_list.append(subfigure_str)
     else:
         if True:
@@ -829,8 +827,12 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
 
     # Add separators
     NL = '\n'
-    col_spacer_mid = NL + '~~' + '% --' + NL if USE_SUBFIGURE else NL + '&' + NL
-    col_spacer_end = NL + r'\\' + '% --' + NL if USE_SUBFIGURE else NL + r'\\' + nlsep + NL
+    if USE_SUBFIGURE:
+        col_spacer_mid = NL + '~~' + '% --' + NL
+        col_spacer_end = NL + r'\\' + '% --' + NL
+    else:
+        col_spacer_mid = NL + '&' + NL
+        col_spacer_end = NL + r'\\' + nlsep + NL
     sep_list = [
         col_spacer_mid  if count % nCols > 0 else col_spacer_end
         for count in range(1, len(graphics_list) + 1)

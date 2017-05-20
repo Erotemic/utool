@@ -1915,6 +1915,9 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
         # ~~ TODO autodetermine the key_list from the function vars
         return globals_new
     else:
+        if update:
+            # update input globals?
+            globals_.update(globals_new)
         #var_list = ut.dict_take(locals_, key_list)
         var_list = ut.dict_take(globals_new, key_list)
         return var_list
