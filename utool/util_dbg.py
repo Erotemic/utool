@@ -1466,6 +1466,9 @@ class EmbedOnException(object):
             trace_locals = trace.tb_frame.f_locals
             trace_ns = trace_globals.copy()
             trace_ns.update(trace_locals)
+            # Hack to bring back self
+            if 'self' in trace_ns:
+                self = trace_ns['self']
             # execstr_trace_g = ut.execstr_dict(trace_globals, 'trace_globals')
             # execstr_trace_l = ut.execstr_dict(trace_locals, 'trace_locals')
             # execstr_trace = execstr_trace_g + '\n' + execstr_trace_l
