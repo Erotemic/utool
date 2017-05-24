@@ -1182,6 +1182,7 @@ def dict_find_other_sameval_keys(dict_, key):
     return other_keys
 
 
+@profile
 def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     r"""
     Builds a histogram of items in item_list
@@ -1207,14 +1208,18 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
     """
     if labels is None:
-        hist_ = defaultdict(lambda: 0)
+        # hist_ = defaultdict(lambda: 0)
+        hist_ = defaultdict(int)
     else:
         hist_ = {k: 0 for k in labels}
     if weight_list is None:
-        weight_list = it.repeat(1)
-    for item, weight in zip(item_list, weight_list):
-        hist_[item] += weight
-    hist_ = dict(hist_)
+        # weight_list = it.repeat(1)
+        for item in item_list:
+            hist_[item] += 1
+    else:
+        for item, weight in zip(item_list, weight_list):
+            hist_[item] += weight
+    # hist_ = dict(hist_)
     if ordered:
         # import utool as ut
         # key_order = ut.sortedby(list(hist_.keys()), list(hist_.values()))
@@ -1964,12 +1969,15 @@ def order_dict_by(dict_, key_order):
         >>> sorted_dict = order_dict_by(dict_, key_order)
         >>> result = ('sorted_dict = %s' % (ut.dict_str(sorted_dict, nl=False),))
         >>> print(result)
-        sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}
+        >>> assert result == 'sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}'
+
     """
-    other_keys = list(set(dict_.keys()) - set(key_order))
-    key_order = key_order + other_keys
-    sorted_item_list = [(key, dict_[key]) for key in key_order if key in dict_]
-    sorted_dict = OrderedDict(sorted_item_list)
+    dict_keys = set(dict_.keys())
+    other_keys = dict_keys - set(key_order)
+    key_order = it.chain(key_order, other_keys)
+    sorted_dict = OrderedDict(
+        (key, dict_[key]) for key in key_order if key in dict_keys
+    )
     return sorted_dict
 
 

@@ -802,7 +802,8 @@ def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
     elif on_missing == 'default':
         node_data = ((n, G.node.get(n, {})) for n in nodes)
     else:
-        raise KeyError('on_missing={}'.format(on_missing))
+        raise KeyError('on_missing={} must be error, filter or default'.format(
+            on_missing))
     # Get `node_attrs` desired value out of dictionary
     if on_keyerr == 'error':
         node_attrs = ((n, d[key]) for n, d in node_data)
@@ -811,7 +812,7 @@ def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
     elif on_keyerr == 'default':
         node_attrs = ((n, d.get(key, default)) for n, d in node_data)
     else:
-        raise KeyError('on_keyerr={}'.format(on_keyerr))
+        raise KeyError('on_keyerr={} must be error filter or default'.format(on_keyerr))
     return node_attrs
 
 
@@ -840,14 +841,15 @@ def nx_gen_edge_values(G, key, edges, default=util_const.NoParam,
         data_iter = (G.edge[u][v] if G.has_edge(u, v) else {}
                      for u, v in edges)
     else:
-        raise KeyError('on_missing={}'.format(on_missing))
+        raise KeyError('on_missing={} must be error, filter or default'.format(
+            on_missing))
     # Get `value_iter` desired value out of dictionary
     if on_keyerr == 'error':
         value_iter = (d[key] for d in data_iter)
     elif on_keyerr == 'default':
         value_iter = (d.get(key, default) for d in data_iter)
     else:
-        raise KeyError('on_keyerr={}'.format(on_keyerr))
+        raise KeyError('on_keyerr={} must be error or default'.format(on_keyerr))
     return value_iter
     # if default is util_const.NoParam:
     #     return (G.edge[u][v][key] for u, v in edges)
