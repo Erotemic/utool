@@ -2503,19 +2503,56 @@ def win_shortcut(source, link_name):
             raise ctypes.WinError()
 
 
-def symlink(path, link, noraise=False, overwrite=False, verbose=True):
+def symlink(real_path, link_path, overwrite=False, on_error='raise', verbose=True):
     """
     Attempt to create unix or windows symlink
     TODO: TEST / FIXME
 
-    Args:
         path (str): path to real file or directory
-        link (str): path to desired location for symlink
-        noraise (bool):
+        link_path (str): path to desired location for symlink
+        overwrite (bool): (default = False)
+        on_error (str): strategy for dealing with errors
+        verbose (bool):  verbosity flag(default = True)
 
+    Returns:
+        str: link path
+
+    CommandLine:
+        python -m utool.util_path symlink
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> dpath = ut.get_app_resource_dir('utool')
+        >>> real_path = join(dpath, 'real_file.txt')
+        >>> link_path = join(dpath, 'link_file.txt')
+        >>> list(map(ut.delete, (real_path, link_path)))
+        >>> ut.writeto(real_path, 'foo')
+        >>> result = symlink(real_path, link_path)
+        >>> assert ut.readfrom(result) == 'foo'
+        >>> list(map(ut.delete, (real_path, link_path)))
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> real_dpath = ut.get_app_resource_dir('utool', 'real_dpath')
+        >>> link_dpath = ut.augpath(real_dpath, newfname='link_dpath')
+        >>> real_path = join(real_dpath, 'afile.txt')
+        >>> link_path = join(link_dpath, 'afile.txt')
+        >>> list(map(ut.delete, (real_dpath, link_dpath)))
+        >>> ut.ensuredir(real_dpath)
+        >>> ut.writeto(real_path, 'foo')
+        >>> result = symlink(real_dpath, link_dpath)
+        >>> assert ut.readfrom(link_path) == 'foo'
+        >>> ut.delete(link_dpath)
+        >>> assert ut.checkpath(real_path)
+        >>> ut.delete(real_dpath)
+        >>> assert not ut.checkpath(real_path)
     """
-    path = normpath(path)
-    link = normpath(link)
+    path = normpath(real_path)
+    link = normpath(link_path)
     if os.path.islink(link):
         if verbose:
             print('[util_path] symlink %r exists' % (link))
@@ -2532,11 +2569,12 @@ def symlink(path, link, noraise=False, overwrite=False, verbose=True):
         else:
             win_shortcut(path, link)
     except Exception as ex:
-        checkpath(link, True)
-        checkpath(path, True)
         import utool as ut
-        ut.printex(ex, 'error making symlink', iswarning=noraise)
-        if not noraise:
+        checkpath(link, verbose=True)
+        checkpath(path, verbose=True)
+        do_raise = (on_error == 'raise')
+        ut.printex(ex, 'error making symlink', iswarning=not do_raise)
+        if do_raise:
             raise
     return link
 

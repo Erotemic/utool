@@ -1948,8 +1948,13 @@ def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):
     ncolors = len(unique_lbls)
     if (ncolors) == 1:
         unique_colors = [pt.LIGHT_BLUE]
+    elif (ncolors) == 2:
+        # https://matplotlib.org/examples/color/named_colors.html
+        unique_colors = ['royalblue', 'orange']
+        unique_colors = list(map(pt.color_funcs.ensure_base01, unique_colors))
     else:
         unique_colors = pt.distinct_colors(ncolors, brightness=brightness)
+
     if sat_adjust:
         unique_colors = [
             pt.color_funcs.adjust_hsv_of_rgb(c, sat_adjust=sat_adjust)
