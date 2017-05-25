@@ -941,6 +941,17 @@ def dummy_args_decor(*args, **kwargs):
     return dummy_args_closure
 
 
+class classproperty(property):
+    """
+    Decorates a method turning it into a classattribute
+
+    References:
+        https://stackoverflow.com/questions/1697501/python-staticmethod-with-property
+    """
+    def __get__(self, cls, owner):
+        return classmethod(self.fget).__get__(None, owner)()
+
+
 if __name__ == '__main__':
     """
     CommandLine:

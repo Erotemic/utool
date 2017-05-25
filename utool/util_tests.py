@@ -1622,19 +1622,43 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             func_ = getattr(module, test_funcname, None)
         if func_ is not None:
             testno = 0
+            modpath = ut.get_modname_from_modpath(module.__file__)
+            want = None
             try:
                 # hack to get classmethods to read their example using
                 # the ubelt port
                 from ubelt.meta import docscrape_google
+                import ubelt.util_test
                 if func_.__doc__ is None:
                     raise TypeError
                 blocks = docscrape_google.split_google_docblocks(func_.__doc__)
-                src = dict(blocks)['Example']
-                src = '\n'.join([line[4:] for line in src.split('\n')])
+
+                example_blocks = []
+                for type_, block in blocks:
+                    if type_.startswith('Example'):
+                        example_blocks.append((type_, block))
+
+                callname = test_funcname_
+                hack_testtups = []
+                for num, (type_, block) in enumerate(example_blocks):
+                    # print('modpath = %r' % (modpath,))
+                    # print('callname = %r' % (callname,))
+                    # print('num = %r' % (num,))
+                    example = ubelt.util_test.DocExample(
+                        modpath, callname, block, num)
+                    src = example.src
+                    want = example.want
+                    testtup = TestTuple(test_funcname_, num, src, want=want,
+                                        flag='--exec-' + test_funcname_,
+                                        frame_fpath=frame_fpath, mode='exec',
+                                        total=len(example_blocks),
+                                        nametup=[test_funcname_])
+                    hack_testtups.append(testtup)
+                enabled_testtup_list.extend(hack_testtups)
+                # src = '\n'.join([line[4:] for line in src.split('\n')])
             except (ImportError, KeyError, TypeError):
                 # varargs = ut.get_cmdline_varargs()
                 varargs = force_enable_testnames[1:]
-                modpath = ut.get_modname_from_modpath(module.__file__)
                 # Create dummy doctest
                 src = ut.codeblock(
                     '''
@@ -1647,11 +1671,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                         modpath=modpath,
                         test_funcname_=test_funcname_,
                         varargs=repr(varargs))
-            testtup = TestTuple(test_funcname_, testno, src, want=None,
-                                flag='--exec-' + test_funcname_,
-                                frame_fpath=frame_fpath, mode='exec', total=1,
-                                nametup=[test_funcname_])
-            enabled_testtup_list.append(testtup)
+                testtup = TestTuple(test_funcname_, testno, src, want=want,
+                                    flag='--exec-' + test_funcname_,
+                                    frame_fpath=frame_fpath, mode='exec',
+                                    total=1, nametup=[test_funcname_])
+                enabled_testtup_list.append(testtup)
         else:
             print('function %r was not found in %r' % (test_funcname_, module))
 
