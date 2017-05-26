@@ -523,7 +523,7 @@ def generate(func, args_list, ordered=True, force_serial=None,
     #    >>> time.sleep(10)
 
     """
-    if force_serial is None:
+    if __FORCE_SERIAL__:
         force_serial = __FORCE_SERIAL__
     if nTasks is None:
         nTasks = len(args_list)
@@ -559,8 +559,6 @@ def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
                      **kwargs):
     from utool import util_resources
     # Check conditions under which we force serial
-    if force_serial is None:
-        force_serial = __FORCE_SERIAL__
     if nTasks == 1 or nTasks < MIN_PARALLEL_TASKS:
         force_serial = True
     if verbose is None:
@@ -569,7 +567,7 @@ def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
         verbose = 1
     if VERYVERBOSE_PARALLEL:
         verbose = 2
-    if force_serial is None:
+    if __FORCE_SERIAL__:
         force_serial = __FORCE_SERIAL__
     if nTasks is None:
         nTasks = len(args_gen)
@@ -1106,7 +1104,7 @@ def process(func, args_list, args_dict={}, force_serial=None,
         >>> flag_list1 = list(flag_generator1)
         >>> assert flag_list0 == flag_list1
     """
-    if force_serial is None:
+    if __FORCE_SERIAL__:
         force_serial = __FORCE_SERIAL__
     if FUTURE_ON:
         raise AssertionError('USE FUTURES')
