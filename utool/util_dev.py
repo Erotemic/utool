@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import types
 import sys
+import heapq
 import six
 import re
 import os
@@ -3306,7 +3307,11 @@ class Shortlist(NiceRepr):
             self._keys = self._keys[-self.maxsize:]
             self._items = self._items[-self.maxsize:]
 
-import heapq  # NOQA
+
+def _heappush_max(heap, item):
+    """ why is this not in heapq """
+    heap.append(item)
+    heapq._siftdown_max(heap, 0, len(heap) - 1)
 
 
 class PriorityQueue(NiceRepr):
@@ -3322,6 +3327,7 @@ class PriorityQueue(NiceRepr):
 
     References:
         http://code.activestate.com/recipes/522995-priority-dict-a-priority-queue-with-updatable-prio/
+        https://stackoverflow.com/questions/33024215/built-in-max-heap-api-in-python
 
     Example:
         >>> import utool as ut
@@ -3337,20 +3343,33 @@ class PriorityQueue(NiceRepr):
         >>> print(self.pop())
         >>> print(self.pop())
         >>> assert len(self) == 0
+
+    Ignore:
+        # TODO: can also use sortedcontainers to maintain priority queue
+        import sortedcontainers
+        queue = sortedcontainers.SortedListWithKey(items, key=lambda x: x[1])
+        queue.add(('a', 1))
     """
     def __init__(self, items=None, ascending=True):
         # Use a heap for the priority queue aspect
         self._heap = []
         # Use a dict for very quick read only operations
         self._dict = {}
-        assert ascending, 'can only do a minheap currently'
+        if ascending:
+            self._heapify = heapq.heapify
+            self._heappush = heapq.heappush
+            self._heappop = heapq.heappop
+        else:
+            self._heapify = heapq._heapify_max
+            self._heappush = _heappush_max
+            self._heappop = heapq._heappop_max
         if items is not None:
             self.update(items)
 
     def _rebuild(self):
         # Worst Case O(N)
         self._heap = [(v, k) for k, v in self._dict.items()]
-        heapq.heapify(self._heap)
+        self._heapify(self._heap)
 
     def __len__(self):
         return len(self._dict)
@@ -3378,7 +3397,7 @@ class PriorityQueue(NiceRepr):
             self._rebuild()
         else:
             # Simply append the new value
-            heapq.heappush(self._heap, (val, key))
+            self._heappush(self._heap, (val, key))
 
     def clear(self):
         self._heap.clear()
@@ -3416,9 +3435,36 @@ class PriorityQueue(NiceRepr):
         val, key = _heap[0]
         # Remove items marked for lazy deletion as they are encountered
         while key not in _dict or _dict[key] != val:
-            heapq.heappop(_heap)
+            self._heappop(_heap)
             val, key = _heap[0]
         return key, val
+
+    def peek_many(self, n):
+        """
+        Actually this can be quite inefficient
+
+        Example:
+            >>> import utool as ut
+            >>> items = list(zip(range(256), range(256)))
+            >>> n = 32
+            >>> ut.shuffle(items)
+            >>> self = ut.PriorityQueue(items, ascending=False)
+            >>> self.peek_many(56)
+        """
+        if n == 0:
+            return []
+        elif n == 1:
+            return [self.peek()]
+        else:
+            items = list(self.pop_many(n))
+            self.update(items)
+            return items
+
+    def pop_many(self, n):
+        count = 0
+        while len(self._dict) > 0 and count < n:
+            yield self.pop()
+            count += 1
 
     def pop(self, key=util_const.NoParam, default=util_const.NoParam):
         """
@@ -3435,10 +3481,10 @@ class PriorityQueue(NiceRepr):
             # Ammortized O(1)
             _heap = self._heap
             _dict = self._dict
-            val, key = heapq.heappop(_heap)
+            val, key = self._heappop(_heap)
             # Remove items marked for lazy deletion as they are encountered
             while key not in _dict or _dict[key] != val:
-                val, key = heapq.heappop(_heap)
+                val, key = self._heappop(_heap)
         except IndexError:
             if len(_heap) == 0:
                 raise IndexError('queue is empty')
