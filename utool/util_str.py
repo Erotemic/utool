@@ -1731,8 +1731,10 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             return valfunc(val)
 
     if sorted_ is None:
-        sorted_ = not isinstance(dict_, collections.OrderedDict)
-    if sorted_:
+        dosort = not isinstance(dict_, collections.OrderedDict)
+    else:
+        dosort = sorted_
+    if dosort:
         def iteritems(d):
             if key_order is None:
                 # specify order explicilty

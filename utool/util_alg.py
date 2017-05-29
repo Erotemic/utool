@@ -261,28 +261,30 @@ def grouping_delta(old, new):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
-        >>> old_groups = [
+        >>> old = [
         >>>     [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11],
         >>>     [7], [8, 9], [10], [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
         >>> ]
-        >>> new_groups = [
+        >>> new = [
         >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
-        >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
+        >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45],
         >>> ]
-        >>> group_delta = ut.grouping_delta(old_groups, new_groups)
+        >>> group_delta = ut.grouping_delta(old, new)
         >>> result = ut.repr4(group_delta, nl=2, nobr=True, strkeys=True)
         >>> print(result)
         hybrid: {
+            old: {{8, 7}, {4}, {3, 5, 6}, {9, 10, 11}},
             new: {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
-            old: {{9, 10, 11}, {8, 7}, {4}, {3, 5, 6}, {50}},
+            splits: [{{7}, {8}}, {{4}}, {{5, 6}, {3}}, {{10}, {11}, {9}}],
+            merges: [{{7}}, {{5, 6}, {11}}, {{10}}, {{4}, {3}}, {{8}, {9}}],
         },
         merges: {
-            new: [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
             old: [{{22, 23}, {20, 21}}, {{41, 42, 43, 44}, {45}}],
+            new: [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
         },
         splits: {
-            new: [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
             old: [{12, 13, 14}, {32, 33, 34, 35, 31}],
+            new: [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
         },
         unchanged: {
             {1, 2},
@@ -291,6 +293,10 @@ def grouping_delta(old, new):
     import utool as ut
     _new = {frozenset(_group) for _group in old}
     _old = {frozenset(_group) for _group in new}
+
+    _new_items = set(ut.flatten(_new))
+    _old_items = set(ut.flatten(_old))
+    assert _new_items == _old_items, 'new and old sets must be the same'
 
     # Find the groups that are exactly the same
     unchanged = _new.intersection(_old)
@@ -335,35 +341,35 @@ def grouping_delta(old, new):
     breakup_hybrids = True
     if breakup_hybrids:
         # First split each hybrid
-        lookup = {a: n for n, aids in enumerate(new_hybrid) for a in aids}
+        lookup = {a: n for n, items in enumerate(new_hybrid) for a in items}
         hybrid_splits = []
-        for aids in old_hybrid:
-            nids = ut.take(lookup, aids)
-            split_part = list(ut.group_items(aids, nids).values())
-            hybrid_splits.append(split_part)
+        for items in old_hybrid:
+            nids = ut.take(lookup, items)
+            split_part = list(ut.group_items(items, nids).values())
+            hybrid_splits.append(set(map(frozenset, split_part)))
 
         # And then merge them into new groups
         hybrid_merge_parts = ut.flatten(hybrid_splits)
-        part_nids = [lookup[aids[0]] for aids in hybrid_merge_parts]
-        hybrid_merges = list(ut.group_items(hybrid_merge_parts,
-                                            part_nids).values())
+        part_nids = [lookup[next(iter(aids))] for aids in hybrid_merge_parts]
+        hybrid_merges = list(map(set, ut.group_items(hybrid_merge_parts,
+                                                     part_nids).values()))
 
     group_delta = {
         'unchanged': unchanged,
-        'splits': {
-            'old': old_splits,
-            'new': new_splits
-        },
-        'merges': {
-            'old': old_merges,
-            'new': new_merges,
-        },
-        'hybrid': {
-            'old': old_hybrid,
-            'new': new_hybrid,
-            'splits': hybrid_splits,
-            'merges': hybrid_merges,
-        },
+        'splits': ut.odict([
+            ('old', old_splits),
+            ('new', new_splits),
+        ]),
+        'merges': ut.odict([
+            ('old', old_merges),
+            ('new', new_merges),
+        ]),
+        'hybrid': ut.odict([
+            ('old', old_hybrid),
+            ('new', new_hybrid),
+            ('splits', hybrid_splits),
+            ('merges', hybrid_merges),
+        ]),
     }
     return group_delta
 
