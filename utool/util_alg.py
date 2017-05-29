@@ -332,6 +332,22 @@ def grouping_delta(old, new):
     new_hybrid = frozenset(map(frozenset, new_sets)).difference(
         set(new_merges + new_splits_flat))
 
+    breakup_hybrids = True
+    if breakup_hybrids:
+        # First split each hybrid
+        lookup = {a: n for n, aids in enumerate(new_hybrid) for a in aids}
+        hybrid_splits = []
+        for aids in old_hybrid:
+            nids = ut.take(lookup, aids)
+            split_part = list(ut.group_items(aids, nids).values())
+            hybrid_splits.append(split_part)
+
+        # And then merge them into new groups
+        hybrid_merge_parts = ut.flatten(hybrid_splits)
+        part_nids = [lookup[aids[0]] for aids in hybrid_merge_parts]
+        hybrid_merges = list(ut.group_items(hybrid_merge_parts,
+                                            part_nids).values())
+
     group_delta = {
         'unchanged': unchanged,
         'splits': {
@@ -345,6 +361,8 @@ def grouping_delta(old, new):
         'hybrid': {
             'old': old_hybrid,
             'new': new_hybrid,
+            'splits': hybrid_splits,
+            'merges': hybrid_merges,
         },
     }
     return group_delta

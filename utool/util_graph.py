@@ -351,8 +351,8 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
 
     Args:
         graph (nx.Graph): the graph
-        nodes1 (list): list of nodes
-        nodes2 (list): (default=None) if None it is equivlanet to nodes2=nodes1
+        nodes1 (set): list of nodes
+        nodes2 (set): (default=None) if None it is equivlanet to nodes2=nodes1
         assume_disjoint (bool): skips expensive check to ensure edges arnt
             returned twice (default=False)
 
