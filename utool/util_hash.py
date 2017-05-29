@@ -54,7 +54,8 @@ ALPHABET_27 = [
     'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 
 
-ALPHABET = ALPHABET_41
+# ALPHABET = ALPHABET_41
+ALPHABET = ALPHABET_27
 BIGBASE = len(ALPHABET)
 
 
@@ -230,7 +231,7 @@ def _covert_to_hashable(data):
 def _update_hasher(hasher, data):
     """
     This is the clear winner over the generate version.
-    Used by hashstr3
+    Used by hash_data
 
     Ignore:
         import utool
@@ -288,15 +289,15 @@ def _update_hasher(hasher, data):
                 _update_hasher(hasher, data)
 
         data = ut.lorium_ipsum()
-        hashstr3(data)
+        hash_data(data)
         ut.hashstr27(data)
-        %timeit hashstr3(data)
+        %timeit hash_data(data)
         %timeit ut.hashstr27(repr(data))
 
         for timer in utool.Timerit(100, label='twocall'):
             hasher = hashlib.sha256()
             with timer:
-                hashstr3(data)
+                hash_data(data)
 
         hasher = hashlib.sha256()
         hasher.update(memoryview(np.array([1])))
@@ -382,8 +383,48 @@ def _update_hasher(hasher, data):
 #         yield hashable
 
 
+def b(x):
+    return six.binary_type(six.b(x))
+
+
+SEP_STR = '-'
+SEP_BYTE = b(SEP_STR)
+
+
+def freeze_hash_bytes(bytes_):
+    import codecs
+    hexstr = codecs.encode(bytes_, 'hex').decode('utf8')
+    return hexstr
+
+
+def combine_hashes(bytes_list, hasher=None):
+    """
+    Only works on bytes
+
+    Example:
+        >>> x = [b('1111'), b('2222')]
+        >>> y = [b('11'), b('11'), b('22'), b('22')]
+        >>> bytes_list = y
+        >>> out1 = ut.combine_hashes(x, hashlib.sha1())
+        >>> hasher = hashlib.sha1()
+        >>> out2 = ut.combine_hashes(y, hasher)
+        >>> bytes_ = out2
+        >>> assert hasher.hexdigest() == freeze_hash_bytes(hasher.digest())
+        >>> assert convert_bytes_to_bigbase(hasher.digest()) == convert_hexstr_to_bigbase(hasher.hexdigest())
+        >>> assert out1 != out2
+        >>> print('out1 = %r' % (out1,))
+        >>> print('out2 = %r' % (out2,))
+    """
+    if hasher is None:
+        hasher = hashlib.sha256()
+    for b in bytes_list:
+        hasher.update(b)
+        hasher.update(SEP_BYTE)
+    return hasher.digest()
+
+
 @profile
-def hashstr3(data, hashlen=None, alphabet=None):
+def hash_data(data, hashlen=None, alphabet=None):
     r"""
     Get a unique hash depending on the state of the data.
 
@@ -396,7 +437,7 @@ def hashstr3(data, hashlen=None, alphabet=None):
         str: text -  hash string
 
     CommandLine:
-        python -m utool.util_hash hashstr3
+        python -m utool.util_hash hash_data
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -406,7 +447,7 @@ def hashstr3(data, hashlen=None, alphabet=None):
         >>> failed = []
         >>> def check_hash(input_, want=None):
         >>>     count = counter[0] = counter[0] + 1
-        >>>     got = ut.hashstr3(input_)
+        >>>     got = ut.hash_data(input_)
         >>>     print('({}) {}'.format(count, got))
         >>>     if want is not None and not got.startswith(want):
         >>>         failed.append((got, input_, count, want))
@@ -609,6 +650,24 @@ def valid_filename_ascii_chars():
     return valid_chars
 valid_filename_ascii_chars()
 """
+
+
+def convert_bytes_to_bigbase(bytes_, alphabet=ALPHABET_27):
+    x = int.from_bytes(bytes_, 'big')
+    if x == 0:
+        return '0'
+    sign = 1 if x > 0 else -1
+    x *= sign
+    digits = []
+    bigbase = len(alphabet)
+    while x:
+        digits.append(alphabet[x % bigbase])
+        x //= bigbase
+    if sign < 0:
+        digits.append('-')
+        digits.reverse()
+    newbase_str = ''.join(digits)
+    return newbase_str
 
 
 def convert_hexstr_to_bigbase(hexstr, alphabet=ALPHABET, bigbase=BIGBASE):
