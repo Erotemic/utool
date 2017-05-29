@@ -270,29 +270,32 @@ def grouping_delta(old, new):
         >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45],
         >>> ]
         >>> group_delta = ut.grouping_delta(old, new)
+        >>> assert set(old[0]) in group_delta['splits']['old']
+        >>> assert set(new[3]) in group_delta['merges']['new']
+        >>> assert set(old[1]) in group_delta['unchanged']
         >>> result = ut.repr4(group_delta, nl=2, nobr=True, strkeys=True)
         >>> print(result)
         hybrid: {
-            old: {{8, 7}, {4}, {3, 5, 6}, {9, 10, 11}},
-            new: {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
-            splits: [{{7}, {8}}, {{4}}, {{5, 6}, {3}}, {{10}, {11}, {9}}],
-            merges: [{{7}}, {{5, 6}, {11}}, {{10}}, {{4}, {3}}, {{8}, {9}}],
+            old: {{7}, {11, 5, 6}, {10}, {3, 4}, {8, 9}},
+            new: {{8, 7}, {4}, {3, 5, 6}, {9, 10, 11}},
+            splits: [{{7}}, {{5, 6}, {11}}, {{10}}, {{4}, {3}}, {{8}, {9}}],
+            merges: [{{7}, {8}}, {{4}}, {{5, 6}, {3}}, {{10}, {11}, {9}}],
         },
         merges: {
-            old: [{{22, 23}, {20, 21}}, {{41, 42, 43, 44}, {45}}],
-            new: [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
+            old: [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
+            new: [{12, 13, 14}, {32, 33, 34, 35, 31}],
         },
         splits: {
-            old: [{12, 13, 14}, {32, 33, 34, 35, 31}],
-            new: [{{13, 14}, {12}}, {{32, 31}, {33, 34, 35}}],
+            old: [{20, 21, 22, 23}, {41, 42, 43, 44, 45}],
+            new: [{{22, 23}, {20, 21}}, {{41, 42, 43, 44}, {45}}],
         },
         unchanged: {
             {1, 2},
         },
     """
     import utool as ut
-    _new = {frozenset(_group) for _group in old}
-    _old = {frozenset(_group) for _group in new}
+    _old = {frozenset(_group) for _group in old}
+    _new = {frozenset(_group) for _group in new}
 
     _new_items = set(ut.flatten(_new))
     _old_items = set(ut.flatten(_old))
@@ -308,7 +311,7 @@ def grouping_delta(old, new):
     old_conn = {p: frozenset(ps) for ps in _old for p in ps}
     new_conn = {t: frozenset(ts) for ts in _new for t in ts}
 
-    # How many oldictions can be merged into perfect pieces?
+    # How many old sets can be merged into perfect pieces?
     # For each new sets, find if it can be made via merging old sets
     old_merges = []
     new_merges = []
