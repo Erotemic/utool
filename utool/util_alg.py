@@ -387,6 +387,21 @@ def grouping_delta_stats(old, new):
 
     Returns:
         pd.DataFrame: df: data frame of size statistics
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> old = [
+        >>>     [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11],
+        >>>     [7], [8, 9], [10], [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
+        >>> ]
+        >>> new = [
+        >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
+        >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45],
+        >>> ]
+        >>> df = ut.grouping_delta_stats(old, new)
+        >>> print(df)
     """
     import pandas as pd
     import utool as ut
