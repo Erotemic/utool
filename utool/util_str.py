@@ -3125,6 +3125,35 @@ def highlight_regex(str_, pat, reflags=0, color='red'):
     return colored
 
 
+def highlight_multi_regex(str_, pat_to_color, reflags=0):
+    """
+    FIXME Use pygments instead. must be mututally exclusive
+    """
+    #import colorama
+    # from colorama import Fore, Style
+    #color = Fore.MAGENTA
+    # color = Fore.RED
+    #match = re.search(pat, str_, flags=reflags)
+
+    colored = str_
+
+    to_replace = []
+    for pat, color in pat_to_color.items():
+        matches = list(re.finditer(pat, str_, flags=reflags))
+
+        for match in matches:
+            start = match.start()
+            end = match.end()
+            to_replace.append((end, start, color))
+
+    for tup in reversed(sorted(to_replace)):
+        end, start, color = tup
+        colored_part = color_text(colored[start:end], color)
+        colored = colored[:start] + colored_part + colored[end:]
+
+    return colored
+
+
 def varinfo_str(varval, varname, onlyrepr=False, canshowrepr=True,
                 varcolor='yellow', colored=True):
     import utool as ut
