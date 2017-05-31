@@ -1775,6 +1775,10 @@ def snapped_slice(size, frac, n):
     return sl
 
 
+def take_around_percentile(arr, frac, n):
+    return arr[snapped_slice(len(arr), frac, n)]
+
+
 def take_percentile_parts(arr, front=None, mid=None, back=None):
     r"""
     Take parts from front, back, or middle of a list
