@@ -501,6 +501,26 @@ def and_iters(*args):
     return (all(tup) for tup in zip(*args))
 
 
+def random_product(items, num=None, rng=None):
+    """
+    Yields `num` items from the cartesian product of items in a random order.
+
+    Args:
+        items (list of sequences): items to get caresian product of
+            packed in a list or tuple.
+            (note this deviates from api of it.product)
+    """
+    import utool as ut
+    # Shuffle a copy of each sequence in items.
+    shuffled_items = [ut.shuffle(list(ut.aslist(item)), rng=rng)
+                      for item in items]
+    # Then their product is shuffled by default
+    for count, tup in enumerate(it.product(*shuffled_items), start=1):
+        yield tup
+        if count >= num:
+            break
+
+
 def random_combinations(items, size, num=None, rng=None):
     """
     Yields `num` combinations of length `size` from items in random order

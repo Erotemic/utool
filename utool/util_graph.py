@@ -816,7 +816,7 @@ def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
     return node_attrs
 
 
-def nx_gen_edge_values(G, key, edges, default=util_const.NoParam,
+def nx_gen_edge_values(G, key, edges=None, default=util_const.NoParam,
                        on_missing='error', on_keyerr='default'):
     """
     Generates attributes values of specific edges
@@ -828,6 +828,8 @@ def nx_gen_edge_values(G, key, edges, default=util_const.NoParam,
             Can be {'error', 'default'}.  defaults to 'default'
             if default is specified, otherwise defaults to 'error'.
     """
+    if edges is None:
+        edges = G.edges()
     if on_missing is None:
         on_missing = 'error'
     if on_keyerr is None:

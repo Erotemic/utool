@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import sys
 import six
 import itertools
 try:
@@ -27,6 +28,19 @@ def quantum_random():
 def ensure_rng(rng, impl='numpy'):
     """
     Returns a random number generator
+
+    np_rng = np.random.RandomState(seed=0)
+    py_rng = random.Random(0)
+
+    for i in range(10):
+        np_rng.rand()
+        npstate = np_rng.get_state()
+        print([npstate[0], npstate[1][[0, 1, 2, -2, -1]], npstate[2], npstate[3], npstate[4]])
+
+    for i in range(10):
+        py_rng.random()
+        pystate = py_rng.getstate()
+        print([pystate[0], pystate[1][0:3] + pystate[1][-2:], pystate[2]])
     """
     import random
     if impl == 'numpy':
@@ -34,17 +48,38 @@ def ensure_rng(rng, impl='numpy'):
             rng = np.random
         elif isinstance(rng, int):
             rng = np.random.RandomState(seed=rng)
-        # elif isinstance(rng, random.Random):
-        #     assert False
+        elif isinstance(rng, random.Random):
+            py_rng = rng
+            # Convert python to numpy random state (incomplete)
+            py_state = py_rng.getstate()
+            np_rng = np.random.RandomState(seed=0)
+            np_state = np_rng.get_state()
+            new_np_state = (
+                np_state[0],
+                np.array(py_state[1][0:-1], dtype=np.uint32),
+                np_state[2], np_state[3], np_state[4])
+            np_rng.set_state(new_np_state)
+            rng = np_rng
     else:
         if rng is None:
             rng = random
         elif isinstance(rng, int):
             rng = random.Random(rng)
-        # elif isinstance(rng, np.random.RandomState):
-        #     assert False
+        elif isinstance(rng, np.random.RandomState):
+            np_rng = rng
+            # Convert numpy to python random state (incomplete)
+            np_state = np_rng.get_state()
+            py_rng = random.Random(0)
+            py_state = py_rng.getstate()
+            new_py_state = (
+                py_state[0], tuple(np_state[1].tolist() + [len(np_state[1])]),
+                py_state[1]
+            )
+            py_rng.setstate(new_py_state)
+            rng = py_rng
+            # seed = rng.randint(sys.maxsize)
+            # assert False
     return rng
-
 
 
 def random_indexes(max_index, subset_size=None, seed=None, rng=None):
@@ -200,6 +235,7 @@ def deterministic_shuffle(list_, seed=0, rng=None):
     rng = ensure_rng(seed if rng is None else rng)
     rng.shuffle(list_)
     return list_
+
 
 def shuffle(list_, seed=0, rng=None):
     r"""
