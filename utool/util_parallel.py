@@ -590,9 +590,7 @@ def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
             yield result
     else:
         from concurrent import futures
-
         func = worker
-
         prog = prog and verbose
         if verbose or VERBOSE_PARALLEL:
             prefix = '[util_parallel._generate_parallel]'
@@ -604,7 +602,7 @@ def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
             lbl = '(pargen) %s: ' % (get_funcname(func),)
             args_gen = util_progress.ProgIter(
                 args_gen, nTotal=nTasks, lbl='submitting process',
-                freq=kwargs.get('freq', None), bs=kwargs.get('bs', True),
+                freq=kwargs.get('freq', freq), bs=kwargs.get('bs', True),
                 adjust=kwargs.get('adjust', False)
             )
         # executor = futures.ProcessPoolExecutor(nprocs)
