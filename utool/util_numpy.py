@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import sys
 import six
 import itertools
 try:
@@ -25,22 +24,91 @@ def quantum_random():
     return data32
 
 
+def _npstate_to_pystate(npstate):
+    """
+    Convert state of a NumPy RandomState object to a state
+    that can be used by Python's Random.
+
+    References:
+        https://stackoverflow.com/questions/44313620/converting-randomstate
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> from utool.util_numpy import _pystate_to_npstate
+        >>> py_rng = random.Random(0)
+        >>> np_rng = np.random.RandomState(seed=0)
+        >>> npstate = np_rng.get_state()
+        >>> pystate = _npstate_to_pystate(npstate)
+        >>> py_rng.setstate(pystate)
+        >>> assert np_rng.rand() == py_rng.random()
+    """
+    PY_VERSION = 3
+    version, keys, pos, has_gauss, cached_gaussian_ = npstate
+    keys_pos = tuple(map(int, keys)) + (int(pos),)
+    cached_gaussian_ = cached_gaussian_ if has_gauss else None
+    pystate = (PY_VERSION, keys_pos, cached_gaussian_)
+    return pystate
+
+
+def _pystate_to_npstate(pystate):
+    """
+    Convert state of a Python Random object to state usable
+    by NumPy RandomState.
+
+    References:
+        https://stackoverflow.com/questions/44313620/converting-randomstate
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> from utool.util_numpy import _pystate_to_npstate
+        >>> py_rng = random.Random(0)
+        >>> np_rng = np.random.RandomState(seed=0)
+        >>> pystate = py_rng.getstate()
+        >>> npstate = _pystate_to_npstate(pystate)
+        >>> np_rng.set_state(npstate)
+        >>> assert np_rng.rand() == py_rng.random()
+    """
+    NP_VERSION = 'MT19937'
+    version, keys_pos_, cached_gaussian_ = pystate
+    keys, pos = keys_pos_[:-1], keys_pos_[-1]
+    keys = np.array(keys, dtype=np.uint32)
+    has_gauss = cached_gaussian_ is not None
+    cached_gaussian = cached_gaussian_ if has_gauss else 0.0
+    npstate = (NP_VERSION, keys, pos, has_gauss, cached_gaussian)
+    return npstate
+
+
 def ensure_rng(rng, impl='numpy'):
     """
     Returns a random number generator
 
-    np_rng = np.random.RandomState(seed=0)
-    py_rng = random.Random(0)
-
-    for i in range(10):
-        np_rng.rand()
-        npstate = np_rng.get_state()
-        print([npstate[0], npstate[1][[0, 1, 2, -2, -1]], npstate[2], npstate[3], npstate[4]])
-
-    for i in range(10):
-        py_rng.random()
-        pystate = py_rng.getstate()
-        print([pystate[0], pystate[1][0:3] + pystate[1][-2:], pystate[2]])
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_numpy import *  # NOQA
+        >>> import utool as ut
+        >>> import numpy as np
+        >>> import random
+        >>> num = 4
+        >>> print('--- Python as PYTHON ---')
+        >>> py_rng = random.Random(0)
+        >>> pp_nums = [py_rng.random() for _ in range(num)]
+        >>> print(pp_nums)
+        >>> print('--- Numpy as PYTHON ---')
+        >>> np_rng = ut.ensure_rng(random.Random(0), impl='numpy')
+        >>> np_nums = [np_rng.rand() for _ in range(num)]
+        >>> print(np_nums)
+        >>> print('--- Numpy as NUMPY---')
+        >>> np_rng = np.random.RandomState(seed=0)
+        >>> nn_nums = [np_rng.rand() for _ in range(num)]
+        >>> print(nn_nums)
+        >>> print('--- Python as NUMPY---')
+        >>> py_rng = ut.ensure_rng(np.random.RandomState(seed=0), impl='python')
+        >>> pn_nums = [py_rng.random() for _ in range(num)]
+        >>> print(pn_nums)
+        >>> assert np_nums == pp_nums
+        >>> assert pn_nums == nn_nums
     """
     import random
     if impl == 'numpy':
@@ -49,36 +117,26 @@ def ensure_rng(rng, impl='numpy'):
         elif isinstance(rng, int):
             rng = np.random.RandomState(seed=rng)
         elif isinstance(rng, random.Random):
+            # Convert python to numpy random state
             py_rng = rng
-            # Convert python to numpy random state (incomplete)
-            py_state = py_rng.getstate()
-            np_rng = np.random.RandomState(seed=0)
-            np_state = np_rng.get_state()
-            new_np_state = (
-                np_state[0],
-                np.array(py_state[1][0:-1], dtype=np.uint32),
-                np_state[2], np_state[3], np_state[4])
-            np_rng.set_state(new_np_state)
-            rng = np_rng
-    else:
+            pystate = py_rng.getstate()
+            npstate = _pystate_to_npstate(pystate)
+            rng = np_rng = np.random.RandomState(seed=0)
+            np_rng.set_state(npstate)
+    elif impl == 'python':
         if rng is None:
             rng = random
         elif isinstance(rng, int):
             rng = random.Random(rng)
         elif isinstance(rng, np.random.RandomState):
+            # Convert numpy to python random state
             np_rng = rng
-            # Convert numpy to python random state (incomplete)
-            np_state = np_rng.get_state()
-            py_rng = random.Random(0)
-            py_state = py_rng.getstate()
-            new_py_state = (
-                py_state[0], tuple(np_state[1].tolist() + [len(np_state[1])]),
-                py_state[1]
-            )
-            py_rng.setstate(new_py_state)
-            rng = py_rng
-            # seed = rng.randint(sys.maxsize)
-            # assert False
+            npstate = np_rng.get_state()
+            pystate = _npstate_to_pystate(npstate)
+            rng = py_rng = random.Random(0)
+            py_rng.setstate(pystate)
+    else:
+        raise KeyError('unknown rng impl={}'.format(impl))
     return rng
 
 
