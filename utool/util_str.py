@@ -1502,7 +1502,10 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
     if hack_liststr is None and nl is not None:
         hack_liststr = True
 
-    itemstr_list = dict_itemstr_list(dict_, strvals, sorted_, newlines_,
+    print('strvals = %r' % (strvals,))
+    itemstr_list = dict_itemstr_list(dict_, strvals=strvals,
+                                     sorted_=sorted_,
+                                     newlines=newlines_,
                                      recursive=recursive,
                                      indent_=indent_,
                                      precision=precision,
@@ -1511,6 +1514,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
                                      truncate=truncate_, truncatekw=truncatekw,
                                      key_order=key_order,
                                      key_order_metric=key_order_metric,
+                                     itemsep=itemsep,
                                      **dictkw)
 
     do_truncate = truncate is not False and (truncate is True or truncate == 0)
@@ -1615,6 +1619,8 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     truncate_ = _rectify_countdown_or_bool(truncate)
     packed_ = _rectify_countdown_or_bool(packed)
 
+    print(listkw.get('strvals'))
+
     itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_,
                                     truncate=truncate_, truncatekw=truncatekw,
                                     packed=packed_,
@@ -1672,7 +1678,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                       recursive=True, indent_='', precision=None,
                       hack_liststr=False, explicit=False, truncate=False,
                       key_order=None, truncatekw=dict(), key_order_metric=None,
-                      use_numpy=True, with_comma=True, **dictkw):
+                      itemsep=' ', use_numpy=True, with_comma=True, **dictkw):
     r"""
     Returns:
         list: a list of human-readable dictionary items
@@ -1699,7 +1705,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                             indent_=new_indent, precision=precision,
                             truncate=truncate, truncatekw=truncatekw,
                             with_comma=with_comma, key_order=key_order,
-                            hack_liststr=hack_liststr,
+                            hack_liststr=hack_liststr, itemsep=itemsep,
                             use_numpy=use_numpy, **dictkw)
         elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             if use_numpy:
@@ -1717,10 +1723,17 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             #print(val)
             #print('hack_liststr = %r' % (hack_liststr,))
             return list_str(val, newlines=newlines, precision=precision,
+                            strvals=strvals, itemsep=itemsep,
                             hack_liststr=hack_liststr)
         elif precision is not None and (isinstance(val, (float)) or
                                         util_type.is_float(val)):
             return scalar_str(val, precision)
+        elif isinstance(val, slice):
+            if itemsep == '':
+                # hack
+                return 'slice(%r,%r,%r)' % (val.start, val.stop, val.step)
+            else:
+                return valfunc(val)
         else:
             # base case
             #assert not isinstance(val, collections.OrderedDict), repr(val)
@@ -1804,6 +1817,7 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
     it. have it make two itemstr lists over keys and values and then combine
     them.
     """
+    print('strvals = %r' % (strvals,))
     if strvals:
         valfunc = six.text_type
     else:
