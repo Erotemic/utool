@@ -13,7 +13,6 @@ try:
 except ImportError:
     pass
 from os.path import join, splitext, dirname  # NOQA
-from utool import util_cplat
 from utool import util_path
 from utool import util_num
 from utool import util_dev
@@ -132,28 +131,30 @@ def make_full_document(text, title=None, preamp_decl={}, preamb_extra=None):
 
 def render_latex_text(input_text, nest_in_doc=False, preamb_extra=None,
                       appname='utool', verbose=None):
-    """ testing function """
+    """ compiles latex and shows the result """
     import utool as ut
     if verbose is None:
         verbose = ut.VERBOSE
     dpath = ut.ensure_app_resource_dir(appname, 'latex_tmp')
     # put a latex framgent in a full document
     # print(input_text)
-    pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath,
-                                      preamb_extra=preamb_extra,
-                                      verbose=verbose)
+    fname = 'temp_render_latex'
+    pdf_fpath = ut.compile_latex_text(
+        input_text, dpath=dpath, fname=fname, preamb_extra=preamb_extra,
+        verbose=verbose)
     ut.startfile(pdf_fpath)
     return pdf_fpath
 
 
-def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True,
-                       fname=None, title=None, preamb_extra=None,
-                       nest_in_doc=None, **kwargs):
+def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
+                       nest_in_doc=None, title=None, preamb_extra=None):
     r"""
-    pdflatex -shell-escape --synctex=-1 -src-specials -interaction=nonstopmode /home/joncrall/code/ibeis/tmptex/latex_formatter_temp.tex
-
     CommandLine:
         python -m utool.util_latex --test-compile_latex_text --show
+
+    Ignore:
+        pdflatex -shell-escape --synctex=-1 -src-specials -interaction=nonstopmode\
+            ~/code/ibeis/tmptex/latex_formatter_temp.tex
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -163,141 +164,90 @@ def compile_latex_text(input_text, fnum=1, dpath=None, verbose=True,
         >>> #dpath = '/home/joncrall/code/ibeis/aidchallenge'
         >>> dpath = dirname(ut.grab_test_imgpath())
         >>> #ut.vd(dpath)
-        >>> orig_fpath_list = ut.list_images(dpath, fullpath=True)
-        >>> figure_str = ut.get_latex_figure_str(orig_fpath_list, width_str='2.4in', nCols=2)
+        >>> orig_fpaths = ut.list_images(dpath, fullpath=True)
+        >>> figure_str = ut.get_latex_figure_str(orig_fpaths, width_str='2.4in', nCols=2)
         >>> input_text = figure_str
-        >>> pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath, verbose=verbose)
+        >>> pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath,
+        >>>                                   verbose=verbose)
         >>> output_pdf_fpath = ut.compress_pdf(pdf_fpath)
         >>> print(pdf_fpath)
         >>> ut.quit_if_noshow()
         >>> ut.startfile(pdf_fpath)
-
-        fpath_list
-        def clipwhite_ondisk(fpath_in):
-            import utool as ut
-            import vtool as vt
-            fpath_out = ut.augpath(fpath_in, '_clipwhite')
-            img = vt.imread(fpath_in)
-            thresh = 128
-            fillval = [255, 255, 255]
-            cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
-            vt.imwrite(fpath_out, cropped_img)
-            return fpath_out
-        fpath_list_ = [clipwhite_ondisk(fpath) for fpath in fpath_list]
-        tmpfig = join(dpath, 'tmpfig')
-        ut.ensuredir(tmpfig)
-        # Weirdness
-        from os.path import *
-        new_fpath_list = []
-        for fpath in fpath_list_:
-            fname, ext = splitext(basename(fpath))
-            fname_ = ut.hashstr(fname, alphabet=ut.ALPHABET_16) + ext
-            fpath_ = join(tmpfig, fname_)
-            ut.move(fpath, fpath_)
-            new_fpath_list.append(fpath_)
-        new_rel_fpath_list = [ut.relpath_unix(fpath_, dpath) for fpath_ in new_fpath_list]
-
     """
-    #import pylab as plt
-    #import matplotlib as mpl
-    #verbose = True
-    if nest_in_doc or (nest_in_doc is None and input_text.find('documentclass') == -1):
+    import utool as ut
+    if nest_in_doc is None:
+        nest_in_doc = 'documentclass' not in input_text
+    if nest_in_doc:
         text = make_full_document(input_text, title=title,
                                   preamb_extra=preamb_extra)
-    #text = make_full_document(input_text, title=title)
-    cwd = os.getcwd()
     if dpath is None:
-        text_dir = join(cwd, 'tmptex')
-    else:
-        text_dir = dpath
-    util_path.ensuredir(text_dir, verbose=verbose)
+        dpath = os.cwd()
     if fname is None:
-        fname = 'latex_formatter_temp'
-    text_fname = fname + '.tex'
-    #text_fname = 'latex_formatter_temp.tex'
-    text_fpath = join(text_dir, text_fname)
-    pdf_fpath = splitext(text_fpath)[0] + '.pdf'
-    #jpg_fpath = splitext(text_fpath)[0] + '.jpg'
-    try:
-        os.chdir(text_dir)
+        fname = 'temp_latex'
+
+    # Create temporary work directly
+    work_dpath = join(dpath, '.tmptex')
+    ut.ensuredir(work_dpath, verbose=verbose)
+
+    tex_fpath = join(work_dpath, fname + '.tex')
+    pdf_fpath_output = join(work_dpath, fname + '.pdf')
+    ut.write_to(tex_fpath, text)
+
+    with ut.ChdirContext(work_dpath):
         # print(text)
-        util_io.write_to(text_fpath, text)
-        latex_args = ('lualatex', '-shell-escape', '--synctex=-1',
-                         '-src-specials', '-interaction=nonstopmode')
-        args = latex_args + (text_fpath,)
-        util_cplat.cmd(*args, verbose=verbose, **kwargs)
-        assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
-    except Exception as ex:
-        import utool as ut
-        print('Error compiling')
-        ut.print_code(text, 'latex')
-        ut.printex(ex, 'LATEX ERROR')
-        raise
-    finally:
-        os.chdir(cwd)
+        args = ' '.join([
+            'lualatex', '-shell-escape', '--synctex=-1', '-src-specials',
+            '-interaction=nonstopmode', tex_fpath
+        ])
+        info = ut.cmd2(args, verbose=verbose)
+        if not ut.checkpath(pdf_fpath_output, verbose=verbose):
+            print('Error compiling LaTeX')
+            ut.print_code(text, 'latex')
+            print(info['out'])
+            raise RuntimeError('latex failed ')
+
+    pdf_fpath = join(dpath, fname + '.pdf')
+    ut.move(pdf_fpath_output, pdf_fpath, verbose=verbose)
     return pdf_fpath
 
 
-def render(input_text, fnum=1, dpath=None, verbose=True):
+def convert_pdf_to_jpg(pdf_fpath, verbose=True):
+    import utool as ut
+    jpg_fpath = splitext(pdf_fpath)[0] + '.jpg'
+    if ut.UNIX:
+        convert_fpath = ut.cmd2('which convert')['out'].strip()
+        if not convert_fpath:
+            raise Exception('ImageMagik convert was not found')
+    args = ' '.join(['convert', '-density', '300', pdf_fpath, '-quality', '90',
+                     jpg_fpath])
+    info = ut.cmd2(args, verbose=verbose)  # NOQA
+    if not ut.checkpath(jpg_fpath, verbose=verbose):
+        print('Failed to convert pdf to jpg')
+        print(info['out'])
+        raise Exception('ImageMagik failed to convert pdf to jpg')
+    return jpg_fpath
+
+
+def compile_latex_text_as_jpeg(input_text, dpath=None, fname=None, verbose=True):
     """
-    fixme or remove
+    Transforms latex text into a jpeg.
+
+    Whitespace that would have appeared in the PDF is removed, so the jpeg is
+    cropped only the the relevant part.  This is ideal for figures that only
+    take a single page.
     """
-    import pylab as plt
-    import matplotlib as mpl
-    #verbose = True
-    text = make_full_document(input_text)
-    cwd = os.getcwd()
-    if dpath is None:
-        text_dir = join(cwd, 'tmptex')
-    else:
-        text_dir = dpath
-    util_path.ensuredir(text_dir, verbose=verbose)
-    text_fname = 'latex_formatter_temp.tex'
-    text_fpath = join(text_dir, text_fname)
-    pdf_fpath = splitext(text_fpath)[0] + '.pdf'
-    jpg_fpath = splitext(text_fpath)[0] + '.jpg'
-    try:
-        os.chdir(text_dir)
-        util_io.write_to(text_fpath, text)
-        # latex_args = ('pdflatex', '-shell-escape', '--synctex=-1', '-src-specials', '-interaction=nonstopmode')
-        latex_args = ('lualatex', '-shell-escape', '--synctex=-1',
-                         '-src-specials', '-interaction=nonstopmode')
-        args = latex_args + (text_fpath,)
-        util_cplat.cmd(*args, verbose=verbose)
-        assert util_path.checkpath(pdf_fpath, verbose=verbose), 'latex failed'
-        # convert latex pdf to jpeg
-        util_cplat.cmd('convert', '-density', '300', pdf_fpath, '-quality', '90', jpg_fpath, verbose=verbose)
-        assert util_path.checkpath(jpg_fpath, verbose=verbose), 'imgmagick failed'
-        tex_img = plt.imread(jpg_fpath)
-        # Crop img bbox
-        nonwhite_x = np.where(tex_img.flatten() != 255)[0]
-        nonwhite_rows = nonwhite_x // tex_img.shape[1]
-        nonwhite_cols = nonwhite_x % tex_img.shape[1]
-        x1 = nonwhite_cols.min()
-        y1 = nonwhite_rows.min()
-        x2 = nonwhite_cols.max()
-        y2 = nonwhite_rows.max()
-        #util.embed()
-        cropped = tex_img[y1:y2, x1:x2]
-        fig = plt.figure(fnum)
-        fig.clf()
-        ax = fig.add_subplot(1, 1, 1)
-        ax.imshow(cropped, cmap=mpl.cm.gray)
-        #mpl.rc('text', usetex=True)
-        #mpl.rc('font', family='serif')
-        #plt.figure()
-        #plt.text(9, 3.4, text, size=12)
-    except Exception as ex:
-        print('LATEX ERROR')
-        print(text)
-        print(ex)
-        print('LATEX ERROR')
-        pass
-    finally:
-        os.chdir(cwd)
-        #if dpath is None:
-        #    if util_path.checkpath(text_dir, verbose=verbose):
-        #        util_path.delete(text_dir)
+    import utool as ut
+    import vtool as vt
+    # turn off page numbers
+    input_text_ = '\pagenumbering{gobble}\n' + input_text
+    pdf_fpath = ut.compile_latex_text(
+        input_text_, fname=fname, dpath=dpath, verbose=verbose)
+    jpg_fpath = ut.convert_pdf_to_jpg(pdf_fpath)
+    fpath_in = jpg_fpath
+    fpath_out = vt.clipwhite_ondisk(fpath_in, fpath_out=jpg_fpath,
+                                    verbose=True)
+    ut.delete(pdf_fpath)
+    return fpath_out
 
 
 def latex_multicolumn(data, ncol=2, alignstr='|c|'):

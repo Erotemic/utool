@@ -859,11 +859,23 @@ def copy_list(src_list, dst_list, lbl='Copying',
     return success_list
 
 
-def move(src, dst, lbl='Moving'):
-    return move_list([src], [dst], lbl)
+def move(src, dst, verbose=True):
+    if verbose:
+        print('[path] [Moving]: ')
+        print('[path] | {}'.format(src))
+        print('[path] ->{}'.format(dst))
+    try:
+        shutil.move(src, dst)
+    except OSError:
+        if verbose:
+            print('[path] move failed')
+        return False
+    else:
+        return True
 
 
-def move_list(src_list, dst_list, lbl='Moving'):
+def move_list(src_list, dst_list, lbl='Moving', verbose=True):
+    import utool as ut
     # Feb - 6 - 2014 Move function
     def trymove(src, dst):
         try:
@@ -871,9 +883,13 @@ def move_list(src_list, dst_list, lbl='Moving'):
         except OSError:
             return False
         return True
+    length = ut.length_hint(src_list, default=None)
     task_iter = zip(src_list, dst_list)
-    progiter = util_progress.ProgIter(task_iter, lbl=lbl, adjust=True)
-    success_list = [trymove(src, dst) for (src, dst) in progiter]
+    if verbose:
+        _iter = ut.ProgIter(task_iter, length=length, lbl=lbl, adjust=True)
+    else:
+        _iter = task_iter
+    success_list = [trymove(src, dst) for (src, dst) in _iter]
     return success_list
 
 
