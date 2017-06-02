@@ -1502,7 +1502,6 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
     if hack_liststr is None and nl is not None:
         hack_liststr = True
 
-    print('strvals = %r' % (strvals,))
     itemstr_list = dict_itemstr_list(dict_, strvals=strvals,
                                      sorted_=sorted_,
                                      newlines=newlines_,
@@ -1618,8 +1617,6 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     newlines_ = _rectify_countdown_or_bool(newlines)
     truncate_ = _rectify_countdown_or_bool(truncate)
     packed_ = _rectify_countdown_or_bool(packed)
-
-    print(listkw.get('strvals'))
 
     itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_,
                                     truncate=truncate_, truncatekw=truncatekw,
@@ -1817,7 +1814,6 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
     it. have it make two itemstr lists over keys and values and then combine
     them.
     """
-    print('strvals = %r' % (strvals,))
     if strvals:
         valfunc = six.text_type
     else:
@@ -1833,8 +1829,6 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
             common_kw.update(
                 dict(sorted_=listkws.get('sorted_', True and not isinstance(val, collections.OrderedDict)),
                      hack_liststr=listkws.get('hack_liststr', False)))
-            #print('val = %r' % (id(val),))
-            #print('val = %r' % (val.keys(),))
             return dict_str(val, **common_kw)
         if isinstance(val, (tuple, list, set, frozenset)):
             common_kw.update(dict(label_list=sublabels, **listkws))
@@ -1849,8 +1843,6 @@ def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
         elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
             return scalar_str(val, precision)
         else:
-            #assert not isinstance(val, collections.OrderedDict), repr(val)
-            #print(hasattr(val, 'keys'))
             # base case
             return valfunc(val)
 
