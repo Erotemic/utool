@@ -147,7 +147,8 @@ def render_latex_text(input_text, nest_in_doc=False, preamb_extra=None,
 
 
 def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
-                       nest_in_doc=None, title=None, preamb_extra=None):
+                       move=True, nest_in_doc=None, title=None,
+                       preamb_extra=None):
     r"""
     CommandLine:
         python -m utool.util_latex --test-compile_latex_text --show
@@ -175,6 +176,9 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
         >>> ut.startfile(pdf_fpath)
     """
     import utool as ut
+    if verbose:
+        print('[ut] compile_latex_text')
+
     if nest_in_doc is None:
         nest_in_doc = 'documentclass' not in input_text
     if nest_in_doc:
@@ -187,32 +191,37 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
 
     # Create temporary work directly
     work_dpath = join(dpath, '.tmptex')
-    ut.ensuredir(work_dpath, verbose=verbose)
+    ut.ensuredir(work_dpath, verbose=verbose > 1)
 
     tex_fpath = join(work_dpath, fname + '.tex')
     pdf_fpath_output = join(work_dpath, fname + '.pdf')
     ut.write_to(tex_fpath, text)
 
-    with ut.ChdirContext(work_dpath):
+    with ut.ChdirContext(work_dpath, verbose=verbose > 1):
         # print(text)
         args = ' '.join([
             'lualatex', '-shell-escape', '--synctex=-1', '-src-specials',
             '-interaction=nonstopmode', tex_fpath
         ])
-        info = ut.cmd2(args, verbose=verbose)
-        if not ut.checkpath(pdf_fpath_output, verbose=verbose):
+        info = ut.cmd2(args, verbose=verbose > 1)
+        if not ut.checkpath(pdf_fpath_output, verbose=verbose > 1):
             print('Error compiling LaTeX')
             ut.print_code(text, 'latex')
             print(info['out'])
             raise RuntimeError('latex failed ')
 
-    pdf_fpath = join(dpath, fname + '.pdf')
-    ut.move(pdf_fpath_output, pdf_fpath, verbose=verbose)
+    if move:
+        pdf_fpath = join(dpath, fname + '.pdf')
+        ut.move(pdf_fpath_output, pdf_fpath, verbose=verbose > 1)
+    else:
+        pdf_fpath = pdf_fpath_output
     return pdf_fpath
 
 
-def convert_pdf_to_jpg(pdf_fpath, verbose=True):
+def convert_pdf_to_jpg(pdf_fpath, verbose=1):
     import utool as ut
+    if verbose:
+        print('[ut] convert_pdf_to_jpg.')
     jpg_fpath = splitext(pdf_fpath)[0] + '.jpg'
     if ut.UNIX:
         convert_fpath = ut.cmd2('which convert')['out'].strip()
@@ -220,17 +229,17 @@ def convert_pdf_to_jpg(pdf_fpath, verbose=True):
             raise Exception('ImageMagik convert was not found')
     args = ' '.join(['convert', '-density', '300', pdf_fpath, '-quality', '90',
                      jpg_fpath])
-    info = ut.cmd2(args, verbose=verbose)  # NOQA
-    if not ut.checkpath(jpg_fpath, verbose=verbose):
+    info = ut.cmd2(args, verbose=verbose > 1)  # NOQA
+    if not ut.checkpath(jpg_fpath, verbose=verbose > 1):
         print('Failed to convert pdf to jpg')
         print(info['out'])
         raise Exception('ImageMagik failed to convert pdf to jpg')
     return jpg_fpath
 
 
-def compile_latex_text_as_jpeg(input_text, dpath=None, fname=None, verbose=True):
+def render_latex(input_text, dpath=None, fname=None, verbose=1):
     """
-    Transforms latex text into a jpeg.
+    Renders latex text into a jpeg.
 
     Whitespace that would have appeared in the PDF is removed, so the jpeg is
     cropped only the the relevant part.  This is ideal for figures that only
@@ -241,13 +250,15 @@ def compile_latex_text_as_jpeg(input_text, dpath=None, fname=None, verbose=True)
     # turn off page numbers
     input_text_ = '\pagenumbering{gobble}\n' + input_text
     pdf_fpath = ut.compile_latex_text(
-        input_text_, fname=fname, dpath=dpath, verbose=verbose)
-    jpg_fpath = ut.convert_pdf_to_jpg(pdf_fpath)
+        input_text_, fname=fname, dpath=dpath, verbose=verbose, move=False)
+    jpg_fpath = ut.convert_pdf_to_jpg(pdf_fpath, verbose=verbose)
     fpath_in = jpg_fpath
     fpath_out = vt.clipwhite_ondisk(fpath_in, fpath_out=jpg_fpath,
-                                    verbose=True)
-    ut.delete(pdf_fpath)
-    return fpath_out
+                                    verbose=verbose > 1)
+    jpg_fpath = join(dpath, fname + '.jpg')
+    ut.move(fpath_out, jpg_fpath, verbose=verbose > 1)
+    # ut.delete(pdf_fpath)
+    return jpg_fpath
 
 
 def latex_multicolumn(data, ncol=2, alignstr='|c|'):

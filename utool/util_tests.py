@@ -1622,7 +1622,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             func_ = getattr(module, test_funcname, None)
         if func_ is not None:
             testno = 0
-            modpath = ut.get_modname_from_modpath(module.__file__)
+            modname = ut.get_modname_from_modpath(module.__file__)
             want = None
             try:
                 # hack to get classmethods to read their example using
@@ -1641,11 +1641,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 callname = test_funcname_
                 hack_testtups = []
                 for num, (type_, block) in enumerate(example_blocks):
-                    # print('modpath = %r' % (modpath,))
+                    # print('modname = %r' % (modname,))
                     # print('callname = %r' % (callname,))
                     # print('num = %r' % (num,))
                     example = ubelt.util_test.DocExample(
-                        modpath, callname, block, num)
+                        modname, callname, block, num)
                     src = example.src
                     want = example.want
                     testtup = TestTuple(test_funcname_, num, src, want=want,
@@ -1663,12 +1663,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 src = ut.codeblock(
                     '''
                     # DUMMY_DOCTEST
-                    from {modpath} import *  # NOQA
+                    from {modname} import *  # NOQA
                     args = {varargs}
                     result = {test_funcname_}(*args)
                     print(result)
                     ''').format(
-                        modpath=modpath,
+                        modname=modname,
                         test_funcname_=test_funcname_,
                         varargs=repr(varargs))
                 testtup = TestTuple(test_funcname_, testno, src, want=want,
@@ -1811,7 +1811,7 @@ def show_if_requested():
 
 
 def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
-                  func_to_module_dict={}):
+                  func_to_module_dict={}, return_mod=False):
     import utool as ut
     if isinstance(module, six.string_types):
         module = ut.import_modname(module)
@@ -1854,7 +1854,10 @@ def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
         print('Did not find any function named %r ' % (test_funcname,))
         print('Searched ' + ut.list_str([mod.__name__
                                          for mod in module_list]))
-    return test_func, testno
+    if return_mod:
+        return test_func, testno, test_module
+    else:
+        return test_func, testno
 
 
 def get_module_completions(module):
@@ -1957,8 +1960,9 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         ut.inject_colored_exceptions()
         # print('[utool] __main__ Begin Function Test')
         print('[utool] __main__ Begin Function Test')
-        test_func, testno = find_testfunc(module, test_funcname, ignore_prefix,
-                                          ignore_suffix, func_to_module_dict)
+        test_func, testno, test_mod = find_testfunc(
+            module, test_funcname, ignore_prefix, ignore_suffix,
+            func_to_module_dict, return_mod=True)
 
         if test_func is not None:
             globals_ = {}
@@ -1967,7 +1971,29 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
                 globals_.update(func_globals)
             except AttributeError:
                 pass
-            testsrc = ut.get_doctest_examples(test_func)[0][testno]
+            tests = ut.get_doctest_examples(test_func)[0]
+            if len(tests) > 0:
+                testsrc = tests[testno]
+            else:
+                # Create dummy doctest
+                modname = ut.get_modname_from_modpath(ut.get_modpath(test_mod))
+                varargs = cmdline_varags[1:]
+                testsrc = ut.codeblock(
+                    '''
+                    # DUMMY_DOCTEST
+                    from {modname} import *  # NOQA
+                    args = {varargs}
+                    result = {test_funcname_}(*args)
+                    print(result)
+                    ''').format(
+                        modname=modname,
+                        test_funcname_=test_funcname,
+                        varargs=repr(varargs))
+                # testtup = TestTuple(test_funcname_, testno, src, want=want,
+                #                     flag='--exec-' + test_funcname_,
+                #                     frame_fpath=frame_fpath, mode='exec',
+                #                     total=1, nametup=[test_funcname_])
+
             if ut.get_argflag(('--cmd', '--embed')):
                 # TODO RECTIFY WITH EXEC DOCTEST
                 testsrc = _cmd_modify_src(testsrc)
