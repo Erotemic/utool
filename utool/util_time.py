@@ -1012,7 +1012,7 @@ def get_posix_timedelta_str2(posixtime):
 #    return datetime.datetime.now().year
 
 
-def get_timestats_str(unixtime_list, newlines=False, full=True, isutc=False):
+def get_timestats_str(unixtime_list, newlines=1, full=True, isutc=False):
     r"""
     Args:
         unixtime_list (list):
@@ -1029,7 +1029,7 @@ def get_timestats_str(unixtime_list, newlines=False, full=True, isutc=False):
         >>> from utool.util_time import *  # NOQA
         >>> import utool as ut
         >>> unixtime_list = [0, 0 + 60 * 60 * 5 , 10 + 60 * 60 * 5, 100 + 60 * 60 * 5, 1000 + 60 * 60 * 5]
-        >>> newlines = True
+        >>> newlines = 1
         >>> full = False
         >>> timestat_str = get_timestats_str(unixtime_list, newlines, full=full, isutc=True)
         >>> result = ut.align(str(timestat_str), ':')
@@ -1047,7 +1047,7 @@ def get_timestats_str(unixtime_list, newlines=False, full=True, isutc=False):
         >>> from utool.util_time import *  # NOQA
         >>> import utool as ut
         >>> unixtime_list = [0, 0 + 60 * 60 * 5 , 10 + 60 * 60 * 5, 100 + 60 * 60 * 5, 1000 + 60 * 60 * 5, float('nan'), 0]
-        >>> newlines = True
+        >>> newlines = 1
         >>> timestat_str = get_timestats_str(unixtime_list, newlines, isutc=True)
         >>> result = ut.align(str(timestat_str), ':')
         >>> print(result)

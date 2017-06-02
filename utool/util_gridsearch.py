@@ -214,7 +214,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
     TODO: partition nested configs
 
     CommandLine:
-        python -m utool.util_gridsearch --exec-partition_varied_cfg_list
+        python -m utool.util_gridsearch --exec-partition_varied_cfg_list:0
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -222,22 +222,24 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
         >>> import utool as ut
         >>> cfg_list = [{'f': 1, 'b': 1}, {'f': 2, 'b': 1}, {'f': 3, 'b': 1, 'z': 4}]
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list)
-        >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
+        >>> result = ut.repr4({'nonvaried_cfg': nonvaried_cfg,
+        >>>                    'varied_cfg_list': varied_cfg_list}, explicit=1, nobr=True, nl=1)
         >>> print(result)
-        nonvaried_cfg = {'b': 1}
-        varied_cfg_list = [{'f': 1}, {'f': 2}, {'f': 3, 'z': 4}]
+        nonvaried_cfg={'b': 1},
+        varied_cfg_list=[{'f': 1}, {'f': 2}, {'f': 3, 'z': 4}],
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 1}, 'b2': 1}, 'e1': 1}]
-        >>> print(ut.list_str(cfg_list, nl=True))
+        >>> print(ut.list_str(cfg_list, nl=1))
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
-        >>> result = ut.list_str((nonvaried_cfg, varied_cfg_list), label_list=['nonvaried_cfg', 'varied_cfg_list'])
+        >>> result = ut.repr4({'nonvaried_cfg': nonvaried_cfg,
+        >>>                    'varied_cfg_list': varied_cfg_list}, explicit=1, nobr=True, nl=1)
         >>> print(result)
-        nonvaried_cfg = {'f1': {'a2': {'x3': 1}, 'b2': 1}, 'q1': 1}
-        varied_cfg_list = [{'f1': {'a2': {'y3': 2}}}, {'e1': 1, 'f1': {'a2': {'y3': 1}}}]
+        nonvaried_cfg={'f1': {'a2': {'x3': 1}, 'b2': 1}, 'q1': 1},
+        varied_cfg_list=[{'f1': {'a2': {'y3': 2}}}, {'e1': 1, 'f1': {'a2': {'y3': 1}}}],
     """
     import utool as ut
     if default_cfg is None:

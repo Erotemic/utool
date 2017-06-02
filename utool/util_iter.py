@@ -561,7 +561,7 @@ def random_combinations(items, size, num=None, rng=None):
         >>> result = ('combos = %s' % (ut.repr2(combos),))
         >>> print(result)
     """
-    import scipy
+    import scipy.misc
     import numpy as np
     import utool as ut
     rng = ut.ensure_rng(rng, impl='python')

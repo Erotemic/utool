@@ -1616,6 +1616,44 @@ def argsort(*args, **kwargs):
         return sortedby2(index_list, *args, **kwargs)
 
 
+def argsort2(indexable):
+    """
+    Returns the indices that would sort a indexable object.
+
+    This is similar to np.argsort, but it is written in pure python and works
+    on both lists and dictionaries.
+
+    Args:
+        indexable (list or dict): indexable to sort by
+
+    Returns:
+        list: indices: list of indices such that sorts the indexable
+
+    Example:
+        >>> import utool as ut
+        >>> # argsort works on dicts
+        >>> dict_ = {'a': 3, 'b': 2, 'c': 100}
+        >>> indices = ut.argsort2(indexable)
+        >>> assert list(ub.take(dict_, indices)) == sorted(dict_.values())
+        >>> # argsort works on lists
+        >>> indexable = [100, 2, 432, 10]
+        >>> indices = ut.argsort2(indexable)
+        >>> assert list(ub.take(indexable, indices)) == sorted(indexable)
+        >>> # argsort works on iterators
+        >>> indexable = reversed(range(100))
+        >>> indices = ut.argsort2(indexable)
+        >>> assert indices[0] == 99
+    """
+    # Create an iterator of value/key pairs
+    if isinstance(indexable, dict):
+        vk_iter = ((v, k) for k, v in indexable.items())
+    else:
+        vk_iter = ((v, k) for k, v in enumerate(indexable))
+    # Sort by values and extract the keys
+    indices = [k for v, k in sorted(vk_iter)]
+    return indices
+
+
 def argmax(input_):
     """
     Returns index / key of the item with the largest value.

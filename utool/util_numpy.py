@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import six
 import itertools
+import random
 try:
     import numpy as np
 except ImportError as ex:
@@ -35,7 +36,7 @@ def _npstate_to_pystate(npstate):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_numpy import *  # NOQA
-        >>> from utool.util_numpy import _pystate_to_npstate
+        >>> from utool.util_numpy import _npstate_to_pystate
         >>> py_rng = random.Random(0)
         >>> np_rng = np.random.RandomState(seed=0)
         >>> npstate = np_rng.get_state()
@@ -89,7 +90,6 @@ def ensure_rng(rng, impl='numpy'):
         >>> from utool.util_numpy import *  # NOQA
         >>> import utool as ut
         >>> import numpy as np
-        >>> import random
         >>> num = 4
         >>> print('--- Python as PYTHON ---')
         >>> py_rng = random.Random(0)
@@ -110,7 +110,6 @@ def ensure_rng(rng, impl='numpy'):
         >>> assert np_nums == pp_nums
         >>> assert pn_nums == nn_nums
     """
-    import random
     if impl == 'numpy':
         if rng is None:
             rng = np.random

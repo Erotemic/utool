@@ -1367,12 +1367,13 @@ def repr2(obj_, **kwargs):
     Attempt to replace repr more configurable
     pretty version that works the same in both 2 and 3
     """
-    if isinstance(obj_, (list, tuple, set, frozenset)):
+    import utool as ut
+    if isinstance(obj_, (list, tuple, set, frozenset, ut.oset)):
         kwitems = dict(nl=False)
         kwitems.update(kwargs)
         return list_str(obj_, **kwitems)
     elif isinstance(obj_, dict):
-        kwitems = dict(nl=False, hack_liststr=True)
+        kwitems = dict(nl=False)
         kwitems.update(kwargs)
         return dict_str(obj_, **kwitems)
     else:
@@ -1388,7 +1389,6 @@ def repr2_json(obj_, **kwargs):
     """ hack for json reprs """
     import utool as ut
     kwargs['trailing_comma'] = False
-    kwargs['hack_liststr'] = True
     json_str = ut.repr2(obj_, **kwargs)
     json_str = str(json_str.replace('\'', '"'))
     json_str = json_str.replace('(', '[')
@@ -1415,11 +1415,11 @@ def repr5(obj_, **kwargs):
     return repr2(obj_, **_kw)
 
 
-def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
-             indent_='', precision=None, hack_liststr=None, truncate=False,
-             nl=None, explicit=False, truncatekw=dict(), key_order=None,
+def dict_str(dict_, sorted_=None, newlines=True, recursive=True, indent_='',
+             precision=None, truncate=False, nl=None,
+             truncatekw=dict(), key_order=None,
              key_order_metric=None, nobraces=False, nobr=None, align=False,
-             itemsep=' ', **dictkw):
+             **dictkw):
     r"""
     Makes a pretty printable / human-readable string representation of a
         dictionary. In most cases this string could be evaled.
@@ -1432,7 +1432,6 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         recursive (bool): (default = True)
         indent_ (str): (default = '')
         precision (int): (default = 8)
-        hack_liststr (bool): turn recursive liststr parsing on (default = False)
         truncate (bool): (default = False)
         nl (int): prefered alias for newline. can be a coundown variable
             (default = None)
@@ -1455,7 +1454,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
 
 
     CommandLine:
-        python -m utool.util_str --test-dict_str
+        python -m utool.util_str --test-dict_str:1
         python -m utool.util_str --test-dict_str --truncate=False --no-checkwant
         python -m utool.util_str --test-dict_str --truncate=1 --no-checkwant
         python -m utool.util_str --test-dict_str --truncate=2 --no-checkwant
@@ -1477,43 +1476,68 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
                 's ~~~TRUNCATED~~~ ,
             },
         }
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> a, b, c = 'a', 'b', 'c'
+        >>> dict_ = {
+        >>>     'float': 2.3333,
+        >>>     'slice': slice(1, 2, None),
+        >>>     'list1': [1, 2, 3, 2.3333, a, b, c],
+        >>>     'dict1': {2.3333: 2.3333, a: b, c: [a, b]},
+        >>>     'set1': {c, a, b},
+        >>>     'set2': ut.oset([c, a, b]),
+        >>>     'list2': [
+        >>>         {a: {c, a, b}, 1: slice(1, 2, 3)},
+        >>>         [1, 2, {c, a, 2.333}, {a: [b], b: {c}, c: 2.333}]
+        >>>     ],
+        >>> }
+        >>> result = ut.dict_str(dict_, stritems=True, strvals=True, itemsep='',
+        >>>                      precision=2, nl=1, nobr=True, explicit=True)
+        >>> print(result)
+
+        {
+            'baz': barbarbarbarbarbarbarbarbarbarbarbarbarbarbar,
+            'foo': {
+                'eggs': jam,
+                's ~~~TRUNCATED~~~ ,
+            },
+        }
     """
+    import utool as ut
     if nobr is not None:
         nobraces = nobr
     if nl is not None:
         newlines = nl
+
+    if dictkw.pop('stritems', False):
+        dictkw['strkeys'] = True
+        dictkw['strvals'] = True
+
+    explicit = dictkw.get('explicit', False)
+    newlines_ = _rectify_countdown_or_bool(newlines)
+    truncate_ = _rectify_countdown_or_bool(truncate)
+
     if len(dict_) == 0:
         if explicit:
             return 'dict()'
         else:
             return '{}'
 
-    if dictkw.pop('stritems', False):
-        dictkw['strkeys'] = True
-        strvals = True
-
-    newlines_ = _rectify_countdown_or_bool(newlines)
-    truncate_ = _rectify_countdown_or_bool(truncate)
-
     #if 'braces' in dictkw:
     #    dictkw['braces'] = _rectify_countdown_or_bool(dictkw['braces'])
     #    nobraces = not dictkw['braces']
 
-    if hack_liststr is None and nl is not None:
-        hack_liststr = True
-
-    itemstr_list = dict_itemstr_list(dict_, strvals=strvals,
+    itemstr_list = dict_itemstr_list(dict_,
                                      sorted_=sorted_,
                                      newlines=newlines_,
                                      recursive=recursive,
                                      indent_=indent_,
                                      precision=precision,
-                                     explicit=explicit,
-                                     hack_liststr=hack_liststr,
                                      truncate=truncate_, truncatekw=truncatekw,
                                      key_order=key_order,
                                      key_order_metric=key_order_metric,
-                                     itemsep=itemsep,
                                      **dictkw)
 
     do_truncate = truncate is not False and (truncate is True or truncate == 0)
@@ -1529,7 +1553,6 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
         itemstr_list[-1] = itemstr_list[-1].rstrip(',')
 
     if newlines:
-        import utool as ut
         if nobraces:
             retstr =  '\n'.join(itemstr_list)
         else:
@@ -1540,6 +1563,7 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
                 retstr = ut.align(retstr, ':')
     else:
         # hack away last trailing comma
+        itemsep = dictkw.get('itemsep', ' ')
         sequence_str = itemsep.join(itemstr_list)
         if dictkw.get('trailing_comma', True):
             sequence_str = sequence_str.rstrip(',')
@@ -1549,8 +1573,8 @@ def dict_str(dict_, strvals=False, sorted_=None, newlines=True, recursive=True,
 
 
 def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
-             truncate=False, truncatekw={}, label_list=None, packed=False,
-             nobr=None, itemsep=' ', **listkw):
+             truncate=False, truncatekw={}, packed=False,
+             nobr=None, **listkw):
     r"""
     Args:
         list_ (list):
@@ -1560,7 +1584,6 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         nl (None): alias for newlines (default = None)
         truncate (bool): (default = False)
         truncatekw (dict): (default = {})
-        label_list (list): (default = None)
         packed (bool): if true packs braces close to body (default = False)
 
     Kwargs:
@@ -1620,10 +1643,9 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
 
     itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_,
                                     truncate=truncate_, truncatekw=truncatekw,
-                                    packed=packed_,
-                                    label_list=label_list, **listkw)
+                                    packed=packed_, **listkw)
     is_tuple = isinstance(list_, tuple)
-    is_set = isinstance(list_, (set, frozenset))
+    is_set = isinstance(list_, (set, frozenset, ut.oset))
     is_one_tuple = (is_tuple and len(list_) <= 1)
     if nobraces:
         leftbrace, rightbrace = '', ''
@@ -1635,13 +1657,24 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         else:
             leftbrace, rightbrace  = '[', ']'
 
+    if is_set and not isinstance(list_, ut.oset):
+        # Force orderings on sets
+        try:
+            sortx = ut.argsort2(list_)
+            itemstr_list = ut.take(itemstr_list, sortx)
+        except Exception as ex:
+            ut.printex(ex)
+            itemstr_list = sorted(itemstr_list)
+
     if not listkw.get('trailing_comma', True):
         if not is_one_tuple:
             if len(itemstr_list) > 0:
                 itemstr_list[-1] = itemstr_list[-1].rstrip(',')
 
+    itemsep = listkw.get('itemsep', ' ')
+
     if newlines is not False and (newlines is True or newlines > 0):
-        if nobraces or label_list is not None:
+        if nobraces:
             body_str = '\n'.join(itemstr_list)
             retstr = body_str
         else:
@@ -1671,11 +1704,35 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
     return retstr
 
 
-def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
-                      recursive=True, indent_='', precision=None,
-                      hack_liststr=False, explicit=False, truncate=False,
-                      key_order=None, truncatekw=dict(), key_order_metric=None,
-                      itemsep=' ', use_numpy=True, with_comma=True, **dictkw):
+def _common_recursive_valfunc_parts(val, valfunc, **kwargs):
+    import utool as ut
+    precision = kwargs.get('precision', None)
+    if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
+        if kwargs.get('use_numpy', True):
+            with_dtype = kwargs.get('with_dtype', True)
+            force_dtype = kwargs.get('force_dtype', True)  # DEP FORCE_DTYPE
+            strvals = kwargs.get('strvals', False)  # DEP FORCE_DTYPE
+            precision = kwargs.get('precision', None)  # DEP FORCE_DTYPE
+            return numpy_str(val, strvals=strvals, precision=precision,
+                             force_dtype=force_dtype, with_dtype=with_dtype)
+        else:
+            return list_str(val, **kwargs)
+    if precision is not None and (isinstance(val, (float)) or
+                                  util_type.is_float(val)):
+        return scalar_str(val, precision)
+    elif isinstance(val, slice):
+        if kwargs.get('itemsep', ' ') == '':
+            # hack
+            return 'slice(%r,%r,%r)' % (val.start, val.stop, val.step)
+        else:
+            return valfunc(val)
+    else:
+        # base case
+        return valfunc(val)
+
+
+def dict_itemstr_list(dict_, sorted_=None, indent_='', key_order=None,
+                      key_order_metric=None, **dictkw):
     r"""
     Returns:
         list: a list of human-readable dictionary items
@@ -1683,68 +1740,34 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     Args:
         explicit : if True uses dict(key=val,...) format instead of {key:val,...}
     """
+    import utool as ut
 
-    if strvals:
+    explicit = dictkw.get('explicit', False)
+    dictkw['explicit'] = _rectify_countdown_or_bool(explicit)
+
+    if dictkw.get('strvals', False):
         valfunc = six.text_type
     else:
         valfunc = reprfunc
 
     def recursive_valfunc(val):
         # TODO : Rectify with list version
-        #print('hack_liststr = %r' % (hack_liststr,))
         new_indent = indent_ + '    '
         if isinstance(val, dict):
-            #print('val = %r' % (id(val),))
-            #print(type(val))
-            #print('val = %r' % (val.keys(),))
-            return dict_str(val, strvals=strvals, sorted_=sorted_,
-                            newlines=newlines, recursive=recursive,
-                            indent_=new_indent, precision=precision,
-                            truncate=truncate, truncatekw=truncatekw,
-                            with_comma=with_comma, key_order=key_order,
-                            hack_liststr=hack_liststr, itemsep=itemsep,
-                            use_numpy=use_numpy, **dictkw)
-        elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
-            if use_numpy:
-                with_dtype = dictkw.get('with_dtype', True)
-                force_dtype = dictkw.get('force_dtype', True)  # DEP FORCE_DTYPE
-                return numpy_str(val, strvals=strvals, precision=precision,
-                                 force_dtype=force_dtype, with_dtype=with_dtype)
-            else:
-                return list_str(val, newlines=newlines, precision=precision,
-                                strvals=strvals)
-        if hack_liststr and isinstance(val, (list, tuple, set, frozenset)):
-            #print('**dictkw = %r' % (dictkw,))
-            #print('newlines = %r' % (newlines,))
-            #print('LIST')
-            #print(val)
-            #print('hack_liststr = %r' % (hack_liststr,))
-            return list_str(val, newlines=newlines, precision=precision,
-                            strvals=strvals, itemsep=itemsep,
-                            hack_liststr=hack_liststr)
-        elif precision is not None and (isinstance(val, (float)) or
-                                        util_type.is_float(val)):
-            return scalar_str(val, precision)
-        elif isinstance(val, slice):
-            if itemsep == '':
-                # hack
-                return 'slice(%r,%r,%r)' % (val.start, val.stop, val.step)
-            else:
-                return valfunc(val)
-        else:
-            # base case
-            #assert not isinstance(val, collections.OrderedDict), repr(val)
-            #print('BASIC')
-            #print('hack_liststr = %r' % (hack_liststr,))
-            #print(type(val))
-            #print(val)
-            return valfunc(val)
+            return dict_str(val, sorted_=sorted_,
+                            indent_=new_indent,
+                            key_order=key_order,
+                            **dictkw)
+        if isinstance(val, (list, tuple, set, frozenset, ut.oset)):
+            return list_str(val, **dictkw)
+        return _common_recursive_valfunc_parts(val, valfunc, **dictkw)
 
     if sorted_ is None:
-        dosort = not isinstance(dict_, collections.OrderedDict)
+        dosort = True
     else:
         dosort = sorted_
-    if dosort:
+
+    if dosort and not isinstance(dict_, collections.OrderedDict):
         def iteritems(d):
             if key_order is None:
                 # specify order explicilty
@@ -1763,7 +1786,7 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     else:
         iteritems = six.iteritems
 
-    _valstr = recursive_valfunc if recursive else valfunc
+    _valstr = recursive_valfunc if dictkw.get('recursive', True) else valfunc
 
     def make_item_str(key, val, indent_):
         if explicit:
@@ -1773,12 +1796,12 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
                 #key_str = reprfunc(key, precision=precision) + ': '
                 key_str = '%s: ' % (six.text_type(key),)
             else:
-                key_str =  '%s: ' % (repr2(key, precision=precision),)
+                key_str =  '%s: ' % (repr2(key, precision=dictkw.get('precision', None)),)
         val_str = _valstr(val)
         padded_indent = ' ' * min(len(indent_), len(key_str))
         val_str = val_str.replace('\n', '\n' + padded_indent)
         item_str = key_str + val_str
-        if with_comma:
+        if dictkw.get('with_comma', True):
             item_str += ','
         return item_str
 
@@ -1792,11 +1815,9 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
             reverse = True
 
     if key_order_metric == 'strlen':
-        import utool as ut
         metric_list = [len(itemstr) for itemstr in itemstr_list]
         itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
     elif key_order_metric == 'val':
-        import utool as ut
         metric_list = [val for (key, val) in iteritems(dict_)]
         itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
 
@@ -1806,68 +1827,41 @@ def dict_itemstr_list(dict_, strvals=False, sorted_=None, newlines=True,
     return itemstr_list
 
 
-def get_itemstr_list(list_, strvals=False, newlines=True, recursive=True,
-                     indent_='', precision=None, label_list=None,
-                     with_comma=True, **listkws):
+def get_itemstr_list(list_, newlines=True, indent_='', **listkws):
     """
     TODO: have this replace dict_itemstr list or at least most functionality in
     it. have it make two itemstr lists over keys and values and then combine
     them.
     """
-    if strvals:
+    import utool as ut
+    if listkws.get('strvals', False):
         valfunc = six.text_type
     else:
         valfunc = reprfunc
 
-    def recursive_valfunc(val, sublabels=None):
+    new_indent = indent_ + '    ' if newlines else indent_
+    # listkws['indent_'] = new_indent
+
+    def recursive_valfunc(val):
         # TODO : Rectify with dict version
-        new_indent = indent_ + '    ' if newlines else indent_
         common_kw = dict(
-            strvals=strvals, newlines=newlines, recursive=recursive,
-            indent_=new_indent, precision=precision, with_comma=with_comma)
+            newlines=newlines, indent_=new_indent, **listkws)
         if isinstance(val, dict):
-            common_kw.update(
-                dict(sorted_=listkws.get('sorted_', True and not isinstance(val, collections.OrderedDict)),
-                     hack_liststr=listkws.get('hack_liststr', False)))
             return dict_str(val, **common_kw)
-        if isinstance(val, (tuple, list, set, frozenset)):
-            common_kw.update(dict(label_list=sublabels, **listkws))
+        if isinstance(val, (tuple, list, set, frozenset, ut.oset)):
             return list_str(val, **common_kw)
-        elif util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
-            # TODO: generally pass down args
-            suppress_small = listkws.get('suppress_small', None)
-            with_dtype = listkws.get('with_dtype', None)
-            return numpy_str(val, strvals=strvals, precision=precision,
-                             suppress_small=suppress_small,
-                             with_dtype=with_dtype)
-        elif precision is not None and (isinstance(val, (float)) or util_type.is_float(val)):
-            return scalar_str(val, precision)
-        else:
-            # base case
-            return valfunc(val)
+        return _common_recursive_valfunc_parts(val, valfunc, **listkws)
 
-    _valstr = recursive_valfunc if recursive else valfunc
+    _valstr = recursive_valfunc if listkws.get('recursive', True) else valfunc
 
-    def make_item_str(item, label=None):
-        if isinstance(label, (list, tuple, set, frozenset)):
-            val_str = _valstr(item, label)
-        else:
-            val_str = _valstr(item)
-        if isinstance(label, six.string_types):
-            prefix = label + ' = '
-            item_str = horiz_string(prefix,  val_str)
-        else:
-            item_str = val_str
-            if with_comma:
-                item_str += ','
+    def make_item_str(item):
+        val_str = _valstr(item)
+        item_str = val_str
+        if listkws.get('with_comma', True):
+            item_str += ','
         return item_str
 
-    if label_list is not None:
-        assert len(label_list) == len(list_)
-        itemstr_list = [make_item_str(item, label)
-                        for item, label in zip(list_, label_list)]
-    else:
-        itemstr_list = [make_item_str(item) for item in list_]
+    itemstr_list = [make_item_str(item) for item in list_]
     return itemstr_list
 
 

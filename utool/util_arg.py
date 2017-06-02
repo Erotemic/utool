@@ -309,7 +309,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         >>> for argstr_, kwargs in argstr_kwargs_list:
         >>>     res = get_argval(argstr_, **kwargs)
         >>>     res_list.append(res)
-        >>> result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))
+        >>> result = ut.repr2(ut.odict(zip(argstr_list, res_list)), nl=1)
         >>> result = result.replace('u\'', '\'')  # hack
         >>> print(result)
         {
@@ -610,7 +610,7 @@ def get_arg_dict(argv=None, prefix_list=['--'], type_hints={}):
         >>> import shlex
         >>> argv = shlex.split('--test-show_name --name=IBEIS_PZ_0303 --db testdb3 --save "~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg" --dpath figures --caption="Shadowed"  --figsize=11,3 --no-figtitle -t foo bar baz biz --notitle')
         >>> arg_dict = ut.get_arg_dict(argv, prefix_list=['--', '-'], type_hints={'t': list})
-        >>> result = ut.dict_str(arg_dict)
+        >>> result = ut.repr2(arg_dict, nl=1)
         >>> # verify results
         >>> print(result)
         {

@@ -522,7 +522,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> from utool.util_hash import *  # NOQA
         >>> data = 'foobar'
         >>> hashlen = 16
-        >>> alphabet = ALPHABET
+        >>> alphabet = ALPHABET_41
         >>> text = hashstr(data, hashlen, alphabet)
         >>> result = ('text = %s' % (str(text),))
         >>> print(result)
@@ -533,7 +533,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> from utool.util_hash import *  # NOQA
         >>> data = ''
         >>> hashlen = 16
-        >>> alphabet = ALPHABET
+        >>> alphabet = ALPHABET_41
         >>> text = hashstr(data, hashlen, alphabet)
         >>> result = ('text = %s' % (str(text),))
         >>> print(result)
@@ -545,7 +545,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> import numpy as np
         >>> data = np.array([1, 2, 3])
         >>> hashlen = 16
-        >>> alphabet = ALPHABET
+        >>> alphabet = ALPHABET_41
         >>> text = hashstr(data, hashlen, alphabet)
         >>> result = ('text = %s' % (str(text),))
         >>> print(result)
@@ -558,7 +558,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> from uuid import UUID
         >>> data = (UUID('7cd0197b-1394-9d16-b1eb-0d8d7a60aedc'), UUID('c76b54a5-adb6-7f16-f0fb-190ab99409f8'))
         >>> hashlen = 16
-        >>> alphabet = ALPHABET
+        >>> alphabet = ALPHABET_41
         >>> text = hashstr_arr(data, 'label')
         >>> result = ('text = %s' % (str(text),))
         >>> print(result)
@@ -1114,7 +1114,7 @@ def get_zero_uuid():
     return uuid.UUID('00000000-0000-0000-0000-000000000000')
 
 # Cleanup namespace
-del ALPHABET_41
+# del ALPHABET_41
 del ALPHABET_54
 
 
