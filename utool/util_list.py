@@ -1324,6 +1324,9 @@ def flag_unique_items(list_):
     return flag_list
 
 
+unique_flags = flag_unique_items
+
+
 def iflag_unique_items(list_):
     """
     Returns a list of flags corresponding to the first time an item is seen

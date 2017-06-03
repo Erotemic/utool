@@ -907,7 +907,7 @@ def parse_docblocks_from_docstr(docstr, offsets=False):
             print('ERROR IN PARSING')
             print('adjusted = %r' % (adjusted,))
             print(docstr)
-            raise AssertionError('Google Style Docstring Missformat')
+            raise ValueError('Google Style Docstring Missformat')
 
     base_indent = 0
     # We will group lines by their indentation.

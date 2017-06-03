@@ -1183,10 +1183,9 @@ def numpy_str(arr, strvals=False, precision=None, pr=None, force_dtype=True,
         numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
         for npval in numpy_vals:
             valstr = valstr.replace(npval, 'np.' + npval)
-    if valstr.find('\n') >= 0:
-        # Align multiline arrays
-        valstr = valstr.replace('\n', '\n   ')
-        pass
+        if valstr.find('\n') >= 0:
+            # Align multiline arrays
+            valstr = valstr.replace('\n', '\n   ')
     return valstr
 
 
@@ -1415,43 +1414,36 @@ def repr5(obj_, **kwargs):
     return repr2(obj_, **_kw)
 
 
-def dict_str(dict_, sorted_=None, newlines=True, recursive=True, indent_='',
-             precision=None, truncate=False, nl=None,
-             truncatekw=dict(), key_order=None,
-             key_order_metric=None, nobraces=False, nobr=None, align=False,
-             **dictkw):
+def dict_str(dict_, **dictkw):
     r"""
     Makes a pretty printable / human-readable string representation of a
-        dictionary. In most cases this string could be evaled.
+    dictionary. In most cases this string could be evaled.
 
     Args:
         dict_ (dict_): a dictionary
-        strvals (bool): (default = False)
+
+    Args:
+        dict_ (dict_):  a dictionary
+        **dictkw: stritems, strkeys, strvals, nl, newlines, truncate, nobr,
+                  nobraces, align, trailing_comma, explicit, itemsep,
+                  truncatekw, sorted_, indent_, key_order, precision,
+                  with_comma, key_order_metric, maxlen, recursive, use_numpy,
+                  with_dtype, force_dtype, packed
+
+    Kwargs:
         sorted_ (None): returns str sorted by a metric (default = None)
-        newlines (bool): Use nl instead. (default = True)
-        recursive (bool): (default = True)
-        indent_ (str): (default = '')
-        precision (int): (default = 8)
-        truncate (bool): (default = False)
         nl (int): prefered alias for newline. can be a coundown variable
             (default = None)
-        explicit (bool): (default = False)
-        truncatekw (dict): (default = {})
         key_order (None): overrides default ordering (default = None)
         key_order_metric (str): special sorting of items. Accepted values:
                 None, 'strlen', 'val'
-        nobraces (bool): (default = False)
-        align (bool): (default = False)
+        precision (int): (default = 8)
+        explicit (int): can be a countdown variable. if True, uses
+            dict(a=b) syntax instead of {'a': b}
+        nobr (bool): removes outer braces (default = False)
 
-    Kwargs:
-        use_numpy, with_comma
-
-    Returns:
-        str:
-
-    FIXME:
-        ALL LIST DICT STRINGS ARE VERY SPAGEHETTI RIGHT NOW
-
+    Ignore:
+        python -m utool.util_inspect recursive_parse_kwargs:2 --mod utool.util_str --func dict_str --verbinspect
 
     CommandLine:
         python -m utool.util_str --test-dict_str:1
@@ -1473,19 +1465,22 @@ def dict_str(dict_, sorted_=None, newlines=True, recursive=True, indent_='',
             'baz': barbarbarbarbarbarbarbarbarbarbarbarbarbarbar,
             'foo': {
                 'eggs': jam,
-                's ~~~TRUNCATED~~~ ,
+                's ~~~TRUNCATED~~~ r,
             },
         }
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
+        >>> import numpy as np
         >>> a, b, c = 'a', 'b', 'c'
         >>> dict_ = {
         >>>     'float': 2.3333,
         >>>     'slice': slice(1, 2, None),
+        >>>     'arr': np.eye(3),
         >>>     'list1': [1, 2, 3, 2.3333, a, b, c],
         >>>     'dict1': {2.3333: 2.3333, a: b, c: [a, b]},
+        >>>     't': {c: {c: {c: {c : c}}}},
         >>>     'set1': {c, a, b},
         >>>     'set2': ut.oset([c, a, b]),
         >>>     'list2': [
@@ -1493,101 +1488,171 @@ def dict_str(dict_, sorted_=None, newlines=True, recursive=True, indent_='',
         >>>         [1, 2, {c, a, 2.333}, {a: [b], b: {c}, c: 2.333}]
         >>>     ],
         >>> }
-        >>> result = ut.dict_str(dict_, stritems=True, strvals=True, itemsep='',
+        >>> result = ut.dict_str(dict_, stritems=True, itemsep='',
         >>>                      precision=2, nl=1, nobr=True, explicit=True)
         >>> print(result)
-
-        {
-            'baz': barbarbarbarbarbarbarbarbarbarbarbarbarbarbar,
-            'foo': {
-                'eggs': jam,
-                's ~~~TRUNCATED~~~ ,
-            },
-        }
+        >>> result = ut.dict_str(dict_, stritems=0,
+        >>>                      precision=2, nl=True, nobr=False, explicit=0)
+        >>> print(result)
     """
     import utool as ut
-    if nobr is not None:
-        nobraces = nobr
-    if nl is not None:
-        newlines = nl
 
     if dictkw.pop('stritems', False):
         dictkw['strkeys'] = True
         dictkw['strvals'] = True
 
+    newlines = dictkw.pop('nl', dictkw.pop('newlines', True))
+    truncate = dictkw.pop('truncate', False)
+    dictkw['nl'] = _rectify_countdown_or_bool(newlines)
+    dictkw['truncate'] = _rectify_countdown_or_bool(truncate)
+
+    nobraces = dictkw.pop('nobr', dictkw.pop('nobraces', False))
+    align = dictkw.pop('align', False)
+
+    # Doesn't actually put in trailing comma if on same line
+    trailing_comma = dictkw.get('trailing_comma', True)
     explicit = dictkw.get('explicit', False)
-    newlines_ = _rectify_countdown_or_bool(newlines)
-    truncate_ = _rectify_countdown_or_bool(truncate)
+    with_comma = dictkw.get('with_comma', True)
+    itemsep = dictkw.get('itemsep', ' ')
 
     if len(dict_) == 0:
-        if explicit:
-            return 'dict()'
-        else:
-            return '{}'
+        return 'dict()' if explicit else '{}'
 
-    #if 'braces' in dictkw:
-    #    dictkw['braces'] = _rectify_countdown_or_bool(dictkw['braces'])
-    #    nobraces = not dictkw['braces']
-
-    itemstr_list = dict_itemstr_list(dict_,
-                                     sorted_=sorted_,
-                                     newlines=newlines_,
-                                     recursive=recursive,
-                                     indent_=indent_,
-                                     precision=precision,
-                                     truncate=truncate_, truncatekw=truncatekw,
-                                     key_order=key_order,
-                                     key_order_metric=key_order_metric,
-                                     **dictkw)
+    itemstr_list = dict_itemstr_list(dict_, **dictkw)
 
     do_truncate = truncate is not False and (truncate is True or truncate == 0)
     if do_truncate:
+        truncatekw = dictkw.get('truncatekw', {})
         itemstr_list = [truncate_str(item, **truncatekw) for item in itemstr_list]
 
-    leftbrace, rightbrace  = ('dict(', ')') if explicit else ('{', '}')
     if nobraces:
-        leftbrace = ''
-        rightbrace = ''
-
-    if not dictkw.get('trailing_comma', True):
-        itemstr_list[-1] = itemstr_list[-1].rstrip(',')
+        lbr, rbr = '', ''
+    elif explicit:
+        lbr, rbr = 'dict(', ')'
+    else:
+        lbr, rbr = '{', '}'
 
     if newlines:
+        sep = ',\n' if with_comma else '\n'
         if nobraces:
-            retstr =  '\n'.join(itemstr_list)
+            retstr =  sep.join(itemstr_list)
+            if trailing_comma:
+                retstr += ','
         else:
-            _ = [ut.indent(itemstr, '    ') for itemstr in itemstr_list]
-            body_str = '\n'.join(_)
-            retstr =  (leftbrace + '\n' + body_str + '\n' + rightbrace)
+            parts = [ut.indent(itemstr, '    ') for itemstr in itemstr_list]
+            body_str = sep.join(parts)
+            if trailing_comma:
+                body_str += ','
+            retstr =  (lbr + '\n' + body_str + '\n' + rbr)
             if align:
                 retstr = ut.align(retstr, ':')
     else:
+        sep = ',' + itemsep if with_comma else itemsep
         # hack away last trailing comma
-        itemsep = dictkw.get('itemsep', ' ')
-        sequence_str = itemsep.join(itemstr_list)
-        if dictkw.get('trailing_comma', True):
-            sequence_str = sequence_str.rstrip(',')
-        retstr = leftbrace +  sequence_str + rightbrace
+        sequence_str = sep.join(itemstr_list)
+        # if trailing_comma:
+        #     sequence_str += ','
+        retstr = lbr +  sequence_str + rbr
     # Is there a way to make truncate for dict_str compatible with list_str?
     return retstr
 
 
-def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
-             truncate=False, truncatekw={}, packed=False,
-             nobr=None, **listkw):
+def dict_itemstr_list(dict_, **dictkw):
     r"""
-    Args:
-        list_ (list):
-        indent_ (str): (default = '')
-        newlines (int): (default = 1)
-        nobraces (bool): (default = False)
-        nl (None): alias for newlines (default = None)
-        truncate (bool): (default = False)
-        truncatekw (dict): (default = {})
-        packed (bool): if true packs braces close to body (default = False)
+    Returns:
+        list: a list of human-readable dictionary items
 
-    Kwargs:
-        strvals, recursive, precision, with_comma
+    Args:
+        explicit : if True uses dict(key=val,...) format instead of {key:val,...}
+    """
+    import utool as ut
+
+    explicit = dictkw.get('explicit', False)
+    dictkw['explicit'] = _rectify_countdown_or_bool(explicit)
+
+    dosort = dictkw.get('sorted_', None)
+    indent_ = dictkw.get('indent_', '')
+
+    if dosort is None:
+        dosort = True
+
+    if dosort and not isinstance(dict_, collections.OrderedDict):
+        key_order = dictkw.get('key_order', None)
+        def iteritems(d):
+            if key_order is None:
+                # specify order explicilty
+                try:
+                    return iter(sorted(six.iteritems(d)))
+                except TypeError:
+                    # catches case where keys are of different types
+                    return six.iteritems(d)
+            else:
+                # Enforce specific key order
+                # TODO: depricate and just use ordered dicts
+                unordered_keys = list(d.keys())
+                other_keys = sorted(list(set(unordered_keys) - set(key_order)))
+                keys = key_order + other_keys
+                return ((key, d[key]) for key in keys)
+    else:
+        iteritems = six.iteritems
+
+    _valstr = _make_valstr(**dictkw)
+
+    precision = dictkw.get('precision', None)
+
+    def make_item_str(key, val):
+        if explicit:
+            key_str = '%s=' % (six.text_type(key),)
+        else:
+            if dictkw.get('strkeys', False):
+                key_str = '{}: '.format(six.text_type(key))
+            else:
+                key_str =  '{}: '.format(repr2(key, precision=precision))
+        val_str = _valstr(val)
+        if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
+            item_str = hz_str(key_str, val_str)
+        else:
+            padded_indent = ' ' * min(len(indent_), len(key_str))
+            val_str = val_str.replace('\n', '\n' + padded_indent)
+            item_str = key_str + val_str
+        # if dictkw.get('with_comma', True):
+        #     item_str += ','
+        return item_str
+
+    itemstr_list = [make_item_str(key, val)
+                    for (key, val) in iteritems(dict_)]
+
+    reverse = False
+    key_order_metric = dictkw.get('key_order_metric', None)
+    if key_order_metric is not None:
+        if key_order_metric.startswith('-'):
+            key_order_metric = key_order_metric[1:]
+            reverse = True
+
+    if key_order_metric == 'strlen':
+        metric_list = [len(itemstr) for itemstr in itemstr_list]
+        itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
+    elif key_order_metric == 'val':
+        metric_list = [val for (key, val) in iteritems(dict_)]
+        itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
+
+    maxlen = dictkw.get('maxlen', None)
+    if maxlen is not None and len(itemstr_list) > maxlen:
+        itemstr_list = itemstr_list[0:maxlen]
+    return itemstr_list
+
+
+def list_str(list_, **listkw):
+    r"""
+    Makes a pretty list string
+
+    Args:
+        list_ (list): input list
+        **listkw: nl, newlines, packed, truncate, nobr, nobraces, itemsep,
+                  trailing_comma, truncatekw, with_comma, strvals, recursive,
+                  indent_, precision, use_numpy, with_dtype, force_dtype,
+                  stritems, strkeys, align, explicit, sorted_, key_order,
+                  key_order_metric, maxlen
 
     Returns:
         str: retstr
@@ -1607,13 +1672,8 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         >>>           (('--verbose-qt', '--verbqt'), 1, False, ''),
         >>>           (('--verbose-qt', '--verbqt'), 1, False, '')],
         >>>          [(['--nodyn'], 1, False, ''), (['--nodyn'], 1, False, '')]]
-        >>> indent_ = ''
-        >>> newlines = 2
-        >>> truncate = ut.get_argval('--truncate', type_=None, default=False)
-        >>> nobraces = False
-        >>> nl = None
-        >>> result = list_str(list_, indent_, newlines, nobraces, nl,
-        >>>                   truncate=truncate, truncatekw={'maxlen': 10})
+        >>> listkw = {'nl':  2}
+        >>> result = list_str(list_, **listkw)
         >>> print(result)
         [
             [
@@ -1629,239 +1689,137 @@ def list_str(list_, indent_='', newlines=1, nobraces=False, nl=None,
         ]
     """
     import utool as ut
-    if nobr is not None:
-        nobraces = nobr
-    if nl is not None:
-        newlines = nl
 
-    #if 'braces' in listkw:
-    #    listkw['braces'] = _rectify_countdown_or_bool(listkw['braces'])
-    #    nobraces = not listkw['braces']
-    newlines_ = _rectify_countdown_or_bool(newlines)
-    truncate_ = _rectify_countdown_or_bool(truncate)
-    packed_ = _rectify_countdown_or_bool(packed)
+    newlines = listkw.pop('nl', listkw.pop('newlines', 1))
+    packed = listkw.pop('packed', False)
+    truncate = listkw.pop('truncate', False)
+    listkw['nl'] = _rectify_countdown_or_bool(newlines)
+    listkw['truncate'] = _rectify_countdown_or_bool(truncate)
+    listkw['packed'] = _rectify_countdown_or_bool(packed)
 
-    itemstr_list = get_itemstr_list(list_, indent_=indent_, newlines=newlines_,
-                                    truncate=truncate_, truncatekw=truncatekw,
-                                    packed=packed_, **listkw)
-    is_tuple = isinstance(list_, tuple)
-    is_set = isinstance(list_, (set, frozenset, ut.oset))
-    is_one_tuple = (is_tuple and len(list_) <= 1)
-    if nobraces:
-        leftbrace, rightbrace = '', ''
-    else:
-        if is_tuple:
-            leftbrace, rightbrace  = '(', ')'
-        elif is_set:
-            leftbrace, rightbrace  = '{', '}'
-        else:
-            leftbrace, rightbrace  = '[', ']'
-
-    if is_set and not isinstance(list_, ut.oset):
-        # Force orderings on sets
-        try:
-            sortx = ut.argsort2(list_)
-            itemstr_list = ut.take(itemstr_list, sortx)
-        except Exception as ex:
-            ut.printex(ex)
-            itemstr_list = sorted(itemstr_list)
-
-    if not listkw.get('trailing_comma', True):
-        if not is_one_tuple:
-            if len(itemstr_list) > 0:
-                itemstr_list[-1] = itemstr_list[-1].rstrip(',')
+    nobraces = listkw.pop('nobr', listkw.pop('nobraces', False))
 
     itemsep = listkw.get('itemsep', ' ')
+    # Doesn't actually put in trailing comma if on same line
+    trailing_comma = listkw.get('trailing_comma', True)
+    with_comma = listkw.get('with_comma', True)
+
+    itemstr_list = get_itemstr_list(list_, **listkw)
+    is_tuple = isinstance(list_, tuple)
+    is_set = isinstance(list_, (set, frozenset, ut.oset))
+    is_onetup = isinstance(list_, (tuple)) and len(list_) <= 1
+    if nobraces:
+        lbr, rbr = '', ''
+    elif is_tuple:
+        lbr, rbr  = '(', ')'
+    elif is_set:
+        lbr, rbr  = '{', '}'
+    else:
+        lbr, rbr  = '[', ']'
 
     if newlines is not False and (newlines is True or newlines > 0):
+        sep = ',\n' if with_comma else '\n'
         if nobraces:
-            body_str = '\n'.join(itemstr_list)
+            body_str = sep.join(itemstr_list)
+            if trailing_comma:
+                body_str += ','
             retstr = body_str
         else:
             if packed:
-                joinstr = '\n' + itemsep * len(leftbrace)
+                joinstr = sep + itemsep * len(lbr)
                 body_str = joinstr.join([itemstr for itemstr in itemstr_list])
-                braced_body_str = (leftbrace + '' + body_str + '' + rightbrace)
+                if trailing_comma:
+                    body_str += ','
+                braced_body_str = (lbr + '' + body_str + '' + rbr)
             else:
-                body_str = '\n'.join([ut.indent(itemstr)
-                                      for itemstr in itemstr_list])
-                braced_body_str = (leftbrace + '\n' +
-                                   body_str + '\n' + rightbrace)
+                body_str = sep.join([
+                    ut.indent(itemstr) for itemstr in itemstr_list])
+                if trailing_comma:
+                    body_str += ','
+                braced_body_str = (lbr + '\n' + body_str + '\n' + rbr)
             retstr = braced_body_str
     else:
-        sequence_str = itemsep.join(itemstr_list)
-        # hack away last comma except in 1-tuple case
-        if listkw.get('trailing_comma', True):
-            # Only do this if the first item did not happen
-            if not is_one_tuple:
-                sequence_str = sequence_str.rstrip(',')
-        retstr  = (leftbrace + sequence_str +  rightbrace)
+        sep = ',' + itemsep if with_comma else itemsep
+        body_str = sep.join(itemstr_list)
+        if is_onetup:
+            body_str += ','
+        retstr  = (lbr + body_str +  rbr)
 
     # TODO: rectify with dict_truncate
     do_truncate = truncate is not False and (truncate is True or truncate == 0)
     if do_truncate:
+        truncatekw = listkw.get('truncatekw', {})
         retstr = truncate_str(retstr, **truncatekw)
     return retstr
 
 
-def _common_recursive_valfunc_parts(val, valfunc, **kwargs):
-    import utool as ut
-    precision = kwargs.get('precision', None)
-    if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
-        if kwargs.get('use_numpy', True):
-            with_dtype = kwargs.get('with_dtype', True)
-            force_dtype = kwargs.get('force_dtype', True)  # DEP FORCE_DTYPE
-            strvals = kwargs.get('strvals', False)  # DEP FORCE_DTYPE
-            precision = kwargs.get('precision', None)  # DEP FORCE_DTYPE
-            return numpy_str(val, strvals=strvals, precision=precision,
-                             force_dtype=force_dtype, with_dtype=with_dtype)
-        else:
-            return list_str(val, **kwargs)
-    if precision is not None and (isinstance(val, (float)) or
-                                  util_type.is_float(val)):
-        return scalar_str(val, precision)
-    elif isinstance(val, slice):
-        if kwargs.get('itemsep', ' ') == '':
-            # hack
-            return 'slice(%r,%r,%r)' % (val.start, val.stop, val.step)
-        else:
-            return valfunc(val)
-    else:
-        # base case
-        return valfunc(val)
-
-
-def dict_itemstr_list(dict_, sorted_=None, indent_='', key_order=None,
-                      key_order_metric=None, **dictkw):
-    r"""
-    Returns:
-        list: a list of human-readable dictionary items
-
-    Args:
-        explicit : if True uses dict(key=val,...) format instead of {key:val,...}
-    """
+def _make_valstr(**kwargs):
     import utool as ut
 
-    explicit = dictkw.get('explicit', False)
-    dictkw['explicit'] = _rectify_countdown_or_bool(explicit)
+    valfunc = six.text_type if kwargs.get('strvals', False) else reprfunc
 
-    if dictkw.get('strvals', False):
-        valfunc = six.text_type
-    else:
-        valfunc = reprfunc
+    if not kwargs.get('recursive', True):
+        return valfunc
+
+    indent_ = kwargs.pop('indent_', '')
+    new_indent = indent_ + '    '
 
     def recursive_valfunc(val):
-        # TODO : Rectify with list version
-        new_indent = indent_ + '    '
+        precision = kwargs.get('precision', None)
         if isinstance(val, dict):
-            return dict_str(val, sorted_=sorted_,
-                            indent_=new_indent,
-                            key_order=key_order,
-                            **dictkw)
+            return dict_str(val, indent_=new_indent, **kwargs)
         if isinstance(val, (list, tuple, set, frozenset, ut.oset)):
-            return list_str(val, **dictkw)
-        return _common_recursive_valfunc_parts(val, valfunc, **dictkw)
-
-    if sorted_ is None:
-        dosort = True
-    else:
-        dosort = sorted_
-
-    if dosort and not isinstance(dict_, collections.OrderedDict):
-        def iteritems(d):
-            if key_order is None:
-                # specify order explicilty
-                try:
-                    return iter(sorted(six.iteritems(d)))
-                except TypeError:
-                    # catches case where keys are of different types
-                    return six.iteritems(d)
+            return list_str(val, indent_=new_indent, **kwargs)
+        if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
+            if kwargs.get('use_numpy', True):
+                # TODO: DEPRICATE FORCE_DTYPE
+                with_dtype = kwargs.get('with_dtype', True)
+                force_dtype = kwargs.get('force_dtype', True)
+                strvals = kwargs.get('strvals', False)
+                precision = kwargs.get('precision', None)
+                return numpy_str(val, strvals=strvals, precision=precision,
+                                 force_dtype=force_dtype,
+                                 with_dtype=with_dtype)
             else:
-                unordered_keys = list(d.keys())
-                other_keys = sorted(list(set(unordered_keys) - set(key_order)))
-                keys = key_order + other_keys
-                return ((key, d[key]) for key in keys)
-
-        #iteritems = lambda d: iter(sorted(six.iteritems(d)))
-    else:
-        iteritems = six.iteritems
-
-    _valstr = recursive_valfunc if dictkw.get('recursive', True) else valfunc
-
-    def make_item_str(key, val, indent_):
-        if explicit:
-            key_str = '%s=' % (six.text_type(key),)
+                return list_str(val, **kwargs)
+        if precision is not None and (isinstance(val, (float)) or
+                                      util_type.is_float(val)):
+            return scalar_str(val, precision)
+        elif isinstance(val, slice):
+            if kwargs.get('itemsep', ' ') == '':
+                return 'slice(%r,%r,%r)' % (val.start, val.stop, val.step)
+            else:
+                return valfunc(val)
         else:
-            if dictkw.get('strkeys', False):
-                #key_str = reprfunc(key, precision=precision) + ': '
-                key_str = '%s: ' % (six.text_type(key),)
-            else:
-                key_str =  '%s: ' % (repr2(key, precision=dictkw.get('precision', None)),)
-        val_str = _valstr(val)
-        padded_indent = ' ' * min(len(indent_), len(key_str))
-        val_str = val_str.replace('\n', '\n' + padded_indent)
-        item_str = key_str + val_str
-        if dictkw.get('with_comma', True):
-            item_str += ','
-        return item_str
-
-    itemstr_list = [make_item_str(key, val, indent_)
-                    for (key, val) in iteritems(dict_)]
-
-    reverse = False
-    if key_order_metric is not None:
-        if key_order_metric.startswith('-'):
-            key_order_metric = key_order_metric[1:]
-            reverse = True
-
-    if key_order_metric == 'strlen':
-        metric_list = [len(itemstr) for itemstr in itemstr_list]
-        itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
-    elif key_order_metric == 'val':
-        metric_list = [val for (key, val) in iteritems(dict_)]
-        itemstr_list = ut.sortedby(itemstr_list, metric_list, reverse=reverse)
-
-    maxlen = dictkw.get('maxlen', None)
-    if maxlen is not None and len(itemstr_list) > maxlen:
-        itemstr_list = itemstr_list[0:maxlen]
-    return itemstr_list
+            # base case
+            return valfunc(val)
+    return recursive_valfunc
 
 
-def get_itemstr_list(list_, newlines=True, indent_='', **listkws):
+def get_itemstr_list(list_, **listkw):
     """
     TODO: have this replace dict_itemstr list or at least most functionality in
     it. have it make two itemstr lists over keys and values and then combine
     them.
     """
-    import utool as ut
-    if listkws.get('strvals', False):
-        valfunc = six.text_type
-    else:
-        valfunc = reprfunc
-
-    new_indent = indent_ + '    ' if newlines else indent_
-    # listkws['indent_'] = new_indent
-
-    def recursive_valfunc(val):
-        # TODO : Rectify with dict version
-        common_kw = dict(
-            newlines=newlines, indent_=new_indent, **listkws)
-        if isinstance(val, dict):
-            return dict_str(val, **common_kw)
-        if isinstance(val, (tuple, list, set, frozenset, ut.oset)):
-            return list_str(val, **common_kw)
-        return _common_recursive_valfunc_parts(val, valfunc, **listkws)
-
-    _valstr = recursive_valfunc if listkws.get('recursive', True) else valfunc
+    _valstr = _make_valstr(**listkw)
 
     def make_item_str(item):
-        val_str = _valstr(item)
-        item_str = val_str
-        if listkws.get('with_comma', True):
-            item_str += ','
+        item_str = _valstr(item)
+        # if listkw.get('with_comma', True):
+        #     item_str += ','
         return item_str
 
     itemstr_list = [make_item_str(item) for item in list_]
+
+    if isinstance(list_, (set, frozenset)):
+        # Force orderings on sets
+        try:
+            sortx = ut.argsort2(list_)
+            itemstr_list = ut.take(itemstr_list, sortx)
+        except Exception:
+            itemstr_list = sorted(itemstr_list)
+
     return itemstr_list
 
 

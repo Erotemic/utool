@@ -901,7 +901,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> kwargs['debug_key'] = debug_key
         >>> kwargs['include_inherited'] = True
         >>> doctestable_list = list(iter_module_doctestable(module, **kwargs))
-        >>> func_names = sorted(ut.get_list_column(doctestable_list, 0))
+        >>> func_names = sorted(ut.take_column(doctestable_list, 0))
         >>> print(ut.list_str(func_names))
     """
     import ctypes
@@ -2305,8 +2305,10 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
         >>> root_func = lookup_attribute_chain(funcname, mod.__dict__)
         >>> path_ = None
         >>> parsed = recursive_parse_kwargs(root_func)
-        >>> result = ut.repr2(parsed)
-        >>> print(result)
+        >>> flags = ut.unique_flags(ut.take_column(parsed, 0))
+        >>> unique = ut.compress(parsed, flags)
+        >>> print('parsed = %s' % (ut.repr4(parsed),))
+        >>> print('unique = %s' % (ut.repr4(unique),))
     """
     if verbose is None:
         verbose = VERBOSE_INSPECT
@@ -2317,6 +2319,8 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
     if path_ is None:
         path_ = []
     if root_func in path_:
+        if verbose:
+            print('[inspect] Encountered cycle. returning')
         return []
     path_.append(root_func)
     spec = ut.get_func_argspec(root_func)
@@ -2325,12 +2329,14 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
     found_explicit = list(ut.get_kwdefaults(root_func, parse_source=False).items())
     if verbose:
         print('[inspect] * Found explicit %r' % (found_explicit,))
+
     #kwargs_list = [(kw,) for kw in  ut.get_kwargs(root_func)[0]]
     sourcecode = ut.get_func_sourcecode(root_func, strip_docstr=True,
                                         stripdef=True)
     sourcecode1 = ut.get_func_sourcecode(root_func, strip_docstr=True,
                                          stripdef=False)
-    found_implicit = ut.parse_kwarg_keys(sourcecode1, with_vals=True)
+    found_implicit = ut.parse_kwarg_keys(sourcecode1, spec.keywords,
+                                         with_vals=True)
     if verbose:
         print('[inspect] * Found found_implicit %r' % (found_implicit,))
     kwargs_list = found_explicit + found_implicit
@@ -2392,15 +2398,17 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
             try:
                 subfunc = func_globals[subfunc_name]
             except KeyError:
-                print('Unable to find function definition subfunc_name=%r' % (subfunc_name,))
+                print('Unable to find function definition subfunc_name=%r' %
+                      (subfunc_name,))
                 if ut.SUPER_STRICT:
                     raise
                 subfunc = None
         if subfunc is not None:
-            subkw_list = recursive_parse_kwargs(subfunc, verbose=verbose)
-            have_keys = set(ut.get_list_column(kwargs_list, 0))
-            new_subkw = [item for item in subkw_list
-                         if item[0] not in have_keys]
+            subkw_list = recursive_parse_kwargs(subfunc, path_, verbose=verbose)
+            new_subkw = subkw_list
+            # have_keys = set(ut.take_column(kwargs_list, 0))
+            # new_subkw = [item for item in subkw_list
+            #              if item[0] not in have_keys]
         else:
             new_subkw = []
         return new_subkw
@@ -2481,6 +2489,8 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
     CommandLine:
         python -m utool.util_inspect parse_kwarg_keys
 
+        python -m utool.util_inspect parse_kwarg_keys
+
     SeeAlso:
         argparse_funckw
         find_child_kwarg_funcs
@@ -2523,7 +2533,6 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
             ('foo2', None),
             ('bloop', None),
         ]
-
     """
     import re
     import utool as ut
@@ -2697,6 +2706,20 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                                         # val_value = 'TODO lookup const'
                                         # TODO: lookup constants?
                                         pass
+                                elif six.PY3:
+                                    if isinstance(val, ast.NameConstant):
+                                        val_value = val.value
+                                    elif isinstance(val, ast.Call):
+                                        val_value = None
+                                    elif isinstance(val, ast.Dict):
+                                        if len(val.keys) == 0:
+                                            val_value = {}
+                                        else:
+                                            val_value = {}
+                                        # val_value = callable
+                                    else:
+                                        import utool
+                                        utool.embed()
                                 item = (key_value, val_value)
                                 kwargs_items.append(item)
                 ast.NodeVisitor.generic_visit(self, node)
@@ -2851,15 +2874,15 @@ def infer_function_info(func):
 
         current_doc = inspect.getdoc(func)
         docstr_blocks = ut.parse_docblocks_from_docstr(current_doc)
-        docblock_types = ut.get_list_column(docstr_blocks, 0)
+        docblock_types = ut.take_column(docstr_blocks, 0)
         docblock_types = [re.sub('Example[0-9]', 'Example', type_)
                           for type_ in docblock_types]
         docblock_dict = ut.group_items(docstr_blocks, docblock_types)
 
         if '' in docblock_dict:
             docheaders = docblock_dict['']
-            docheaders_lines = ut.get_list_column(docheaders, 1)
-            docheaders_order = ut.get_list_column(docheaders, 2)
+            docheaders_lines = ut.take_column(docheaders, 1)
+            docheaders_order = ut.take_column(docheaders, 2)
             docheaders_lines = ut.sortedby(docheaders_lines, docheaders_order)
             doc_shortdesc = '\n'.join(docheaders_lines)
 
@@ -2932,8 +2955,9 @@ def infer_function_info(func):
             sourcecode = get_func_sourcecode(func)
             #kwarg_keys = ut.parse_kwarg_keys(sourcecode)
             kwarg_items = ut.recursive_parse_kwargs(func)
-
-            kwarg_keys = ut.get_list_column(kwarg_items, 0)
+            flags = ut.unique_flags(ut.take_column(kwarg_items, 0))
+            kwarg_items = ut.compress(kwarg_items, flags)
+            kwarg_keys = ut.take_column(kwarg_items, 0)
             #kwarg_keys = ut.unique_ordered(kwarg_keys)
             kwarg_keys = ut.setdiff_ordered(kwarg_keys, argname_list)
         else:
