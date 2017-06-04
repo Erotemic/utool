@@ -1801,9 +1801,25 @@ def snapped_slice(size, frac, n):
 
     SeeAlso:
         take_percentile_parts
+
+    Example:
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_list import *  # NOQA
+        >>> import utool as ut
+        >>> print(snapped_slice(0, 0, 10))
+        >>> print(snapped_slice(1, 0, 10))
+        >>> print(snapped_slice(100, 0, 10))
+        >>> print(snapped_slice(9, 0, 10))
+        >>> print(snapped_slice(100, 1, 10))
+        pass
     """
+    if size < n:
+        n = size
     start = int(size * frac - ceil(n / 2)) + 1
     stop  = int(size * frac + floor(n / 2)) + 1
+    # slide to the front or the back
     buf = 0
     if stop >= size:
         buf = (size - stop)
@@ -1811,7 +1827,7 @@ def snapped_slice(size, frac, n):
         buf = 0 - start
     stop += buf
     start += buf
-    assert stop <= size, 'out of bounds'
+    assert stop <= size, 'out of bounds [%r, %r]' % (stop, start)
     sl = slice(start, stop)
     return sl
 
