@@ -526,7 +526,10 @@ class XCtrl(object):
         import utool as ut
         import time
         import six
+        import sys
         verbose = kwargs.get('verbose', False)
+        orig_print = globals()['print']
+        print = ut.partial(orig_print, file=kwargs.get('file', sys.stdout))
         # print('Running xctrl.do script')
         if verbose:
             print('Executing x do: %s' % (ut.repr4(cmd_list),))
@@ -633,7 +636,8 @@ class XCtrl(object):
             if sleeptime > 0:
                 time.sleep(sleeptime)
 
-        out, err, ret = ut.cmd('xset r on', verbose=False, quiet=True, silence=True)
+        out, err, ret = ut.cmd('xset r on', verbose=False, quiet=True,
+                               silence=True)
         if debug:
             print('----------')
             print('xset r on')

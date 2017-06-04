@@ -169,37 +169,37 @@ def inject_colored_exceptions():
 
 def make_module_print_func(module):
     if SILENT:
-        def print(*args):
+        def print(*args, **kwargs):
             """ silent builtins.print """
             pass
     else:
         if DEBUG_PRINT:
             # Turns on printing where a message came from
-            def print(*args):
+            def print(*args, **kwargs):
                 """ debugging logging builtins.print """
                 from utool._internal.meta_util_dbg import get_caller_name
                 calltag = ''.join(('[caller:', get_caller_name(N=DEBUG_PRINT_N), ']' ))
-                util_logging._utool_print()(calltag, *args)
+                util_logging._utool_print()(calltag, *args, **kwargs)
         else:
-            def print(*args):
+            def print(*args, **kwargs):
                 """ logging builtins.print """
-                util_logging._utool_print()(*args)
+                util_logging._utool_print()(*args, **kwargs)
     return print
 
 
 def make_module_write_func(module):
     if SILENT:
-        def print_(*args):
+        def print_(*args, **kwargs):
             """ silent stdout.write """
             pass
     else:
         if __AGGROFLUSH__:
-            def print_(*args):
+            def print_(*args, **kwargs):
                 """ aggressive logging stdout.write """
                 util_logging._utool_write()(*args)
                 util_logging._utool_flush()()
         else:
-            def print_(*args):
+            def print_(*args, **kwargs):
                 """ logging stdout.write """
                 util_logging._utool_write()(*args)
     return print_
