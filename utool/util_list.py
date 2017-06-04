@@ -1820,6 +1820,22 @@ def take_around_percentile(arr, frac, n):
     return arr[snapped_slice(len(arr), frac, n)]
 
 
+def flag_percentile_parts(arr, front=None, mid=None, back=None):
+    slices = []
+    if front:
+        slices += [snapped_slice(len(arr), 0.0, front)]
+    if mid:
+        slices += [snapped_slice(len(arr), 0.5, mid)]
+    if back:
+        slices += [snapped_slice(len(arr), 1.0, back)]
+
+    import itertools as it
+    indices = sorted(set(it.chain.from_iterable(
+        range(*sl.indices(len(arr))) for sl in slices)))
+    flags = index_to_boolmask(indices, len(arr))
+    return flags
+
+
 def take_percentile_parts(arr, front=None, mid=None, back=None):
     r"""
     Take parts from front, back, or middle of a list
