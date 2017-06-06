@@ -25,6 +25,8 @@ ENABLE_COLORS = (not util_cplat.WIN32 and
 
 if util_type.HAVE_NUMPY:
     import numpy as np
+if util_type.HAVE_PANDAS:
+    import pandas as pd
 
 TAU = (2 * math.pi)  # References: tauday.com
 
@@ -1043,7 +1045,6 @@ def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
     TODO: make a numpy pull request with a fixed version
 
     """
-    import numpy as np
     arrayprint = np.core.arrayprint
 
     if max_line_width is None:
@@ -1160,7 +1161,6 @@ def numpy_str(arr, strvals=False, precision=None, pr=None, force_dtype=True,
     """
     suppress_small = False turns off scientific representation
     """
-    import numpy as np
     kwargs = kwargs.copy()
     if 'suppress' in kwargs:
         suppress_small = kwargs['suppress']
@@ -1223,7 +1223,6 @@ def numeric_str(num, precision=None, **kwargs):
         >>> print(result)
         ['1', '2.00', '3.43', '4432']
     """
-    import numpy as np
     import numbers
     if np.isscalar(num):
         if not isinstance(num, numbers.Integral):
@@ -1344,44 +1343,36 @@ def _rectify_countdown_or_bool(count_or_bool):
     return count_or_bool_
 
 
-def obj_str(obj_, **kwargs):
-    """
-    DEPRICATE in favor of repr2
-    """
-    if isinstance(obj_, dict):
-        return dict_str(obj_, **kwargs)
-    if isinstance(obj_, list):
-        return list_str(obj_, **kwargs)
-    else:
-        return repr(obj_)
-
-
 def trunc_repr(obj, maxlen=50):
     return truncate_str(repr2(obj), maxlen, truncmsg='~//~')
 
 
 def repr2(obj_, **kwargs):
     """
-    Use in favor of obj_str.
     Attempt to replace repr more configurable
     pretty version that works the same in both 2 and 3
     """
-    import utool as ut
-    if isinstance(obj_, (list, tuple, set, frozenset, ut.oset)):
-        kwitems = dict(nl=False)
-        kwitems.update(kwargs)
-        return list_str(obj_, **kwitems)
-    elif isinstance(obj_, dict):
-        kwitems = dict(nl=False)
-        kwitems.update(kwargs)
-        return dict_str(obj_, **kwitems)
-    else:
-        kwitems = dict(with_dtype=False)
-        kwitems.update(kwargs)
-        if util_type.HAVE_NUMPY and isinstance(obj_, np.ndarray):
-            return numpy_str(obj_, **kwitems)
-        else:
-            return reprfunc(obj_, precision=kwargs.get('precision', None))
+    if 'nl' not in kwargs:
+        kwargs['nl'] = False
+    val_str = _make_valstr(**kwargs)
+    return val_str(obj_)
+
+    # import utool as ut
+    # if isinstance(obj_, (list, tuple, set, frozenset, ut.oset)):
+    #     kwitems = dict(nl=False)
+    #     kwitems.update(kwargs)
+    #     return list_str(obj_, **kwitems)
+    # elif isinstance(obj_, dict):
+    #     kwitems = dict(nl=False)
+    #     kwitems.update(kwargs)
+    #     return dict_str(obj_, **kwitems)
+    # else:
+    #     kwitems = dict(with_dtype=False)
+    #     kwitems.update(kwargs)
+    #     if util_type.HAVE_NUMPY and isinstance(obj_, np.ndarray):
+    #         return numpy_str(obj_, **kwitems)
+    #     else:
+    #         return reprfunc(obj_, precision=kwargs.get('precision', None))
 
 
 def repr2_json(obj_, **kwargs):
@@ -1770,6 +1761,8 @@ def _make_valstr(**kwargs):
             return dict_str(val, indent_=new_indent, **kwargs)
         if isinstance(val, (list, tuple, set, frozenset, ut.oset)):
             return list_str(val, indent_=new_indent, **kwargs)
+        if util_type.HAVE_PANDAS and isinstance(val, pd.Index):
+            return list_str(val.tolist(), indent_=new_indent, **kwargs)
         if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             if kwargs.get('use_numpy', True):
                 # TODO: DEPRICATE FORCE_DTYPE
@@ -1895,7 +1888,6 @@ def horiz_string(*args, **kwargs):
             # Hack in numpy precision
             if util_type.HAVE_NUMPY:
                 try:
-                    import numpy as np
                     if isinstance(val, np.ndarray):
                         str_ = np.array_str(val, precision=precision,
                                             suppress_small=True)
@@ -1978,7 +1970,6 @@ def str_between(str_, startstr, endstr):
 
 def padded_str_range(start, end):
     """ Builds a list of (end - start) strings padded with zeros """
-    import numpy as np
     nDigits = np.ceil(np.log10(end))
     fmt = '%0' + six.text_type(nDigits) + 'd'
     str_range = (fmt % num for num in range(start, end))

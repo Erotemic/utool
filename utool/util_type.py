@@ -55,19 +55,24 @@ try:
                          np.dtype('float16'),)
 
     VALID_BOOL_TYPES = (BooleanType, np.bool_)
-    NP_NDARRAY = np.ndarray
-    LISTLIKE_TYPES = (tuple, list, NP_NDARRAY)
+    LISTLIKE_TYPES = (tuple, list, np.ndarray)
     NUMPY_TYPE_TUPLE = (
-        tuple([NP_NDARRAY] + list(set(np.typeDict.values()))))
+        tuple([np.ndarray] + list(set(np.typeDict.values()))))
+
+    try:
+        import pandas as pd  # NOQA
+        HAVE_PANDAS = True
+    except ImportError:
+        HAVE_PANDAS = False
 
 except (ImportError, AttributeError):
     # TODO remove numpy
     HAVE_NUMPY = False
+    HAVE_PANDAS = False
     VALID_INT_TYPES = (IntType, LongType,)
     VALID_FLOAT_TYPES = (FloatType,)
     VALID_BOOL_TYPES = (BooleanType,)
     LISTLIKE_TYPES = (tuple, list)
-    NP_NDARRAY = None
     NUMPY_TYPE_TUPLE = tuple()
 
 
@@ -365,20 +370,37 @@ def assert_int(var, lbl='var'):
         print('[tools] VALID_INT_TYPES: %r' % VALID_INT_TYPES)
         raise
 
-if HAVE_NUMPY:
-    if sys.platform == 'win32':
-        # Well this is a weird system specific error
-        # https://github.com/numpy/numpy/issues/3667
-        def get_type(var):
-            """Gets types accounting for numpy"""
-            return var.dtype if isinstance(var, NP_NDARRAY) else type(var)
+# if HAVE_NUMPY:
+_WIN32 = (sys.platform == 'win32')
+
+
+def get_type(var):
+    """
+    Gets types accounting for numpy
+
+    Ignore:
+        import utool as ut
+        import pandas as pd
+        var = np.array(['a', 'b', 'c'])
+        ut.get_type(var)
+        var = pd.Index(['a', 'b', 'c'])
+        ut.get_type(var)
+    """
+    if HAVE_NUMPY and isinstance(var, np.ndarray):
+        if _WIN32:
+            # This is a weird system specific error
+            # https://github.com/numpy/numpy/issues/3667
+            type_ = var.dtype
+        else:
+            type_ = var.dtype.type
+    elif HAVE_PANDAS and isinstance(var, pd.Index):
+        if _WIN32:
+            type_ = var.dtype
+        else:
+            type_ = var.dtype.type
     else:
-        def get_type(var):
-            """Gets types accounting for numpy"""
-            return var.dtype.type if isinstance(var, NP_NDARRAY) else type(var)
-else:
-    def get_type(var):
-        return type(var)
+        type_ = type(var)
+    return type_
 
 
 def is_type(var, valid_types):
