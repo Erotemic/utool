@@ -436,30 +436,41 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
                             strict=strict, print_caller=False, lbl=lbl)
 
 
-def remove_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET, strict=False,
+def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
                   print_caller=PRINT_CALLER, lbl='files'):
     """
     Removes multiple file paths
     """
+    import utool as ut
     if print_caller:
         print(util_dbg.get_caller_name(range(1, 4)) + ' called remove_fpaths')
-    nTotal = len(fpath_list)
+    nTotal = len(fpaths)
     _verbose = (not quiet and nTotal > 0) or VERYVERBOSE
     if _verbose:
         print('[util_path.remove_fpaths] try removing %d %s' % (nTotal, lbl))
     nRemoved = 0
-    for fpath in fpath_list:
-        try:
-            os.remove(fpath)  # Force refresh
+    prog = ut.ProgIter(fpaths, label='removing files', enabled=verbose)
+    _iter = iter(prog)
+    # Try to be fast at first
+    try:
+        for fpath in _iter:
+            os.remove(fpath)
             nRemoved += 1
-        except OSError as ex:
-            if VERYVERBOSE:
-                print('WARNING: Could not remove fpath = %r' % (fpath,))
-            if strict:
-                util_dbg.printex(ex, 'Could not remove fpath = %r' % (fpath,),
-                                 iswarning=False)
-                raise
-            pass
+    except OSError as ex:
+        # Buf if we fail put a try in the inner loop
+        if VERYVERBOSE:
+            print('WARNING: Could not remove fpath = %r' % (fpath,))
+        if strict:
+            util_dbg.printex(ex, 'Could not remove fpath = %r' % (fpath,),
+                             iswarning=False)
+            raise
+        for fpath in _iter:
+            try:
+                os.remove(fpath)
+                nRemoved += 1
+            except OSError as ex:
+                if VERYVERBOSE:
+                    print('WARNING: Could not remove fpath = %r' % (fpath,))
     if _verbose:
         print('[util_path.remove_fpaths] ... removed %d / %d %s' % (
             nRemoved, nTotal, lbl))

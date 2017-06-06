@@ -1590,24 +1590,26 @@ def dict_itemstr_list(dict_, **dictkw):
     _valstr = _make_valstr(**dictkw)
 
     precision = dictkw.get('precision', None)
+    kvsep = dictkw.get('kvsep', ': ')
+    if explicit:
+        kvsep = '='
 
     def make_item_str(key, val):
-        if explicit:
-            key_str = '%s=' % (six.text_type(key),)
+        if explicit or dictkw.get('strkeys', False):
+            key_str = six.text_type(key)
         else:
-            if dictkw.get('strkeys', False):
-                key_str = '{}: '.format(six.text_type(key))
-            else:
-                key_str =  '{}: '.format(repr2(key, precision=precision))
+            key_str = repr2(key, precision=precision)
+
+        prefix = key_str + kvsep
         val_str = _valstr(val)
+
+        # FIXME: get indentation right
         if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
-            item_str = hz_str(key_str, val_str)
+            item_str = hz_str(prefix, val_str)
         else:
-            padded_indent = ' ' * min(len(indent_), len(key_str))
+            padded_indent = ' ' * min(len(indent_), len(prefix))
             val_str = val_str.replace('\n', '\n' + padded_indent)
-            item_str = key_str + val_str
-        # if dictkw.get('with_comma', True):
-        #     item_str += ','
+            item_str = prefix + val_str
         return item_str
 
     itemstr_list = [make_item_str(key, val)
