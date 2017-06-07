@@ -2537,8 +2537,9 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise', verbose=Tru
 
         path (str): path to real file or directory
         link_path (str): path to desired location for symlink
-        overwrite (bool): (default = False)
-        on_error (str): strategy for dealing with errors
+        overwrite (bool): overwrite existing symlinks (default = False)
+        on_error (str): strategy for dealing with errors.
+            raise or ignore
         verbose (bool):  verbosity flag(default = True)
 
     Returns:
@@ -2580,15 +2581,15 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise', verbose=Tru
     """
     path = normpath(real_path)
     link = normpath(link_path)
+    if verbose:
+        print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
     if os.path.islink(link):
         if verbose:
             print('[util_path] symlink %r exists' % (link))
         if overwrite:
             delete(link)
-        else:
-            return
-    if verbose:
-        print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
+        elif on_error == 'ignore':
+                return False
     try:
         os_symlink = getattr(os, "symlink", None)
         if callable(os_symlink):

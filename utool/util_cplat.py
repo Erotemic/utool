@@ -189,7 +189,7 @@ def is_file_executable(fpath):
     return os.access(fpath, os.X_OK)
 
 
-def get_file_info(fpath):
+def get_file_info(fpath, with_fpath=False, nice=True):
     from utool import util_time
     import os
     import time
@@ -199,15 +199,20 @@ def get_file_info(fpath):
     from pwd import getpwuid
     owner = getpwuid(os.stat(fpath).st_uid).pw_name
 
-    info = OrderedDict(
-        [
-            ('filesize', get_file_nBytes_str(fpath)),
-            ('last_modified', util_time.unixtime_to_datetimestr(statbuf.st_mtime, isutc=False) + ' ' + time.tzname[0]),
-            ('last_accessed', util_time.unixtime_to_datetimestr(statbuf.st_atime, isutc=False) + ' ' + time.tzname[0]),
-            ('created', util_time.unixtime_to_datetimestr(statbuf.st_ctime, isutc=False) + ' ' + time.tzname[0]),
-            ('owner', owner)
-        ]
-    )
+    info = OrderedDict([
+        ('filesize', get_file_nBytes_str(fpath)),
+        ('last_modified', statbuf.st_mtime),
+        ('last_accessed', statbuf.st_atime),
+        ('created', statbuf.st_ctime),
+        ('owner', owner)
+    ])
+    if nice:
+        for k in ['last_modified', 'last_accessed', 'created']:
+            info[k] = util_time.unixtime_to_datetimestr(info[k], isutc=False)
+            info[k] += (' ' + time.tzname[0])
+
+    if with_fpath:
+        info['fpath'] = fpath
     return info
     #print "Modification time:",statbuf.st_mtime
 
