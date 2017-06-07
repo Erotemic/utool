@@ -212,8 +212,11 @@ def path_ndir_split(path_, n, force_unix=True, winroot='C:', trailing=True):
     return cplat_path
 
 
-def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs):
+def remove_file(fpath, verbose=None, ignore_errors=True, dryrun=False,
+                quiet=QUIET):
     """ Removes a file """
+    if verbose is None:
+        verbose = not quiet
     if dryrun:
         if verbose:
             print('[util_path] Dryrem %r' % fpath)
@@ -221,7 +224,7 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
     else:
         try:
             os.remove(fpath)
-            if verbose and not QUIET:
+            if verbose:
                 print('[util_path] Removed %r' % fpath)
         except OSError:
             print('[util_path.remove_file] Misrem %r' % fpath)
@@ -232,7 +235,8 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
     return True
 
 
-def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
+def remove_dirs(dpath, verbose=None, ignore_errors=True, dryrun=False,
+                quiet=QUIET):
     r"""
     Recursively removes a single directory (need to change function name)
 
@@ -256,16 +260,14 @@ def remove_dirs(dpath, dryrun=False, ignore_errors=True, quiet=QUIET, **kwargs):
         >>> import utool as ut
         >>> dpath = ut.ensure_app_resource_dir('utool', 'testremovedir')
         >>> assert exists(dpath), 'nothing to remove'
-        >>> dryrun = False
-        >>> ignore_errors = True
-        >>> quiet = False
-        >>> flag = remove_dirs(dpath, dryrun, ignore_errors, quiet)
-        >>> result = ('flag = %s' % (flag,))
-        >>> print(result)
+        >>> flag = remove_dirs(dpath, verbose=True)
+        >>> print('flag = %r' % (flag,))
         >>> assert not exists(dpath), 'did not remove dpath'
-        flag = True
+        >>> assert flag is True
     """
-    if not quiet:
+    if verbose is None:
+        verbose = not quiet
+    if verbose:
         print('[util_path] Removing directory: %r' % dpath)
     if dryrun:
         return False
@@ -343,24 +345,19 @@ def augpath(path, augsuf='', augext='', augpref='', augdir=None, newext=None,
 
 
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
-                        verbose=VERBOSE, dryrun=False, ignore_errors=False,
-                        **kwargs):
+                        verbose=VERBOSE, dryrun=False, ignore_errors=False):
     """ Removes files matching a pattern from a directory """
     if isinstance(fname_pattern_list, six.string_types):
         fname_pattern_list = [fname_pattern_list]
-    if not QUIET:
+    if verbose > 2:
         print('[util_path] Removing files:')
         print('  * from dpath = %r ' % dpath)
         print('  * with patterns = %r' % fname_pattern_list)
         print('  * recursive = %r' % recursive)
     num_removed, num_matched = (0, 0)
-    kwargs.update({
-        'dryrun': dryrun,
-        'verbose': verbose,
-    })
     if not exists(dpath):
         msg = ('!!! dir = %r does not exist!' % dpath)
-        if not QUIET:
+        if verbose:
             print(msg)
         warnings.warn(msg, category=UserWarning)
     for root, dname_list, fname_list in os.walk(dpath):
@@ -368,15 +365,18 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
             for fname in fnmatch.filter(fname_list, fname_pattern):
                 num_matched += 1
                 num_removed += remove_file(join(root, fname),
-                                           ignore_errors=ignore_errors, **kwargs)
+                                           ignore_errors=ignore_errors,
+                                           dryrun=dryrun,
+                                           verbose=verbose > 5)
         if not recursive:
             break
-    print('[util_path] ... Removed %d/%d files' % (num_removed, num_matched))
+    if verbose > 0:
+        print('[util_path] ... Removed %d/%d files' % (num_removed, num_matched))
     return True
 
 
-def delete(path, dryrun=False, recursive=True, verbose=None,
-           print_exists=True, ignore_errors=True, **kwargs):
+def delete(path, dryrun=False, recursive=True, verbose=None, print_exists=True,
+           ignore_errors=True):
     """ Removes a file, directory, or symlink """
     if verbose is None:
         verbose = VERBOSE
@@ -387,18 +387,18 @@ def delete(path, dryrun=False, recursive=True, verbose=None,
     exists_flag = exists(path)
     link_flag = islink(path)
     if not exists_flag and not link_flag:
-        if print_exists and not QUIET:
+        if print_exists and verbose:
             print('..does not exist!')
         flag = False
     else:
-        rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose > 1,
-                      ignore_errors=ignore_errors, **kwargs)
+        rmargs = dict(verbose=verbose > 1, ignore_errors=ignore_errors,
+                      dryrun=dryrun)
         if islink(path):
             os.unlink(path)
             flag = True
         elif isdir(path):
             # First remove everything in the directory
-            flag = remove_files_in_dir(path, **rmargs)
+            flag = remove_files_in_dir(path, recursive=recursive, **rmargs)
             # Then remove the directory itself
             flag = flag and remove_dirs(path, **rmargs)
         elif isfile(path):
@@ -411,7 +411,8 @@ def delete(path, dryrun=False, recursive=True, verbose=None,
 
 
 def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
-                           strict=False, print_caller=PRINT_CALLER, lbl='files'):
+                           strict=False, print_caller=PRINT_CALLER,
+                           lbl='files'):
     """ checks existance before removing. then tries to remove exisint paths """
     import utool as ut
     if print_caller:
@@ -1435,32 +1436,8 @@ def ls_moduledirs(path, private=True, full=True):
     return list(module_dir_iter)
 
 
-def get_basename_noext_list(path_list):
-    return [basename_noext(path) for path in path_list]
-
-
-def get_ext_list(path_list):
-    return [splitext(path)[1] for path in path_list]
-
-
-def get_basepath_list(path_list):
-    return [split(path)[0] for path in path_list]
-
-
 def basename_noext(path):
     return splitext(basename(path))[0]
-
-
-def append_suffixlist_to_namelist(name_list, suffix_list):
-    """ adds a suffix to the path before the extension
-    if name_list is a path_list the basepath is stripped away """
-    assert len(name_list) == len(suffix_list)
-    #basepath_list  = utool.get_basepath_list(name_list)
-    gnamenoext_list = get_basename_noext_list(name_list)
-    ext_list        = get_ext_list(name_list)
-    new_name_list   = [name + suffix + ext for name, suffix, ext in
-                        zip(gnamenoext_list, suffix_list, ext_list)]
-    return new_name_list
 
 
 def is_private_module(path):
@@ -2530,17 +2507,21 @@ def win_shortcut(source, link_name):
             raise ctypes.WinError()
 
 
-def symlink(real_path, link_path, overwrite=False, on_error='raise', verbose=True):
+def symlink(real_path, link_path, overwrite=False, on_error='raise',
+            verbose=2):
     """
-    Attempt to create unix or windows symlink
-    TODO: TEST / FIXME
+    Attempt to create a symbolic link.
 
+    TODO:
+        Can this be fixed on windows?
+
+    Args:
         path (str): path to real file or directory
         link_path (str): path to desired location for symlink
         overwrite (bool): overwrite existing symlinks (default = False)
         on_error (str): strategy for dealing with errors.
             raise or ignore
-        verbose (bool):  verbosity flag(default = True)
+        verbose (int):  verbosity level (default=2)
 
     Returns:
         str: link path
@@ -2555,11 +2536,11 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise', verbose=Tru
         >>> dpath = ut.get_app_resource_dir('utool')
         >>> real_path = join(dpath, 'real_file.txt')
         >>> link_path = join(dpath, 'link_file.txt')
-        >>> list(map(ut.delete, (real_path, link_path)))
+        >>> ut.emap(ut.delete, [real_path, link_path], verbose=0)
         >>> ut.writeto(real_path, 'foo')
         >>> result = symlink(real_path, link_path)
         >>> assert ut.readfrom(result) == 'foo'
-        >>> list(map(ut.delete, (real_path, link_path)))
+        >>> ut.emap(ut.delete, [real_path, link_path], verbose=0)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2569,27 +2550,37 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise', verbose=Tru
         >>> link_dpath = ut.augpath(real_dpath, newfname='link_dpath')
         >>> real_path = join(real_dpath, 'afile.txt')
         >>> link_path = join(link_dpath, 'afile.txt')
-        >>> list(map(ut.delete, (real_dpath, link_dpath)))
+        >>> ut.emap(ut.delete, [real_path, link_path], verbose=0)
         >>> ut.ensuredir(real_dpath)
         >>> ut.writeto(real_path, 'foo')
         >>> result = symlink(real_dpath, link_dpath)
         >>> assert ut.readfrom(link_path) == 'foo'
-        >>> ut.delete(link_dpath)
+        >>> ut.delete(link_dpath, verbose=0)
         >>> assert ut.checkpath(real_path)
-        >>> ut.delete(real_dpath)
+        >>> ut.delete(real_dpath, verbose=0)
         >>> assert not ut.checkpath(real_path)
     """
     path = normpath(real_path)
     link = normpath(link_path)
     if verbose:
-        print('[util_path] Creating symlink: path=%r link_name=%r' % (path, link))
+        print('[util_path] Creating symlink: path={} link={}'.format(path, link))
     if os.path.islink(link):
         if verbose:
-            print('[util_path] symlink %r exists' % (link))
+            print('[util_path] symlink already exists')
+        os_readlink = getattr(os, "readlink", None)
+        if callable(os_readlink):
+            if os_readlink(link) == path:
+                if verbose > 1:
+                    print('[path] ... and points to the right place')
+                return link
+        else:
+            print('[util_path] Warning, symlinks are not implemented on windows')
+        if verbose > 1:
+            print('[util_path] ... but it points somewhere else')
         if overwrite:
-            delete(link)
+            delete(link, verbose > 1)
         elif on_error == 'ignore':
-                return False
+            return False
     try:
         os_symlink = getattr(os, "symlink", None)
         if callable(os_symlink):
@@ -2601,7 +2592,8 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise', verbose=Tru
         checkpath(link, verbose=True)
         checkpath(path, verbose=True)
         do_raise = (on_error == 'raise')
-        ut.printex(ex, 'error making symlink', iswarning=not do_raise)
+        ut.printex(ex, '[util_path] error making symlink',
+                   iswarning=not do_raise)
         if do_raise:
             raise
     return link
@@ -2655,6 +2647,81 @@ def remove_broken_links(dpath, verbose=True):
     for link in broken_links:
         os.unlink(link)
     return num_broken
+
+
+def non_existing_path(path_, dpath=None, offset=0, suffix=None,
+                            force_fmt=False):
+    r"""
+    Searches for and finds a path garuenteed to not exist.
+
+    Args:
+        path_ (str):  path string. If may include a "%" formatstr.
+        dpath (str):  directory path(default = None)
+        offset (int): (default = 0)
+        suffix (None): (default = None)
+
+    Returns:
+        str: path_ - path string
+
+    CommandLine:
+        python -m utool.util_path non_existing_path
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> base = ut.ensure_app_resource_dir('utool', 'tmp')
+        >>> ut.touch(base + '/tmp.txt')
+        >>> ut.touch(base + '/tmp0.txt')
+        >>> ut.delete(base + '/tmp1.txt')
+        >>> path_ = base + '/tmp.txt'
+        >>> newpath = ut.non_existing_path(path_)
+        >>> assert basename(newpath) == 'tmp1.txt'
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> base = ut.ensure_app_resource_dir('utool', 'tmp')
+        >>> ut.ensurepath(base + '/dir_old')
+        >>> ut.ensurepath(base + '/dir_old0')
+        >>> ut.ensurepath(base + '/dir_old1')
+        >>> ut.delete(base + '/dir_old2')
+        >>> path_ = base + '/dir'
+        >>> suffix = '_old'
+        >>> newpath = ut.non_existing_path(path_, suffix=suffix)
+        >>> ut.assert_eq(basename(newpath), 'dir_old2')
+    """
+    import utool as ut
+    from os.path import basename, dirname
+
+    if dpath is None:
+        dpath = dirname(path_)
+    base_fmtstr = basename(path_)
+    if suffix is not None:
+        base_fmtstr = ut.augpath(base_fmtstr, suffix)
+
+    if '%' not in base_fmtstr:
+        if not force_fmt:
+            # If we have don't have to format,
+            # then try to use the first choice
+            first_choice = join(dpath, base_fmtstr)
+            if not exists(first_choice):
+                return first_choice
+        # otherwise we ensure we can format and we continue
+        base_fmtstr = ut.augpath(base_fmtstr, '%d')
+
+    dname_list = ut.glob(dpath, pattern='*', recursive=False, with_files=True,
+                         with_dirs=True)
+    conflict_set = set(basename(dname) for dname in dname_list)
+
+    newname = ut.get_nonconflicting_string(base_fmtstr, conflict_set,
+                                           offset=offset)
+    newpath = join(dpath, newname)
+    return newpath
+
+
+get_nonconflicting_path = non_existing_path
 
 
 if __name__ == '__main__':

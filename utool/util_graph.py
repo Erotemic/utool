@@ -1218,8 +1218,8 @@ def paths_to_root(tablename, root, child_to_parents):
         {
             'keypoint': {
                 'chip': {
-                        'dummy_annot': None,
-                    },
+                    'dummy_annot': None,
+                },
             },
             'probchip': {
                 'dummy_annot': None,
@@ -1329,15 +1329,16 @@ def reverse_path(dict_, root, child_to_parents):
         {
             'dummy_annot': {
                 'chip': {
-                        'keypoint': {
-                                    'fgweight': None,
-                                },
-                    },
-                'probchip': {
+                    'keypoint': {
                         'fgweight': None,
                     },
+                },
+                'probchip': {
+                    'fgweight': None,
+                },
             },
         }
+
     """
     # Hacky but illustrative
     # TODO; implement non-hacky version

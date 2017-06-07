@@ -1607,8 +1607,8 @@ def dict_itemstr_list(dict_, **dictkw):
         if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             item_str = hz_str(prefix, val_str)
         else:
-            padded_indent = ' ' * min(len(indent_), len(prefix))
-            val_str = val_str.replace('\n', '\n' + padded_indent)
+            # padded_indent = ' ' * min(len(indent_), len(prefix))
+            # val_str = val_str.replace('\n', '\n' + padded_indent)
             item_str = prefix + val_str
         return item_str
 
