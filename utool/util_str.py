@@ -2048,9 +2048,14 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
 
     align_lines
 
+    TODO:
+        clean up and move to ubelt?
+
     Args:
         line_list (list of strs):
         character (str):
+        pos (int or list or None): does one alignment for all chars beyond this
+            column position. If pos is None, then all chars are aligned.
 
     Returns:
         list: new_lines
@@ -2121,6 +2126,19 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
          one = two = three
         three=4    = fish
 
+    Ignore:
+        # use this as test case
+        \begin{tabular}{lrrll}
+        \toprule
+        {} &  Names &  Annots & Annots size & Training Edges \\
+        \midrule
+        training &    390 &    1164 &   2.98\pm2.83 &           9360 \\
+        testing  &    363 &    1119 &   3.08\pm2.82 &              - \\
+        \bottomrule
+        \end{tabular}
+
+
+
     """
 
     # FIXME: continue to fix ansii
@@ -2135,7 +2153,8 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
         # recursive calls
         new_lines = line_list
         for pos in pos_list:
-            new_lines = align_lines(new_lines, character=character, replchar=replchar, pos=pos)
+            new_lines = align_lines(new_lines, character=character,
+                                    replchar=replchar, pos=pos)
         return new_lines
 
     # base case

@@ -1929,6 +1929,8 @@ def broadcast_zip(list1, list2):
     Zips elementwise pairs between list1 and list2. Broadcasts
     the first dimension if a single list is of length 1.
 
+    Aliased as bzip
+
     Args:
         list1 (list):
         list2 (list):
