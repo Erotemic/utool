@@ -1155,7 +1155,8 @@ def numpy_str2(arr, **kwargs):
     return numpy_str(arr, **kwargs)
 
 
-def numpy_str(arr, strvals=False, precision=None, pr=None, force_dtype=True,
+def numpy_str(arr, strvals=False, precision=None, pr=None,
+              force_dtype=False,
               with_dtype=None, suppress_small=None, max_line_width=None,
               threshold=None, **kwargs):
     """
@@ -1562,7 +1563,6 @@ def dict_itemstr_list(dict_, **dictkw):
     dictkw['explicit'] = _rectify_countdown_or_bool(explicit)
 
     dosort = dictkw.get('sorted_', None)
-    indent_ = dictkw.get('indent_', '')
 
     if dosort is None:
         dosort = True
@@ -1767,13 +1767,10 @@ def _make_valstr(**kwargs):
             return list_str(val.tolist(), indent_=new_indent, **kwargs)
         if util_type.HAVE_NUMPY and isinstance(val, np.ndarray):
             if kwargs.get('use_numpy', True):
-                # TODO: DEPRICATE FORCE_DTYPE
-                with_dtype = kwargs.get('with_dtype', True)
-                force_dtype = kwargs.get('force_dtype', True)
+                with_dtype = kwargs.get('with_dtype', False)
                 strvals = kwargs.get('strvals', False)
                 precision = kwargs.get('precision', None)
                 return numpy_str(val, strvals=strvals, precision=precision,
-                                 force_dtype=force_dtype,
                                  with_dtype=with_dtype)
             else:
                 return list_str(val, **kwargs)

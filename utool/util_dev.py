@@ -1312,7 +1312,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> np.random.seed(0)
         >>> list_ = np.random.rand(10, 2).astype(np.float32)
         >>> stats = get_stats(list_, axis, use_nan=False)
-        >>> result = str(utool.dict_str(stats, nl=1))
+        >>> result = str(utool.dict_str(stats, nl=1, with_dtype=True))
         >>> print(result)
         {
             'max': np.array([ 0.96366274,  0.92559665], dtype=np.float32),
