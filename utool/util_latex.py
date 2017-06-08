@@ -185,7 +185,7 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
         text = make_full_document(input_text, title=title,
                                   preamb_extra=preamb_extra)
     if dpath is None:
-        dpath = os.cwd()
+        dpath = os.getcwd()
     if fname is None:
         fname = 'temp_latex'
 
@@ -237,7 +237,7 @@ def convert_pdf_to_jpg(pdf_fpath, verbose=1):
     return jpg_fpath
 
 
-def render_latex(input_text, dpath=None, fname=None, verbose=1):
+def render_latex(input_text, dpath=None, fname=None, preamb_extra=None, verbose=1):
     """
     Renders latex text into a jpeg.
 
@@ -250,7 +250,8 @@ def render_latex(input_text, dpath=None, fname=None, verbose=1):
     # turn off page numbers
     input_text_ = '\pagenumbering{gobble}\n' + input_text
     pdf_fpath = ut.compile_latex_text(
-        input_text_, fname=fname, dpath=dpath, verbose=verbose, move=False)
+        input_text_, fname=fname, dpath=dpath, preamb_extra=preamb_extra,
+        verbose=verbose, move=False)
     jpg_fpath = ut.convert_pdf_to_jpg(pdf_fpath, verbose=verbose)
     fpath_in = jpg_fpath
     fpath_out = vt.clipwhite_ondisk(fpath_in, fpath_out=jpg_fpath,
