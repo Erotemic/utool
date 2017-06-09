@@ -1619,7 +1619,7 @@ def argsort(*args, **kwargs):
         return sortedby2(index_list, *args, **kwargs)
 
 
-def argsort2(indexable):
+def argsort2(indexable, key=None, reverse=False):
     """
     Returns the indices that would sort a indexable object.
 
@@ -1653,7 +1653,11 @@ def argsort2(indexable):
     else:
         vk_iter = ((v, k) for k, v in enumerate(indexable))
     # Sort by values and extract the keys
-    indices = [k for v, k in sorted(vk_iter)]
+    if key is None:
+        indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
+    else:
+        indices = [k for v, k in sorted(vk_iter, key=lambda vk: key(vk[0]),
+                                        reverse=reverse)]
     return indices
 
 
@@ -1670,12 +1674,24 @@ def argmax(input_):
     Ignore:
         list_ = np.random.rand(10000).tolist()
         %timeit list_.index(max(list_))
-        %timeit max(enumerate(list_), key=itemgetter(1))
+        %timeit max(enumerate(list_), key=operator.itemgetter(1))[0]
+        %timeit max(enumerate(list_), key=lambda x: x[1])[0]
+        %timeit max(range(len(list_)), key=list_.__getitem__)
+
+        input_ = dict_
+        list_ = np.random.rand(100000).tolist()
+        dict_ = {str(ut.random_uuid()): x for x in list_}
+        %timeit list(input_.keys())[ut.argmax(list(input_.values()))]
+        %timeit max(input_.items(), key=operator.itemgetter(1))[0]
     """
     if isinstance(input_, dict):
+        # its crazy, but this is faster
+        # max(input_.items(), key=operator.itemgetter(1))[0]
         return list(input_.keys())[argmax(list(input_.values()))]
-    else:
+    elif hasattr(input_, 'index'):
         return input_.index(max(input_))
+    else:
+        return max(enumerate(input_), key=operator.itemgetter(1))[0]
 
 
 def argmin(input_):
@@ -1687,8 +1703,10 @@ def argmin(input_):
     """
     if isinstance(input_, dict):
         return list(input_.keys())[argmin(list(input_.values()))]
-    else:
+    elif hasattr(input_, 'index'):
         return input_.index(min(input_))
+    else:
+        return min(enumerate(input_), key=operator.itemgetter(1))[0]
 
 
 def index_complement(index_list, len_=None):

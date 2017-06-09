@@ -234,13 +234,16 @@ def compare_groups(true_groups, pred_groups):
     return comparisons
 
 
-def grouping_delta(old, new):
+def grouping_delta(old, new, pure=True):
     r"""
     Finds what happened to the old groups to form the new groups.
 
     Args:
-        old (set of frozenset): old grouping
-        new (set of frozenset): new grouping
+        old (set of frozensets): old grouping
+        new (set of frozensets): new grouping
+        pure (bool): hybrids are separated from pure merges and splits if
+            pure is True, otherwise hybrid cases are grouped in merges and
+            splits.
 
     Returns:
         dict: delta: dictionary of changes containing the merges, splits,
@@ -269,11 +272,11 @@ def grouping_delta(old, new):
         >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
         >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45],
         >>> ]
-        >>> group_delta = ut.grouping_delta(old, new)
-        >>> assert set(old[0]) in group_delta['splits']['old']
-        >>> assert set(new[3]) in group_delta['merges']['new']
-        >>> assert set(old[1]) in group_delta['unchanged']
-        >>> result = ut.repr4(group_delta, nl=2, nobr=True, strkeys=True)
+        >>> delta = ut.grouping_delta(old, new)
+        >>> assert set(old[0]) in delta['splits']['old']
+        >>> assert set(new[3]) in delta['merges']['new']
+        >>> assert set(old[1]) in delta['unchanged']
+        >>> result = ut.repr4(delta, nl=2, nobr=True, sk=True)
         >>> print(result)
         hybrid: {
             old: {{10}, {11, 5, 6}, {3, 4}, {7}, {8, 9}},
@@ -293,6 +296,35 @@ def grouping_delta(old, new):
             {1, 2},
         },
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
+        >>> old = [
+        >>>     [1, 2, 3], [4], [5, 6, 7, 8, 9], [10, 11, 12]
+        >>> ]
+        >>> new = [
+        >>>     [1], [2], [3, 4], [5, 6, 7], [8, 9, 10, 11, 12]
+        >>> ]
+        >>> # every case here is hybrid
+        >>> pure_delta = ut.grouping_delta(old, new, pure=True)
+        >>> assert len(ut.flatten(pure_delta['merges'].values())) == 0
+        >>> assert len(ut.flatten(pure_delta['splits'].values())) == 0
+        >>> delta = ut.grouping_delta(old, new, pure=False)
+        >>> delta = ut.order_dict_by(delta, ['unchanged', 'splits', 'merges'])
+        >>> result = ut.repr4(delta, nl=2, sk=True)
+        >>> print(result)
+        {
+            unchanged: {},
+            splits: [
+                [{2}, {3}, {1}],
+                [{8, 9}, {5, 6, 7}],
+            ],
+            merges: [
+                [{4}, {3}],
+                [{8, 9}, {10, 11, 12}],
+            ],
+        }
     """
     import utool as ut
     _old = {frozenset(_group) for _group in old}
@@ -358,24 +390,50 @@ def grouping_delta(old, new):
         hybrid_merges = list(map(set, ut.group_items(hybrid_merge_parts,
                                                      part_nids).values()))
 
-    group_delta = {
-        'unchanged': unchanged,
-        'splits': ut.odict([
+    if pure:
+        delta = ut.odict()
+        delta['unchanged'] = unchanged
+        delta['splits'] = ut.odict([
             ('old', old_splits),
             ('new', new_splits),
-        ]),
-        'merges': ut.odict([
+        ])
+        delta['merges'] = ut.odict([
             ('old', old_merges),
             ('new', new_merges),
-        ]),
-        'hybrid': ut.odict([
+        ])
+        delta['hybrid'] = ut.odict([
             ('old', old_hybrid),
             ('new', new_hybrid),
             ('splits', hybrid_splits),
             ('merges', hybrid_merges),
-        ]),
-    }
-    return group_delta
+        ])
+    else:
+        # Incorporate hybrid partial cases with pure splits and merges
+        new_splits2 = [s for s in hybrid_splits if len(s) > 1]
+        old_merges2 = [m for m in hybrid_merges if len(m) > 1]
+        all_new_splits = new_splits + new_splits2
+        all_old_merges = old_merges + old_merges2
+
+        # Don't bother differentiating old and new
+        # old_splits2 = [frozenset(ut.flatten(s)) for s in new_splits2]
+        # new_merges2 = [frozenset(ut.flatten(m)) for m in old_merges2]
+        # all_old_splits = old_splits + old_splits2
+        # all_new_merges = new_merges + new_merges2
+
+        splits = all_new_splits
+        merges = all_old_merges
+
+        # Sort by split and merge sizes
+        splits = ut.sortedby(splits, [len(ut.flatten(_)) for _ in splits])
+        merges = ut.sortedby(merges, [len(ut.flatten(_)) for _ in merges])
+        splits = [ut.sortedby(_, ut.emap(len, _)) for _ in splits]
+        merges = [ut.sortedby(_, ut.emap(len, _)) for _ in merges]
+
+        delta = ut.odict()
+        delta['unchanged'] = unchanged
+        delta['splits'] = splits
+        delta['merges'] = merges
+    return delta
 
 
 def grouping_delta_stats(old, new):

@@ -1489,9 +1489,13 @@ def dict_str(dict_, **dictkw):
     """
     import utool as ut
 
-    if dictkw.pop('stritems', False):
+    stritems = dictkw.pop('si', dictkw.pop('stritems', False))
+    if stritems:
         dictkw['strkeys'] = True
         dictkw['strvals'] = True
+
+    dictkw['strkeys'] = dictkw.pop('sk', dictkw.pop('strkeys', False))
+    dictkw['strvals'] = dictkw.pop('sv', dictkw.pop('strvals', False))
 
     newlines = dictkw.pop('nl', dictkw.pop('newlines', True))
     truncate = dictkw.pop('truncate', False)
@@ -1542,8 +1546,6 @@ def dict_str(dict_, **dictkw):
         sep = ',' + itemsep if with_comma else itemsep
         # hack away last trailing comma
         sequence_str = sep.join(itemstr_list)
-        # if trailing_comma:
-        #     sequence_str += ','
         retstr = lbr +  sequence_str + rbr
     # Is there a way to make truncate for dict_str compatible with list_str?
     return retstr
@@ -1563,7 +1565,6 @@ def dict_itemstr_list(dict_, **dictkw):
     dictkw['explicit'] = _rectify_countdown_or_bool(explicit)
 
     dosort = dictkw.get('sorted_', None)
-
     if dosort is None:
         dosort = True
 
@@ -1710,6 +1711,9 @@ def list_str(list_, **listkw):
     else:
         lbr, rbr  = '[', ']'
 
+    if len(itemstr_list) == 0:
+        newlines = False
+
     if newlines is not False and (newlines is True or newlines > 0):
         sep = ',\n' if with_comma else '\n'
         if nobraces:
@@ -1719,6 +1723,7 @@ def list_str(list_, **listkw):
             retstr = body_str
         else:
             if packed:
+                # DEPRICATE?
                 joinstr = sep + itemsep * len(lbr)
                 body_str = joinstr.join([itemstr for itemstr in itemstr_list])
                 if trailing_comma:
@@ -1749,7 +1754,8 @@ def list_str(list_, **listkw):
 def _make_valstr(**kwargs):
     import utool as ut
 
-    valfunc = six.text_type if kwargs.get('strvals', False) else reprfunc
+    strvals = kwargs.get('sv', kwargs.get('strvals', False))
+    valfunc = six.text_type if strvals else reprfunc
 
     if not kwargs.get('recursive', True):
         return valfunc
@@ -1788,12 +1794,17 @@ def _make_valstr(**kwargs):
     return recursive_valfunc
 
 
+def _peek_isinstance(items, types):
+    return len(items) > 0 and isinstance(items[0], types)
+
+
 def get_itemstr_list(list_, **listkw):
     """
     TODO: have this replace dict_itemstr list or at least most functionality in
     it. have it make two itemstr lists over keys and values and then combine
     them.
     """
+    import utool as ut
     _valstr = _make_valstr(**listkw)
 
     def make_item_str(item):
@@ -1802,15 +1813,24 @@ def get_itemstr_list(list_, **listkw):
         #     item_str += ','
         return item_str
 
-    itemstr_list = [make_item_str(item) for item in list_]
+    items = list(list_)
+    itemstr_list = [make_item_str(item) for item in items]
 
-    if isinstance(list_, (set, frozenset)):
-        # Force orderings on sets
+    dosort = listkw.get('sorted_', None)
+    if dosort is None:
+        # Force orderings on sets.
+        dosort = isinstance(list_, (set, frozenset))
+    if dosort:
+        # First try to sort items by their normal values
+        # If that doesnt work, then sort by their string values
         try:
-            sortx = ut.argsort2(list_)
-            itemstr_list = ut.take(itemstr_list, sortx)
+            # Set ordering is not unique. Sort by strings values instead.
+            if _peek_isinstance(items, (set, frozenset)):
+                raise Exception
+            sortx = ut.argsort2(items)
         except Exception:
-            itemstr_list = sorted(itemstr_list)
+            sortx = ut.argsort2(itemstr_list)
+        itemstr_list = ut.take(itemstr_list, sortx)
 
     return itemstr_list
 
