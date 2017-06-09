@@ -3190,14 +3190,40 @@ class NamedPartial(functools.partial, NiceRepr):
         return self.__name__
 
 
-def fix_super_reload_error(this_class, self):
+def fix_super_reload(this_class, self):
     """
-    #this_class = AbstractCategoricalModel  # NOQA
-    #self = model  # NOQA
+    Fixes an error where reload causes super(X, self) to raise an exception
+
+    The problem is that reloading causes X to point to the wrong version of the
+    class.  This function fixes the problem by searching and returning the
+    correct version of the class. See example for proper usage.
+
+    Args:
+        this_class (class): class passed into super
+        self (instance): instance passed into super
+
+    Example:
+        >>> import utool as ut
+        >>> class Parent(object):
+        >>>     def __init__(self):
+        >>>         self.parent_attr = 'bar'
+        >>> #
+        >>> class Foo(Parent):
+        >>>     def __init__(self):
+        >>>         # Dont do this, it will error if you reload
+        >>>         # super(Foo, self).__init__()
+        >>>         # Do this instead
+        >>>         _Foo = ut.fix_super_reload(Foo, self)
+        >>>         super(_Foo, self).__init__()
+        >>> self = Foo()
+        >>> assert self.parent_attr == 'bar'
     """
 
-    if not isinstance(self, this_class):
-        #print('Fixing')
+    if isinstance(self, this_class):
+        # Case where everything is ok
+        this_class_now = this_class
+    else:
+        # Case where we need to search for the right class
         def find_parent_class(leaf_class, target_name):
             target_class = None
             from collections import deque
@@ -3223,8 +3249,6 @@ def fix_super_reload_error(this_class, self):
         this_class_now = target_class
         #print('id(this_class)     = %r' % (id(this_class),))
         #print('id(this_class_now) = %r' % (id(this_class_now),))
-    else:
-        this_class_now = this_class
     assert isinstance(self, this_class_now), (
         'Failed to fix %r, %r, %r' % (self, this_class, this_class_now))
     return this_class_now
