@@ -1528,13 +1528,17 @@ def group_pairs(pair_list):
     return groupid_to_items
 
 
-def group_items(item_list, groupid_list, sorted_=True):
+def group_items(items, by=None, sorted_=True):
     """
     Groups a list of items by group id.
 
     Args:
-        item_list (list): a list of items to group
-        groupid_list (list): a corresponding list of item groupids
+        items (list): a list of the values to be grouped.
+            if `by` is None, then each item is assumed to be a
+            (groupid, value) pair.
+        by (list): a corresponding list to group items by.
+            if specified, these are used as the keys to group values
+            in `items`
         sorted_ (bool): if True preserves the ordering of items within groups
             (default = True) FIXME. the opposite is true
 
@@ -1544,7 +1548,6 @@ def group_items(item_list, groupid_list, sorted_=True):
     SeeAlso:
         group_indices - first part of a a more fine grained grouping algorithm
         apply_gropuing - second part of a more fine grained grouping algorithm
-        group_pairs - useful when item and groupids are already zipped
 
     CommandLine:
         python -m utool.util_dict --test-group_items
@@ -1553,28 +1556,30 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut
-        >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
-        >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
-        >>> groupid_to_items = ut.group_items(item_list, iter(groupid_list))
-        >>> result = ut.dict_str(groupid_to_items, nl=False, strvals=False)
+        >>> items = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
+        >>> by    = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
+        >>> groupid_to_items = ut.group_items(items, iter(by))
+        >>> result = ut.repr2(groupid_to_items)
         >>> print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
-    pair_list_ = list(zip(groupid_list, item_list))
-    if sorted_:
-        # Sort by groupid for cache efficiency (does this even do anything?)
-        try:
-            pair_list = sorted(pair_list_, key=op.itemgetter(0))
-        except TypeError:
-            # Python 3 does not allow sorting mixed types
-            pair_list = sorted(pair_list_, key=lambda tup: str(tup[0]))
+    if by is not None:
+        pairs = list(zip(by, items))
+        if sorted_:
+            # Sort by groupid for cache efficiency (does this even do anything?)
+            # I forgot why this is needed? Determenism?
+            try:
+                pairs = sorted(pairs, key=op.itemgetter(0))
+            except TypeError:
+                # Python 3 does not allow sorting mixed types
+                pairs = sorted(pairs, key=lambda tup: str(tup[0]))
     else:
-        pair_list = pair_list_
+        pairs = items
 
     # Initialize a dict of lists
     groupid_to_items = defaultdict(list)
     # Insert each item into the correct group
-    for groupid, item in pair_list:
+    for groupid, item in pairs:
         groupid_to_items[groupid].append(item)
     return groupid_to_items
 
