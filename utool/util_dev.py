@@ -3340,6 +3340,12 @@ class PriorityQueue(NiceRepr):
         >>> print(self.pop())
         >>> assert len(self) == 0
 
+
+    Example:
+        >>> import utool as ut
+        >>> items = dict(a=(1.0, (2, 3)), b=(1.0, (1, 2)), c=(.9, (3, 2)))
+        >>> self = ut.PriorityQueue(items)
+
     Ignore:
         # TODO: can also use sortedcontainers to maintain priority queue
         import sortedcontainers
@@ -3385,7 +3391,7 @@ class PriorityQueue(NiceRepr):
 
     def __setitem__(self, key, val):
         # Ammortized O(1)
-        assert not np.isnan(val), 'no nan in PQ'
+        # assert not np.isnan(val), 'no nan in PQ: {}, {}'.format(key, val)
         self._dict[key] = val
         if len(self._heap) > 2 * len(self._dict):
             # When the heap grows larger than 2 * len(self), we rebuild it from
@@ -3469,9 +3475,9 @@ class PriorityQueue(NiceRepr):
         # Dictionary pop if key is specified
         if key is not util_const.NoParam:
             if default is util_const.NoParam:
-                return self._dict.pop(key)
+                return (key, self._dict.pop(key))
             else:
-                return self._dict.pop(key, default)
+                return (key, self._dict.pop(key, default))
         # Otherwise do a heap pop
         try:
             # Ammortized O(1)

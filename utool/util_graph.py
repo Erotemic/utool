@@ -1942,21 +1942,25 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         queue.popleft()
 
 
-def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):
+def color_nodes(graph, labelattr='label', brightness=.878,
+                outof=None, sat_adjust=None):
     """ Colors edges and nodes by nid """
     import plottool as pt
     import utool as ut
     node_to_lbl = nx.get_node_attributes(graph, labelattr)
-    unique_lbls = ut.unique(node_to_lbl.values())
+    unique_lbls = sorted(set(node_to_lbl.values()))
     ncolors = len(unique_lbls)
-    if (ncolors) == 1:
-        unique_colors = [pt.LIGHT_BLUE]
-    elif (ncolors) == 2:
-        # https://matplotlib.org/examples/color/named_colors.html
-        unique_colors = ['royalblue', 'orange']
-        unique_colors = list(map(pt.color_funcs.ensure_base01, unique_colors))
+    if outof is None:
+        if (ncolors) == 1:
+            unique_colors = [pt.LIGHT_BLUE]
+        elif (ncolors) == 2:
+            # https://matplotlib.org/examples/color/named_colors.html
+            unique_colors = ['royalblue', 'orange']
+            unique_colors = list(map(pt.color_funcs.ensure_base01, unique_colors))
+        else:
+            unique_colors = pt.distinct_colors(ncolors, brightness=brightness)
     else:
-        unique_colors = pt.distinct_colors(ncolors, brightness=brightness)
+        unique_colors = pt.distinct_colors(outof, brightness=brightness)
 
     if sat_adjust:
         unique_colors = [
@@ -1964,8 +1968,15 @@ def color_nodes(graph, labelattr='label', brightness=.878, sat_adjust=None):
             for c in unique_colors
         ]
     # Find edges and aids strictly between two nids
-    lbl_to_color = dict(zip(unique_lbls, unique_colors))
-    node_to_color = {node:  lbl_to_color[lbl] for node, lbl in node_to_lbl.items()}
+    if outof is None:
+        lbl_to_color = ut.dzip(unique_lbls, unique_colors)
+    else:
+        gray = pt.color_funcs.ensure_base01('lightgray')
+        unique_colors = [gray] + unique_colors
+        offset = max(1, min(unique_lbls)) - 1
+        node_to_lbl = ut.map_vals(lambda nid: max(0, nid - offset), node_to_lbl)
+        lbl_to_color = ut.dzip(range(outof + 1), unique_colors)
+    node_to_color = ut.map_vals(lbl_to_color, node_to_lbl)
     nx.set_node_attributes(graph, 'color', node_to_color)
     ut.nx_ensure_agraph_color(graph)
 

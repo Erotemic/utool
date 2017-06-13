@@ -217,7 +217,7 @@ def _covert_to_hashable(data):
     elif isinstance(data, int):
         # warnings.warn('[util_hash] Hashing ints is slow, numpy is prefered')
         hashable = _int_to_bytes(data)
-        # hashable = data.to_bytes(4, byteorder='big')
+        # hashable = data.to_bytes(8, byteorder='big')
         prefix = b'INT'
     # elif isinstance(data, float):
     #     hashable = repr(data).encode('utf8')
@@ -495,6 +495,16 @@ def hash_data(data, hashlen=None, alphabet=None):
         # Truncate
         text = hashstr2[:hashlen]
         return text
+
+
+def digest_data(data, alg='sha256'):
+    hasher = {
+        'md5'    : hashlib.md5,
+        'sha1'   : hashlib.sha1,
+        'sha256' : hashlib.sha256,
+    }[alg]()
+    _update_hasher(hasher, data)
+    return hasher.digest()
 
 
 def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
@@ -1005,6 +1015,7 @@ def combine_uuids(uuids, ordered=True, salt=''):
 if six.PY3:
     def _int_to_bytes(int_):
         return int_.to_bytes(4, byteorder='big')
+        # return int_.to_bytes(8, byteorder='big')  # TODO: uncomment
 else:
     def _int_to_bytes(int_):
         return struct.pack('>i', int_)
@@ -1019,6 +1030,7 @@ if six.PY3:
             return hashable_.encode('utf-8')
         elif isinstance(hashable_, int):
             return hashable_.to_bytes(4, byteorder='big')
+            # return int_.to_bytes(8, byteorder='big')  # TODO: uncomment
         elif isinstance(hashable_, (list, tuple)):
             return str(hashable_).encode('utf-8')
         else:
