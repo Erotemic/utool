@@ -13,11 +13,7 @@ try:
 except ImportError:
     pass
 from os.path import join, splitext, dirname  # NOQA
-from utool import util_path
 from utool import util_num
-from utool import util_dev
-from utool import util_io
-from utool import util_dbg
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__)
 
@@ -184,7 +180,7 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
     if nest_in_doc:
         text = make_full_document(input_text, title=title,
                                   preamb_extra=preamb_extra)
-    if dpath is None:
+    if not dpath:
         dpath = os.getcwd()
     if fname is None:
         fname = 'temp_latex'
@@ -193,8 +189,11 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
     work_dpath = join(dpath, '.tmptex')
     ut.ensuredir(work_dpath, verbose=verbose > 1)
 
-    tex_fpath = join(work_dpath, fname + '.tex')
-    pdf_fpath_output = join(work_dpath, fname + '.pdf')
+    fname_tex = ut.ensure_ext(fname, '.tex')
+    fname_pdf = ut.ensure_ext(fname, '.pdf')
+
+    tex_fpath = join(work_dpath, fname_tex)
+    pdf_fpath_output = join(work_dpath, fname_pdf)
     ut.write_to(tex_fpath, text)
 
     with ut.ChdirContext(work_dpath, verbose=verbose > 1):
@@ -211,55 +210,84 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
             raise RuntimeError('latex failed ')
 
     if move:
-        pdf_fpath = join(dpath, fname + '.pdf')
+        pdf_fpath = join(dpath, fname_pdf)
         ut.move(pdf_fpath_output, pdf_fpath, verbose=verbose > 1)
     else:
         pdf_fpath = pdf_fpath_output
     return pdf_fpath
 
 
-def convert_pdf_to_jpg(pdf_fpath, verbose=1):
+def convert_pdf_to_image(pdf_fpath, ext='.jpg', verbose=1, dpi=300,
+                         quality=90):
     import utool as ut
     if verbose:
-        print('[ut] convert_pdf_to_jpg.')
-    jpg_fpath = splitext(pdf_fpath)[0] + '.jpg'
+        print('[ut] convert_pdf_to_image.')
+    img_fpath = ut.ensure_ext(pdf_fpath, ext)
     if ut.UNIX:
         convert_fpath = ut.cmd2('which convert')['out'].strip()
         if not convert_fpath:
             raise Exception('ImageMagik convert was not found')
-    args = ' '.join(['convert', '-density', '300', pdf_fpath, '-quality', '90',
-                     jpg_fpath])
+    args = ' '.join(['convert', '-density', str(dpi), pdf_fpath, '-quality',
+                     str(quality), img_fpath])
     info = ut.cmd2(args, verbose=verbose > 1)  # NOQA
-    if not ut.checkpath(jpg_fpath, verbose=verbose > 1):
-        print('Failed to convert pdf to jpg')
+    if not ut.checkpath(img_fpath, verbose=verbose > 1):
+        print('Failed to convert pdf to ' + ext)
         print(info['out'])
-        raise Exception('ImageMagik failed to convert pdf to jpg')
-    return jpg_fpath
+        raise Exception('ImageMagik failed to convert pdf to ' + ext)
+    return img_fpath
 
 
-def render_latex(input_text, dpath=None, fname=None, preamb_extra=None, verbose=1):
+def render_latex(input_text, dpath=None, fname=None, preamb_extra=None,
+                 verbose=1, **kwargs):
     """
     Renders latex text into a jpeg.
 
     Whitespace that would have appeared in the PDF is removed, so the jpeg is
     cropped only the the relevant part.  This is ideal for figures that only
     take a single page.
+
+    Args:
+        input_text (?):
+        dpath (str):  directory path(default = None)
+        fname (str):  file name(default = None)
+        preamb_extra (None): (default = None)
+        verbose (int):  verbosity flag(default = 1)
+
+    Returns:
+        str: jpg_fpath -  file path string
+
+    CommandLine:
+        python -m utool.util_latex render_latex '$O(n^2)$' --fpath=~/slides/tmp.jpg
+
+    Example:
+        >>> # SCRIPT
+        >>> from utool.util_latex import *  # NOQA
+        >>> from os.path import split, expanduser
+        >>> import utool as ut
+        >>> input_text = ' '.join(ut.get_varargs()[1:])
+        >>> dpath, fname = split(ut.argval('--fpath', ''))
+        >>> dpath = expanduser(ut.argval('--dpath', dpath))
+        >>> fname = ut.argval('--fname', fname)
+        >>> kwargs = ut.dict_subset(ut.argparse_funckw(ut.convert_pdf_to_image), ['dpi', 'quality'])
+        >>> jpg_fpath = render_latex(input_text, dpath, fname, **kwargs)
+        >>> if ut.argflag('--diskshow'):
+        >>>     ut.startfile(jpg_fpath)
     """
     import utool as ut
     import vtool as vt
     # turn off page numbers
     input_text_ = '\pagenumbering{gobble}\n' + input_text
+    # fname, _ = splitext(fname)
+    img_fname = ut.ensure_ext(fname, ['.jpg'] + list(ut.IMG_EXTENSIONS))
+    img_fpath = join(dpath, img_fname)
     pdf_fpath = ut.compile_latex_text(
         input_text_, fname=fname, dpath=dpath, preamb_extra=preamb_extra,
         verbose=verbose, move=False)
-    jpg_fpath = ut.convert_pdf_to_jpg(pdf_fpath, verbose=verbose)
-    fpath_in = jpg_fpath
-    fpath_out = vt.clipwhite_ondisk(fpath_in, fpath_out=jpg_fpath,
-                                    verbose=verbose > 1)
-    jpg_fpath = join(dpath, fname + '.jpg')
-    ut.move(fpath_out, jpg_fpath, verbose=verbose > 1)
-    # ut.delete(pdf_fpath)
-    return jpg_fpath
+    ext = splitext(img_fname)[1]
+    fpath_in = ut.convert_pdf_to_image(pdf_fpath, ext=ext, verbose=verbose)
+    # Clip of boundaries of the pdf imag
+    vt.clipwhite_ondisk(fpath_in, fpath_out=img_fpath, verbose=verbose > 1)
+    return img_fpath
 
 
 def latex_multicolumn(data, ncol=2, alignstr='|c|'):
@@ -272,7 +300,8 @@ def latex_multirow(data, nrow=2):
 
 
 def latex_get_stats(lbl, data, mode=0):
-    stats_ = util_dev.get_stats(data)
+    import utool as ut
+    stats_ = ut.get_stats(data)
     if stats_.get('empty_list', False):
         return '% NA: latex_get_stats, data=[]'
     try:
@@ -283,7 +312,7 @@ def latex_get_stats(lbl, data, mode=0):
         shape = stats_['shape']
     except KeyError as ex:
         stat_keys = stats_.keys()  # NOQA
-        util_dbg.printex(ex, key_list=['stat_keys', 'stats_', 'data'])
+        ut.printex(ex, key_list=['stat_keys', 'stats_', 'data'])
         raise
 
     #int_fmt = lambda num: util.num_fmt(int(num))
@@ -534,7 +563,7 @@ def make_score_tabular(
         print('len(col_lbls) = %r' % (len(col_lbls),))
         print('len(values) = %r' % (values,))
         print('ut.depth_profile(values) = %r' % (ut.depth_profile(values),))
-        util_dbg.printex(ex, keys=['r', 'c'])
+        ut.printex(ex, keys=['r', 'c'])
         raise
 
     # Bold the best values
@@ -927,12 +956,12 @@ def latex_sanitize_command_name(_cmdname):
                     return ''
                 return roman.toRoman(num)
             except Exception as ex:
-                util_dbg.printex(ex, keys=['groupdict'])
+                ut.printex(ex, keys=['groupdict'])
                 raise
         command_name = re.sub(ut.named_field('num', r'\d+'), subroman, command_name)
     except ImportError as ex:
         if ut.SUPER_STRICT:
-            util_dbg.printex(ex)
+            ut.printex(ex)
             raise
     # remove numbers
     command_name = re.sub(r'[\d' + re.escape('#()[]{}.') + ']', '', command_name)

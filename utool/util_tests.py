@@ -1620,11 +1620,16 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         else:
             test_funcname = test_funcname_
             func_ = getattr(module, test_funcname, None)
+        if VERBOSE_TEST:
+            print('test_funcname = %r' % (test_funcname,))
+            print('func_ = %r' % (func_,))
         if func_ is not None:
             testno = 0
             modname = ut.get_modname_from_modpath(module.__file__)
             want = None
             try:
+                if VERBOSE_TEST:
+                    print('attempting ubelt hack')
                 # hack to get classmethods to read their example using
                 # the ubelt port
                 from ubelt.meta import docscrape_google
@@ -1637,6 +1642,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 for type_, block in blocks:
                     if type_.startswith('Example'):
                         example_blocks.append((type_, block))
+
+                if len(example_blocks) == 0:
+                    if VERBOSE_TEST:
+                        print('ubelt found no blocks')
+                    raise KeyError
 
                 callname = test_funcname_
                 hack_testtups = []
@@ -1654,9 +1664,13 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                                         total=len(example_blocks),
                                         nametup=[test_funcname_])
                     hack_testtups.append(testtup)
+                if VERBOSE_TEST:
+                    print('hack_testtups = %r' % (hack_testtups,))
                 enabled_testtup_list.extend(hack_testtups)
                 # src = '\n'.join([line[4:] for line in src.split('\n')])
             except (ImportError, KeyError, TypeError):
+                if VERBOSE_TEST:
+                    print('ubelt hack failed')
                 # varargs = ut.get_cmdline_varargs()
                 varargs = force_enable_testnames[1:]
                 # Create dummy doctest

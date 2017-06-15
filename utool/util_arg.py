@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import six
 import os
+from six.moves import builtins
 import itertools
 import argparse
 from utool import util_inject
@@ -426,7 +427,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                 key = '--' + key[len(sentinal):].lower()
                 new_argv = [key, val]
                 if val.upper() in ['TRUE', 'FALSE', 'ON', 'OFF']:
-                    # handled by argflag
+                    # handled by get_argflag
                     continue
                 argv = argv[:] + new_argv
                 if debug:
@@ -492,7 +493,10 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                             arg_after = list(map(util_type.smart_cast2, arg_after))
                     else:
                         if type_ is None:
-                            arg_after = util_type.smart_cast2(val_after)
+                            if smartcast:
+                                arg_after = util_type.smart_cast2(val_after)
+                            else:
+                                arg_after = val_after
                         else:
                             arg_after = util_type.try_cast(val_after, type_)
                             if not isinstance(type_, six.string_types) and issubclass(type_, six.string_types):
@@ -1152,6 +1156,36 @@ get_varargs = get_cmdline_varargs
 # alias
 parse_dict_from_argv = argparse_dict
 get_dict_vals_from_commandline = argparse_dict
+
+# Do I like these more?
+# varargs = get_varargs
+argval = get_argval
+argflag = get_argflag
+
+
+def argval(key, default=None, type=None, smartcast=True, return_exists=False,
+           argv=None):
+    """
+    alias for get_argval
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import utool as ut
+        >>> import sys
+        >>> argv = ['--aids=[1,2,3]']
+        >>> value = ut.argval('--aids', default=[1, 2], argv=argv)
+        >>> assert isinstance(value, list)
+        >>> value2 = ut.argval('--aids', smartcast=False, argv=argv)
+        >>> assert isinstance(value2, str)
+        >>> value2 = ut.argval('--aids', smartcast=True, argv=argv)
+        >>> assert isinstance(value2, list)
+    """
+    defaultable_types = (tuple, list, int, float)
+    if type is None and isinstance(default, defaultable_types):
+        type = builtins.type(default)
+    return get_argval(key, type_=type, default=default,
+                      return_was_specified=return_exists, smartcast=smartcast,
+                      argv=argv)
 
 
 VERBOSE_ARGPARSE = get_argflag(

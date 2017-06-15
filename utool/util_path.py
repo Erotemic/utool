@@ -56,28 +56,50 @@ truepath = meta_util_path.truepath
 unixjoin = meta_util_path.unixjoin
 
 
-def ensure_ext(fname, ext):
+def ensure_ext(fpath, ext, replace=False):
     r"""
     Args:
-        fname (str):  file name
-        ext (str):
+        fpath (str):  file name or path
+        ext (str or list): valid extensions
+        replace (bool): if true all other extensions are removed.  this removes
+            all nonstarting characters including and after the first period.
+            Otherwise only the trailing extension is kept
 
     Returns:
-        str: fname -  file name
+        str: fpath -  file name or path
 
     CommandLine:
         python -m utool.util_path --exec-ensure_ext --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from utool.util_path import *  # NOQA
-        >>> print(ensure_ext('foo', '.bar'))
-        >>> print(ensure_ext('foo.bar', '.bar'))
+        >>> import utool as ut
+        >>> print(ut.ensure_ext('foo', '.bar'))
+        foo.bar
+        >>> print(ut.ensure_ext('foo.bar', '.bar'))
+        foo.bar
+        >>> print(ut.ensure_ext('foo.bar', '.baz'))
+        foo.bar.baz
+        >>> print(ut.ensure_ext('foo.bar', '.baz', True))
+        foo.baz
+        >>> print(ut.ensure_ext('foo.bar.baz', '.biz', True))
+        foo.biz
+        >>> print(ut.ensure_ext('..foo.bar.baz', '.biz', True))
+        ..foo.biz
     """
-    fname_, ext_ = splitext(fname)
-    if ext != ext_:
-        fname = fname_ + ext_ + ext
-    return fname
+    import utool as ut
+    dpath, fname = split(fpath)
+    fname_ = fname.lstrip('.')
+    n_leading_dots = len(fname) - len(fname_)
+    fname_, ext_ = splitext(fname_)
+    valid_exts = list(ut.ensure_iterable(ext))
+    if ext_ not in valid_exts:
+        if replace:
+            fname = fname_.split('.')[0] + valid_exts[0]
+        else:
+            fname = fname_ + ext_ + valid_exts[0]
+    fpath = join(dpath, ('.' * n_leading_dots) + fname)
+    return fpath
 
 
 def relpath_unix(path, otherpath):
