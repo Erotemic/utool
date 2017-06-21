@@ -1023,11 +1023,14 @@ if six.PY3:
         return int_
 else:
     def _int_to_bytes(int_):
+        print('_int_to_bytes')
         bytes_ = struct.pack('>i', int_)
         return bytes_
 
     def _bytes_to_int(bytes_):
-        int_ = struct.unpack('>i', bytes_)[0]
+        print('_bytes_to_int')
+        # int_ = struct.unpack('>i', bytes_)[0]
+        int_ = struct.unpack_from('>L', bytes_)[0]
         return int_
 
 
