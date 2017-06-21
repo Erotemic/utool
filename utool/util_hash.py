@@ -673,7 +673,7 @@ valid_filename_ascii_chars()
 
 
 def convert_bytes_to_bigbase(bytes_, alphabet=ALPHABET_27):
-    x = int.from_bytes(bytes_, 'big')
+    x = _bytes_to_int(bytes_)
     if x == 0:
         return '0'
     sign = 1 if x > 0 else -1
@@ -1014,11 +1014,21 @@ def combine_uuids(uuids, ordered=True, salt=''):
 
 if six.PY3:
     def _int_to_bytes(int_):
-        return int_.to_bytes(4, byteorder='big')
-        # return int_.to_bytes(8, byteorder='big')  # TODO: uncomment
+        bytes_ = int_.to_bytes(4, byteorder='big')
+        # int_.to_bytes(8, byteorder='big')  # TODO: uncomment
+        return bytes_
+
+    def _bytes_to_int(bytes_):
+        int_ = int.from_bytes(bytes_, 'big')
+        return int_
 else:
     def _int_to_bytes(int_):
-        return struct.pack('>i', int_)
+        bytes_ = struct.pack('>i', int_)
+        return bytes_
+
+    def _bytes_to_int(bytes_):
+        int_ = struct.unpack('>i', bytes_)[0]
+        return int_
 
 
 if six.PY3:
