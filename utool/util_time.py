@@ -360,7 +360,7 @@ def determine_timestamp_format(datetime_str, warn=True):
         >>>     '6:35:01\x002006:03:19 1',
         >>>     '2016/05/03 16:34:57 EST'
         >>> ]
-        >>> result = ut.list_str([determine_timestamp_format(datetime_str)
+        >>> result = ut.repr4([determine_timestamp_format(datetime_str)
         >>>            for datetime_str in datetime_str_list])
         >>> print(result)
     """
@@ -1066,7 +1066,7 @@ def get_timestats_str(unixtime_list, newlines=1, full=True, isutc=False):
     """
     import utool as ut
     datetime_stats = get_timestats_dict(unixtime_list, full=full, isutc=isutc)
-    timestat_str = ut.dict_str(datetime_stats, newlines=newlines)
+    timestat_str = ut.repr4(datetime_stats, newlines=newlines)
     return timestat_str
 
 

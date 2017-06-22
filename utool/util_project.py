@@ -632,8 +632,8 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
 
     print_ = msg_list1.append
     print_('Greping Projects')
-    print_('tofind_list = %s' % (ut.list_str(tofind_list, nl=True),))
-    #print_('grepkw = %s' % ut.dict_str(grepkw, nl=True))
+    print_('tofind_list = %s' % (ut.repr4(tofind_list, nl=True),))
+    #print_('grepkw = %s' % ut.repr4(grepkw, nl=True))
     if verbose:
         print('\n'.join(msg_list1))
     #with ut.Timer('greping', verbose=True):
@@ -679,7 +679,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     #         print_(('%s : %' + ndigits + 'd |%s') % (name, lx, colored_line))
 
     print_('====================')
-    print_('found_fpath_list = ' + ut.list_str(found_fpath_list))
+    print_('found_fpath_list = ' + ut.repr4(found_fpath_list))
     print_('')
     #print_('gvim -o ' + ' '.join(found_fpath_list))
     if verbose:
@@ -875,7 +875,7 @@ def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, 
     print_('Seding Projects')
     print(' * regular expression : %r' % (regexpr,))
     print(' * replacement        : %r' % (repl,))
-    print_('sedkw = %s' % ut.dict_str(sedkw, nl=True))
+    print_('sedkw = %s' % ut.repr4(sedkw, nl=True))
 
     print(' * recursive: %r' % (recursive,))
     print(' * force: %r' % (force,))

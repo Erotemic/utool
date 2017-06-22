@@ -1283,7 +1283,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         >>>                                          module, allexamples,
         >>>                                          needs_enable, N, verbose,
         >>>                                          testslow)
-        >>> result = ('mod_doctest_tup = %s' % (ut.list_str(mod_doctest_tup, nl=4),))
+        >>> result = ('mod_doctest_tup = %s' % (ut.repr4(mod_doctest_tup, nl=4),))
         >>> print(result)
     """
     #+------------------------
@@ -1428,8 +1428,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             try:
                 testable_name = testable.__name__
             except AttributeError as ex2:
-                ut.printex(ex1, ut.list_str(dir(testable)))
-                ut.printex(ex2, ut.list_str(dir(testable)))
+                ut.printex(ex1, ut.repr4(dir(testable)))
+                ut.printex(ex2, ut.repr4(dir(testable)))
                 raise
         return testable_name
 
@@ -1509,7 +1509,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         print('Now we need to find which examples are enabled')
         print('len(local_testtup_list) = %r' % (len(local_testtup_list),))
         print('local_testtup_list.T[0:2].T = %s' %
-              ut.list_str(ut.take_column(local_testtup_list, [0, 1])))
+              ut.repr4(ut.take_column(local_testtup_list, [0, 1])))
         print('sys.argv = %r' % (sys.argv,))
     all_testflags = []
     enabled_testtup_list = []
@@ -1698,7 +1698,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
     if ut.get_argflag('--list'):
         # HACK: Should probably just return a richer structure
-        print('testable_name_list = %s' % (ut.list_str(testable_name_list),))
+        print('testable_name_list = %s' % (ut.repr4(testable_name_list),))
 
     mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath,
                                        all_testflags, module)
@@ -1866,8 +1866,7 @@ def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
 
     if test_func is None:
         print('Did not find any function named %r ' % (test_funcname,))
-        print('Searched ' + ut.list_str([mod.__name__
-                                         for mod in module_list]))
+        print('Searched ' + ut.repr4([mod.__name__ for mod in module_list]))
     if return_mod:
         return test_func, testno, test_module
     else:

@@ -89,7 +89,7 @@ def inject_instance(self, classkey=None, allow_override=False,
                 print('[utool] type(self)=%r, self=%r' % (type(self), self)),
                 print('[utool] Checking to see if anybody else was registered...')
                 print('[utool] __CLASSTYPE_ATTRIBUTES__ = ' +
-                      ut.list_str(__CLASSTYPE_ATTRIBUTES__.keys()))
+                      ut.repr4(__CLASSTYPE_ATTRIBUTES__.keys()))
                 for classtype_, _ in six.iteritems(__CLASSTYPE_ATTRIBUTES__):
                     isinstance(self, classtype_)
                     classkey = classtype_

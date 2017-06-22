@@ -240,7 +240,7 @@ def get_python_datastructure_sizes():
         >>> from utool.util_resources import *  # NOQA
         >>> import utool as ut  # NOQA
         >>> type_sizes = get_python_datastructure_sizes()
-        >>> result = ut.dict_str(type_sizes, sorted_=True)
+        >>> result = ut.repr4(type_sizes, sorted_=True)
         >>> print(result)
     """
     import sys

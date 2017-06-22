@@ -29,7 +29,7 @@ def run_tests():
         dpath_list = [dirname(ut.__file__)]
         doctest_modname_list = ut.find_doctestable_modnames(
             dpath_list, exclude_doctests_fnames, exclude_dirs)
-        print(ut.indent('doctest_modname_list = ' + ut.list_str(doctest_modname_list), ' ' * 8))
+        print(ut.indent('doctest_modname_list = ' + ut.repr4(doctest_modname_list), ' ' * 8))
 
         """
         doctest_modname_list = [
@@ -107,7 +107,7 @@ def run_tests():
         return 1
     else:
         return 0
-    #print(ut.list_str(doctest_modname_list))
+    #print(ut.repr4(doctest_modname_list))
 
 
 def convert_tests_from_utool_to_nose(module_list):

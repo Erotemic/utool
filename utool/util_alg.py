@@ -627,7 +627,7 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
         >>> max_covers = None
         >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
         >>> (uncovered_items, covered_items_list, accepted_keys) = tup
-        >>> result = ut.list_str((uncovered_items, sorted(list(accepted_keys))), nl=False)
+        >>> result = ut.repr4((uncovered_items, sorted(list(accepted_keys))), nl=False)
         >>> print(result)
         ([0, 9], ['a', 'c', 'd'])
 
@@ -641,7 +641,7 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
         >>> max_covers = 1
         >>> tup = greedy_max_inden_setcover(candidate_sets_dict, items, max_covers)
         >>> (uncovered_items, covered_items_list, accepted_keys) = tup
-        >>> result = ut.list_str((uncovered_items, sorted(list(accepted_keys))), nl=False)
+        >>> result = ut.repr4((uncovered_items, sorted(list(accepted_keys))), nl=False)
         >>> print(result)
         ([0, 3, 4, 5, 8, 9], ['d'])
     """

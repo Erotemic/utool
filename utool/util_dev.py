@@ -1262,7 +1262,7 @@ def get_jagged_stats(arr_list, **kwargs):
         >>> kwargs = dict(use_nan=True)
         >>> arr_list = [[1, 2, 3, 4], [3, 10], [np.nan, 3, 3, 3]]
         >>> stats_dict = get_jagged_stats(arr_list, **kwargs)
-        >>> result = ut.align(str(ut.dict_str(stats_dict)), ':')
+        >>> result = ut.align(str(ut.repr4(stats_dict)), ':')
         >>> print(result)
         {
             'max'    : [4.0, 10.0, 3.0],
@@ -1312,7 +1312,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> np.random.seed(0)
         >>> list_ = np.random.rand(10, 2).astype(np.float32)
         >>> stats = get_stats(list_, axis, use_nan=False)
-        >>> result = str(utool.dict_str(stats, nl=1, with_dtype=True))
+        >>> result = str(utool.repr4(stats, nl=1, with_dtype=True))
         >>> print(result)
         {
             'max': np.array([ 0.96366274,  0.92559665], dtype=np.float32),
@@ -1445,7 +1445,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         print_stats
         get_stats
     """
-    from utool.util_str import dict_str
+    from utool.util_str import repr4
     import utool as ut
     # Get stats dict
     if stat_dict is None:
@@ -1494,7 +1494,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
                 statstr_dict[key] = strval
 
     # format the dictionary string
-    stat_str  = dict_str(statstr_dict, strvals=True, newlines=newlines)
+    stat_str  = repr4(statstr_dict, strvals=True, newlines=newlines)
     # add a label if requested
     if lbl is True:
         lbl = ut.get_varname_from_stack(list_, N=1)  # fancy
@@ -2414,8 +2414,8 @@ def get_dev_paste_code(func):
     import utool as ut
     example_texts = ut.get_doctest_examples(func)
     example_text = example_texts[0][0]
-    assert isinstance(example_text, str), ut.list_str(example_text)
-    assert isinstance(example_text, str), ut.list_str(example_text)
+    assert isinstance(example_text, str), ut.repr4(example_text)
+    assert isinstance(example_text, str), ut.repr4(example_text)
     source_text = ut.get_func_sourcecode(func)
     get_dev_code = '\n'.join((example_text, source_text))
     return get_dev_code

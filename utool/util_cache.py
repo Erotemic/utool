@@ -139,7 +139,7 @@ def text_dict_write(fpath, dict_):
     """
     #dict_ = text_dict_read(fpath)
     #dict_[key] = val
-    dict_text2 = util_str.dict_str(dict_, strvals=False)
+    dict_text2 = util_str.repr4(dict_, strvals=False)
     if VERBOSE:
         print('[cache] ' + str(dict_text2))
     util_io.write_to(fpath, dict_text2)
@@ -872,8 +872,8 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
                                  lenkw=len(kwargs),)
                 msg = '\n'.join([
                     '+--- UTOOL --- ERROR IN CACHED FUNCTION',
-                    #'dbgdict = ' + utool.dict_str(_dbgdict),
-                    'dbgdict2 = ' + util_str.dict_str(_dbgdict2),
+                    #'dbgdict = ' + utool.repr4(_dbgdict),
+                    'dbgdict2 = ' + util_str.repr4(_dbgdict2),
                 ])
                 util_dbg.printex(ex, msg)
                 raise
@@ -925,7 +925,7 @@ def shelf_open(fpath):
         >>> import utool as ut
         >>> fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool'), 'testshelf.shelf')
         >>> with ut.shelf_open(fpath) as dict_:
-        ...     print(ut.dict_str(dict_))
+        ...     print(ut.repr4(dict_))
     """
     return contextlib.closing(shelve.open(fpath))
 
@@ -976,7 +976,7 @@ def global_cache_dump(appname='default'):
     shelf_fpath = get_global_shelf_fpath(appname)
     print('shelf_fpath = %r' % shelf_fpath)
     with GlobalShelfContext(appname) as shelf:
-        print(util_str.dict_str(shelf))
+        print(util_str.repr4(shelf))
 
 
 def global_cache_write(key, val, appname='default'):
@@ -1261,11 +1261,11 @@ class LRUDict(object):
 
     def __str__(self):
         import utool as ut
-        return ut.dict_str(self._cache, nl=False)
+        return ut.repr4(self._cache, nl=False)
 
     def __repr__(self):
         import utool as ut
-        return 'LRUDict(' + ut.dict_str(self._cache) + ')'
+        return 'LRUDict(' + ut.repr4(self._cache) + ')'
         #return repr(self._cache)
 
     def __iter__(self):

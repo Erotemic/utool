@@ -190,7 +190,7 @@ def take_column(list_, colx):
         >>> colx = 0
         >>> result = take_column(list_, colx)
         >>> import utool as ut
-        >>> result = ut.list_str(result, nl=False)
+        >>> result = ut.repr4(result, nl=False)
         >>> print(result)
         ['a', 'c']
 
@@ -201,7 +201,7 @@ def take_column(list_, colx):
         >>> colx = [1, 0]
         >>> result = take_column(list_, colx)
         >>> import utool as ut
-        >>> result = ut.list_str(result, nl=False)
+        >>> result = ut.repr4(result, nl=False)
         >>> print(result)
         [['b', 'a'], ['d', 'c']]
 
@@ -213,7 +213,7 @@ def take_column(list_, colx):
         >>> colx = ['spam']
         >>> result = take_column(list_, colx)
         >>> import utool as ut
-        >>> result = ut.list_str(result, nl=False)
+        >>> result = ut.repr4(result, nl=False)
         >>> print(result)
         [['EGGS'], ['JAM']]
     """
@@ -279,7 +279,7 @@ def listclip(list_, num, fromback=False):
         >>> num = 9
         >>> result_list += [ut.listclip(list_, num)]
         >>> # verify results
-        >>> result = ut.list_str(result_list)
+        >>> result = ut.repr4(result_list)
         >>> print(result)
         [
             [1, 2, 3],
@@ -413,7 +413,7 @@ def flatten(list_):
         >>> import utool as ut
         >>> list_ = [['a', 'b'], ['c', 'd']]
         >>> unflat_list2 = flatten(list_)
-        >>> result = ut.list_str(unflat_list2, nl=False)
+        >>> result = ut.repr4(unflat_list2, nl=False)
         >>> print(result)
         ['a', 'b', 'c', 'd']
     """
@@ -1420,7 +1420,7 @@ def setdiff(list1, list2):
         >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
         >>> list2 = [u'featweight_rowid']
         >>> new_list = setdiff_ordered(list1, list2)
-        >>> result = ut.list_str(new_list, nl=False)
+        >>> result = ut.repr4(new_list, nl=False)
         >>> print(result)
         ['feature_rowid', 'config_rowid', 'featweight_forground_weight']
     """
@@ -2962,7 +2962,7 @@ def make_index_lookup(list_, dict_factory=dict):
         >>> import utool as ut
         >>> list_ = [5, 3, 8, 2]
         >>> idx2_item = ut.make_index_lookup(list_)
-        >>> result = ut.dict_str(idx2_item, nl=False)
+        >>> result = ut.repr2(idx2_item, nl=False)
         >>> assert ut.dict_take(idx2_item, list_) == list(range(len(list_)))
         >>> print(result)
         {2: 3, 3: 1, 5: 0, 8: 2}

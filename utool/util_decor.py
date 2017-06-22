@@ -247,7 +247,7 @@ def on_exception_report_input(func_=None, force=False, keys=None):
                     arg_vals = util_list.take(args_, arg_idxs)
                     requested_dict = dict(util_list.flatten(
                         [zip(kwarg_keys, kwarg_vals), zip(arg_keys, arg_vals)]))
-                    print('input dict = ' + util_str.dict_str(
+                    print('input dict = ' + util_str.repr4(
                         util_dict.dict_subset(requested_dict, keys)))
                     # (print out specific keys only)
                     pass

@@ -283,7 +283,7 @@ def smart_cast2(var):
         >>> # execute function
         >>> castvar_list = [smart_cast2(var) for var in var_list]
         >>> # verify results
-        >>> result = ut.list_str(castvar_list, nl=False)
+        >>> result = ut.repr4(castvar_list, nl=False)
         >>> print(result)
         ['?', 1, 1, 1.0, 1.2, True, None, None]
     """

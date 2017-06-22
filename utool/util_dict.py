@@ -217,7 +217,7 @@ def get_dict_hashid(dict_):
         oegknoalkrkojumi
     """
     import utool as ut
-    raw_text = ut.dict_str(dict_, sorted_=True, strvals=True)
+    raw_text = ut.repr4(dict_, sorted_=True, strvals=True)
     #print('raw_text = %r' % (raw_text,))
     hashid = ut.hashstr27(raw_text)
     #from utool import util_hash
@@ -469,7 +469,7 @@ def invert_dict(dict_, unique_vals=True):
         >>> import utool as ut
         >>> dict_ = {'a': 1, 'b': 2}
         >>> inverted_dict = invert_dict(dict_)
-        >>> result = ut.dict_str(inverted_dict, nl=False)
+        >>> result = ut.repr4(inverted_dict, nl=False)
         >>> print(result)
         {1: 'a', 2: 'b'}
 
@@ -479,7 +479,7 @@ def invert_dict(dict_, unique_vals=True):
         >>> import utool as ut
         >>> dict_ = OrderedDict([(2, 'good',), (1, 'ok',), (0, 'junk',), (None, 'UNKNOWN',)])
         >>> inverted_dict = invert_dict(dict_)
-        >>> result = ut.dict_str(inverted_dict, nl=False)
+        >>> result = ut.repr4(inverted_dict, nl=False)
         >>> print(result)
         {'good': 2, 'ok': 1, 'junk': 0, 'UNKNOWN': None}
 
@@ -490,7 +490,7 @@ def invert_dict(dict_, unique_vals=True):
         >>> dict_ = {'a': 1, 'b': 0, 'c': 0, 'd': 0, 'e': 0, 'f': 2}
         >>> inverted_dict = invert_dict(dict_, unique_vals=False)
         >>> inverted_dict = ut.map_dict_vals(sorted, inverted_dict)
-        >>> result = ut.dict_str(inverted_dict, nl=False)
+        >>> result = ut.repr4(inverted_dict, nl=False)
         >>> print(result)
         {0: ['b', 'c', 'd', 'e'], 1: ['a'], 2: ['f']}
     """
@@ -539,7 +539,7 @@ def all_dict_combinations(varied_dict):
         >>> import utool as ut
         >>> varied_dict = {'logdist_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True, False, None]}
         >>> dict_list = all_dict_combinations(varied_dict)
-        >>> result = str(ut.list_str(dict_list))
+        >>> result = str(ut.repr4(dict_list))
         >>> print(result)
         [
             {'logdist_weight': 0.0, 'pipeline_root': 'vsmany', 'sv_on': True},
@@ -583,7 +583,7 @@ def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_sing
         >>> from utool.util_dict import *  # NOQA
         >>> varied_dict = {'logdist_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True, False, None]}
         >>> comb_lbls = utool.all_dict_combinations_lbls(varied_dict)
-        >>> result = (utool.list_str(comb_lbls))
+        >>> result = (utool.repr4(comb_lbls))
         >>> print(result)
         [
             'logdist_weight=0.0,sv_on=True',
@@ -601,7 +601,7 @@ def all_dict_combinations_lbls(varied_dict, remove_singles=True, allow_lone_sing
         >>> varied_dict = {'logdist_weight': [0.0], 'pipeline_root': ['vsmany'], 'sv_on': [True]}
         >>> allow_lone_singles = True
         >>> comb_lbls = ut.all_dict_combinations_lbls(varied_dict, allow_lone_singles=allow_lone_singles)
-        >>> result = (ut.list_str(comb_lbls))
+        >>> result = (ut.repr4(comb_lbls))
         >>> print(result)
         [
             'logdist_weight=0.0,pipeline_root=vsmany,sv_on=True',
@@ -806,7 +806,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         >>> keys = ['K', 'dcvs_clip_max']
         >>> d = tuple([])
         >>> subdict_ = dict_subset(dict_, keys)
-        >>> result = ut.dict_str(subdict_, sorted_=True, newlines=False)
+        >>> result = ut.repr4(subdict_, sorted_=True, newlines=False)
         >>> print(result)
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
@@ -858,7 +858,7 @@ def delete_dict_keys(dict_, key_list):
         >>> dict_ = {'bread': 1, 'churches': 1, 'cider': 2, 'very small rocks': 2}
         >>> key_list = ['duck', 'bread', 'cider']
         >>> delete_dict_keys(dict_, key_list)
-        >>> result = ut.dict_str(dict_, nl=False)
+        >>> result = ut.repr4(dict_, nl=False)
         >>> print(result)
         {'churches': 1, 'very small rocks': 2}
 
@@ -894,7 +894,7 @@ def dict_take_gen(dict_, keys, *d):
         >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
         >>> result = list(dict_take_gen(dict_, keys, None))
-        >>> result = ut.list_str(result, nl=False)
+        >>> result = ut.repr4(result, nl=False)
         >>> print(result)
         ['a', 'b', 'c', None, None]
 
@@ -974,10 +974,10 @@ def dict_take_pop(dict_, keys, *d):
         >>> import utool as ut
         >>> dict_ = {1: 'a', 'other': None, 'another': 'foo', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
-        >>> print('before: ' + ut.dict_str(dict_))
+        >>> print('before: ' + ut.repr4(dict_))
         >>> result = list(dict_take_pop(dict_, keys, None))
-        >>> result = ut.list_str(result, nl=False)
-        >>> print('after: ' + ut.dict_str(dict_))
+        >>> result = ut.repr4(result, nl=False)
+        >>> print('after: ' + ut.repr4(dict_))
         >>> assert len(dict_) == 2
         >>> print(result)
         ['a', 'b', 'c', None, None]
@@ -988,14 +988,14 @@ def dict_take_pop(dict_, keys, *d):
         >>> import utool as ut
         >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
-        >>> print('before: ' + ut.dict_str(dict_))
+        >>> print('before: ' + ut.repr4(dict_))
         >>> try:
         >>>     print(list(dict_take_pop(dict_, keys)))
         >>>     result = 'did not get key error'
         >>> except KeyError:
         >>>     result = 'correctly got key error'
         >>> assert len(dict_) == 0
-        >>> print('after: ' + ut.dict_str(dict_))
+        >>> print('after: ' + ut.repr4(dict_))
         >>> print(result)
         correctly got key error
     """
@@ -1097,7 +1097,7 @@ def dictinfo(dict_):
         if val_types[0] == np.ndarray:
             # each key holds an ndarray
             val_shape_stats = ut.get_stats(set(map(np.shape, vals)), axis=0)
-            val_shape_stats_str = ut.dict_str(val_shape_stats, strvals=True, newlines=False)
+            val_shape_stats_str = ut.repr4(val_shape_stats, strvals=True, newlines=False)
             val_dtypes = list(set([val.dtype for val in vals]))
             fmtstr_ += ut.unindent('''
             * val_shape_stats = {val_shape_stats_str}
@@ -1106,7 +1106,7 @@ def dictinfo(dict_):
         elif val_types[0] == list:
             # each key holds a list
             val_len_stats =  ut.get_stats(set(map(len, vals)))
-            val_len_stats_str = ut.dict_str(val_len_stats, strvals=True, newlines=False)
+            val_len_stats_str = ut.repr4(val_len_stats, strvals=True, newlines=False)
             depth = ut.list_depth(vals)
             deep_val_types = list(set(ut.list_deep_types(vals)))
             fmtstr_ += ut.unindent('''
@@ -1288,7 +1288,7 @@ def merge_dicts(*args):
         >>> x = {'a': 1, 'b': 2}
         >>> y = {'b': 3, 'c': 4}
         >>> mergedict_ = merge_dicts(x, y)
-        >>> result = ut.dict_str(mergedict_, sorted_=True, newlines=False)
+        >>> result = ut.repr4(mergedict_, sorted_=True, newlines=False)
         >>> print(result)
         {'a': 1, 'b': 3, 'c': 4}
 
@@ -1321,7 +1321,7 @@ def dict_union3(dict1, dict2, combine_op=op.add):
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
         >>> combine_op = op.add
         >>> mergedict_ = dict_union3(dict1, dict2, combine_op)
-        >>> result = ('mergedict_ = %s' % (ut.dict_str(mergedict_, nl=False),))
+        >>> result = ('mergedict_ = %s' % (ut.repr4(mergedict_, nl=False),))
         >>> print(result)
         mergedict_ = {'a': 1, 'b': 4, 'c': 6, 'd': 9, 'e': 21, 'f': 42}
     """
@@ -1363,7 +1363,7 @@ def dict_intersection(dict1, dict2, combine=False, combine_op=op.add):
         >>> dict2 = {'b': 2, 'c': 3, 'd': 5, 'e': 21, 'f': 42}
         >>> combine = False
         >>> mergedict_ = dict_intersection(dict1, dict2, combine)
-        >>> result = ('mergedict_ = %s' % (ut.dict_str(mergedict_, nl=False),))
+        >>> result = ('mergedict_ = %s' % (ut.repr4(mergedict_, nl=False),))
         >>> print(result)
         mergedict_ = {'b': 2, 'c': 3}
     """
@@ -1441,7 +1441,7 @@ def dict_filter_nones(dict_):
         >>> import utool as ut
         >>> dict_ = {1: None, 2: 'blue', 3: 'four', None: 'fun'}
         >>> dict2_ = dict_filter_nones(dict_)
-        >>> result = ut.dict_str(dict2_, nl=False)
+        >>> result = ut.repr4(dict2_, nl=False)
         >>> print(result)
         {None: 'fun', 2: 'blue', 3: 'four'}
     """
@@ -1607,7 +1607,7 @@ def hierarchical_group_items(item_list, groupids_list):
         >>> item_list     = [1, 2, 3, 4]
         >>> groupids_list = [[1, 1, 2, 2]]
         >>> tree = hierarchical_group_items(item_list, groupids_list)
-        >>> result = ('tree = ' + ut.dict_str(tree, nl=len(groupids_list) - 1))
+        >>> result = ('tree = ' + ut.repr4(tree, nl=len(groupids_list) - 1))
         >>> print(result)
         tree = {1: [1, 2], 2: [3, 4]}
 
@@ -1618,7 +1618,7 @@ def hierarchical_group_items(item_list, groupids_list):
         >>> item_list     = [1, 2, 3, 4, 5, 6, 7, 8]
         >>> groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]
         >>> tree = hierarchical_group_items(item_list, groupids_list)
-        >>> result = ('tree = ' + ut.dict_str(tree, nl=len(groupids_list) - 1))
+        >>> result = ('tree = ' + ut.repr4(tree, nl=len(groupids_list) - 1))
         >>> print(result)
         tree = {
             1: {1: [7], 2: [3], 3: [1, 5]},
@@ -1632,7 +1632,7 @@ def hierarchical_group_items(item_list, groupids_list):
         >>> item_list     = [1, 2, 3, 4]
         >>> groupids_list = [[1, 1, 1, 2], [1, 2, 2, 2], [1, 3, 1, 1]]
         >>> tree = hierarchical_group_items(item_list, groupids_list)
-        >>> result = ('tree = ' + ut.dict_str(tree, nl=len(groupids_list) - 1))
+        >>> result = ('tree = ' + ut.repr4(tree, nl=len(groupids_list) - 1))
         >>> print(result)
         tree = {
             1: {
@@ -1713,7 +1713,7 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         >>> groupids_list = [[1, 2, 1, 2, 1, 2, 1, 2], [3, 2, 2, 2, 3, 1, 1, 1]]
         >>> tree = ut.hierarchical_group_items(item_list, groupids_list)
         >>> len_tree = ut.hierarchical_map_vals(len, tree)
-        >>> result = ('len_tree = ' + ut.dict_str(len_tree, nl=1))
+        >>> result = ('len_tree = ' + ut.repr4(len_tree, nl=1))
         >>> print(result)
         len_tree = {
             1: {1: 1, 2: 1, 3: 2},
@@ -1737,17 +1737,17 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         ...     groupids_list.append(levelids)
         ...     total += num2 * 2
         ...     num //= 2
-        >>> print('groupids_list = %s' % (ut.list_str(groupids_list, nl=1),))
+        >>> print('groupids_list = %s' % (ut.repr4(groupids_list, nl=1),))
         >>> print('depth = %r' % (len(groupids_list),))
         >>> tree = ut.hierarchical_group_items(item_list, groupids_list)
-        >>> print('tree = ' + ut.dict_str(tree, nl=None))
+        >>> print('tree = ' + ut.repr4(tree, nl=None))
         >>> flat_tree_values = list(ut.iflatten_dict_values(tree))
         >>> assert sorted(flat_tree_values) == sorted(item_list)
         >>> print('flat_tree_values = ' + str(flat_tree_values))
         >>> #print('flat_tree_keys = ' + str(list(ut.iflatten_dict_keys(tree))))
         >>> #print('iflatten_dict_items = ' + str(list(ut.iflatten_dict_items(tree))))
         >>> len_tree = ut.hierarchical_map_vals(len, tree, max_depth=4)
-        >>> result = ('len_tree = ' + ut.dict_str(len_tree, nl=None))
+        >>> result = ('len_tree = ' + ut.repr4(len_tree, nl=None))
         >>> print(result)
 
     """
@@ -1786,15 +1786,15 @@ def move_odict_item(odict, key, newpos):
         >>> odict['b'] = 2
         >>> odict['c'] = 3
         >>> odict['e'] = 5
-        >>> print(ut.dict_str(odict, nl=False))
+        >>> print(ut.repr4(odict, nl=False))
         >>> move_odict_item(odict, 'c', 1)
-        >>> print(ut.dict_str(odict, nl=False))
+        >>> print(ut.repr4(odict, nl=False))
         >>> move_odict_item(odict, 'a', 3)
-        >>> print(ut.dict_str(odict, nl=False))
+        >>> print(ut.repr4(odict, nl=False))
         >>> move_odict_item(odict, 'a', 0)
-        >>> print(ut.dict_str(odict, nl=False))
+        >>> print(ut.repr4(odict, nl=False))
         >>> move_odict_item(odict, 'b', 2)
-        >>> result = ut.dict_str(odict, nl=False)
+        >>> result = ut.repr4(odict, nl=False)
         >>> print(result)
         {'a': 1, 'c': 3, 'b': 2, 'e': 5}
     """
@@ -1972,7 +1972,7 @@ def order_dict_by(dict_, key_order):
         >>> dict_ = {1: 1, 2: 2, 3: 3, 4: 4}
         >>> key_order = [4, 2, 3, 1]
         >>> sorted_dict = order_dict_by(dict_, key_order)
-        >>> result = ('sorted_dict = %s' % (ut.dict_str(sorted_dict, nl=False),))
+        >>> result = ('sorted_dict = %s' % (ut.repr4(sorted_dict, nl=False),))
         >>> print(result)
         >>> assert result == 'sorted_dict = {4: 4, 2: 2, 3: 3, 1: 1}'
 
@@ -2025,7 +2025,7 @@ def flatten_dict_items(dict_):
         >>> groupids_list = [[1, 1, 1, 2], [1, 2, 2, 2], [1, 3, 1, 1]]
         >>> dict_ = hierarchical_group_items(item_list, groupids_list)
         >>> flatter_dict = flatten_dict_items(dict_)
-        >>> result = ('flatter_dict = ' + ut.dict_str(flatter_dict, nl=1))
+        >>> result = ('flatter_dict = ' + ut.repr4(flatter_dict, nl=1))
         >>> print(result)
         flatter_dict = {
             (1, 1, 1): [1],

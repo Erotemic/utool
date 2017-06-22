@@ -333,7 +333,7 @@ def autogen_sphinx_apidoc():
         apidoc_cmdstr = apidoc_fmtstr.format(**apidoc_fmtdict)
         print('[util_setup] autogenerate sphinx docs for %r' % (pkgdir,))
         if ut.VERBOSE:
-            print(ut.dict_str(apidoc_fmtdict))
+            print(ut.repr4(apidoc_fmtdict))
         return apidoc_cmdstr, modpath, outputdir
 
     def build_conf_replstr():
@@ -688,11 +688,11 @@ def setuptools_setup(setup_fpath=None, module=None, **kwargs):
     from utool.util_inject import inject_colored_exceptions
     inject_colored_exceptions()  # Fluffly, but nice
     if VERBOSE:
-        print(util_str.dict_str(kwargs))
+        print(util_str.repr4(kwargs))
     __infer_setup_kwargs(module, kwargs)
     presetup_commands(setup_fpath, kwargs)
     if VERBOSE:
-        print(util_str.dict_str(kwargs))
+        print(util_str.repr4(kwargs))
     return kwargs
 
 

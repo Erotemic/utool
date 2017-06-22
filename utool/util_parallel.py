@@ -764,7 +764,7 @@ def _test_buffered_generator_general(func, args, sleepfunc,
     est_tsleep = sleeptime * num_loops
     est_tfunc = functime * num_loops
     est_needed_buffers =  sleeptime / functime
-    print('Estimated stats' + ut.dict_str(ut.dict_subset(locals(), [
+    print('Estimated stats' + ut.repr4(ut.dict_subset(locals(), [
         'num_loops',
         'functime', 'sleeptime', 'est_tsleep', 'est_tfunc', 'serial_cheat', 'buffer_size',
         'est_needed_buffers',
@@ -843,7 +843,7 @@ def _test_buffered_generator_general2(bgfunc, bgargs, fgfunc,
     est_tfg = fgfunctime * num_loops
     est_tbg = bgfunctime * num_loops
     est_needed_buffers =  fgfunctime / bgfunctime
-    print('Estimated stats' + ut.dict_str(ut.dict_subset(locals(), [
+    print('Estimated stats' + ut.repr4(ut.dict_subset(locals(), [
         'num_loops',
         'bgfunctime', 'fgfunctime', 'est_tfg', 'est_tbg', 'serial_cheat',
         'buffer_size', 'est_needed_buffers',

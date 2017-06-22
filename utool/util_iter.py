@@ -308,7 +308,7 @@ def iter_multichunks(iterable, chunksizes, bordermode=None):
         >>> multichunks = list(genresult)
         >>> depthprofile = ut.depth_profile(multichunks)
         >>> assert depthprofile[1:] == chunksizes, 'did not generate chunks correctly'
-        >>> result = ut.list_str(map(str, multichunks), nobr=True)
+        >>> result = ut.repr4(map(str, multichunks), nobr=True)
         >>> print(result)
         '[[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]], [[12, 13, 14], [15, 16, 17]]]',
         '[[[18, 19, 0], [1, 2, 3]], [[4, 5, 6], [7, 8, 9]], [[10, 11, 12], [13, 14, 15]]]',
@@ -495,7 +495,7 @@ def interleave(args):
         >>> import utool as ut
         >>> args = ([1, 2, 3, 4, 5], ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
         >>> genresult = interleave(args)
-        >>> result = ut.list_str(list(genresult), nl=False)
+        >>> result = ut.repr4(list(genresult), nl=False)
         >>> print(result)
         [1, 'A', 2, 'B', 3, 'C', 4, 'D', 5, 'E']
     """

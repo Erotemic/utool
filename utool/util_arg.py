@@ -129,7 +129,7 @@ def autogen_argparse_block(extra_args=[]):
     if len(multi_groups) > 0:
         import utool as ut
         print('Following arg was specified multiple times')
-        print(ut.list_str(multi_groups, newlines=2))
+        print(ut.repr4(multi_groups, newlines=2))
 
 
 def get_argflag(argstr_, default=False, help_='', return_specified=None,
@@ -349,7 +349,7 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
         >>>     print('list1[%r=%r] = %r' % (argstr_, res, ut.take(list1, res),))
         >>>     print('list2[%r=%r] = %r' % (argstr_, res, list2[res].tolist(),))
         >>>     res_list.append(res)
-        >>> result = ut.dict_str(ut.odict(zip(argstr_list, res_list)))
+        >>> result = ut.repr4(ut.odict(zip(argstr_list, res_list)))
         >>> result = result.replace('u\'', '\'')  # hack
         >>> print(result)
 
@@ -971,7 +971,7 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
         >>> only_specified = ut.get_argflag('--only-specified')
         >>> dict_ = argparse_dict(default_dict_, only_specified=only_specified)
         >>> # verify results
-        >>> result = ut.dict_str(dict_, sorted_=True)
+        >>> result = ut.repr4(dict_, sorted_=True)
         >>> print(result)
     """
     if verbose is None:
@@ -1057,8 +1057,8 @@ def argparse_dict(default_dict_, lbl=None, verbose=None,
         print('COMMAND LINE IS ACCEPTING THESE PARAMS WITH DEFAULTS:')
         if lbl is not None:
             print(lbl)
-        #print(ut.align(ut.dict_str(dict_, sorted_=True), ':'))
-        print(ut.align(ut.dict_str(default_dict_, sorted_=True), ':'))
+        #print(ut.align(ut.repr4(dict_, sorted_=True), ':'))
+        print(ut.align(ut.repr4(default_dict_, sorted_=True), ':'))
         if do_helpx:
             sys.exit(1)
     return dict_

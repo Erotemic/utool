@@ -147,7 +147,7 @@ def makeinit(mod_dpath, exclude_modnames=[], use_star=False):
 
     init_codeblock_list = ['# -*- coding: utf-8 -*-', ts_line]
     init_codeblock_list.append(initstr)
-    init_codeblock_list.append('\nIMPORT_TUPLES = ' + ut.list_str(IMPORT_TUPLES))
+    init_codeblock_list.append('\nIMPORT_TUPLES = ' + ut.repr4(IMPORT_TUPLES))
     if use_star:
         init_codeblock_list.append(importstar_codeblock)
     init_codeblock_list.append(regen_block)
@@ -399,7 +399,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
                 'python -m utool --tf auto_docstr '
                 '--modname={modname} --funcname={funcname} --moddir={moddir}').format(
                     modname=modname, funcname=funcname, moddir=moddir)
-            error_str += '\n kwargs='  + ut.dict_str(kwargs)
+            error_str += '\n kwargs='  + ut.repr4(kwargs)
             return error_str
     else:
         docstr = error_str

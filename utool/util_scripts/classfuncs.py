@@ -46,8 +46,8 @@ def show_function_usage(fname, funcname_list, dpath_list):
         else:
             for filename, lines in zip(external_filestr_list, external_lines_list):
                 print(' * filename=%r' % (filename,))
-                print(ut.list_str(lines))
-            #print(ut.list_str(list(zip(external_filestr_list, external_lines_list))))
+                print(ut.repr4(lines))
+            #print(ut.repr4(list(zip(external_filestr_list, external_lines_list))))
     print('----------')
     print('flagged:')
     print('\n'.join(flagged_funcnames))

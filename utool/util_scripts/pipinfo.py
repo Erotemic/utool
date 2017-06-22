@@ -65,7 +65,7 @@ def print_module_info(modname):
         infodict = module_stdinfo_dict(module)
     if any([infodict['__file__'].endswith(ext) for ext in ut.LIB_EXT_LIST]):
         infodict['libdep'] = ut.get_dynlib_dependencies(infodict['__file__'])
-    return print(ut.dict_str(infodict, strvals=True))
+    return print(ut.repr4(infodict, strvals=True))
 
 
 if __name__ == '__main__':

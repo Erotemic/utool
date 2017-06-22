@@ -58,8 +58,8 @@ def get_default_global_config():
 def write_default_repo_config():
     import utool
     CONFIG_DICT = utool.get_default_repo_config()
-    config_str = utool.dict_str(CONFIG_DICT, strvals=True, newlines=True,
-                                recursive=True)
+    config_str = utool.repr2(CONFIG_DICT, strvals=True, newlines=True,
+                             recursive=True)
     print(config_str)
 
 

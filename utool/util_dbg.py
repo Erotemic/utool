@@ -633,7 +633,7 @@ def in_jupyter_notebook():
     """
     try:
         cfg = get_ipython().config
-        #print('cfg = %s' % (ut.dict_str(cfg),))
+        #print('cfg = %s' % (ut.repr4(cfg),))
         #x = cfg['IPKernelApp']['parent_appname']
         # might not work if using jupyter-console
         if cfg['IPKernelApp']['connection_file'].count('jupyter'):
@@ -1386,59 +1386,6 @@ def printvar(locals_, varname, attr='.shape', typepad=0):
 #                        precision=precision,
 #                        edgeitems=edgeitems,
 #                        threshold=threshold)
-
-
-def dict_dbgstr(dict_name, locals_=None):
-    if locals_ is None:
-        locals_ = get_parent_frame().f_locals
-    lenstr = len_dbgstr(dict_name, locals_)
-    keystr = keys_dbgstr(dict_name, locals_)
-    return keystr + ' ' + lenstr
-    #printvar(locals_, dict_name)
-
-
-def keys_dbgstr(dict_name, locals_=None):
-    if locals_ is None:
-        locals_ = get_parent_frame().f_locals
-    dict_ = locals_[dict_name]
-    key_str = dict_name + '.keys() = ' + repr(dict_.keys())
-    return key_str
-    #dict_ = locals_[dict_name]
-
-
-def print_varlen(name_, locals_=None):
-    if locals_ is None:
-        locals_ = get_parent_frame().f_locals
-    prefix = get_caller_prefix()
-    print(prefix + ' ' + len_dbgstr(name_, locals_))
-
-
-def len_dbgstr(lenable_name, locals_=None):
-    try:
-        if locals_ is None:
-            locals_ = get_parent_frame().f_locals
-        lenable_ = locals_[lenable_name]
-    except Exception:
-        exec(execstr_dict(locals_, 'locals_'))
-        try:
-            lenable_ = eval(lenable_name)
-        except Exception as ex:
-            print('locals.keys = %r' % (locals_.keys(),))
-            printex(ex, '[!util_dbg]')
-            raise Exception('Cannot lendbg: %r' % lenable_name)
-    len_str = 'len(%s) = %d' % (lenable_name, len(lenable_))
-    return len_str
-
-
-def list_dbgstr(list_name, trunc=2):
-    locals_ = get_parent_frame().f_locals
-    list_   = locals_[list_name]
-    if trunc is None:
-        pos = len(list_)
-    else:
-        pos     = min(trunc, len(list_) - 1)
-    list_str = list_name + ' = ' + repr(list_[0:pos],)
-    return list_str
 
 
 class EmbedOnException(object):

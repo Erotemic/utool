@@ -449,7 +449,7 @@ def check_module_usage(modpath_patterns):
     #         ut.delete_keys(numcall_graph_, modnames)
     #         ut.delete_keys(numcall_graph_, ignore_modnames)
     #         num_callers[modname][funcname] = sum(numcall_graph_.values())
-    #     print(ut.dict_str(num_callers[modname], sorted_=True, key_order_metric='val'))
+    #     print(ut.repr4(num_callers[modname], sorted_=True, key_order_metric='val'))
 
     # # Check external usage
     # unused_external = []
@@ -580,7 +580,7 @@ def help_members(obj, use_other=False):
         other_mems = ut.delete_keys(type_to_items.copy(), memtypes)
         other_mems_attrnames = ut.dict_subset(type_to_itemname, other_mems.keys())
         named_other_attrs = ut.dict_union_combine(other_mems_attrnames, other_mems, lambda x, y: list(zip(x, y)))
-        print(ut.dict_str(named_other_attrs, nl=2, strvals=True))
+        print(ut.repr4(named_other_attrs, nl=2, strvals=True))
 
 
 def get_dev_hints():
@@ -902,7 +902,7 @@ def iter_module_doctestable(module, include_funcs=True, include_classes=True,
         >>> kwargs['include_inherited'] = True
         >>> doctestable_list = list(iter_module_doctestable(module, **kwargs))
         >>> func_names = sorted(ut.take_column(doctestable_list, 0))
-        >>> print(ut.list_str(func_names))
+        >>> print(ut.repr4(func_names))
     """
     import ctypes
 
@@ -1251,7 +1251,7 @@ def get_kwdefaults(func, parse_source=False):
         >>> func = dummy_func
         >>> parse_source = True
         >>> kwdefaults = get_kwdefaults(func, parse_source)
-        >>> print('kwdefaults = %s' % (ut.dict_str(kwdefaults),))
+        >>> print('kwdefaults = %s' % (ut.repr4(kwdefaults),))
     """
     #import utool as ut
     #with ut.embed_on_exception_context:
@@ -1508,7 +1508,7 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
         def visit_Call(self, node):
             if debug:
                 print('\nVISIT Call node = %r' % (node,))
-                #print(ut.dict_str(node.__dict__,))
+                #print(ut.repr4(node.__dict__,))
             if isinstance(node.func, ast.Attribute):
                 try:
                     funcname = node.func.value.id + '.' + node.func.attr
@@ -2661,7 +2661,7 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
             def visit_Subscript(self, node):
                 if debug:
                     print('VISIT SUBSCRIPT node = %r' % (node,))
-                    # print(ut.dict_str(node.__dict__,))
+                    # print(ut.repr4(node.__dict__,))
                 if isinstance(node.value, ast.Name):
                     if node.value.id == target_kwargs_name:
                         if isinstance(node.slice, ast.Index):
@@ -2687,7 +2687,7 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
             def visit_Call(self, node):
                 if debug:
                     print('VISIT Call node = %r' % (node,))
-                    # print(ut.dict_str(node.__dict__,))
+                    # print(ut.repr4(node.__dict__,))
                 if isinstance(node.func, ast.Attribute):
                     try:
                         objname = node.func.value.id
@@ -2767,7 +2767,7 @@ class KWReg(object):
         return dict(zip(kwreg.keys, kwreg.defaults))
 
     def print_defaultkw(kwreg):
-        print(ut.dict_str(kwreg.defaultkw))
+        print(ut.repr4(kwreg.defaultkw))
 
 
 def get_instance_attrnames(obj, default=True, **kwargs):
@@ -2848,7 +2848,7 @@ def infer_function_info(func):
         >>> #func = ut.Timer.tic
         >>> func = ut.make_default_docstr
         >>> funcinfo = infer_function_info(func)
-        >>> result = ut.dict_str(funcinfo.__dict__)
+        >>> result = ut.repr4(funcinfo.__dict__)
         >>> print(result)
 
     Example1:
@@ -2864,7 +2864,7 @@ def infer_function_info(func):
         >>> exec(script, globals_, locals_)
         >>> func = locals_['func']
         >>> funcinfo = infer_function_info(func)
-        >>> result = ut.dict_str(funcinfo.__dict__)
+        >>> result = ut.repr4(funcinfo.__dict__)
         >>> print(result)
     """
     import utool as ut
@@ -2932,7 +2932,7 @@ def infer_function_info(func):
                         print('argline = \n%s' % (argline,))
                         print('---')
                         raise Exception('Unable to parse argline=%s' % (argline,))
-                    #print('groupdict_ = %s' % (ut.dict_str(groupdict_),))
+                    #print('groupdict_ = %s' % (ut.repr4(groupdict_),))
                     argname = groupdict_['argname']
                     known_arginfo[argname]['argdesc'] = groupdict_['argdesc'].rstrip('\n')
                     # TODO: record these in a file for future reference

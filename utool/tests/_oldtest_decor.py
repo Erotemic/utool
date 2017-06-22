@@ -138,7 +138,7 @@ def test_decorator_module():
     print(ut.get_docstr(_wrp_preserve2))
     print('---')
 
-    print(ut.dict_str(_wrp_preserve2._utinfo))
+    print(ut.repr4(_wrp_preserve2._utinfo))
 
 
 def main():

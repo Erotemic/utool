@@ -233,7 +233,7 @@ def partition_varied_cfg_list(cfg_list, default_cfg=None, recursive=False):
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> cfg_list = [{'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 2}, 'b2': 1}}, {'q1': 1, 'f1': {'a2': {'x3': 1, 'y3': 1}, 'b2': 1}, 'e1': 1}]
-        >>> print(ut.list_str(cfg_list, nl=1))
+        >>> print(ut.repr4(cfg_list, nl=1))
         >>> nonvaried_cfg, varied_cfg_list = partition_varied_cfg_list(cfg_list, recursive=True)
         >>> result = ut.repr4({'nonvaried_cfg': nonvaried_cfg,
         >>>                    'varied_cfg_list': varied_cfg_list}, explicit=1, nobr=True, nl=1)
@@ -327,7 +327,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None,
 
     # remove keys that should not belong to the label
     _clean_cfg = ut.delete_keys(cfg.copy(), nonlbl_keys)
-    _lbl = ut.dict_str(_clean_cfg, explicit=True, nl=False, strvals=True,
+    _lbl = ut.repr4(_clean_cfg, explicit=True, nl=False, strvals=True,
                        key_order=key_order, itemsep=sep)
     # _search = ['dict(', ')', ' ']
     _search = ['dict(', ')']
@@ -346,7 +346,7 @@ def get_cfg_lbl(cfg, name=None, nonlbl_keys=INTERNAL_CFGKEYS, key_order=None,
             _cfgstr_options_list, smartcast=False, oldmode=False)
         #
         ut.delete_keys(_cfg_options, cfg.keys())
-        _preflbl = ut.dict_str(_cfg_options, explicit=True, nl=False, strvals=True)
+        _preflbl = ut.repr4(_cfg_options, explicit=True, nl=False, strvals=True)
         _preflbl = ut.multi_replace(_preflbl, _search, _repl).rstrip(',')
         hacked_name += NAMEVARSEP + _preflbl
         ###
@@ -1004,7 +1004,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>>     cfgstr_list, named_defaults_dict, cfgtype, alias_keys, valid_keys,
         >>>     expand_nested, strict, special_join_dict)
         >>> print('b' in cfg_combos_list[2][0])
-        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print('cfg_combos_list = %s' % (ut.repr4(cfg_combos_list, nl=2),))
         >>> assert 'b' in cfg_combos_list[2][0], 'second cfg[2] should vary b'
         >>> assert 'b' in cfg_combos_list[2][1], 'second cfg[2] should vary b'
         >>> print(ut.depth_profile(cfg_combos_list))
@@ -1022,7 +1022,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>> cfg_combos_list = parse_cfgstr_list2(
         >>>     cfgstr_list, named_defaults_dict, cfgtype, alias_keys, valid_keys,
         >>>     expand_nested, strict, special_join_dict)
-        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print('cfg_combos_list = %s' % (ut.repr4(cfg_combos_list, nl=2),))
         >>> print(ut.depth_profile(cfg_combos_list))
         >>> cfg_list = ut.flatten(cfg_combos_list)
         >>> cfg_list = ut.flatten([cfg if isinstance(cfg, list) else [cfg] for cfg in cfg_list])
@@ -1037,7 +1037,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>> cfg_combos_list = parse_cfgstr_list2(
         >>>     cfgstr_list, named_defaults_dict, cfgtype, alias_keys, valid_keys,
         >>>     expand_nested, strict, special_join_dict)
-        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print('cfg_combos_list = %s' % (ut.repr4(cfg_combos_list, nl=2),))
         >>> print(ut.depth_profile(cfg_combos_list))
         >>> cfg_list = ut.flatten(cfg_combos_list)
         >>> cfg_list = ut.flatten([cfg if isinstance(cfg, list) else [cfg] for cfg in cfg_list])
@@ -1058,7 +1058,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         >>>     cfgstr_list, named_defaults_dict, cfgtype, alias_keys, valid_keys,
         >>>     expand_nested, strict, special_join_dict)
         >>> print('b' in cfg_combos_list[0][0])
-        >>> print('cfg_combos_list = %s' % (ut.list_str(cfg_combos_list, nl=2),))
+        >>> print('cfg_combos_list = %s' % (ut.repr4(cfg_combos_list, nl=2),))
         >>> assert 'b' in cfg_combos_list[0][0], 'second cfg[2] should vary b'
         >>> assert 'b' in cfg_combos_list[0][1], 'second cfg[2] should vary b'
         >>> print(ut.depth_profile(cfg_combos_list))
@@ -1311,11 +1311,11 @@ class ParamInfo(util_dev.NiceRepr):
         # Create string representation of a `varval`
         if isinstance(varval, set):
             import utool as ut
-            varstr = 'set([' + ut.list_str(sorted(varval), nl=0, itemsep='', nobr=True) + '])'
+            varstr = 'set([' + ut.repr4(sorted(varval), nl=0, itemsep='', nobr=True) + '])'
         elif isinstance(varval, dict):
             from utool import util_str
-            # The ut.dict_str representation will consistently stringify dicts
-            varstr = util_str.dict_str(varval, explicit=True, strvals=True,
+            # The ut.repr4 representation will consistently stringify dicts
+            varstr = util_str.repr4(varval, explicit=True, strvals=True,
                                        itemsep='', nl=0)
         else:
             varstr = six.text_type(varval)
@@ -1604,7 +1604,7 @@ class GridSearch(object):
             grid_basis = {grid_basis_str}
             ''')
         fmtdict = dict(
-            grid_basis_str=ut.list_str(gridsearch.grid_basis),
+            grid_basis_str=ut.repr4(gridsearch.grid_basis),
             label=gridsearch.label
         )
         header_raw = header_raw_fmtstr.format(**fmtdict)
@@ -1645,7 +1645,7 @@ class GridSearch(object):
             param: ut.get_stats(scores)
             for param, scores in six.iteritems(param2_scores)
         }
-        #print(ut.dict_str(param2_score_stats))
+        #print(ut.repr4(param2_score_stats))
         return param2_score_stats
 
     def get_dimension_stats_str(gridsearch, param_lbl, score_lbl='score_diff'):
@@ -1658,7 +1658,7 @@ class GridSearch(object):
         param2_score_stats_str = {
             param: ut.get_stats_str(stat_dict=stat_dict, exclude_keys=exclude_keys)
             for param, stat_dict in six.iteritems(param2_score_stats)}
-        param_stats_str = 'stats(' + param_lbl + ') = ' + ut.dict_str(param2_score_stats_str)
+        param_stats_str = 'stats(' + param_lbl + ') = ' + ut.repr4(param2_score_stats_str)
         return param_stats_str
 
     def plot_dimension(gridsearch, param_lbl, score_lbl='score_diff',
@@ -1834,7 +1834,7 @@ def get_cfgdict_list_subset(cfgdict_list, keys):
         >>> # execute function
         >>> cfgdict_sublist = get_cfgdict_list_subset(cfgdict_list, keys)
         >>> # verify results
-        >>> result = ut.list_str(cfgdict_sublist)
+        >>> result = ut.repr4(cfgdict_sublist)
         >>> print(result)
         [
             {'K': 3, 'dcvs_clip_max': 0.1},
@@ -1938,7 +1938,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                 show_result_func(cfgresult, fnum=fnum, pnum=pnum)
         except Exception as ex:
             if isinstance(cfgresult, tuple):
-                #print(ut.list_str(cfgresult))
+                #print(ut.repr4(cfgresult))
                 print(ut.depth_profile(cfgresult))
                 print(ut.list_type_profile(cfgresult))
             ut.printex(ex, 'error showing', keys=['cfgresult', 'fnum', 'pnum'])
@@ -1958,14 +1958,14 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
         else:
             ax = event.inaxes
             plotdat_dict = ph.get_plotdat_dict(ax)
-            print(ut.dict_str(plotdat_dict))
+            print(ut.repr4(plotdat_dict))
             cfglbl = ph.get_plotdat(ax, 'cfglbl', None)
             cfgdict = ph.get_plotdat(ax, 'cfgdict', {})
             cfgresult = ph.get_plotdat(ax, 'cfgresult', {})
             infostr_list = [
                 ('cfglbl = %s' % (cfglbl,)),
                 '',
-                ('cfgdict = ' + ut.dict_str(cfgdict, sorted_=True)),
+                ('cfgdict = ' + ut.repr4(cfgdict, sorted_=True)),
             ]
             # Call a user defined function if given
             if onclick_func is not None:

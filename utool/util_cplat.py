@@ -797,7 +797,7 @@ def cmd(*args, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> (out, err, ret) = ut.cmd('echo', 'hello world')
-        >>> result = ut.list_str(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
+        >>> result = ut.repr4(list(zip(('out', 'err', 'ret'), (out, err, ret))), nobraces=True)
         >>> print(result)
         ('out', 'hello world\n'),
         ('err', None),
@@ -820,11 +820,11 @@ def cmd(*args, **kwargs):
         ... }
         >>> for count, kw in enumerate(ut.all_dict_combinations(varydict), start=1):
         >>>     print('+ --- TEST CMD %d ---' % (count,))
-        >>>     print('testing cmd with params ' + ut.dict_str(kw))
+        >>>     print('testing cmd with params ' + ut.repr4(kw))
         >>>     args = kw.pop('args')
         >>>     restup = ut.cmd(args, pad_stdout=False, **kw)
         >>>     tupfields = ('out', 'err', 'ret')
-        >>>     output = ut.list_str(list(zip(tupfields, restup)), nobraces=True)
+        >>>     output = ut.repr4(list(zip(tupfields, restup)), nobraces=True)
         >>>     ut.assert_eq(output, target)
         >>>     print('L ___ TEST CMD %d ___\n' % (count,))
 
@@ -841,7 +841,7 @@ def cmd(*args, **kwargs):
         >>> proc_list = []
         >>> for count, kw in enumerate(ut.all_dict_combinations(varydict), start=1):
         >>>     print('+ --- TEST CMD %d ---' % (count,))
-        >>>     print('testing cmd with params ' + ut.dict_str(kw))
+        >>>     print('testing cmd with params ' + ut.repr4(kw))
         >>>     args = kw.pop('args')
         >>>     restup = ut.cmd(args, pad_stdout=False, **kw)
         >>>     out, err, proc = restup
@@ -1104,7 +1104,7 @@ def get_path_dirs():
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
         >>> pathdirs = get_path_dirs()
-        >>> result = ('pathdirs = %s' % (ut.list_str(pathdirs),))
+        >>> result = ('pathdirs = %s' % (ut.repr4(pathdirs),))
         >>> print(result)
 
     """
@@ -1139,7 +1139,7 @@ def search_env_paths(fname, key_list=None, verbose=None):
         >>> print('fname = %r' % (fname,))
         >>> key_list = None # ['PATH']
         >>> found = search_env_paths(fname, key_list)
-        >>> print(ut.dict_str(found, nl=True, strvals=True))
+        >>> print(ut.repr4(found, nl=True, strvals=True))
 
     Ignore:
         OpenCV_DIR:PATH={share_opencv}
@@ -1183,7 +1183,7 @@ def __debug_win_msvcr():
     from os.path import basename
     dllnames = [basename(x) for x in fpaths]
     grouped = dict(ut.group_items(fpaths, dllnames))
-    print(ut.dict_str(grouped, nl=4))
+    print(ut.repr4(grouped, nl=4))
 
     keytoid = {
     }
@@ -1355,9 +1355,9 @@ def print_system_users():
     text = ut.read_from('/etc/passwd')
     userinfo_text_list = text.splitlines()
     userinfo_list = [uitext.split(':') for uitext in userinfo_text_list]
-    #print(ut.list_str(sorted(userinfo_list)))
+    #print(ut.repr4(sorted(userinfo_list)))
     bash_users = [tup for tup in userinfo_list if tup[-1] == '/bin/bash']
-    print(ut.list_str(sorted(bash_users)))
+    print(ut.repr4(sorted(bash_users)))
 
 
 def check_installed_debian(pkgname):
@@ -1398,7 +1398,7 @@ def unload_module(modname):
         >>> modname = 'pyhesaff'
         >>> print('%s refcount=%r' % (modname, sys.getrefcount(pyhesaff),))
         >>> #referrer_list = gc.get_referrers(sys.modules[modname])
-        >>> #print('referrer_list = %s' % (ut.list_str(referrer_list),))
+        >>> #print('referrer_list = %s' % (ut.repr4(referrer_list),))
         >>> ut.unload_module(modname)
         >>> assert pyhesaff is None
 

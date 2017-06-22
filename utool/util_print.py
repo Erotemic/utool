@@ -23,7 +23,7 @@ def print_dict(dict_, dict_name=None, **kwargs):
     import utool as ut
     if dict_name is None:
         dict_name = ut.get_varname_from_stack(dict_, N=1)
-    dict_repr = util_str.dict_str(dict_, **kwargs)
+    dict_repr = util_str.repr4(dict_, **kwargs)
     print(dict_name + ' = ' + dict_repr)
 
 printdict = print_dict
@@ -33,7 +33,7 @@ dictprint = print_dict
 def print_list(list_, **kwargs):
     import utool as ut
     list_name = ut.get_varname_from_stack(list_, N=1)
-    print(list_name + ' = ' + util_str.list_str(list_, **kwargs))
+    print(list_name + ' = ' + util_str.repr4(list_, **kwargs))
 
 
 def horiz_print(*args):
@@ -297,7 +297,7 @@ def colorprint(text, color=None):
         python -m utool.util_print --exec-colorprint:1
 
         import pygments
-        print(ut.list_str(list(pygments.formatters.get_all_formatters())))
+        print(ut.repr4(list(pygments.formatters.get_all_formatters())))
         print(list(pygments.styles.get_all_styles()))
 
     Example0:
@@ -349,7 +349,7 @@ def print_locals(*args, **kwargs):
         to_print.update(util_dict.dict_take(locals_, keys))
     if not to_print:
         to_print = locals_
-    locals_str = util_str.dict_str(to_print)
+    locals_str = util_str.repr4(to_print)
     print(locals_str)
 
 

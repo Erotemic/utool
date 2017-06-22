@@ -52,7 +52,7 @@ if __name__ == '__main__':
             if len(found_lines) == 0:
                 need_encoding_fpaths.append(fpath)
 
-    print('The following fpaths need encoding lines: ' + ut.list_str(need_encoding_fpaths, strvals=True))
+    print('The following fpaths need encoding lines: ' + ut.repr4(need_encoding_fpaths, strvals=True))
 
     if do_write or show_diff:
         for fpath in need_encoding_fpaths:
