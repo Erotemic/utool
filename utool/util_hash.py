@@ -671,8 +671,79 @@ def valid_filename_ascii_chars():
 valid_filename_ascii_chars()
 """
 
+if six.PY3:
+    def _int_to_bytes(int_):
+        length = max(4, int_.bit_length())
+        bytes_ = int_.to_bytes(length, byteorder='big')
+        # bytes_ = int_.to_bytes(4, byteorder='big')
+        # int_.to_bytes(8, byteorder='big')  # TODO: uncomment
+        return bytes_
+
+    def _bytes_to_int(bytes_):
+        int_ = int.from_bytes(bytes_, 'big')
+        return int_
+else:
+    def _py2_to_bytes(int_, length, byteorder='big'):
+        h = '%x' % int_
+        s = ('0' * (len(h) % 2) + h).zfill(length * 2).decode('hex')
+        bytes_ =  s if byteorder == 'big' else s[::-1]
+        return bytes_
+
+    import codecs
+    def _int_to_bytes(int_):
+        length = max(4, int_.bit_length())
+        bytes_ = _py2_to_bytes(int_, length, 'big')
+        # bytes_ = struct.pack('>i', int_)
+        return bytes_
+
+    def _bytes_to_int(bytes_):
+        int_ = int(codecs.encode(bytes_, 'hex'), 16)
+        # int_ = struct.unpack('>i', bytes_)[0]
+        # int_ = struct.unpack_from('>L', bytes_)[0]
+        return int_
+
+
+def _test_int_byte_conversion():
+    import itertools as it
+    import utool as ut
+    inputs = list(it.chain(
+        range(0, 10),
+        (2 ** i for i in range(0, 256, 32)),
+        (2 ** i + 1 for i in range(0, 256, 32)),
+    ))
+    for int_0 in inputs:
+        print('---')
+        print('int_0 = %s' % (ut.repr2(int_0),))
+        bytes_ = _int_to_bytes(int_0)
+        int_ = _bytes_to_int(bytes_)
+        print('bytes_ = %s' % (ut.repr2(bytes_),))
+        print('int_ = %s' % (ut.repr2(int_),))
+        assert int_ == int_0
+
 
 def convert_bytes_to_bigbase(bytes_, alphabet=ALPHABET_27):
+    r"""
+    Args:
+        bytes_ (bytes):
+
+    Returns:
+        str:
+
+    Ignore:
+
+    CommandLine:
+        python -m utool.util_hash convert_bytes_to_bigbase
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_hash import *  # NOQA
+        >>> import utool as ut
+        >>> bytes_ = b('9999999999999999999999999999999999')
+        >>> alphabet = ALPHABET_27
+        >>> result = convert_bytes_to_bigbase(bytes_, alphabet)
+        >>> print(result)
+        fervudwhpustklnptklklcgswbmvtustqocdpgiwkgrvwytvneardkpytd
+    """
     x = _bytes_to_int(bytes_)
     if x == 0:
         return '0'
@@ -1011,27 +1082,6 @@ def combine_uuids(uuids, ordered=True, salt=''):
         combined_bytes = pref + sep_byte.join([u.bytes for u in uuids])
         combined_uuid = hashable_to_uuid(combined_bytes)
         return combined_uuid
-
-if six.PY3:
-    def _int_to_bytes(int_):
-        bytes_ = int_.to_bytes(4, byteorder='big')
-        # int_.to_bytes(8, byteorder='big')  # TODO: uncomment
-        return bytes_
-
-    def _bytes_to_int(bytes_):
-        int_ = int.from_bytes(bytes_, 'big')
-        return int_
-else:
-    def _int_to_bytes(int_):
-        print('_int_to_bytes')
-        bytes_ = struct.pack('>i', int_)
-        return bytes_
-
-    def _bytes_to_int(bytes_):
-        print('_bytes_to_int')
-        # int_ = struct.unpack('>i', bytes_)[0]
-        int_ = struct.unpack_from('>L', bytes_)[0]
-        return int_
 
 
 if six.PY3:
