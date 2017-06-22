@@ -1147,14 +1147,6 @@ def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
     return lst
 
 
-def numpy_str2(arr, **kwargs):
-    kwargs['force_dtype'] = kwargs.get('force_dtype', False)
-    kwargs['with_dtype'] = kwargs.get('with_dtype', None)
-    kwargs['suppress_small'] = kwargs.get('suppress_small', True)
-    kwargs['precision'] = kwargs.get('precision', 3)
-    return numpy_str(arr, **kwargs)
-
-
 def numpy_str(arr, strvals=False, precision=None, pr=None,
               force_dtype=False,
               with_dtype=None, suppress_small=None, max_line_width=None,
@@ -1776,7 +1768,12 @@ def _make_valstr(**kwargs):
                 with_dtype = kwargs.get('with_dtype', False)
                 strvals = kwargs.get('strvals', False)
                 precision = kwargs.get('precision', None)
+                max_line_width = kwargs.get('max_line_width', None)
+                linewidth = kwargs.get('linewidth', max_line_width)
+                threshold = kwargs.get('threshold', None)
+
                 return numpy_str(val, strvals=strvals, precision=precision,
+                                 threshold=threshold, linewidth=linewidth,
                                  with_dtype=with_dtype)
             else:
                 return list_str(val, **kwargs)

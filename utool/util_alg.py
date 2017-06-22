@@ -1982,7 +1982,7 @@ def inbounds(num, low, high, eq=False):
         >>> high = .4
         >>> eq = False
         >>> is_inbounds = inbounds(num, low, high, eq)
-        >>> result = ut.numpy_str(is_inbounds)
+        >>> result = ut.repr2(is_inbounds, with_dtype=True)
         >>> print(result)
         np.array([[False, False,  True],
                   [ True,  True, False],
