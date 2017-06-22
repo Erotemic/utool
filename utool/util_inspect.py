@@ -2672,6 +2672,18 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                                 item = (key.s, None)
                                 kwargs_items.append(item)
 
+            @staticmethod
+            def _eval_bool_op(val):
+                # Can we handle this more intelligently?
+                val_value = None
+                if isinstance(val.op, ast.Or):
+                    if any([isinstance(x, ast.NameConstant) and x.value is True for x in val.values]):
+                        val_value = True
+                elif isinstance(val.op, ast.And):
+                    if any([isinstance(x, ast.NameConstant) and x.value is False for x in val.values]):
+                        val_value = False
+                return val_value
+
             def visit_Call(self, node):
                 if debug:
                     print('VISIT Call node = %r' % (node,))
@@ -2711,6 +2723,8 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                                         val_value = val.value
                                     elif isinstance(val, ast.Call):
                                         val_value = None
+                                    elif isinstance(val, ast.BoolOp):
+                                        val_value = self._eval_bool_op(val)
                                     elif isinstance(val, ast.Dict):
                                         if len(val.keys) == 0:
                                             val_value = {}
@@ -2718,8 +2732,7 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                                             val_value = {}
                                         # val_value = callable
                                     else:
-                                        import utool
-                                        utool.embed()
+                                        print('Warning: util_inspect doent know how to parse {}'.format(repr(val)))
                                 item = (key_value, val_value)
                                 kwargs_items.append(item)
                 ast.NodeVisitor.generic_visit(self, node)
