@@ -362,7 +362,7 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
         >>> dict_list = [dict1_, dict2_]
         >>> dict_stacked = dict_stack2(dict_list)
-        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> result = ut.repr2(dict_stacked)
         >>> print(result)
         {'a': [1, 2], 'b': [2, 3], 'c': [None, 4]}
 
@@ -372,7 +372,7 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict_list = [dict1_]
         >>> dict_stacked = dict_stack2(dict_list)
-        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> result = ut.repr2(dict_stacked)
         >>> print(result)
         {'a': [1], 'b': [2]}
 
@@ -381,7 +381,7 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> # Corner case: zero dicts as input
         >>> dict_list = []
         >>> dict_stacked = dict_stack2(dict_list)
-        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> result = ut.repr2(dict_stacked)
         >>> print(result)
         {}
 
@@ -390,7 +390,7 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> # Corner case: empty dicts as input
         >>> dict_list = [{}]
         >>> dict_stacked = dict_stack2(dict_list)
-        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> result = ut.repr2(dict_stacked)
         >>> print(result)
         {}
 
@@ -401,7 +401,7 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> dict2_ = {}
         >>> dict_list = [dict1_, dict2_]
         >>> dict_stacked = dict_stack2(dict_list)
-        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> result = ut.repr2(dict_stacked)
         >>> print(result)
         {'a': [[1, 2], None], 'b': [[2, 3], None]}
 
@@ -412,7 +412,7 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> dict2_ = {'c': 4}
         >>> dict_list = [dict1_, dict2_]
         >>> dict_stacked = dict_stack2(dict_list)
-        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> result = ut.repr2(dict_stacked)
         >>> print(result)
         {'a': [[1, 2], None], 'b': [[2, 3], None], 'c': [None, 4]}
 
@@ -424,7 +424,7 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
         >>> dict_list = [{'a': 1}, {'b': 1}, {'c': 1}, {'b': 2}]
         >>> default = None
         >>> dict_stacked = dict_stack2(dict_list, default=default)
-        >>> result = ut.repr2(dict_stacked, sorted_=True)
+        >>> result = ut.repr2(dict_stacked)
         >>> print(result)
         {'a': [1, None, None, None], 'b': [None, 1, None, 2], 'c': [None, None, 1, None]}
     """
