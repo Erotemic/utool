@@ -273,18 +273,26 @@ def inject_print_functions(module_name=None, module_prefix='[???]',
     return print_funcs
 
 
-def reload_module(module, verbose=True):
+def reload_module(module, verbose=None):
     if not __RELOAD_OK__:
         raise Exception('Reloading has been forced off')
+    if verbose is None:
+        verbose = 0 if QUIET else 1
     try:
-        import imp
-        if verbose and not QUIET:
+        v = sys.version_info
+        if v.major >= 3 and v.minor >= 4:
+            import importlib
+            reload = importlib.reload
+        else:
+            import imp
+            reload = imp.reload
+        if verbose:
             module_name = getattr(module, '__name__', '???')
             builtins.print('RELOAD: module __name__=' + module_name)
-        imp.reload(module)
+        reload(module)
     except Exception as ex:
         print(ex)
-        print('Failed to reload %r' % (module,))
+        print('[util_inject] Failed to reload %r' % (module,))
         raise
 
 
