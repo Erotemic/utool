@@ -895,7 +895,7 @@ def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1,
             return hasher.digest()
 
 
-def write_hash_file(fpath, hash_tag='md5', recompute=False, **kwargs):
+def write_hash_file(fpath, hash_tag='md5', recompute=False):
     r""" Creates a hash file for each file in a path
 
     CommandLine:
@@ -934,7 +934,7 @@ def write_hash_file(fpath, hash_tag='md5', recompute=False, **kwargs):
         return hash_fpath
 
 
-def write_hash_file_for_path(path, **kwargs):
+def write_hash_file_for_path(path, recompute=False):
     r""" Creates a hash file for each file in a path
 
     CommandLine:
@@ -955,8 +955,9 @@ def write_hash_file_for_path(path, **kwargs):
     hash_fpath_list = []
     for root, dname_list, fname_list in os.walk(path):
         for fname in sorted(fname_list):
-            fpath = os.path.join(path, fname)
-            hash_fpath = write_hash_file(fpath, **kwargs)
+            # fpath = os.path.join(path, fname)
+            fpath = os.path.join(root, fname)
+            hash_fpath = write_hash_file(fpath, recompute=recompute)
             if hash_fpath is not None:
                 hash_fpath_list.append(hash_fpath)
     return hash_fpath_list
