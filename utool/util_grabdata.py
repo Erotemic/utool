@@ -732,6 +732,7 @@ def get_file_local_hash(fpath, hash_list, verbose=False):
 
 def grab_file_remote_hash(file_url, hash_list, verbose=False):
     import requests
+    import utool as ut
 
     # Loop through the list of hashes to check
     for hash_tag in hash_list:
@@ -750,8 +751,9 @@ def grab_file_remote_hash(file_url, hash_list, verbose=False):
 
         # Get the actual hash from the remote server, save in memory
         try:
-            resp = requests.get(hash_url)
-            hash_remote = six.text_type(resp.content.strip())
+            with ut.Timer('checking remote hash', verbose=verbose):
+                resp = requests.get(hash_url)
+                hash_remote = six.text_type(resp.content.strip())
         except requests.exceptions.ConnectionError:
             hash_remote = ''
 
