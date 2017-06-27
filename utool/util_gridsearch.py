@@ -1366,6 +1366,7 @@ class ParamInfoBool(ParamInfo):
             # TODO: use this convention or come up with a better one
             #print('WARNING: varname=%r should end with _on' % (varname,))
             pass
+        import utool as ut
         _ParamInfoBool = ut.fix_super_reload(ParamInfoBool, pi)
         super(_ParamInfoBool, pi).__init__(
             varname, default=default, shortprefix=shortprefix, type_=bool,
