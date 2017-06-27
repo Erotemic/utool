@@ -1366,9 +1366,33 @@ class ParamInfoBool(ParamInfo):
             # TODO: use this convention or come up with a better one
             #print('WARNING: varname=%r should end with _on' % (varname,))
             pass
-        super(ParamInfoBool, pi).__init__(
-            varname, default=default, shortprefix=shortprefix, type_=bool,
-            varyvals=varyvals, varyslice=varyslice, hideif=hideif)
+        pi.varname = varname
+        pi.param_info_list = []
+        pi.default = default
+        pi.shortprefix = shortprefix
+        if type_ is util_const.NoParam:
+            if default is not None:
+                pi.type_ = type(default)
+            else:
+                pi.type_ = None
+        else:
+            pi.type_ = type_
+        # pi.type_ = type(default) if type_ is util_const.NoParam else type_
+        # for gridsearch
+        pi.varyvals = varyvals
+        pi.varyslice = varyslice
+        pi.hideif_list = []
+        if hideif is not util_const.NoParam:
+            pi.append_hideif(hideif)
+
+        # super(ParamInfoBool, pi).__init__(
+        #     varname, default=default, shortprefix=shortprefix, type_=bool,
+        #     varyvals=varyvals, varyslice=varyslice, hideif=hideif)
+
+    def append_hideif(self, hideif):
+        # apply hideif to all children
+        for pi in self.param_info_list:
+            pi.append_hideif(hideif)
 
     def _make_itemstr(pi, cfg):
         # TODO: redo this as _make_varstr and remove all instances of
