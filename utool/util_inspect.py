@@ -186,16 +186,37 @@ def get_internal_call_graph(fpath, with_doctests=False):
     return G
 
 
-def check_static_member_vars(fpath, classname):
+def get_module_from_class(class_):
+    return sys.modules[class_.__module__]
+
+
+def check_static_member_vars(class_, fpath=None, only_init=True):
+    """
+    class_ can either be live object or a classname
+
+    # fpath = ut.truepath('~/code/ibeis/ibeis/viz/viz_graph2.py')
+    # classname = 'AnnotGraphWidget'
+    """
     #import ast
     #import astor
-    fpath = ut.truepath('~/code/ibeis/ibeis/viz/viz_graph2.py')
+    import utool as ut
+
+    if isinstance(class_, six.string_types):
+        classname = class_
+        if fpath is None:
+            raise Exception('must specify fpath')
+    else:
+        # We were given a live object
+        if not isinstance(class_, type):
+            # We were given the class instance not the class
+            class_instance = class_
+            class_ = class_instance.__class__
+        classname = class_.__name__
+        if fpath is None:
+            module = ut.get_module_from_class(class_)
+            fpath = ut.get_modpath(module)
+
     sourcecode = ut.readfrom(fpath)
-    #classname = 'TmpDevGraphWidget'
-    classname = 'AnnotGraphWidget'
-    #sourcecode = 'from __future__ import print_function\n' + sourcecode
-    #sourcecode_ = sourcecode.encode('utf8')
-    #pt = ast.parse(sourcecode_, 'testfile')
 
     import redbaron
     # Pares a FULL syntax tree that keeps blockcomments
@@ -216,61 +237,74 @@ def check_static_member_vars(fpath, classname):
 
     # TODO: Find inherited attrs
     #classnode.inherit_from
-    inhertied_attrs = ['parent']
+    # inhertied_attrs = ['parent']
+    # inhertied_attrs = []
 
     class_methods = []
     for node in classnode:
         if node.type == 'def':
-            class_methods.append(node.name)
+            if only_init:
+                if node.name == '__init__':
+                    class_methods.append(node)
+            else:
+                class_methods.append(node)
 
     class_vars = []
-    for assign in classnode.find_all('assignment'):
-        method_node = find_parent_method(assign)
+    self_vars = []
+    for method_node in class_methods:
         self_var = method_node.arguments[0].dumps()
-        if assign.target.dumps().startswith(self_var + '.'):
-            class_vars.append(assign.target.value[1].dumps())
-    class_vars = ut.unique(class_vars)
+        self_vars.append(self_var)
+        for assign in method_node.find_all('assignment'):
+            # method_node = find_parent_method(assign)
+            if assign.target.dumps().startswith(self_var + '.'):
+                class_vars.append(assign.target.value[1].dumps())
+    static_attrs = ut.unique(class_vars)
+    return static_attrs
 
-    class_members = ut.unique(class_vars + class_methods + inhertied_attrs)
+    # class_members = ut.unique(class_vars + class_methods + inhertied_attrs)
+    if False:
+        self_var = self_vars[0]
 
-    # Find everything that is used
-    complex_cases = []
-    simple_cases = []
-    all_self_ref = classnode.find_all('name_', value=re.compile('.*self\\.*'))
-    for x in all_self_ref:
-        if x.parent.type == 'def_argument':
-            continue
-        if x.parent.type == 'atomtrailers':
-            atom = x.parent
-            if ut.depth(atom.fst()) <= 3:
-                simple_cases.append(atom)
-            else:
-                complex_cases.append(atom)
-            #print(ut.depth(atom.value.data))
-            #print(atom.value)
-            #print(atom.dumps())
-            #if len(atom.dumps()) > 200:
-            #    break
+        # Find everything that is used
+        complex_cases = []
+        simple_cases = []
+        all_self_ref = classnode.find_all(
+            'name_', value=re.compile('.*' + self_var + '\\.*'))
+        for x in all_self_ref:
+            if x.parent.type == 'def_argument':
+                continue
+            if x.parent.type == 'atomtrailers':
+                atom = x.parent
+                if ut.depth(atom.fst()) <= 3:
+                    simple_cases.append(atom)
+                else:
+                    complex_cases.append(atom)
+                #print(ut.depth(atom.value.data))
+                #print(atom.value)
+                #print(atom.dumps())
+                #if len(atom.dumps()) > 200:
+                #    break
 
-    accessed_attrs = []
-    for x in simple_cases:
-        if x.value[0].dumps() == self_var:
-            attr = x.value[1].dumps()
-            accessed_attrs.append(attr)
-    accessed_attrs = ut.unique(accessed_attrs)
+        accessed_attrs = []
+        for x in simple_cases:
+            if x.value[0].dumps() == self_var:
+                attr = x.value[1].dumps()
+                accessed_attrs.append(attr)
+        accessed_attrs = ut.unique(accessed_attrs)
 
-    print('Missing Attrs: ' + str(ut.setdiff(accessed_attrs, class_members)))
-    #fst = baron.fst()
-    #node = (baron.node_list[54])  # NOQA
-    #[n.type for n in baron.node_list]
-    #generator = astor.codegen.SourceGenerator(' ' * 4)
-    #generator.visit(pt)
-    #resturctured_source = (''.join(generator.result))
-    #print(resturctured_source)
-    #visitor = ast.NodeVisitor()
-    #visitor.visit(pt)
-    #class SpecialVisitor(ast.NodeVisitor):
-    pass
+        ut.setdiff(accessed_attrs, class_vars)
+
+        # print('Missing Attrs: ' + str(ut.setdiff(accessed_attrs, class_members)))
+        #fst = baron.fst()
+        #node = (baron.node_list[54])  # NOQA
+        #[n.type for n in baron.node_list]
+        #generator = astor.codegen.SourceGenerator(' ' * 4)
+        #generator.visit(pt)
+        #resturctured_source = (''.join(generator.result))
+        #print(resturctured_source)
+        #visitor = ast.NodeVisitor()
+        #visitor.visit(pt)
+        #class SpecialVisitor(ast.NodeVisitor):
 
 
 def get_funcnames_from_modpath(modpath, include_methods=True):
