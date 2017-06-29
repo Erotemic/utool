@@ -1408,6 +1408,21 @@ def set_overlaps(set1, set2, s1='s1', s2='s2'):
 get_overlaps = set_overlaps
 get_setdiff_info = set_overlaps
 
+
+def set_overlap_items(set1, set2, s1='s1', s2='s2'):
+    import utool as ut
+    set1 = set(set1)
+    set2 = set(set2)
+    overlaps = ut.odict([
+        ('len({})'.format(s1), len(set1)),
+        ('len({})'.format(s2), len(set2)),
+        ('isect', set1.intersection(set2)),
+        ('union', set1.union(set2)),
+        ('%s - %s' % (s1, s2), set1.difference(set2)),
+        ('%s - %s' % (s2, s1), set2.difference(set1)),
+    ])
+    return overlaps
+
 # --- Info Strings ---
 
 
