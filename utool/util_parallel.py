@@ -1219,9 +1219,9 @@ class KillableProcess(multiprocessing.Process):
             #print('[terminate2] Killing process')
             # Kill all children
             import psutil
-            webproc = psutil.Process(pid=self.pid)
-            child_proces = webproc.children()
-            [x.terminate() for x in child_proces]
+            os_proc = psutil.Process(pid=self.pid)
+            for child in os_proc.children():
+                child.terminate()
             self.terminate()
         else:
             #print('[terminate2] Already dead')

@@ -1661,7 +1661,7 @@ def argsort2(indexable, key=None, reverse=False):
     return indices
 
 
-def argmax(input_):
+def argmax(input_, multi=False):
     """
     Returns index / key of the item with the largest value.
 
@@ -1683,15 +1683,31 @@ def argmax(input_):
         dict_ = {str(ut.random_uuid()): x for x in list_}
         %timeit list(input_.keys())[ut.argmax(list(input_.values()))]
         %timeit max(input_.items(), key=operator.itemgetter(1))[0]
+
+    Example:
+        >>> from utool.util_list import *
+        >>> import utool as ut
+        >>> input_ = [1, 2, 3, 3, 2, 3, 2, 1]
+        >>> ut.argmax(input_, multi=True)
+        >>> input_ = {1: 1, 2: 2, 3: 3, 3: 4}
+        >>> ut.argmax(input_, multi=True)
     """
-    if isinstance(input_, dict):
-        # its crazy, but this is faster
-        # max(input_.items(), key=operator.itemgetter(1))[0]
-        return list(input_.keys())[argmax(list(input_.values()))]
-    elif hasattr(input_, 'index'):
-        return input_.index(max(input_))
+    if multi:
+        if isinstance(input_, dict):
+            # shouldn't be able to get more than one for dicts
+            keys = list(input_.keys())
+            return [keys[idx] for idx in argmax(keys, multi=multi)]
+        else:
+            return where(equal([max(input_)], input_))
     else:
-        return max(enumerate(input_), key=operator.itemgetter(1))[0]
+        if isinstance(input_, dict):
+            # its crazy, but this is faster
+            # max(input_.items(), key=operator.itemgetter(1))[0]
+            return list(input_.keys())[argmax(list(input_.values()))]
+        elif hasattr(input_, 'index'):
+            return input_.index(max(input_))
+        else:
+            return max(enumerate(input_), key=operator.itemgetter(1))[0]
 
 
 def argmin(input_):
