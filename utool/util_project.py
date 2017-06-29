@@ -513,7 +513,7 @@ class UserProfile(util_dev.NiceRepr):
         return grep_projects(user_profile=self, *args, **kwargs)
 
     def glob(self, *args, **kwargs):
-        """
+        r"""
         # Ensure that .gitignore has certain lines
         git_ignore_lines = [
             'timeings.txt'
@@ -830,7 +830,7 @@ class GrepResult(util_dev.NiceRepr):
 #    rob_nav._sed(r, regexpr, repl, force=force, recursive=True, dpath_list=project_dpaths())
 
 def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, **kwargs):
-    """
+    r"""
 
     Args:
         regexpr (?):

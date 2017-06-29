@@ -852,8 +852,7 @@ def parse_docblocks_from_docstr(docstr, offsets=False):
     CommandLine:
         python -m utool.util_tests parse_docblocks_from_docstr
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
         >>> #func_or_class = ut.flatten2
@@ -1009,8 +1008,6 @@ def read_exampleblock(docblock):
 def parse_doctest_from_docstr(docstr):
     r"""
     because doctest itself doesnt do what I want it to do
-    called by get_doctest_examples
-    Depth 4)
 
     CAREFUL, IF YOU GET BACK WRONG RESULTS MAKE SURE YOUR DOCSTR IS PREFFIXED
     WITH R
@@ -1022,10 +1019,7 @@ def parse_doctest_from_docstr(docstr):
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> #from ibeis.algo.hots import score_normalization
-        >>> #func_or_class = score_normalization.cached_ibeis_score_normalizer
+    Doctest:
         >>> func_or_class = parse_doctest_from_docstr
         >>> func_or_class = ut.list_depth
         >>> #func_or_class = ut.util_depricated.cartesian
@@ -1046,7 +1040,7 @@ def parse_doctest_from_docstr(docstr):
     param_grids = None
 
     for header, docblock, line_offset in docstr_blocks:
-        if header.startswith('Example'):
+        if header.startswith('Example') or header.startswith('Doctest'):
             example_docblocks.append((header, docblock, line_offset))
 
         if header.startswith('Setup'):
@@ -1109,6 +1103,9 @@ def parse_doctest_from_docstr(docstr):
 
     for header, docblock, line_offset in example_docblocks:
         test_src, test_want = read_exampleblock(docblock)
+        if header.startswith('Doctest'):
+            # Enable anything labeled as a doctest
+            test_src = '# ENABLE_DOCTEST\n' + test_src
         if len(example_setups) == 0:
             full_testsrc = test_src
         elif len(example_setups) == 1:
@@ -1125,7 +1122,7 @@ def parse_doctest_from_docstr(docstr):
 
 
 #@debug_decor
-def get_doctest_examples(func_or_class):
+def get_doctest_examples(func_or_class, modpath=None):
     """
     get_doctest_examples
 
@@ -1141,8 +1138,7 @@ def get_doctest_examples(func_or_class):
     CommandLine:
         python -m utool.util_tests --test-get_doctest_examples
 
-    Example0:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from utool.util_tests import *  # NOQA
         >>> func_or_class = get_doctest_examples
         >>> tup  = get_doctest_examples(func_or_class)
@@ -1155,8 +1151,7 @@ def get_doctest_examples(func_or_class):
         >>> print(result)
         6
 
-    Example1:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
         >>> func_or_class = ut.tryimport
@@ -1217,6 +1212,17 @@ def get_doctest_examples(func_or_class):
             ut.printex(ex, '[util-test] error getting function line number')
 
     docstr = ut.get_docstr(func_or_class)
+    # TODO: maybe replace this with ubelt
+    # if False:
+    #     try:
+    #         import ubelt as ub
+    #         modpath = ut.get_modpath(sys.modules[func_or_class.__module__])
+    #         callname = func_or_class.__name__
+    #         examples = list(ub.util_test.parse_docstr_examples(
+    #             docstr, callname, modpath))
+    #     except Exception:
+    #         pass
+
     (testheader_list, testsrc_list, testwant_list,
      testlineoffset_list) = parse_doctest_from_docstr(docstr)
     testlinenum_list = [
@@ -1266,8 +1272,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     CommandLine:
         python -m utool.util_tests --exec-get_module_doctest_tup
 
-    Example:
-        >>> # ENABLE_DOCTEST
+    Doctest:
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
         >>> #testable_list = [ut.util_import.package_contents]
@@ -1356,14 +1361,14 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 else:
                     docstr = inspect.getdoc(val)
                 docstr = ut.ensure_unicode(docstr)
-                if docstr is not None and docstr.find('Example') >= 0:
+                if docstr is not None and (docstr.find('Example') >= 0 or docstr.find('Doctest') >= 0):
                     testable_name_list.append(key)
                     testable_list.append(val)
                     if VERBOSE_TEST and ut.NOT_QUIET:
                         print('[ut.test] Testable: %s' % (key,))
                 else:
                     if VERBOSE_TEST and ut.NOT_QUIET:
-                        if docstr.find('Example') >= 0:
+                        if (docstr.find('Example') >= 0 or docstr.find('Doctest') >= 0):
                             print('[ut.test] Ignoring (disabled) : %s' % key)
                         else:
                             print('[ut.test] Ignoring (no Example) : %s' % key)
@@ -1384,11 +1389,6 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     test_sentinals = [
         'ENABLE_DOCTEST',
         'ENABLE_GRID_DOCTEST',
-        #'ENABLE_TEST',
-        #'ENABLE_DOCTEST',
-        #'ENABLE_UTOOL_DOCTEST',
-        #'UTOOL_TEST',
-        #'UTOOLTEST'
     ]
     if testslow or ut.get_argflag(('--testall', '--testslow', '--test-slow')):
         test_sentinals.append('SLOW_DOCTEST')
@@ -1459,6 +1459,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             full_testname = short_testname
 
         nametup = tuple(ut.unique([full_testname, short_testname]))
+        # modpath = ut.get_modpath(module)
         examptup = get_doctest_examples(testable)
         examples, wants, linenums, func_lineno, docstr = examptup
         total_examples = len(examples)
@@ -1640,7 +1641,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
                 example_blocks = []
                 for type_, block in blocks:
-                    if type_.startswith('Example'):
+                    if type_.startswith('Example') or type_.startswith('Doctest'):
                         example_blocks.append((type_, block))
 
                 if len(example_blocks) == 0:
