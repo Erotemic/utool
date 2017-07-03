@@ -351,9 +351,42 @@ def load_cPkl(fpath, verbose=None, n=None):
                 raise ValueError(
                     'unsupported Python3 pickle protocol 4 '
                     'in Python2 for fpath=%r' % (fpath,))
+            else:
+                raise
         else:
             raise
     return data
+
+
+def _python2_load_cpkl(fpath):
+    """
+    References:
+        https://stackoverflow.com/questions/41720952/unpickle-sklearn-tree-descisiontreeregressor-in-python-2-from-python3
+    """
+    from lib2to3.fixes.fix_imports import MAPPING
+    import sys
+    import pickle
+
+    # MAPPING maps Python 2 names to Python 3 names. We want this in reverse.
+    REVERSE_MAPPING = {}
+    for key, val in MAPPING.items():
+        REVERSE_MAPPING[val] = key
+
+    # We can override the Unpickler and loads
+    class Python_3_Unpickler(pickle.Unpickler):
+        """Class for pickling objects from Python 3"""
+        def find_class(self, module, name):
+            if module in REVERSE_MAPPING:
+                module = REVERSE_MAPPING[module]
+            __import__(module)
+            mod = sys.modules[module]
+            klass = getattr(mod, name)
+            return klass
+
+    def load(fpath):
+        with open(fpath, 'rb') as file_:
+            data = Python_3_Unpickler(file_).load()
+        return data
 
 
 def lock_and_load_cPkl(fpath, verbose=False):
