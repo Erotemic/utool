@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import textwrap
 
-__version__ = '1.6.3.dev1'
+__version__ = '1.7.0'
 
 __DYNAMIC__ = True
 if __DYNAMIC__:
@@ -338,7 +338,7 @@ if DOELSE:
     from utool.util_dbg import (COLORED_EXCEPTIONS, EmbedOnException, FORCE_TB, 
                                 RAISE_ALL, TB, breakpoint, debug_exception, 
                                 debug_hstack, debug_list, debug_npstack, 
-                                debug_vstack, dict_dbgstr, embed, embed2, 
+                                debug_vstack, embed, embed2, 
                                 embed_on_exception_context, eoxc, 
                                 execstr_attr_list, execstr_dict, execstr_func, 
                                 execstr_parent_locals, explore_module, 
@@ -353,12 +353,12 @@ if DOELSE:
                                 get_varval_from_locals, haveIPython, 
                                 import_testdata, inIPython, 
                                 in_jupyter_notebook, ipython_execstr, 
-                                is_valid_varname, keys_dbgstr, len_dbgstr, 
-                                list_dbgstr, load_testdata, module_functions, 
-                                parse_locals_keylist, print_frame, print_keys, 
-                                print_traceback, print_varlen, printex, 
-                                printvar, printvar2, public_attributes, qflag, 
-                                quasiquote, quit, quitflag, save_testdata, 
+                                is_valid_varname, load_testdata, 
+                                module_functions, parse_locals_keylist, 
+                                print_frame, print_keys, print_traceback, 
+                                printex, printvar, printvar2, 
+                                public_attributes, qflag, quasiquote, quit, 
+                                quitflag, save_testdata, 
                                 search_stack_for_localvar, 
                                 search_stack_for_var, split, super_print, 
                                 varname_regex,) 
@@ -397,9 +397,9 @@ if DOELSE:
                                 printableType, printableVal, pylab_qt4, 
                                 report_memsize, reset_catch_ctrl_c, 
                                 search_module, search_utool, set_clipboard, 
-                                set_overlaps, stats_dict, strip_line_comments, 
-                                timeit_compare, timeit_grid, 
-                                tuples_to_unique_scalars, 
+                                set_overlap_items, set_overlaps, stats_dict, 
+                                strip_line_comments, timeit_compare, 
+                                timeit_grid, tuples_to_unique_scalars, 
                                 uninvert_unique_two_lists, 
                                 user_cmdline_prompt,) 
     from utool.util_decor import (IGNORE_TRACEBACK, NOINDENT_DECOR, 
@@ -610,6 +610,7 @@ if DOELSE:
                                     get_imfunc, get_instance_attrnames, 
                                     get_internal_call_graph, get_kwargs, 
                                     get_kwdefaults, get_kwdefaults2, 
+                                    get_module_from_class, 
                                     get_module_owned_functions, 
                                     get_object_methods, get_unbound_args, 
                                     help_members, 
