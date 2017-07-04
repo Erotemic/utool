@@ -1432,7 +1432,7 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     """
     Returns the string version of get_stats
 
-    DEPRICATE
+    DEPRICATE in favor of ut.repr3(ut.get_stats(...))
 
     if keys is not None then it only displays chosen keys
     excluded keys are always removed

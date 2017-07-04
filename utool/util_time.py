@@ -1077,12 +1077,15 @@ def get_timestats_dict(unixtime_list, full=True, isutc=False):
     if unixtime_stats.get('empty_list', False):
         datetime_stats = unixtime_stats
         return datetime_stats
+    # elif unixtime_stats.get('num_nan', 0) == unixtime_stats.get('shape')[0]:
+    #     datetime_stats = unixtime_stats
+    #     return datetime_stats
     for key in ['max', 'min', 'mean']:
         try:
             datetime_stats[key] = ut.unixtime_to_datetimestr(unixtime_stats[key], isutc=isutc)
         except KeyError:
             pass
-        except ValueError as ex:
+        except (ValueError, OSError) as ex:
             datetime_stats[key]  = 'NA'
         except Exception as ex:
             ut.printex(ex, keys=['key', 'unixtime_stats'])
@@ -1092,13 +1095,13 @@ def get_timestats_dict(unixtime_list, full=True, isutc=False):
             datetime_stats[key] = str(ut.get_unix_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
-        except ValueError as ex:
+        except (ValueError, OSError) as ex:
             datetime_stats[key]  = 'NA'
     try:
         datetime_stats['range'] = str(ut.get_unix_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
     except KeyError:
         pass
-    except ValueError as ex:
+    except (ValueError, OSError) as ex:
         datetime_stats['range']  = 'NA'
 
     if full:
