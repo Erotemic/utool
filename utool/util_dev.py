@@ -1312,13 +1312,13 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> np.random.seed(0)
         >>> list_ = np.random.rand(10, 2).astype(np.float32)
         >>> stats = get_stats(list_, axis, use_nan=False)
-        >>> result = str(utool.repr4(stats, nl=1, with_dtype=True))
+        >>> result = str(utool.repr4(stats, nl=1, precision=4, with_dtype=True))
         >>> print(result)
         {
-            'max': np.array([ 0.96366274,  0.92559665], dtype=np.float32),
-            'min': np.array([ 0.0202184,  0.0871293], dtype=np.float32),
-            'mean': np.array([ 0.52056623,  0.64254338], dtype=np.float32),
-            'std': np.array([ 0.28543401,  0.25168759], dtype=np.float32),
+            'max': np.array([ 0.9637,  0.9256], dtype=np.float32),
+            'min': np.array([ 0.0202,  0.0871], dtype=np.float32),
+            'mean': np.array([ 0.5206,  0.6425], dtype=np.float32),
+            'std': np.array([ 0.2854,  0.2517], dtype=np.float32),
             'nMin': np.array([1, 1], dtype=np.int32),
             'nMax': np.array([1, 1], dtype=np.int32),
             'shape': (10, 2),

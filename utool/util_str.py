@@ -1386,7 +1386,7 @@ def repr3(obj_, **kwargs):
 
 def repr4(obj_, **kwargs):
     kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', 1))
-    kwargs['precision'] = kwargs.pop('precision', 2)
+    # kwargs['precision'] = kwargs.pop('precision', 2)
     return repr2(obj_, **kwargs)
 
 

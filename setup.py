@@ -37,9 +37,6 @@ from setuptools import setup
 import sys
 
 
-version = '1.6.1.dev1'
-
-
 def parse_version():
     """ Statically parse the version number from __init__.py """
     from os.path import dirname, join
@@ -51,16 +48,17 @@ def parse_version():
     class VersionVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
-                if target.id == '__version__':
-                    self.version = node.value.s
+                try:
+                    if target.id == '__version__':
+                        self.version = node.value.s
+                except AttributeError:
+                    pass
     visitor = VersionVisitor()
     visitor.visit(pt)
     return visitor.version
 
 
-def get_tarball_download_url(version):
-    download_url = 'https://github.com/erotemic/utool/tarball/' + version
-    return download_url
+version = parse_version()
 
 
 def utool_setup():
@@ -168,8 +166,7 @@ def utool_setup():
         ],
         #packages=util_setup.find_packages(),
         version=version,
-        download_url=get_tarball_download_url(version),
-        description='Univerally useful utility tools for you!',
+        description='Useful utilities',
         url='https://github.com/Erotemic/utool',
         ext_modules=ext_modules,
         cmdclass=cmdclass,
@@ -180,19 +177,31 @@ def utool_setup():
         extras_require=INSTALL_EXTRA,
         package_data={},
         scripts=[
-            'utool/util_scripts/makesetup.py',
+            # 'utool/util_scripts/makesetup.py',
             'utool/util_scripts/makeinit.py',
             #'utool/util_scripts/utprof.sh',
             #'utool/util_scripts/utprof.py',
             #'utool/util_scripts/utprof_cleaner.py',
-            'utool/util_scripts/utoolwc.py',
-            'utool/util_scripts/grabzippedurl.py',
-            'utool/util_scripts/autogen_sphinx_docs.py',
-            'utool/util_scripts/permit_gitrepo.py',
-            'utool/util_scripts/viewdir.py',
-            'utool/util_scripts/pipinfo.py',
+            # 'utool/util_scripts/utoolwc.py',
+            # 'utool/util_scripts/grabzippedurl.py',
+            # 'utool/util_scripts/autogen_sphinx_docs.py',
+            # 'utool/util_scripts/permit_gitrepo.py',
+            # 'utool/util_scripts/viewdir.py',
+            # 'utool/util_scripts/pipinfo.py',
         ],
-        classifiers=[],
+        classifiers=[
+            # List of classifiers available at:
+            # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+            'Development Status :: 3 - Alpha',
+            'Intended Audience :: Developers',
+            'Topic :: Software Development :: Libraries :: Python Modules',
+            'Topic :: Utilities',
+            # This should be interpreted as Apache License v2.0
+            'License :: OSI Approved :: Apache Software License',
+            # Supported Python versions
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+        ],
     )
 
 
