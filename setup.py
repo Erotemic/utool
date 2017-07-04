@@ -66,6 +66,7 @@ def utool_setup():
         'six >= 1.8.0',
         'psutil >= 2.1.3',
         'parse >= 1.6.6',
+        'requests',
         #'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
         'numpy',  # 1.10 has hard time in comparison
         'pyparsing',
