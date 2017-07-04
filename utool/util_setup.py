@@ -642,6 +642,7 @@ def __infer_setup_kwargs(module, kwargs):
 
 
 def parse_readme(readmefile='README.md'):
+    # DEPRICATE
     return util_io.read_from(readmefile, verbose=False, strict=False)
 
 

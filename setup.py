@@ -1,6 +1,32 @@
 #!/usr/bin/env python
 """
 pip install git+https://github.com/Erotemic/utool.git@next
+
+Pypi:
+     # Presetup
+     pip install twine
+
+     # First tag the source-code
+     VERSION=$(python -c "import setup; print(setup.version)")
+     echo $VERSION
+     git tag $VERSION -m "tarball tag $VERSION"
+     git push --tags origin master
+
+     # NEW API TO UPLOAD TO PYPI
+     # https://packaging.python.org/tutorials/distributing-packages/
+
+     # Build wheel or source distribution
+     python setup.py bdist_wheel --universal
+
+     # Use twine to upload. This will prompt for username and password
+     twine upload --username erotemic --skip-existing dist/*
+
+     # Check the url to make sure everything worked
+     https://pypi.org/project/utool/
+
+     # ---------- OLD ----------------
+     # Check the url to make sure everything worke
+     https://pypi.python.org/pypi?:action=display&name=utool
 """
 # -*- coding: utf-8 -*-
 # Utool is released under the Apache License Version 2.0
@@ -11,47 +37,28 @@ from setuptools import setup
 import sys
 
 
-version = '1.6.1.dev1'
+def parse_version():
+    """ Statically parse the version number from __init__.py """
+    from os.path import dirname, join
+    import ast
+    init_fpath = join(dirname(__file__), 'utool', '__init__.py')
+    with open(init_fpath) as file_:
+        sourcecode = file_.read()
+    pt = ast.parse(sourcecode)
+    class VersionVisitor(ast.NodeVisitor):
+        def visit_Assign(self, node):
+            for target in node.targets:
+                try:
+                    if target.id == '__version__':
+                        self.version = node.value.s
+                except AttributeError:
+                    pass
+    visitor = VersionVisitor()
+    visitor.visit(pt)
+    return visitor.version
 
 
-def pypi_publish():
-    """
-     References:
-        https://packaging.python.org/en/latest/distributing.html#uploading-your-project-to-pypi
-        http://peterdowns.com/posts/first-time-with-pypi.html
-     CommandLine:
-         UTVERSION=$(python -c "import setup; print(setup.version)")
-         echo $UTVERSION
-         git tag $UTVERSION -m "tarball tag $UTVERSION"
-         git push --tags origin master
-         git push --tags Erotemic next
-         git push --tags Erotemic master
-
-         # Register on Pypi test
-         python setup.py register -r pypitest
-         python setup.py sdist upload -r pypitest
-
-         # Check the url to make sure everything worked
-         https://testpypi.python.org/pypi?:action=display&name=utool
-
-         # Register on Pypi live
-         python setup.py register -r pypi
-         python setup.py sdist upload -r pypi
-
-         # Check the url to make sure everything worked
-         https://pypi.python.org/pypi?:action=display&name=utool
-
-     Notes:
-         this file needs to be in my home directory apparently
-         ~/.pypirc
-
-    """
-    pass
-
-
-def get_tarball_download_url(version):
-    download_url = 'https://github.com/erotemic/utool/tarball/' + version
-    return download_url
+version = parse_version()
 
 
 def utool_setup():
@@ -159,8 +166,7 @@ def utool_setup():
         ],
         #packages=util_setup.find_packages(),
         version=version,
-        download_url=get_tarball_download_url(version),
-        description='Univerally useful utility tools for you!',
+        description='Useful utilities',
         url='https://github.com/Erotemic/utool',
         ext_modules=ext_modules,
         cmdclass=cmdclass,
@@ -171,19 +177,31 @@ def utool_setup():
         extras_require=INSTALL_EXTRA,
         package_data={},
         scripts=[
-            'utool/util_scripts/makesetup.py',
+            # 'utool/util_scripts/makesetup.py',
             'utool/util_scripts/makeinit.py',
             #'utool/util_scripts/utprof.sh',
             #'utool/util_scripts/utprof.py',
             #'utool/util_scripts/utprof_cleaner.py',
-            'utool/util_scripts/utoolwc.py',
-            'utool/util_scripts/grabzippedurl.py',
-            'utool/util_scripts/autogen_sphinx_docs.py',
-            'utool/util_scripts/permit_gitrepo.py',
-            'utool/util_scripts/viewdir.py',
-            'utool/util_scripts/pipinfo.py',
+            # 'utool/util_scripts/utoolwc.py',
+            # 'utool/util_scripts/grabzippedurl.py',
+            # 'utool/util_scripts/autogen_sphinx_docs.py',
+            # 'utool/util_scripts/permit_gitrepo.py',
+            # 'utool/util_scripts/viewdir.py',
+            # 'utool/util_scripts/pipinfo.py',
         ],
-        classifiers=[],
+        classifiers=[
+            # List of classifiers available at:
+            # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+            'Development Status :: 3 - Alpha',
+            'Intended Audience :: Developers',
+            'Topic :: Software Development :: Libraries :: Python Modules',
+            'Topic :: Utilities',
+            # This should be interpreted as Apache License v2.0
+            'License :: OSI Approved :: Apache Software License',
+            # Supported Python versions
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+        ],
     )
 
 

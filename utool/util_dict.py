@@ -217,7 +217,7 @@ def get_dict_hashid(dict_):
         oegknoalkrkojumi
     """
     import utool as ut
-    raw_text = ut.repr4(dict_, sorted_=True, strvals=True)
+    raw_text = ut.repr4(dict_, sorted_=True, strvals=True, nl=2)
     #print('raw_text = %r' % (raw_text,))
     hashid = ut.hashstr27(raw_text)
     #from utool import util_hash
