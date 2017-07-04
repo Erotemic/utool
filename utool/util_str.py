@@ -1345,8 +1345,7 @@ def repr2(obj_, **kwargs):
     Attempt to replace repr more configurable
     pretty version that works the same in both 2 and 3
     """
-    if 'nl' not in kwargs:
-        kwargs['nl'] = False
+    kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', False))
     val_str = _make_valstr(**kwargs)
     return val_str(obj_)
 
@@ -1381,21 +1380,20 @@ def repr2_json(obj_, **kwargs):
 
 
 def repr3(obj_, **kwargs):
-    _kw = dict(nl=True)
-    _kw.update(**kwargs)
-    return repr2(obj_, **_kw)
+    kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', True))
+    return repr2(obj_, **kwargs)
 
 
 def repr4(obj_, **kwargs):
-    _kw = dict(nl=1, precision=2)
-    _kw.update(**kwargs)
-    return repr2(obj_, **_kw)
+    kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', 1))
+    kwargs['precision'] = kwargs.pop('precision', 2)
+    return repr2(obj_, **kwargs)
 
 
 def repr5(obj_, **kwargs):
-    _kw = dict(nl=2, precision=2)
-    _kw.update(**kwargs)
-    return repr2(obj_, **_kw)
+    kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', 2))
+    kwargs['precision'] = kwargs.pop('precision', 2)
+    return repr2(obj_, **kwargs)
 
 
 def dict_str(dict_, **dictkw):
@@ -1472,11 +1470,13 @@ def dict_str(dict_, **dictkw):
         >>>         [1, 2, {c, a, 2.333}, {a: [b], b: {c}, c: 2.333}]
         >>>     ],
         >>> }
-        >>> result = ut.dict_str(dict_, stritems=True, itemsep='',
-        >>>                      precision=2, nl=1, nobr=True, explicit=True)
+        >>> dictkw = dict(stritems=True, itemsep='', precision=2, nl=1,
+        >>>               nobr=True, explicit=True)
+        >>> result = ut.dict_str(dict_, **dictkw)
         >>> print(result)
-        >>> result = ut.dict_str(dict_, stritems=0,
-        >>>                      precision=2, nl=True, nobr=False, explicit=0)
+        >>> dictkw = dict(stritems=0, precision=2, nl=True, nobr=False,
+        >>>                  explicit=0)
+        >>> result = ut.dict_str(dict_, **dictkw)
         >>> print(result)
     """
     import utool as ut
