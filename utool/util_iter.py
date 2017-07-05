@@ -517,16 +517,27 @@ def random_product(items, num=None, rng=None):
         items (list of sequences): items to get caresian product of
             packed in a list or tuple.
             (note this deviates from api of it.product)
+
+    Example:
+        import utool as ut
+        items = [(1, 2, 3), (4, 5, 6, 7)]
+        rng = 0
+        list(ut.random_product(items, rng=0))
+        list(ut.random_product(items, num=3, rng=0))
     """
     import utool as ut
-    # Shuffle a copy of each sequence in items.
-    shuffled_items = [ut.shuffle(list(ut.aslist(item)), rng=rng)
-                      for item in items]
-    # Then their product is shuffled by default
-    for count, tup in enumerate(it.product(*shuffled_items), start=1):
-        yield tup
-        if count >= num:
-            break
+    rng = ut.ensure_rng(rng, 'python')
+    seen = set()
+    if num is None:
+        num = ut.prod(map(len, items))
+    # TODO: make this more efficient when num is None or large
+    while len(seen) < num:
+        # combo = tuple(sorted(rng.choice(items, size, replace=False)))
+        idxs = tuple(rng.randint(0, len(g) - 1) for g in items)
+        if idxs not in seen:
+            seen.add(idxs)
+            prod = tuple(g[x] for g, x in zip(items, idxs))
+            yield prod
 
 
 def random_combinations(items, size, num=None, rng=None):
@@ -591,6 +602,7 @@ def random_combinations(items, size, num=None, rng=None):
             # combo = tuple(sorted(rng.choice(items, size, replace=False)))
             combo = tuple(sorted(rng.sample(items, size)))
             if combo not in combos:
+                # TODO: store indices instead of combo values
                 combos.add(combo)
                 yield combo
 
