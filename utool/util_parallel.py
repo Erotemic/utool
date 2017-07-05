@@ -594,9 +594,8 @@ def futures_generate(worker, args_gen, nTasks=None, freq=10, ordered=True,
         prog = prog and verbose
         if verbose or VERBOSE_PARALLEL:
             prefix = '[util_parallel._generate_parallel]'
-            fmtstr = (prefix +
-                      'executing %d %s tasks using %d processes')
-            print(fmtstr % (nTasks, get_funcname(func), nprocs))
+            fmtstr = (prefix + 'executing {} {} tasks using {} processes')
+            print(fmtstr.format(nTasks, get_funcname(func), nprocs))
 
         if prog:
             lbl = '(pargen) %s: ' % (get_funcname(func),)
