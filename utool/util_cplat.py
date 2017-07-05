@@ -10,7 +10,7 @@ import sys
 import platform
 import subprocess
 import shlex
-from os.path import exists, normpath, basename, dirname, join
+from os.path import exists, normpath, basename, dirname, join, expanduser
 from utool import util_inject
 from utool._internal import meta_util_cplat
 from utool._internal.meta_util_path import unixpath, truepath
@@ -553,7 +553,7 @@ def view_directory(dname=None, fname=None, verbose=True):
         >>> # SCRIPT_TEST
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
-        >>> base = ut.ensure_app_resource_dir('utool', 'test_vd')
+        >>> base = ut.ensure_app_cache_dir('utool', 'test_vd')
         >>> dirs = [
         >>>     '',
         >>>     'dir1',
@@ -614,6 +614,53 @@ vd = view_directory
 get_resource_dir = meta_util_cplat.get_resource_dir
 
 get_app_resource_dir = meta_util_cplat.get_app_resource_dir
+
+
+def platform_cache_dir():
+    """
+    Returns a directory which should be writable for any application
+    This should be used for temporary deletable data.
+    """
+    if WIN32:  # nocover
+        dpath_ = '~/AppData/Local'
+    elif LINUX:  # nocover
+        dpath_ = '~/.cache'
+    elif DARWIN:  # nocover
+        dpath_  = '~/Library/Caches'
+    else:  # nocover
+        raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
+    dpath = normpath(expanduser(dpath_))
+    return dpath
+
+
+def get_app_cache_dir(appname, *args):
+    r"""
+    Returns a writable directory for an application.
+    This should be used for temporary deletable data.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        str: dpath: writable cache directory
+    """
+    dpath = join(platform_cache_dir(), appname, *args)
+    return dpath
+
+
+def ensure_app_cache_dir(appname, *args):
+    """
+    Example:
+        >>> from utool.util_cplat import *  # NOQA
+        >>> import utool as ut
+        >>> dpath = ut.ensure_app_cache_dir('utool')
+        >>> assert exists(dpath)
+    """
+    import utool as ut
+    dpath = get_app_cache_dir(appname, *args)
+    ut.ensuredir(dpath)
+    return dpath
 
 
 def ensure_app_resource_dir(*args, **kwargs):

@@ -591,7 +591,7 @@ def test_reloading_metaclass():
         >>> print(result)
     """
     import utool as ut
-    testdir = ut.ensure_app_resource_dir('utool', 'metaclass_tests')
+    testdir = ut.ensure_app_cache_dir('utool', 'metaclass_tests')
     testfoo_fpath = ut.unixjoin(testdir, 'testfoo.py')
     # os.chdir(testdir)
     #with ut.ChdirContext(testdir, stay=ut.inIPython()):
