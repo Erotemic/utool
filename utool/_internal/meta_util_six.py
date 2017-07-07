@@ -73,9 +73,6 @@ if six.PY2:
     #
     def set_funcdoc(func, newdoc):
         return setattr(func, 'func_doc', newdoc)
-    #
-    def get_imfunc(func):
-        return getattr(func, 'im_func')
 
     def get_funccode(func):
         return getattr(func, 'func_code')
@@ -113,9 +110,6 @@ elif six.PY3:
         return getattr(func, '__doc__')
     def set_funcdoc(func, newdoc):
         return setattr(func, '__doc__', newdoc)
-    #
-    def get_imfunc(func):
-        return getattr(func, '__func__')
 
     def get_funccode(func):
         return getattr(func, '__code__')
