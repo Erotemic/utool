@@ -1689,14 +1689,14 @@ def argmax(input_, multi=False):
         >>> import utool as ut
         >>> input_ = [1, 2, 3, 3, 2, 3, 2, 1]
         >>> ut.argmax(input_, multi=True)
-        >>> input_ = {1: 1, 2: 2, 3: 3, 3: 4}
+        >>> input_ = {1: 4, 2: 2, 3: 3, 3: 4}
         >>> ut.argmax(input_, multi=True)
     """
     if multi:
         if isinstance(input_, dict):
-            # shouldn't be able to get more than one for dicts
             keys = list(input_.keys())
-            return [keys[idx] for idx in argmax(keys, multi=multi)]
+            values = list(input_.values())
+            return [keys[idx] for idx in argmax(values, multi=multi)]
         else:
             return where(equal([max(input_)], input_))
     else:
