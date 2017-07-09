@@ -1746,7 +1746,8 @@ def list_str(list_, **listkw):
 def _make_valstr(**kwargs):
     import utool as ut
 
-    strvals = kwargs.get('sv', kwargs.get('strvals', False))
+    stritems = kwargs.get('si', kwargs.get('stritems', False))
+    strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
     valfunc = six.text_type if strvals else reprfunc
 
     if not kwargs.get('recursive', True):
