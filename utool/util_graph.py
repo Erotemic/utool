@@ -1858,6 +1858,44 @@ def bfs_multi_edges(G, source, reverse=False, keys=True, data=False):
             queue.popleft()
 
 
+def dfs_conditional(G, source, state, can_cross):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_graph import *
+        >>> G = nx.Graph()
+        >>> G.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 5)])
+        >>> G.edge[2][3]['lava'] = True
+        >>> G.edge[3][4]['lava'] = True
+        >>> def can_cross(G, edge, state):
+        >>>     # can only cross lava once, then your lava protection wears off
+        >>>     data = G.get_edge_data(*edge)
+        >>>     lava = int(data.get('lava', False))
+        >>>     if not lava or state == 0:
+        >>>         return True, state + lava
+        >>>     return False, lava
+        >>> assert 5 not in dfs_conditional(G, 1, state=0, can_cross=can_cross)
+        >>> G.edge[3][4]['lava'] = False
+        >>> assert 5 in dfs_conditional(G, 1, state=0, can_cross=can_cross)
+    """
+    # stack based version
+    visited = {source}
+    stack = [(source, iter(G[source]), state)]
+    while stack:
+        parent, children, state = stack[-1]
+        try:
+            child = next(children)
+            if child not in visited:
+                edge = (parent, child)
+                flag, new_state = can_cross(G, edge, state)
+                if flag:
+                    yield child
+                    visited.add(child)
+                    stack.append((child, iter(G[child]), new_state))
+        except StopIteration:
+            stack.pop()
+
+
 def bfs_conditional(G, source, reverse=False, keys=True, data=False,
                     yield_nodes=True, yield_if=None,
                     continue_if=None, visited_nodes=None,
