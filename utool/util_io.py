@@ -144,8 +144,9 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
             file_.writelines(to_write)
         else:
             # Ensure python2 writes in bytes
-            if six.PY2 and isinstance(to_write, unicode):
-                to_write = to_write.encode('utf8')
+            if six.PY2:
+                if isinstance(to_write, unicode):  # NOQA
+                    to_write = to_write.encode('utf8')
             try:
                 file_.write(to_write)
             except UnicodeEncodeError as ex:
