@@ -535,7 +535,7 @@ def random_product(items, num=None, rng=None):
 
     # TODO: make this more efficient when num is large
     if num > max_num // 2:
-        for prod in rng.shuffle(list(it.product(*items))):
+        for prod in ut.shuffle(list(it.product(*items)), rng=rng):
             yield prod
     else:
         while len(seen) < num:
