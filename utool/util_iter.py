@@ -532,6 +532,8 @@ def random_product(items, num=None, rng=None):
     max_num = ut.prod(map(len, items))
     if num is None:
         num = max_num
+    if num > max_num:
+        raise ValueError('num exceedes maximum number of products')
 
     # TODO: make this more efficient when num is large
     if num > max_num // 2:
