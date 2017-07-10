@@ -528,6 +528,7 @@ def random_product(items, num=None, rng=None):
     import utool as ut
     rng = ut.ensure_rng(rng, 'python')
     seen = set()
+    items = [list(g) for g in items]
     if num is None:
         num = ut.prod(map(len, items))
     # TODO: make this more efficient when num is None or large
