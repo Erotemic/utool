@@ -529,8 +529,15 @@ def random_product(items, num=None, rng=None):
     rng = ut.ensure_rng(rng, 'python')
     seen = set()
     items = [list(g) for g in items]
+    max_num = ut.prod(map(len, items))
     if num is None:
-        num = ut.prod(map(len, items))
+        num = max_num
+
+    if num > max_num // 2:
+        combos = list(it.product(*items))
+        rng.shuffle(combos)
+        for combo in combos[:num]:
+            yield combo
     # TODO: make this more efficient when num is None or large
     while len(seen) < num:
         # combo = tuple(sorted(rng.choice(items, size, replace=False)))
