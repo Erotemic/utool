@@ -533,19 +533,18 @@ def random_product(items, num=None, rng=None):
     if num is None:
         num = max_num
 
+    # TODO: make this more efficient when num is large
     if num > max_num // 2:
-        combos = list(it.product(*items))
-        rng.shuffle(combos)
-        for combo in combos[:num]:
-            yield combo
-    # TODO: make this more efficient when num is None or large
-    while len(seen) < num:
-        # combo = tuple(sorted(rng.choice(items, size, replace=False)))
-        idxs = tuple(rng.randint(0, len(g) - 1) for g in items)
-        if idxs not in seen:
-            seen.add(idxs)
-            prod = tuple(g[x] for g, x in zip(items, idxs))
+        for prod in rng.shuffle(list(it.product(*items))):
             yield prod
+    else:
+        while len(seen) < num:
+            # combo = tuple(sorted(rng.choice(items, size, replace=False)))
+            idxs = tuple(rng.randint(0, len(g) - 1) for g in items)
+            if idxs not in seen:
+                seen.add(idxs)
+                prod = tuple(g[x] for g, x in zip(items, idxs))
+                yield prod
 
 
 def random_combinations(items, size, num=None, rng=None):
