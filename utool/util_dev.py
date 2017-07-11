@@ -1366,10 +1366,10 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         nMin = np.sum(nparr == min_val, axis=axis)
         nMax = np.sum(nparr == max_val, axis=axis)
         stats = OrderedDict([
-            ('max',   (max_val)),
-            ('min',   (min_val)),
             ('mean',  datacast(mean_)),
             ('std',   datacast(std_)),
+            ('max',   (max_val)),
+            ('min',   (min_val)),
             ('nMin',  np.int32(nMin)),
             ('nMax',  np.int32(nMax)),
         ])

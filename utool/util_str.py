@@ -1829,7 +1829,6 @@ def get_itemstr_list(list_, **listkw):
         except Exception:
             sortx = ut.argsort2(itemstr_list)
         itemstr_list = ut.take(itemstr_list, sortx)
-
     return itemstr_list
 
 
