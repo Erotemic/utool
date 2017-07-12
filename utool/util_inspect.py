@@ -2463,10 +2463,9 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
 
 def get_funckw(func, recursive=True):
     import utool as ut
-    if recursive:
-        funckw_ = dict(ut.recursive_parse_kwargs(func))
-    else:
-        funckw_ = ut.get_func_kwargs(func)
+    funckw_ = ut.get_func_kwargs(func, recursive=recursive)
+    # if recursive:
+    #     funckw_.update(dict(ut.recursive_parse_kwargs(func)))
     return funckw_
 
 
@@ -2488,7 +2487,7 @@ def parse_func_kwarg_keys(func, with_vals=False):
     return kwkeys
 
 
-def get_func_kwargs(func):
+def get_func_kwargs(func, recursive=True):
     """
     func = ibeis.run_experiment
 
@@ -2505,11 +2504,8 @@ def get_func_kwargs(func):
         header_kw = {}
     else:
         header_kw = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
-    # TODO
     if argspec.keywords is not None:
-        # parse our keywords from func body if possible
-        # possibly recursively
-        pass
+        header_kw.update(dict(ut.recursive_parse_kwargs(func)))
     return header_kw
 
 

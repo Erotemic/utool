@@ -440,7 +440,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         diff_list = [np.abs(a - b) for a, b in ut.itertwo(result_list)]
         print('diff stats')
         for diffs in diff_list:
-            ut.print_stats(diffs, axis=None, use_median=True)
+            print(ut.repr4(ut.get_stats(diffs, precision=2, use_median=True)))
         print('diff_list = %r' % (diff_list,))
         print('sum_list = %r' % (sum_list,))
         print('passed_list = %r' % (passed_list,))
@@ -1265,10 +1265,10 @@ def get_jagged_stats(arr_list, **kwargs):
         >>> result = ut.align(str(ut.repr4(stats_dict)), ':')
         >>> print(result)
         {
-            'max'    : [4.0, 10.0, 3.0],
-            'min'    : [1.0, 3.0, 3.0],
             'mean'   : [2.5, 6.5, 3.0],
             'std'    : [1.118034, 3.5, 0.0],
+            'max'    : [4.0, 10.0, 3.0],
+            'min'    : [1.0, 3.0, 3.0],
             'nMin'   : [1, 1, 3],
             'nMax'   : [1, 1, 3],
             'shape'  : ['(4,)', '(2,)', '(4,)'],
@@ -1296,7 +1296,6 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
             (min, max, mean, std, nMin, nMax, shape)
 
     SeeAlso:
-        print_stats
         get_stats_str
 
     CommandLine:
@@ -1315,10 +1314,10 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> result = str(utool.repr4(stats, nl=1, precision=4, with_dtype=True))
         >>> print(result)
         {
-            'max': np.array([ 0.9637,  0.9256], dtype=np.float32),
-            'min': np.array([ 0.0202,  0.0871], dtype=np.float32),
             'mean': np.array([ 0.5206,  0.6425], dtype=np.float32),
             'std': np.array([ 0.2854,  0.2517], dtype=np.float32),
+            'max': np.array([ 0.9637,  0.9256], dtype=np.float32),
+            'min': np.array([ 0.0202,  0.0871], dtype=np.float32),
             'nMin': np.array([1, 1], dtype=np.int32),
             'nMax': np.array([1, 1], dtype=np.int32),
             'shape': (10, 2),
@@ -1336,7 +1335,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> stats = get_stats(list_, axis, use_nan=True)
         >>> result = str(utool.repr2(stats, precision=1, strkeys=True))
         >>> print(result)
-        {max: 41.0, min: 0.0, mean: 20.0, std: 13.2, nMin: 7, nMax: 3, shape: (100,), num_nan: 1}
+        {mean: 20.0, std: 13.2, max: 41.0, min: 0.0, nMin: 7, nMax: 3, shape: (100,), num_nan: 1}
     """
     datacast = np.float32
     # Assure input is in numpy format
@@ -1405,9 +1404,6 @@ def set_overlaps(set1, set2, s1='s1', s2='s2'):
     ])
     return overlaps
 
-get_overlaps = set_overlaps
-get_setdiff_info = set_overlaps
-
 
 def set_overlap_items(set1, set2, s1='s1', s2='s2'):
     import utool as ut
@@ -1422,6 +1418,10 @@ def set_overlap_items(set1, set2, s1='s1', s2='s2'):
         ('%s - %s' % (s2, s1), set2.difference(set1)),
     ])
     return overlaps
+
+get_overlaps = set_overlaps
+get_setdiff_info = set_overlaps
+get_setdiff_items = set_overlap_items
 
 # --- Info Strings ---
 
@@ -1453,11 +1453,10 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         >>> stat_str = get_stats_str(list_, newlines, keys, exclude_keys, lbl, precision)
         >>> result = str(stat_str)
         >>> print(result)
-        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
+        {'mean': 3, 'std': 1.41, 'max': 5, 'min': 1, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
 
     SeeAlso:
         repr2
-        print_stats
         get_stats
     """
     from utool.util_str import repr4
@@ -1518,183 +1517,6 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     if align:
         stat_str = ut.align(stat_str, ':')
     return stat_str
-
-
-def print_stats(list_, lbl=None, newlines=False, precision=2, axis=0, **kwargs):
-    """
-    Prints string representation of stat of list_
-
-    CommandLine:
-        python -m utool.util_dev --test-print_stats
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_dev import *  # NOQA
-        >>> list_ = [1, 2, 3, 4, 5]
-        >>> lbl = None
-        >>> newlines = False
-        >>> precision = 2
-        >>> result = print_stats(list_, lbl, newlines, precision)
-        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
-
-    SeeAlso:
-        get_stats_str
-        get_stats
-
-    """
-    if lbl is not None:
-        print('Stats for %s' % lbl)
-    stat_str = get_stats_str(list_, newlines=newlines, precision=2, axis=axis, **kwargs)
-    print(stat_str)
-    return stat_str
-
-
-def npArrInfo(arr):
-    """
-    OLD update and refactor
-    """
-    from utool.DynamicStruct import DynStruct
-    info = DynStruct()
-    info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
-    info.dtypestr  = str(arr.dtype)
-    if info.dtypestr == 'bool':
-        info.bittotal = 'T=%d, F=%d' % (sum(arr), sum(1 - arr))
-    elif info.dtypestr == 'object':
-        info.minmaxstr = 'NA'
-    elif info.dtypestr[0] == '|':
-        info.minmaxstr = 'NA'
-    else:
-        if arr.size > 0:
-            info.minmaxstr = '(%r, %r)' % (arr.min(), arr.max())
-        else:
-            info.minmaxstr = '(None)'
-    return info
-
-
-def printableType(val, name=None, parent=None):
-    """
-    Tries to make a nice type string for a value.
-    Can also pass in a Printable parent object
-    """
-    if parent is not None and hasattr(parent, 'customPrintableType'):
-        # Hack for non - trivial preference types
-        _typestr = parent.customPrintableType(name)
-        if _typestr is not None:
-            return _typestr
-    if isinstance(val, np.ndarray):
-        info = npArrInfo(val)
-        _typestr = info.dtypestr
-    elif isinstance(val, object):
-        _typestr = val.__class__.__name__
-    else:
-        _typestr = str(type(val))
-        _typestr = _typestr.replace('type', '')
-        _typestr = re.sub('[\'><]', '', _typestr)
-        _typestr = re.sub('  *', ' ', _typestr)
-        _typestr = _typestr.strip()
-    return _typestr
-
-
-def printableVal(val, type_bit=True, justlength=False):
-    """
-    Very old way of doing pretty printing. Need to update and refactor.
-    DEPRICATE
-    """
-    from utool import util_dev
-    # Move to util_dev
-    # NUMPY ARRAY
-    if type(val) is np.ndarray:
-        info = npArrInfo(val)
-        if info.dtypestr.startswith('bool'):
-            _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'
-            # + '\n  |_____'
-        elif info.dtypestr.startswith('float'):
-            _valstr = util_dev.get_stats_str(val)
-        else:
-            _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
-    # String
-    elif isinstance(val, (str, unicode)):
-        _valstr = '\'%s\'' % val
-    # List
-    elif isinstance(val, list):
-        if justlength or len(val) > 30:
-            _valstr = 'len=' + str(len(val))
-        else:
-            _valstr = '[ ' + (', \n  '.join([str(v) for v in val])) + ' ]'
-    # ??? isinstance(val, AbstractPrintable):
-    elif hasattr(val, 'get_printable') and type(val) != type:
-        _valstr = val.get_printable(type_bit=type_bit)
-    elif isinstance(val, dict):
-        _valstr = '{\n'
-        for val_key in val.keys():
-            val_val = val[val_key]
-            _valstr += '  ' + str(val_key) + ' : ' + str(val_val) + '\n'
-        _valstr += '}'
-    else:
-        _valstr = str(val)
-    if _valstr.find('\n') > 0:  # Indent if necessary
-        _valstr = _valstr.replace('\n', '\n    ')
-        _valstr = '\n    ' + _valstr
-    _valstr = re.sub('\n *$', '', _valstr)  # Replace empty lines
-    return _valstr
-
-
-def myprint(input_=None, prefix='', indent='', lbl=''):
-    """
-    OLD PRINT FUNCTION USED WITH PRINTABLE VAL
-    TODO: Refactor and update
-    """
-    if len(lbl) > len(prefix):
-        prefix = lbl
-    if len(prefix) > 0:
-        prefix += ' '
-    print_(indent + prefix + str(type(input_)) + ' ')
-    if isinstance(input_, list):
-        print(indent + '[')
-        for item in iter(input_):
-            myprint(item, indent=indent + '  ')
-        print(indent + ']')
-    elif isinstance(input_, six.string_types):
-        print(input_)
-    elif isinstance(input_, dict):
-        print(printableVal(input_))
-    else:
-        print(indent + '{')
-        attribute_list = dir(input_)
-        for attr in attribute_list:
-            if attr.find('__') == 0:
-                continue
-            val = str(input_.__getattribute__(attr))
-            #val = input_[attr]
-            # Format methods nicer
-            #if val.find('built-in method'):
-            #    val = '<built-in method>'
-            print(indent + '  ' + attr + ' : ' + val)
-        print(indent + '}')
-
-
-def info(var, lbl):
-    if isinstance(var, np.ndarray):
-        return npinfo(var, lbl)
-    if isinstance(var, list):
-        return listinfo(var, lbl)
-
-
-def npinfo(ndarr, lbl='ndarr'):
-    info = ''
-    info += (lbl + ': shape=%r ; dtype=%r' % (ndarr.shape, ndarr.dtype))
-    return info
-
-
-def listinfo(list_, lbl='ndarr'):
-    if not isinstance(list_, list):
-        raise Exception('!!')
-    info = ''
-    type_set = set([])
-    for _ in iter(list_):
-        type_set.add(str(type(_)))
-    info += (lbl + ': len=%r ; types=%r' % (len(list_), type_set))
-    return info
 
 
 #expected_type = np.float32
