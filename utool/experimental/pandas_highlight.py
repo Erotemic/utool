@@ -11,7 +11,11 @@ def monkey_to_str_columns(self):
     highlight_func = ut.partial(np.argmax, axis=1)
     highlight_cols = self.highlight_cols
 
-    perrow_colxs = highlight_func(frame[highlight_cols].values)
+    try:
+        _ = frame[highlight_cols].values
+    except:
+        _ = frame.values[:, highlight_cols]
+    perrow_colxs = highlight_func(_)
     n_rows = len(perrow_colxs)
     n_cols = len(highlight_cols)
     shape = (n_rows, n_cols)
@@ -26,7 +30,11 @@ def monkey_to_str_columns(self):
         else:
             return val
 
-    _make_fixed_width = pd.formats.format._make_fixed_width
+    try:
+        _make_fixed_width = pd.formats.format._make_fixed_width
+    except AttributeError:
+        _make_fixed_width = pd.io.formats.format._make_fixed_width
+
     frame = self.tr_frame
     str_index = self._get_formatted_index(frame)
     str_columns = self._get_formatted_column_labels(frame)
@@ -110,6 +118,8 @@ def to_string_monkey(df, highlight_cols=None):
     """  monkey patch to pandas to highlight the maximum value in specified
     cols of a row
 
+    from utool.experimental.pandas_highlight import *
+    import pandas as pd
     df = pd.DataFrame(
         np.array([[ 0.87031269,  0.86886931,  0.86842073,  0.91981975],
                   [ 0.34196218,  0.34289191,  0.34206377,  0.34252863],
@@ -119,60 +129,68 @@ def to_string_monkey(df, highlight_cols=None):
         index=['match_state(match-v-rest)', 'match_state(nomatch-v-rest)', 'match_state(notcomp-v-rest)', 'photobomb_state']
     )
     highlight_cols = 'all'
+    print(to_string_monkey(df, highlight_cols))
 
-    ut.editfile(pd.formats.printing.adjoin)
-
+    ut.editfile(pd.io.formats.printing.adjoin)
     """
     import pandas as pd
     import utool as ut
     import numpy as np
     import six
-    if isinstance(highlight_cols, six.string_types) and highlight_cols == 'all':
-        highlight_cols = np.arange(len(df.columns))
-    # kwds = dict(buf=None, columns=None, col_space=None, header=True,
-    #             index=True, na_rep='NaN', formatters=None,
-    #             float_format=None, sparsify=None, index_names=True,
-    #             justify=None, line_width=None, max_rows=None,
-    #             max_cols=None, show_dimensions=False)
-    # self = pd.formats.format.DataFrameFormatter(df, **kwds)
-    self = pd.formats.format.DataFrameFormatter(df)
-    self.highlight_cols = highlight_cols
-    ut.inject_func_as_method(self, monkey_to_str_columns, '_to_str_columns', override=True, force=True)
+    try:
+        if isinstance(highlight_cols, six.string_types) and highlight_cols == 'all':
+            highlight_cols = np.arange(len(df.columns))
+        # kwds = dict(buf=None, columns=None, col_space=None, header=True,
+        #             index=True, na_rep='NaN', formatters=None,
+        #             float_format=None, sparsify=None, index_names=True,
+        #             justify=None, line_width=None, max_rows=None,
+        #             max_cols=None, show_dimensions=False)
+        # self = pd.formats.format.DataFrameFormatter(df, **kwds)
+        try:
+            self = pd.formats.format.DataFrameFormatter(df)
+        except AttributeError:
+            self = pd.io.formats.format.DataFrameFormatter(df)
 
-    def strip_ansi(text):
-        import re
-        ansi_escape = re.compile(r'\x1b[^m]*m')
-        return ansi_escape.sub('', text)
+        self.highlight_cols = highlight_cols
+        ut.inject_func_as_method(self, monkey_to_str_columns, '_to_str_columns', override=True, force=True)
 
-    def justify_ansi(self, texts, max_len, mode='right'):
-        if mode == 'left':
-            return [x.ljust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
-        elif mode == 'center':
-            return [x.center(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
-        else:
-            return [x.rjust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
-    ut.inject_func_as_method(self.adj, justify_ansi, 'justify', override=True, force=True)
+        def strip_ansi(text):
+            import re
+            ansi_escape = re.compile(r'\x1b[^m]*m')
+            return ansi_escape.sub('', text)
 
-    def strlen_ansii(self, text):
-        return pd.compat.strlen(strip_ansi(text), encoding=self.encoding)
-    ut.inject_func_as_method(self.adj, strlen_ansii, 'len', override=True, force=True)
+        def justify_ansi(self, texts, max_len, mode='right'):
+            if mode == 'left':
+                return [x.ljust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
+            elif mode == 'center':
+                return [x.center(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
+            else:
+                return [x.rjust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
+        ut.inject_func_as_method(self.adj, justify_ansi, 'justify', override=True, force=True)
 
-    if False:
-        strlen = ut.partial(strlen_ansii, self.adj)  # NOQA
-        justfunc = ut.partial(justify_ansi, self.adj)  # NOQA
-        # Essentially what to_string does
-        strcols = monkey_to_str_columns(self)
-        # texts = strcols[2]
-        space = 1
-        lists = strcols
-        str_ = self.adj.adjoin(space, *lists)
-        print(str_)
-        print(strip_ansi(str_))
-    self.to_string()
-    result = self.buf.getvalue()
-    # hack because adjoin is not working correctly with injected strlen
-    result = '\n'.join([x.rstrip() for x in result.split('\n')])
-    return result
+        def strlen_ansii(self, text):
+            return pd.compat.strlen(strip_ansi(text), encoding=self.encoding)
+        ut.inject_func_as_method(self.adj, strlen_ansii, 'len', override=True, force=True)
+
+        if False:
+            strlen = ut.partial(strlen_ansii, self.adj)  # NOQA
+            justfunc = ut.partial(justify_ansi, self.adj)  # NOQA
+            # Essentially what to_string does
+            strcols = monkey_to_str_columns(self)
+            # texts = strcols[2]
+            space = 1
+            lists = strcols
+            str_ = self.adj.adjoin(space, *lists)
+            print(str_)
+            print(strip_ansi(str_))
+        self.to_string()
+        result = self.buf.getvalue()
+        # hack because adjoin is not working correctly with injected strlen
+        result = '\n'.join([x.rstrip() for x in result.split('\n')])
+        return result
+    except Exception as ex:
+        print('pandas monkey-patch is broken: {}'.format(str(ex)))
+        return str(df)
 
 
 def pandas_repr(df):
