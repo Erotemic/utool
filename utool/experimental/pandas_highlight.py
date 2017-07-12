@@ -135,7 +135,14 @@ def to_string_monkey(df, highlight_cols=None):
     #             justify=None, line_width=None, max_rows=None,
     #             max_cols=None, show_dimensions=False)
     # self = pd.formats.format.DataFrameFormatter(df, **kwds)
-    self = pd.formats.format.DataFrameFormatter(df)
+    try:
+        self = pd.formats.format.DataFrameFormatter(df)
+    except AttributeError:
+        # JON, THIS FAILS ON MY MACHINE FOR SOME REASON: pd.formats DOES NOT EXIST.
+        # FIX AS NEEDED.
+        # I TRIED UPDATING PANDAS WITH NO HELP, ARE YOU RUNNING A CUSTOM PANDAS? -- JASON
+        print(df)
+        return ''
     self.highlight_cols = highlight_cols
     ut.inject_func_as_method(self, monkey_to_str_columns, '_to_str_columns', override=True, force=True)
 
