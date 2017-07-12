@@ -118,18 +118,19 @@ def to_string_monkey(df, highlight_cols=None):
     """  monkey patch to pandas to highlight the maximum value in specified
     cols of a row
 
-    from utool.experimental.pandas_highlight import *
-    import pandas as pd
-    df = pd.DataFrame(
-        np.array([[ 0.87031269,  0.86886931,  0.86842073,  0.91981975],
-                  [ 0.34196218,  0.34289191,  0.34206377,  0.34252863],
-                  [ 0.34827074,  0.34829214,  0.35032833,  0.28857126],
-                  [ 0.76979453,  0.77214855,  0.77547518,  0.38850962]]),
-        columns=['sum(fgweights)', 'sum(weighted_ratio)', 'len(matches)', 'score_lnbnn_1vM'],
-        index=['match_state(match-v-rest)', 'match_state(nomatch-v-rest)', 'match_state(notcomp-v-rest)', 'photobomb_state']
-    )
-    highlight_cols = 'all'
-    print(to_string_monkey(df, highlight_cols))
+    Example:
+        >>> from utool.experimental.pandas_highlight import *
+        >>> import pandas as pd
+        >>> df = pd.DataFrame(
+        >>>     np.array([[ 0.87031269,  0.86886931,  0.86842073,  0.91981975],
+        >>>               [ 0.34196218,  0.34289191,  0.34206377,  0.34252863],
+        >>>               [ 0.34827074,  0.34829214,  0.35032833,  0.28857126],
+        >>>               [ 0.76979453,  0.77214855,  0.77547518,  0.38850962]]),
+        >>>     columns=['sum(fgweights)', 'sum(weighted_ratio)', 'len(matches)', 'score_lnbnn_1vM'],
+        >>>     index=['match_state(match-v-rest)', 'match_state(nomatch-v-rest)', 'match_state(notcomp-v-rest)', 'photobomb_state']
+        >>> )
+        >>> highlight_cols = 'all'
+        >>> print(to_string_monkey(df, highlight_cols))
 
     ut.editfile(pd.io.formats.printing.adjoin)
     """
