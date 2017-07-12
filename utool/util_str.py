@@ -850,12 +850,10 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     truncatekw = {}
 
     argrepr_list = ([] if args is None else
-                    ut.get_itemstr_list(args, with_comma=False, nl=False,
-                                        truncate=truncate,
+                    ut.get_itemstr_list(args, nl=False, truncate=truncate,
                                         truncatekw=truncatekw))
     kwrepr_list = ([] if kwargs is None else
-                   ut.dict_itemstr_list(kwargs, explicit=True,
-                                        with_comma=False, nl=False,
+                   ut.dict_itemstr_list(kwargs, explicit=True, nl=False,
                                         truncate=truncate,
                                         truncatekw=truncatekw))
     repr_list = argrepr_list + kwrepr_list
@@ -1500,7 +1498,7 @@ def dict_str(dict_, **dictkw):
     # Doesn't actually put in trailing comma if on same line
     trailing_comma = dictkw.get('trailing_comma', True)
     explicit = dictkw.get('explicit', False)
-    with_comma = dictkw.get('with_comma', True)
+    with_comma  = True
     itemsep = dictkw.get('itemsep', ' ')
 
     if len(dict_) == 0:
@@ -1635,7 +1633,7 @@ def list_str(list_, **listkw):
     Args:
         list_ (list): input list
         **listkw: nl, newlines, packed, truncate, nobr, nobraces, itemsep,
-                  trailing_comma, truncatekw, with_comma, strvals, recursive,
+                  trailing_comma, truncatekw, strvals, recursive,
                   indent_, precision, use_numpy, with_dtype, force_dtype,
                   stritems, strkeys, align, explicit, sorted_, key_order,
                   key_order_metric, maxlen
@@ -1688,7 +1686,7 @@ def list_str(list_, **listkw):
     itemsep = listkw.get('itemsep', ' ')
     # Doesn't actually put in trailing comma if on same line
     trailing_comma = listkw.get('trailing_comma', True)
-    with_comma = listkw.get('with_comma', True)
+    with_comma = True
 
     itemstr_list = get_itemstr_list(list_, **listkw)
     is_tuple = isinstance(list_, tuple)
@@ -1807,8 +1805,6 @@ def get_itemstr_list(list_, **listkw):
 
     def make_item_str(item):
         item_str = _valstr(item)
-        # if listkw.get('with_comma', True):
-        #     item_str += ','
         return item_str
 
     items = list(list_)
