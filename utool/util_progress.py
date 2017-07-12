@@ -347,6 +347,7 @@ class ProgressIter(object):
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
         self.prehack            = kwargs.pop('prehack', None)
+        self.freq_est_strat     = kwargs.pop('freq_est', 'between')
         if 'separate' in kwargs:
             print('WARNING separate no longer supported by ProgIter')
 
@@ -634,7 +635,15 @@ class ProgressIter(object):
 
         start = 1 + self.parent_offset
 
+        if self.freq_est_strat == 'between':
+            FREQ_EST = 0
+        elif self.freq_est_strat == 'absolute':
+            FREQ_EST = 1
+        else:
+            FREQ_EST = 1
+
         USE_RECORD = True
+
         # use last 64 times to compute a more stable average rate
         measure_between_time = collections.deque([], maxlen=self.est_window)
 
@@ -656,11 +665,15 @@ class ProgressIter(object):
                 between_count     = self.count - last_count
                 total_seconds     = (now_time - start_time)
                 self.total_seconds = total_seconds
-                if USE_RECORD:
-                    measure_between_time.append(between_count / (float(between_time) + 1E-9))
-                    iters_per_second = sum(measure_between_time) / len(measure_between_time)
-                else:
-                    iters_per_second = between_count / (float(between_time) + 1E-9)
+                if FREQ_EST == 0:
+                    if USE_RECORD:
+                        measure_between_time.append(between_count / (float(between_time) + 1E-9))
+                        iters_per_second = sum(measure_between_time) / len(measure_between_time)
+                    else:
+                        iters_per_second = between_count / (float(between_time) + 1E-9)
+                elif FREQ_EST == 1:
+                    iters_per_second = (now_time - start_time) / self.count
+
                 self.iters_per_second = iters_per_second
                 # If the future is known
                 if nTotal is None:

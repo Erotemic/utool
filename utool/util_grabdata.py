@@ -48,7 +48,7 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
         >>> # SLOW_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut
-        >>> archive_fpath = ut.get_app_resource_dir('utool', 'testarchive.zip')
+        >>> archive_fpath = ut.get_app_cache_dir('utool', 'testarchive.zip')
         >>> # remove an existing test archive
         >>> ut.delete(archive_fpath)
         >>> assert not exists(archive_fpath), 'archive should not exist'
@@ -567,7 +567,7 @@ def clear_test_img_cache():
         >>> print(result)
     """
     import utool as ut
-    download_dir = util_cplat.get_app_resource_dir('utool')
+    download_dir = util_cplat.get_app_cache_dir('utool')
     for key in TESTIMG_URL_DICT:
         fpath = join(download_dir, key)
         ut.delete(fpath)
@@ -835,7 +835,7 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         fname = basename(file_url)
     # Download zipfile to
     if download_dir is None:
-        download_dir = util_cplat.get_app_resource_dir(appname)
+        download_dir = util_cplat.get_app_cache_dir(appname)
     # Zipfile should unzip to:
     fpath = join(download_dir, fname)
     # If check hash, get remote hash and assert local copy is the same
@@ -898,13 +898,6 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
     return fpath
 
 
-#def grab_multiple_files(url_list, download_dir=None):
-#    import utool as ut
-#    #funckw = dict(download_dir=download_dir, verbose=False)
-#    fpath_list = list(ut.generate(ut.grab_file_url, url_list))
-#    return fpath_list
-
-
 def grab_zipped_url(zipped_url, ensure=True, appname='utool',
                     download_dir=None, force_commonprefix=True, cleanup=False,
                     redownload=False, spoof=False):
@@ -952,7 +945,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
     data_name = split_archive_ext(zip_fname)[0]
     # Download zipfile to
     if download_dir is None:
-        download_dir = util_cplat.get_app_resource_dir(appname)
+        download_dir = util_cplat.get_app_cache_dir(appname)
     # Zipfile should unzip to:
     data_dir = join(download_dir, data_name)
     if ensure or redownload:

@@ -4,6 +4,7 @@ Module to executes the same function with different arguments in parallel.
 """
 from __future__ import absolute_import, division, print_function
 import multiprocessing
+from concurrent import futures
 # import atexit
 #import sys
 import signal
@@ -554,8 +555,9 @@ def generate(func, args_list, ordered=True, force_serial=None,
                                   freq=freq, **kwargs)
 
 
-def generate_futures2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
-                      force_serial=False, use_pool=False, verbose=None):
+def generate2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
+              force_serial=False, use_pool=False, chunksize=None,
+              nprocs=None, progkw={}, verbose=None):
     r"""
     CommandLine:
         python -m utool.util_parallel futures_generate
@@ -570,7 +572,7 @@ def generate_futures2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
         verbose (bool):  verbosity flag(default = None)
 
     CommandLine:
-        python -m utool.util_parallel generate_futures2
+        python -m utool.util_parallel generate2
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -580,13 +582,12 @@ def generate_futures2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
         >>> args_gen = list(zip(range(10000)))
         >>> kw_gen = [{}] * len(args_gen)
         >>> func = ut.is_prime
-        >>> _ = list(generate_futures2(func, args_gen))
-        >>> _ = list(generate_futures2(func, args_gen, ordered=False))
-        >>> _ = list(generate_futures2(func, args_gen, force_serial=True))
-        >>> _ = list(generate_futures2(func, args_gen, use_pool=True))
-        >>> _ = list(generate_futures2(func, args_gen, ordered=False, verbose=False))
+        >>> _ = list(generate2(func, args_gen))
+        >>> _ = list(generate2(func, args_gen, ordered=False))
+        >>> _ = list(generate2(func, args_gen, force_serial=True))
+        >>> _ = list(generate2(func, args_gen, use_pool=True))
+        >>> _ = list(generate2(func, args_gen, ordered=False, verbose=False))
     """
-    from utool import util_resources
     if verbose is None:
         verbose = 2
     if nTasks is None:
@@ -604,33 +605,46 @@ def generate_futures2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
         force_serial = __FORCE_SERIAL__
     if nTasks == 0:
         if verbose:
-            print('[ut.generate_futures2] submitted 0 tasks')
+            print('[ut.generate2] submitted 0 tasks')
         raise StopIteration
-
-    if verbose > 1:
-        lbl = '(pargen) %s: ' % (get_funcname(func),)
-        progpart = util_progress.ProgPartial(nTotal=nTasks, lbl=lbl, freq=None,
-                                             bs=True, adjust=False)
 
     if force_serial:
         for result in _generate_serial2(func, args_gen, kw_gen,
-                                        nTasks=nTasks, verbose=verbose):
+                                        nTasks=nTasks, progkw=progkw,
+                                        verbose=verbose):
             yield result
     else:
-        from concurrent import futures
-        nprocs = max(1, util_resources.num_cpus() - 1)
+        if nprocs is None:
+            ncpus = multiprocessing.cpu_count()
+            nprocs = max(1, ncpus - 1)
+
         if verbose:
-            fmtstr = ('[ut.generate_futures2] '
-                      'executing {} {} tasks using {} processes')
-            print(fmtstr.format(nTasks, get_funcname(func), nprocs))
+            gentype = 'mp' if use_pool else 'futures'
+            fmtstr = '[generate2] executing {} {} tasks using {} {} procs'
+            print(fmtstr.format(nTasks, get_funcname(func), nprocs, gentype))
+
+        if verbose > 1:
+            lbl = '(pargen) %s: ' % (get_funcname(func),)
+            progkw_ = dict(freq=None, bs=True, adjust=False, freq_est='absolute')
+            progkw_.update(progkw)
+            print('progkw_.update = {!r}'.format(progkw_.update))
+            progpart = util_progress.ProgPartial(nTotal=nTasks, lbl=lbl, **progkw_)
 
         if use_pool:
             # Use multiprocessing
+            if chunksize is None:
+                chunksize = max(min(4, nTasks), min(8, nTasks // (nprocs ** 2)))
+
             try:
                 pool = multiprocessing.Pool(nprocs)
-                res_gen = pool.imap(_kw_wrap_worker,
-                                    zip([func] * len(args_gen), args_gen,
-                                        kw_gen))
+                if ordered:
+                    pmap_func = pool.imap
+                else:
+                    pmap_func = pool.imap_unordered
+
+                wrapped_arg_gen = zip([func] * len(args_gen), args_gen, kw_gen)
+                res_gen = pmap_func(_kw_wrap_worker, wrapped_arg_gen,
+                                    chunksize)
                 if verbose > 1:
                     res_gen = progpart(res_gen)
                 for res in res_gen:
@@ -660,7 +674,8 @@ def _kw_wrap_worker(func_args_kw):
     return func(*args, **kw)
 
 
-def _generate_serial2(func, args_gen, kw_gen=None, nTasks=None, verbose=None):
+def _generate_serial2(func, args_gen, kw_gen=None, nTasks=None, progkw={},
+                      verbose=None):
     """ internal serial generator  """
     if verbose is None:
         verbose = 2
@@ -679,8 +694,10 @@ def _generate_serial2(func, args_gen, kw_gen=None, nTasks=None, verbose=None):
     # Get iterator with or without progress
     if verbose > 1:
         lbl = '(sergen) %s: ' % (get_funcname(func),)
+        progkw_ = dict(freq=None, bs=True, adjust=False, freq_est='between')
+        progkw_.update(progkw)
         args_gen = util_progress.ProgIter(args_gen, nTotal=nTasks, lbl=lbl,
-                                          verbose=verbose)
+                                          **progkw_)
 
     for args, kw in zip(args_gen, kw_gen):
         result = func(*args, **kw)
