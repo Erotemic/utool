@@ -361,10 +361,6 @@ def indent_rest(str_, indent='    '):
     return str_.replace('\n', '\n' + indent)
 
 
-def indentcat(str1, str2, indent='    '):
-    return str1  + str2.replace('\n', '\n' + indent)
-
-
 def indentjoin(strlist, indent='\n    ', suffix=''):
     r"""
     Convineince indentjoin
@@ -729,83 +725,6 @@ def file_megabytes_str(fpath):
     return ('%.2f MB' % util_path.file_megabytes(fpath))
 
 
-# <Alias repr funcs>
-# TODO: Remove any type of global information
-
-USE_GLOBAL_INFO = False
-if USE_GLOBAL_INFO:
-
-    GLOBAL_TYPE_ALIASES = []
-
-    def extend_global_aliases(type_aliases):
-        """
-        State function for aliased_repr calls
-        """
-        global GLOBAL_TYPE_ALIASES
-        GLOBAL_TYPE_ALIASES.extend(type_aliases)
-
-    def var_aliased_repr(var, type_aliases):
-        """
-        Replaces unweildy type strings with predefined more human-readable
-        aliases
-
-        Args:
-            var: some object
-
-        Returns:
-            str: an "intelligently" chosen string representation of var
-        """
-        global GLOBAL_TYPE_ALIASES
-        # Replace aliased values
-        for alias_type, alias_name in (type_aliases + GLOBAL_TYPE_ALIASES):
-            if isinstance(var, alias_type):
-                return alias_name + '<' + six.text_type(id(var)) + '>'
-        return repr(var)
-
-    def list_aliased_repr(list_, type_aliases=[]):
-        """
-        Replaces unweildy type strings with predefined more human-readable
-        aliases
-
-        Args:
-            list_ (list): ``list`` to get repr
-
-        Returns:
-            str: string representation of ``list_``
-        """
-        return [var_aliased_repr(item, type_aliases)
-                for item in list_]
-
-    def dict_aliased_repr(dict_, type_aliases=[]):
-        """
-        Replaces unweildy type strings with predefined more human-readable
-        aliases
-
-        Args:
-            dict_ (dict): dictionary to get repr
-
-        Returns:
-            str: string representation of ``dict_``
-        """
-        return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
-                for (key, val) in six.iteritems(dict_)]
-
-# </Alias repr funcs>
-
-
-def newlined_list(list_, joinstr=', ', textwidth=160):
-    """
-    Converts a list to a string but inserts a new line after textwidth chars
-    DEPRICATE
-    """
-    newlines = ['']
-    for word in enumerate(list_):
-        if len(newlines[-1]) + len(word) > textwidth:
-            newlines.append('')
-        newlines[-1] += word + joinstr
-    return '\n'.join(newlines)
-
-
 def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
              packkw=None, truncate=False):
     """
@@ -842,7 +761,6 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
         >>> print(result)
         byte_str(1024, 'MB', precision=2)
     """
-    #repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     import utool as ut
     # if truncate:
     # truncatekw = {'maxlen': 20}
@@ -858,7 +776,6 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
                                         truncatekw=truncatekw))
     repr_list = argrepr_list + kwrepr_list
 
-    #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     argskwargs_str = ', '.join(repr_list)
     _str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
     if packed:
@@ -1368,7 +1285,7 @@ def repr2(obj_, **kwargs):
 def repr2_json(obj_, **kwargs):
     """ hack for json reprs """
     import utool as ut
-    kwargs['trailing_comma'] = False
+    kwargs['trailing_sep'] = False
     json_str = ut.repr2(obj_, **kwargs)
     json_str = str(json_str.replace('\'', '"'))
     json_str = json_str.replace('(', '[')
@@ -1405,7 +1322,7 @@ def dict_str(dict_, **dictkw):
     Args:
         dict_ (dict_):  a dictionary
         **dictkw: stritems, strkeys, strvals, nl, newlines, truncate, nobr,
-                  nobraces, align, trailing_comma, explicit, itemsep,
+                  nobraces, align, trailing_sep, explicit, itemsep,
                   truncatekw, sorted_, indent_, key_order, precision,
                   with_comma, key_order_metric, maxlen, recursive, use_numpy,
                   with_dtype, force_dtype, packed
@@ -1496,7 +1413,7 @@ def dict_str(dict_, **dictkw):
     align = dictkw.pop('align', False)
 
     # Doesn't actually put in trailing comma if on same line
-    trailing_comma = dictkw.get('trailing_comma', True)
+    trailing_sep = dictkw.get('trailing_sep', True)
     explicit = dictkw.get('explicit', False)
     with_comma  = True
     itemsep = dictkw.get('itemsep', ' ')
@@ -1522,12 +1439,12 @@ def dict_str(dict_, **dictkw):
         sep = ',\n' if with_comma else '\n'
         if nobraces:
             retstr =  sep.join(itemstr_list)
-            if trailing_comma:
+            if trailing_sep:
                 retstr += ','
         else:
             parts = [ut.indent(itemstr, '    ') for itemstr in itemstr_list]
             body_str = sep.join(parts)
-            if trailing_comma:
+            if trailing_sep:
                 body_str += ','
             retstr =  (lbr + '\n' + body_str + '\n' + rbr)
             if align:
@@ -1633,7 +1550,7 @@ def list_str(list_, **listkw):
     Args:
         list_ (list): input list
         **listkw: nl, newlines, packed, truncate, nobr, nobraces, itemsep,
-                  trailing_comma, truncatekw, strvals, recursive,
+                  trailing_sep, truncatekw, strvals, recursive,
                   indent_, precision, use_numpy, with_dtype, force_dtype,
                   stritems, strkeys, align, explicit, sorted_, key_order,
                   key_order_metric, maxlen
@@ -1685,7 +1602,7 @@ def list_str(list_, **listkw):
 
     itemsep = listkw.get('itemsep', ' ')
     # Doesn't actually put in trailing comma if on same line
-    trailing_comma = listkw.get('trailing_comma', True)
+    trailing_sep = listkw.get('trailing_sep', True)
     with_comma = True
 
     itemstr_list = get_itemstr_list(list_, **listkw)
@@ -1708,7 +1625,7 @@ def list_str(list_, **listkw):
         sep = ',\n' if with_comma else '\n'
         if nobraces:
             body_str = sep.join(itemstr_list)
-            if trailing_comma:
+            if trailing_sep:
                 body_str += ','
             retstr = body_str
         else:
@@ -1716,13 +1633,13 @@ def list_str(list_, **listkw):
                 # DEPRICATE?
                 joinstr = sep + itemsep * len(lbr)
                 body_str = joinstr.join([itemstr for itemstr in itemstr_list])
-                if trailing_comma:
+                if trailing_sep:
                     body_str += ','
                 braced_body_str = (lbr + '' + body_str + '' + rbr)
             else:
                 body_str = sep.join([
                     ut.indent(itemstr) for itemstr in itemstr_list])
-                if trailing_comma:
+                if trailing_sep:
                     body_str += ','
                 braced_body_str = (lbr + '\n' + body_str + '\n' + rbr)
             retstr = braced_body_str
@@ -1933,23 +1850,6 @@ def listinfo_str(list_):
     info_list = enumerate([(type(item), item) for item in list_])
     info_str  = indentjoin(map(repr, info_list, '\n  '))
     return info_str
-
-
-def str2(obj):
-    if isinstance(obj, dict):
-        return six.text_type(obj).replace(', ', '\n')[1:-1]
-    if isinstance(obj, type):
-        return six.text_type(obj).replace('<type \'', '').replace('\'>', '')
-    else:
-        return six.text_type(obj)
-
-
-#def get_unix_timedelta_str(unixtime_diff):
-#    """ string representation of time deltas """
-#    timedelta = util_time.get_unix_timedelta(unixtime_diff)
-#    sign = '+' if unixtime_diff >= 0 else '-'
-#    timedelta_str = sign + six.text_type(timedelta)
-#    return timedelta_str
 
 
 def str_between(str_, startstr, endstr):
@@ -2220,24 +2120,12 @@ def strip_ansi(text):
     return ansi_escape.sub('', text)
 
 
-# def strip_non_ansi(text):
-#     """ keeps only ansii """
-#     def invert_regex(pat):
-#         return '^(.(?!(' + pat + ')))*$'
-#     non_ansi_escape = re.compile(invert_regex(r'\x1b[^m]*m'))
-#     return non_ansi_escape.sub('', text)
-
-
-def get_freespace_str(dir_='.'):
-    """ returns string denoting free disk space in a directory """
-    from utool import util_cplat
-    return byte_str2(util_cplat.get_free_diskbytes(dir_))
-
-
 # FIXME: HASHLEN is a global var in util_hash
 def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
                       hashlen=16, ABS_MAX_LEN=255, hack27=False):
     r"""
+    DEPRICATE
+
     Formats a string and hashes certain parts if the resulting string becomes
     too long. Used for making filenames fit onto disk.
 
@@ -2338,49 +2226,6 @@ def multi_replace(str_, search_list, repl_list):
     return newstr
 
 
-def replace_nonquoted_text(text, search_list, repl_list):
-    r"""
-    replace_nonquoted_text
-
-    WARNING: this function is not safely implemented. It can break of searching
-    for single characters or underscores. Depends on utool.modify_quoted_strs
-    which is also unsafely implemented
-
-    Args:
-        text (str):
-        search_list (list):
-        repl_list (list):
-
-    Example:
-        >>> from utool.util_str import *  # NOQA
-        >>> text = '?'
-        >>> search_list = '?'
-        >>> repl_list = '?'
-        >>> result = replace_nonquoted_text(text, search_list, repl_list)
-        >>> print(result)
-    """
-    # Hacky way to preserve quoted text
-    # this will not work if search_list uses underscores or single characters
-    def preserve_quoted_str(quoted_str):
-        return '\'' + '_'.join(list(quoted_str[1:-1])) + '\''
-    def unpreserve_quoted_str(quoted_str):
-        return '\'' + ''.join(list(quoted_str[1:-1])[::2]) + '\''
-    import utool as ut
-    text_ = ut.modify_quoted_strs(text, preserve_quoted_str)
-    for search, repl in zip(search_list, repl_list):
-        text_ = text_.replace(search, repl)
-    text_ = ut.modify_quoted_strs(text_, unpreserve_quoted_str)
-    return text_
-
-
-def singular_string(str_, plural_suffix='s', singular_suffix=''):
-    """
-    tries to use english grammar to make a string singular
-    very naive implementation. will break often
-    """
-    return str_[:-1] if str_.endswith(plural_suffix) else str_
-
-
 def pluralize(wordtext, num=2, plural_suffix='s'):
     r"""
     Heuristically changes a word to its plural form if `num` is not 1
@@ -2445,34 +2290,6 @@ def quantstr(typestr, num, plural_suffix='s'):
         The list contains 0 items
     """
     return six.text_type(num) + ' ' + pluralize(typestr, num, plural_suffix)
-
-
-def remove_vowels(str_):
-    """ strips all vowels from a string """
-    for char_ in 'AEOIUaeiou':
-        str_ = str_.replace(char_, '')
-    return str_
-
-
-def clipstr(str_, maxlen):
-    """
-    tries to shorten string as much as it can until it is just barely readable
-    """
-    if len(str_) > maxlen:
-        str2 = (str_[0] + remove_vowels(str_[1:])).replace('_', '')
-        if len(str2) > maxlen:
-            return str2[0:maxlen]
-        else:
-            return str_[0:maxlen]
-    else:
-        return str_
-#def parse_commas_wrt_groups(str_):
-#    """
-#    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'
-#    """
-#    nLParen = 0
-#    nLBracket = 0
-#    pass
 
 
 def msgblock(key, text, side='|'):
@@ -2646,15 +2463,6 @@ def doctest_code_line(line_str, varname=None, verbose=True):
     if verbose:
         print(doctest_line_str)
     return doctest_line_str
-
-
-def code_repr(var, varname=None, **kwargs):
-    import utool as ut
-    varstr = ut.repr2(var, **kwargs)
-    varname_ = ut.get_varname_from_stack(var, N=1, default=None) if varname is None else varname
-    varprefix = varname_ + ' = ' if varname_ is not None else ''
-    code_str = ut.hz_str(varprefix, varstr)
-    return code_str
 
 
 def doctest_repr(var, varname=None, precision=2, verbose=True):

@@ -356,6 +356,8 @@ def check_module_usage(modpath_patterns):
         python -m utool.util_inspect check_module_usage --pat="preproc_probchip.py"
         python -m utool.util_inspect check_module_usage --pat="guiback.py"
 
+        python -m utool.util_inspect check_module_usage --pat="util_str.py"
+
     Ignore:
 
     Example:
