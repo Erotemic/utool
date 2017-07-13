@@ -1931,7 +1931,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                                                   cfgresult_list,
                                                   score_list):
         if score is not None:
-            cfglbl += '\n' + scorelbl + '=' + ut.numeric_str(score, precision=precision)
+            cfglbl += '\n' + scorelbl + '=' + ut.repr2(score, precision=precision)
         pnum = next_pnum()
         try:
             if unpack:

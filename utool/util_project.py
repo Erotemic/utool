@@ -545,7 +545,12 @@ def ibeis_user_profile():
     self = UserProfile(name='ibeis')
     #self.project_dpaths = REPOS1.PROJECT_REPOS
     self.project_dpaths = REPOS1.IBEIS_REPOS
-    self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
+    # self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
+    self.project_dpaths += [
+        ut.truepath('~/local'),
+        ut.truepath('~/code/fixtex'),
+    ]
+    # self.project_dpaths += [ut.truepath('~/local/vim/rc')]
     self.project_include_patterns = [
         '*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
         #'*.py',  # '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
@@ -687,7 +692,8 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     msg_list = msg_list1 + msg_list2
 
     if new:
-        return GrepResult(found_fpath_list, found_lines_list, found_lxs_list, extended_regex_list, reflags)
+        return GrepResult(found_fpath_list, found_lines_list, found_lxs_list,
+                          extended_regex_list, reflags)
     else:
         return msg_list
 
