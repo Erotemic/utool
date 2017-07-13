@@ -72,13 +72,6 @@ def ensure_unicode_strlist(str_list):
     return new_str_list
 
 
-def insert_before_sentinal(text, repl_, sentinal):
-    import re
-    parts = re.split('(' + sentinal + ')', text)
-    assert len(parts) == 3
-    return parts[0] + repl_ + parts[1] + parts[2]
-
-
 def replace_between_tags(text, repl_, start_tag, end_tag=None):
     r"""
     Replaces text between sentinal lines in a block of text.
@@ -694,9 +687,7 @@ def byte_str(nBytes, unit='bytes', precision=2):
         nUnit = nBytes / (2.0 ** 40)
     else:
         raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
-    return scalar_str(nUnit, precision) + ' ' + unit
-    #fmtstr = ('%.'
-    #return ('%.' + str(precision) + 'f %s') % (nUnit, unit)
+    return repr2(nUnit, precision) + ' ' + unit
 
 
 def second_str(nsecs, unit=None, precision=None, abbrev=True):
@@ -1097,53 +1088,6 @@ def numpy_str(arr, strvals=False, precision=None, pr=None,
     return valstr
 
 
-def numeric_str(num, precision=None, **kwargs):
-    """
-    Args:
-        num (scalar or array):
-        precision (int):
-
-    Returns:
-        str:
-
-    CommandLine:
-        python -m utool.util_str --test-numeric_str
-
-    References:
-        http://stackoverflow.com/questions/4541155/check-if-a-number-is-int-or-float
-
-    Notes:
-        isinstance(np.array([3], dtype=np.uint8)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.int32)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.uint64)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=object)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.float32)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.float64)[0], numbers.Integral)
-
-    CommandLine:
-        python -m utool.util_str --test-numeric_str
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_str import *  # NOQA
-        >>> precision = 2
-        >>> result = [numeric_str(num, precision) for num in [1, 2.0, 3.43343,4432]]
-        >>> print(result)
-        ['1', '2.00', '3.43', '4432']
-    """
-    import numbers
-    if np.isscalar(num):
-        if not isinstance(num, numbers.Integral):
-            return scalar_str(num, precision)
-            #fmtstr = ('%.' + str(precision) + 'f')
-            #return fmtstr  % num
-        else:
-            return '%d' % (num)
-        return
-    else:
-        return numpy_str(num, precision=precision, **kwargs)
-
-
 def reprfunc(val, precision=None):
     r"""
     Args:
@@ -1302,12 +1246,6 @@ def repr3(obj_, **kwargs):
 def repr4(obj_, **kwargs):
     kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', 1))
     # kwargs['precision'] = kwargs.pop('precision', 2)
-    return repr2(obj_, **kwargs)
-
-
-def repr5(obj_, **kwargs):
-    kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', 2))
-    kwargs['precision'] = kwargs.pop('precision', 2)
     return repr2(obj_, **kwargs)
 
 
@@ -1846,12 +1784,6 @@ def horiz_string(*args, **kwargs):
 hz_str = horiz_string
 
 
-def listinfo_str(list_):
-    info_list = enumerate([(type(item), item) for item in list_])
-    info_str  = indentjoin(map(repr, info_list, '\n  '))
-    return info_str
-
-
 def str_between(str_, startstr, endstr):
     r"""
     gets substring between two sentianl strings
@@ -1878,14 +1810,6 @@ def str_between(str_, startstr, endstr):
             endpos = None
     newstr = str_[startpos:endpos]
     return newstr
-
-
-def padded_str_range(start, end):
-    """ Builds a list of (end - start) strings padded with zeros """
-    nDigits = np.ceil(np.log10(end))
-    fmt = '%0' + six.text_type(nDigits) + 'd'
-    str_range = (fmt % num for num in range(start, end))
-    return list(str_range)
 
 
 def get_callable_name(func):
