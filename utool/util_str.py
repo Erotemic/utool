@@ -687,7 +687,7 @@ def byte_str(nBytes, unit='bytes', precision=2):
         nUnit = nBytes / (2.0 ** 40)
     else:
         raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
-    return repr2(nUnit, precision) + ' ' + unit
+    return repr2(nUnit, precision=precision) + ' ' + unit
 
 
 def second_str(nsecs, unit=None, precision=None, abbrev=True):
@@ -3355,6 +3355,26 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
         wrapkw = dict(width=width, break_on_hyphens=False,
                       break_long_words=False)
         wrapped_block = '\n'.join(textwrap.wrap(text_, **wrapkw))
+
+        if False:
+            # for a one-time purpose
+            print('HACKING')
+            print('width = {!r}'.format(width))
+            # HACK
+            words = text_.split(', (')
+            lines = []
+            line = ''
+            for _, w1 in enumerate(words):
+                if _ > 0:
+                    w1 = '(' + w1 + ', '
+                if len(line + w1) > width:
+                    line += ''
+                    lines.append(line)
+                    line = ''
+                line += w1
+            lines.append(line)
+            wrapped_block = '\n'.join(lines)
+
     # HACK for last nl (seems to only happen if nl follows a seperator)
     last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
     first_is_nl = len(text) > 1 and text.startswith('\n') and not wrapped_block.startswith('\n')
