@@ -2,31 +2,42 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # print, rrr, profile = ut.inject2(__name__)
 
 
-def monkey_to_str_columns(self):
+def monkey_to_str_columns(self, latex=False):
     import numpy as np
     import pandas as pd
     import utool as ut
     frame = self.tr_frame
     highlight_func = 'max'
-    highlight_func = ut.partial(np.argmax, axis=1)
     highlight_cols = self.highlight_cols
 
+    highlight_func = np.argmax
+    # lets us highlight more than one
+
+    highlight_func = ut.partial(ut.argmax, multi=True)
     try:
-        _ = frame[highlight_cols].values
+        colvalues = frame[highlight_cols].values
     except:
-        _ = frame.values[:, highlight_cols]
-    perrow_colxs = highlight_func(_)
-    n_rows = len(perrow_colxs)
+        colvalues = frame.values[:, highlight_cols]
+
+    perrow_colxs = [highlight_func(row) for row in colvalues]
+
+    n_rows = len(colvalues)
     n_cols = len(highlight_cols)
     shape = (n_rows, n_cols)
-    flat_idxs = np.ravel_multi_index((np.arange(n_rows), perrow_colxs), shape)
+    multi_index = [(rx, cx) for rx, cxs in enumerate(perrow_colxs) for cx in cxs]
+    flat_idxs = np.ravel_multi_index(list(zip(*multi_index)), shape)
     flags2d = np.zeros(shape, dtype=np.int32)
     flags2d.ravel()[flat_idxs] = 1
     # np.unravel_index(flat_idxs, shape)
 
     def color_func(val, level):
         if level:
-            return ut.color_text(val, 'red')
+            if latex:
+                n_indent = ut.get_indentation(val)
+                newval = (' ' * n_indent) + '\\textbf{' + val.lstrip(' ') + '}'
+                return newval
+            else:
+                return ut.color_text(val, 'red')
         else:
             return val
 
@@ -114,7 +125,7 @@ def monkey_to_str_columns(self):
     return strcols
 
 
-def to_string_monkey(df, highlight_cols=None):
+def to_string_monkey(df, highlight_cols=None, latex=False):
     """  monkey patch to pandas to highlight the maximum value in specified
     cols of a row
 
@@ -122,23 +133,24 @@ def to_string_monkey(df, highlight_cols=None):
         >>> from utool.experimental.pandas_highlight import *
         >>> import pandas as pd
         >>> df = pd.DataFrame(
-        >>>     np.array([[ 0.87031269,  0.86886931,  0.86842073,  0.91981975],
+        >>>     np.array([[ 0.9,         0.86886931,  0.86842073,  0.9       ],
         >>>               [ 0.34196218,  0.34289191,  0.34206377,  0.34252863],
-        >>>               [ 0.34827074,  0.34829214,  0.35032833,  0.28857126],
+        >>>               [ 0.34827074,  0.34827074,  0.34827074,  0.34827074],
         >>>               [ 0.76979453,  0.77214855,  0.77547518,  0.38850962]]),
         >>>     columns=['sum(fgweights)', 'sum(weighted_ratio)', 'len(matches)', 'score_lnbnn_1vM'],
         >>>     index=['match_state(match-v-rest)', 'match_state(nomatch-v-rest)', 'match_state(notcomp-v-rest)', 'photobomb_state']
         >>> )
         >>> highlight_cols = 'all'
         >>> print(to_string_monkey(df, highlight_cols))
+        >>> print(to_string_monkey(df, highlight_cols, latex=True))
 
     ut.editfile(pd.io.formats.printing.adjoin)
     """
-    import pandas as pd
-    import utool as ut
-    import numpy as np
-    import six
     try:
+        import pandas as pd
+        import utool as ut
+        import numpy as np
+        import six
         if isinstance(highlight_cols, six.string_types) and highlight_cols == 'all':
             highlight_cols = np.arange(len(df.columns))
         # kwds = dict(buf=None, columns=None, col_space=None, header=True,
@@ -153,7 +165,11 @@ def to_string_monkey(df, highlight_cols=None):
             self = pd.io.formats.format.DataFrameFormatter(df)
 
         self.highlight_cols = highlight_cols
-        ut.inject_func_as_method(self, monkey_to_str_columns, '_to_str_columns', override=True, force=True)
+
+        def monkey(self):
+            return monkey_to_str_columns(self, latex=latex)
+
+        ut.inject_func_as_method(self, monkey, '_to_str_columns', override=True, force=True)
 
         def strip_ansi(text):
             import re
