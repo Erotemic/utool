@@ -119,8 +119,11 @@ def monkey_to_str_columns(self, latex=False):
     for cx_ in highlight_cols:
         cx = cx_ + bool(self.header)
         col = strcols[cx]
-        for rx, val in enumerate(col[1:], start=1):
-            strcols[cx][rx] = color_func(val, flags2d[rx - 1, cx - 1])
+        # Offset for the column header and possible index name
+        base = int(self.has_index_names) + 1
+        for rx_, val in enumerate(col[base:]):
+            rx = rx_ + base
+            strcols[cx][rx] = color_func(val, flags2d[rx_, cx_])
 
     return strcols
 
@@ -206,7 +209,8 @@ def to_string_monkey(df, highlight_cols=None, latex=False):
         result = '\n'.join([x.rstrip() for x in result.split('\n')])
         return result
     except Exception as ex:
-        print('pandas monkey-patch is broken: {}'.format(str(ex)))
+        ut.printex('pandas monkey-patch is broken: {}'.format(str(ex)),
+                   tb=True, iswarning=True)
         return str(df)
 
 

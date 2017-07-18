@@ -1956,6 +1956,36 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
         return var_list
 
 
+def exec_func_src2(func, globals_=None, locals_=None, sentinal=None,
+                   verbose=False, start=None, stop=None):
+    """
+    execs a func and returns requested local vars.
+
+    Does not modify globals unless update=True (or in IPython)
+
+    SeeAlso:
+        ut.execstr_funckw
+    """
+    import utool as ut
+    sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
+    if globals_ is None:
+        globals_ = ut.get_parent_frame().f_globals
+    if locals_ is None:
+        locals_ = ut.get_parent_frame().f_locals
+    if sentinal is not None:
+        sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
+    if start is not None or stop is not None:
+        sourcecode = '\n'.join(sourcecode.splitlines()[slice(start, stop)])
+    if verbose:
+        print(ut.color_text(sourcecode, 'python'))
+    # TODO: find the name of every variable that was assigned in the function
+    # and get it from the context
+    locals2_ = locals_.copy()
+    globals2_ = globals_.copy()
+    six.exec_(sourcecode, globals2_, locals2_)
+    return locals2_
+
+
 def execstr_func_doctest(func, num=0, start_sentinal=None, end_sentinal=None):
     """
     execs a func doctest and returns requested local vars.
