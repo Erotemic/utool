@@ -549,7 +549,11 @@ def ibeis_user_profile():
     self.project_dpaths += [
         ut.truepath('~/local'),
         ut.truepath('~/code/fixtex'),
+        ut.truepath('~/code/pyrf'),
+        ut.truepath('~/code/detecttools'),
+        ut.truepath('~/code/pydarknet'),
     ]
+    self.project_dpaths = ut.unique(self.project_dpaths)
     # self.project_dpaths += [ut.truepath('~/local/vim/rc')]
     self.project_include_patterns = [
         '*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'

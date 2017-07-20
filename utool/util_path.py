@@ -704,9 +704,7 @@ ensurefile = touch
 
 # ---File Copy---
 
-def copy_worker(args):
-    """ for util_parallel.generate """
-    src, dst = args
+def _copy_worker(src, dst):
     try:
         shutil.copy2(src, dst)
     except OSError:
@@ -763,8 +761,8 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
         src_fpath_list_ = src_fpath_list
 
     args_list = zip(src_fpath_list_, dst_fpath_list_)
-    _gen = util_parallel.generate(copy_worker, args_list,
-                                  nTasks=len(src_fpath_list_))
+    _gen = util_parallel.generate2(_copy_worker, args_list,
+                                   nTasks=len(src_fpath_list_))
     success_list = list(_gen)
 
     #success_list = copy_list(src_fpath_list_, dst_fpath_list_)
