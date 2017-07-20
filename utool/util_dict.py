@@ -169,12 +169,51 @@ class AutoVivification(dict):
         >>> print(result)
         dict_ = {0: {10: {100: None}}}
     """
-    def __getitem__(self, item):
+    def __getitem__(self, key):
         try:
-            return dict.__getitem__(self, item)
+            # value = super(AutoVivification, self).__getitem__(key)
+            value = dict.__getitem__(self, key)
         except KeyError:
-            value = self[item] = type(self)()
-            return value
+            value = self[key] = type(self)()
+        return value
+
+
+class OrderedAutoVivification(OrderedDict):
+    """
+    Implementation of perl's autovivification feature.
+
+    An OrderedAutoVivification is an infinitely nested default dict of ordered
+    dicts.
+
+    References:
+        http://stackoverflow.com/questions/651794/best-way-to-init-dict-of-dicts
+
+    Doctest:
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = OrderedAutoDict()
+        >>> # Notice that there is no KeyError
+        >>> dict_[0][10][100] = None
+        >>> dict_[0][10][1] = None
+        >>> result = ('dict_ = %r' % (dict_,))
+        >>> print(result)
+        dict_ = {0: {10: {100: None, 1: None}}}
+    """
+    def __getitem__(self, key):
+        try:
+            # value = super(OrderedAutoVivification, self).__getitem__(key)
+            value = OrderedDict.__getitem__(self, key)
+        except KeyError:
+            value = self[key] = type(self)()
+        return value
+
+    def __repr__(self):
+        import utool as ut
+        return ut.repr2(self)
+
+    __str__ = __repr__
+
+AutoDict = AutoVivification
+AutoOrderedDict = OrderedAutoVivification
 
 
 def count_dict_vals(dict_of_lists):
