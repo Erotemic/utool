@@ -123,7 +123,7 @@ def get_num_chunks(length, chunksize):
         chunksize (int):
 
     Returns:
-        int: nTotalChunks
+        int: n_chunks
 
     CommandLine:
         python -m utool.util_progress --exec-get_num_chunks:0
@@ -133,13 +133,13 @@ def get_num_chunks(length, chunksize):
         >>> from utool.util_progress import *  # NOQA
         >>> length = 2000
         >>> chunksize = 256
-        >>> nTotalChunks = get_num_chunks(length, chunksize)
-        >>> result = ('nTotalChunks = %s' % (six.text_type(nTotalChunks),))
+        >>> n_chunks = get_num_chunks(length, chunksize)
+        >>> result = ('n_chunks = %s' % (six.text_type(n_chunks),))
         >>> print(result)
-        nTotalChunks = 8
+        n_chunks = 8
     """
-    nTotalChunks = int(math.ceil(length / chunksize))
-    return nTotalChunks
+    n_chunks = int(math.ceil(length / chunksize))
+    return n_chunks
 
 
 def ProgChunks(list_, chunksize, nInput=None, **kwargs):
@@ -177,8 +177,8 @@ def ProgChunks(list_, chunksize, nInput=None, **kwargs):
     """
     if nInput is None:
         nInput = len(list_)
-    nTotalChunks = get_num_chunks(nInput, chunksize)
-    kwargs['length'] = nTotalChunks
+    n_chunks = get_num_chunks(nInput, chunksize)
+    kwargs['length'] = n_chunks
     if 'freq' not in kwargs:
         kwargs['freq'] = 1
     chunk_iter = util_iter.ichunks(list_, chunksize)
@@ -439,7 +439,7 @@ class ProgressIter(object):
     #            print('\n')
     #    subprog_partial_list = [
     #        partial(ProgressIter,
-    #                parent_nTotal=prog_iter.length * num_substeps,
+    #                parent_length=prog_iter.length * num_substeps,
     #                parent_index=(prog_iter.count - 1) + (prog_iter.length * step))
     #        for step in range(num_substeps)]
     #    return subprog_partial_list
@@ -565,7 +565,7 @@ class ProgressIter(object):
             self.write = lambda msg: self.stream.write(msg)  # NOQA
             self.flush = lambda: self.stream.flush()  # NOQA
 
-        length        = self.length * self.parent_nTotal  # hack
+        length        = self.length * self.parent_length  # hack
         freq          = self.freq
         self.count    = 0
         between_count = 0
@@ -756,7 +756,7 @@ class ProgressIter(object):
             instant_invert_rate = self.iters_per_second < 0.1
             if self.auto_invert_rate and self.invert_rate != instant_invert_rate:
                 self.invert_rate = instant_invert_rate
-                length = self.length * self.parent_nTotal  # hack
+                length = self.length * self.parent_length  # hack
                 self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, length,
                                                          self.invert_rate,
                                                          self.backspace)
