@@ -48,9 +48,9 @@ if util_cplat.WIN32:
     __MIN_PARALLEL_TASKS__ = 16
 
 
-def generate2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
-              force_serial=False, use_pool=False, chunksize=None,
-              nprocs=None, progkw={}, verbose=None):
+def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
+              force_serial=False, use_pool=False, chunksize=None, nprocs=None,
+              progkw={}, nTasks=None, verbose=None):
     r"""
     Interfaces to either multiprocessing or futures.
     Esentially maps ``args_gen`` onto ``func`` using pool.imap.
@@ -68,7 +68,7 @@ def generate2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
         func (function):  live python function
         args_gen (?):
         kw_gen (None): (default = None)
-        nTasks (None): (default = None)
+        ntasks (None): (default = None)
         ordered (bool): (default = True)
         force_serial (bool): (default = False)
         verbose (bool):  verbosity flag(default = None)
@@ -192,54 +192,56 @@ def generate2(func, args_gen, kw_gen=None, nTasks=None, ordered=True,
     """
     if verbose is None:
         verbose = 2
-    if nTasks is None:
+    if ntasks is None:
+        ntasks = nTasks
+    if ntasks is None:
         try:
-            nTasks = len(args_gen)
+            ntasks = len(args_gen)
         except TypeError:
             # Cast to a list
             args_gen = list(args_gen)
-            nTasks = len(args_gen)
-    if nTasks == 1 or nTasks < __MIN_PARALLEL_TASKS__:
+            ntasks = len(args_gen)
+    if ntasks == 1 or ntasks < __MIN_PARALLEL_TASKS__:
         force_serial = True
     if __FORCE_SERIAL__:
         force_serial = __FORCE_SERIAL__
-    if nTasks == 0:
+    if ntasks == 0:
         if verbose:
             print('[ut.generate2] submitted 0 tasks')
         raise StopIteration
     if nprocs is None:
-        nprocs = get_default_numprocs()
+        nprocs = min(ntasks, get_default_numprocs())
     if nprocs == 1:
         force_serial = True
 
     if kw_gen is None:
-        kw_gen = [{}] * nTasks
+        kw_gen = [{}] * ntasks
     if isinstance(kw_gen, dict):
         # kw_gen can be a single dict applied to everything
-        kw_gen = [kw_gen] * nTasks
+        kw_gen = [kw_gen] * ntasks
 
     if force_serial:
         for result in _generate_serial2(func, args_gen, kw_gen,
-                                        nTasks=nTasks, progkw=progkw,
+                                        ntasks=ntasks, progkw=progkw,
                                         verbose=verbose):
             yield result
     else:
         if verbose:
             gentype = 'mp' if use_pool else 'futures'
             fmtstr = '[generate2] executing {} {} tasks using {} {} procs'
-            print(fmtstr.format(nTasks, get_funcname(func), nprocs, gentype))
+            print(fmtstr.format(ntasks, get_funcname(func), nprocs, gentype))
 
         if verbose > 1:
             lbl = '(pargen) %s: ' % (get_funcname(func),)
             progkw_ = dict(freq=None, bs=True, adjust=False, freq_est='absolute')
             progkw_.update(progkw)
             # print('progkw_.update = {!r}'.format(progkw_.update))
-            progpart = util_progress.ProgPartial(nTotal=nTasks, lbl=lbl, **progkw_)
+            progpart = util_progress.ProgPartial(length=ntasks, lbl=lbl, **progkw_)
 
         if use_pool:
             # Use multiprocessing
             if chunksize is None:
-                chunksize = max(min(4, nTasks), min(8, nTasks // (nprocs ** 2)))
+                chunksize = max(min(4, ntasks), min(8, ntasks // (nprocs ** 2)))
 
             try:
                 pool = multiprocessing.Pool(nprocs)
@@ -280,29 +282,31 @@ def _kw_wrap_worker(func_args_kw):
     return func(*args, **kw)
 
 
-def _generate_serial2(func, args_gen, kw_gen=None, nTasks=None, progkw={},
-                      verbose=None):
+def _generate_serial2(func, args_gen, kw_gen=None, ntasks=None, progkw={},
+                      verbose=None, nTasks=None):
     """ internal serial generator  """
     if verbose is None:
         verbose = 2
-    if nTasks is None:
-        nTasks = len(args_gen)
+    if ntasks is None:
+        ntasks = nTasks
+    if ntasks is None:
+        ntasks = len(args_gen)
     if verbose > 0:
         print('[ut._generate_serial2] executing %d %s tasks in serial' %
-                (nTasks, get_funcname(func)))
+                (ntasks, get_funcname(func)))
 
     # kw_gen can be a single dict applied to everything
     if kw_gen is None:
-        kw_gen = [{}] * nTasks
+        kw_gen = [{}] * ntasks
     if isinstance(kw_gen, dict):
-        kw_gen = [kw_gen] * nTasks
+        kw_gen = [kw_gen] * ntasks
 
     # Get iterator with or without progress
     if verbose > 1:
         lbl = '(sergen) %s: ' % (get_funcname(func),)
         progkw_ = dict(freq=None, bs=True, adjust=False, freq_est='between')
         progkw_.update(progkw)
-        args_gen = util_progress.ProgIter(args_gen, nTotal=nTasks, lbl=lbl,
+        args_gen = util_progress.ProgIter(args_gen, length=ntasks, lbl=lbl,
                                           **progkw_)
 
     for args, kw in zip(args_gen, kw_gen):

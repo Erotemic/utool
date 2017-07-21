@@ -337,10 +337,10 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
                 if chunk_size is None:
                     chunk_size = 2 ** 20  # one megabyte at a time
                 content_length = int(content_length)
-                #nTotal = int(math.ceil(content_length / chunk_size))
+                #length = int(math.ceil(content_length / chunk_size))
                 with open(filename, 'wb') as file_:
                     chunk_iter = con.iter_content(chunk_size=chunk_size)
-                    #chunk_iter = ut.ProgIter(chunk_iter, nTotal=nTotal, lbl='downloading', freq=1)
+                    #chunk_iter = ut.ProgIter(chunk_iter, length=length, lbl='downloading', freq=1)
                     for count, chunk in enumerate(chunk_iter):
                         if chunk:
                             if reporthook:
@@ -480,7 +480,7 @@ def experiment_download_multiple_urls(url_list):
         if response.ok:
             with open(filename, 'wb') as file_:
                 _iter = response.iter_content(chunk_size=1024)
-                for chunk in ut.ProgressIter(_iter, nTotal=-1, freq=1):
+                for chunk in ut.ProgIter(_iter, length=-1, freq=1):
                     if chunk:  # filter out keep-alive new chunks
                         file_.write(chunk)
                         file_.flush()

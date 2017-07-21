@@ -442,18 +442,18 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
     fpath_list_ = ut.filter_Nones(fpath_list)
     exists_list = list(map(exists, fpath_list_))
     if verbose:
-        nTotal = len(fpath_list)
-        nValid = len(fpath_list_)
-        nExist = sum(exists_list)
+        n_total = len(fpath_list)
+        n_valid = len(fpath_list_)
+        n_exist = sum(exists_list)
         print('[util_path.remove_existing_fpaths] request delete of %d %s' % (
-            nTotal, lbl))
-        if nValid != nTotal:
+            n_total, lbl))
+        if n_valid != n_total:
             print(('[util_path.remove_existing_fpaths] '
                    'trying to delete %d/%d non None %s ') %
-                  (nValid, nTotal, lbl))
+                  (n_valid, n_total, lbl))
         print(('[util_path.remove_existing_fpaths] '
                ' %d/%d exist and need to be deleted')
-              % (nExist, nValid))
+              % (n_exist, n_valid))
     existing_fpath_list = ut.compress(fpath_list_, exists_list)
     return remove_fpaths(existing_fpath_list, verbose=verbose, quiet=quiet,
                             strict=strict, print_caller=False, lbl=lbl)
@@ -467,18 +467,18 @@ def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
     import utool as ut
     if print_caller:
         print(util_dbg.get_caller_name(range(1, 4)) + ' called remove_fpaths')
-    nTotal = len(fpaths)
-    _verbose = (not quiet and nTotal > 0) or VERYVERBOSE
+    n_total = len(fpaths)
+    _verbose = (not quiet and n_total > 0) or VERYVERBOSE
     if _verbose:
-        print('[util_path.remove_fpaths] try removing %d %s' % (nTotal, lbl))
-    nRemoved = 0
+        print('[util_path.remove_fpaths] try removing %d %s' % (n_total, lbl))
+    n_removed = 0
     prog = ut.ProgIter(fpaths, label='removing files', enabled=verbose)
     _iter = iter(prog)
     # Try to be fast at first
     try:
         for fpath in _iter:
             os.remove(fpath)
-            nRemoved += 1
+            n_removed += 1
     except OSError as ex:
         # Buf if we fail put a try in the inner loop
         if VERYVERBOSE:
@@ -490,14 +490,14 @@ def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
         for fpath in _iter:
             try:
                 os.remove(fpath)
-                nRemoved += 1
+                n_removed += 1
             except OSError as ex:
                 if VERYVERBOSE:
                     print('WARNING: Could not remove fpath = %r' % (fpath,))
     if _verbose:
         print('[util_path.remove_fpaths] ... removed %d / %d %s' % (
-            nRemoved, nTotal, lbl))
-    return nRemoved
+            n_removed, n_total, lbl))
+    return n_removed
 
 
 remove_file_list = remove_fpaths  # backwards compatible
@@ -762,7 +762,7 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
 
     args_list = zip(src_fpath_list_, dst_fpath_list_)
     _gen = util_parallel.generate2(_copy_worker, args_list,
-                                   nTasks=len(src_fpath_list_))
+                                   ntasks=len(src_fpath_list_))
     success_list = list(_gen)
 
     #success_list = copy_list(src_fpath_list_, dst_fpath_list_)
@@ -1079,8 +1079,8 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
     if kwargs.get('verbose', False):
         print('[iglob] pattern = %r' % (pattern,))
         print('[iglob] dpath = %r' % (dpath,))
-    nFiles = 0
-    nDirs  = 0
+    n_files = 0
+    n_dirs  = 0
     current_depth = 0
     dpath_ = truepath(dpath)
     posx1 = len(dpath_) + len(os.path.sep)
@@ -1120,7 +1120,7 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         #print('-----------')
         if with_files:
             for fname in fnmatch.filter(files, pattern):
-                nFiles += 1
+                n_files += 1
                 fpath = join(root, fname)
                 if fullpath:
                     yield fpath
@@ -1130,7 +1130,7 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         if with_dirs:
             for dname in fnmatch.filter(dirs, pattern):
                 dpath = join(root, dname)
-                nDirs += 1
+                n_dirs += 1
                 if fullpath:
                     yield dpath
                 else:
@@ -1138,8 +1138,8 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         if not recursive:
             break
     if kwargs.get('verbose', False):  # log what i've done
-        nTotal = nDirs + nFiles
-        print('[util_path] iglob Found: %d' % (nTotal))
+        n_total = n_dirs + n_files
+        print('[util_path] iglob Found: %d' % (n_total))
 
 
 # --- Images ----
@@ -1765,11 +1765,11 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
     changed_lines = [(newline, line)
                      for newline, line in zip(new_file_lines, file_lines)
                      if  newline != line]
-    nChanged = len(changed_lines)
-    if nChanged > 0:
+    n_changed = len(changed_lines)
+    if n_changed > 0:
         rel_fpath = relpath(fpath, os.getcwd())
         print(' * %s changed %d lines in %r ' %
-              (['(dry-run)', '(real-run)'][force], nChanged, rel_fpath))
+              (['(dry-run)', '(real-run)'][force], n_changed, rel_fpath))
         print(' * --------------------')
         import utool as ut
         new_file_lines = ut.lmap(ut.ensure_unicode, new_file_lines)
@@ -1783,8 +1783,8 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
                 ut.print_difftext(old_file, new_file)
             else:
                 changed_new, changed_old = zip(*changed_lines)
-                prefixold = ' * old (%d, %r):  \n | ' % (nChanged, name)
-                prefixnew = ' * new (%d, %r):  \n | ' % (nChanged, name)
+                prefixold = ' * old (%d, %r):  \n | ' % (n_changed, name)
+                prefixnew = ' * new (%d, %r):  \n | ' % (n_changed, name)
                 print(prefixold + (' | '.join(changed_old)).strip('\n'))
                 print(' * ____________________')
                 print(prefixnew + (' | '.join(changed_new)).strip('\n'))
