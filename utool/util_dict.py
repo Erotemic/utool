@@ -190,7 +190,7 @@ class OrderedAutoVivification(OrderedDict):
 
     Doctest:
         >>> from utool.util_dict import *  # NOQA
-        >>> dict_ = OrderedAutoDict()
+        >>> dict_ = AutoOrderedDict()
         >>> # Notice that there is no KeyError
         >>> dict_[0][10][100] = None
         >>> dict_[0][10][1] = None

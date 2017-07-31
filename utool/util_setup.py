@@ -349,7 +349,7 @@ def autogen_sphinx_apidoc():
         ext_search_text = r'extensions = \[[^/]*\]'
         # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
         #'sphinx.ext.mathjax',
-        exclude_modules = []  # ['ibeis.all_imports']
+        exclude_modules = []
         ext_repl_text = ut.codeblock(
             '''
             MOCK_MODULES = {exclude_modules}

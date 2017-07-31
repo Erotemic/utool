@@ -658,7 +658,7 @@ def nx_set_default_node_attributes(graph, key, val):
         values = {n: val[n] for n in unset_nodes if n in val}
     else:
         values = {n: val for n in unset_nodes}
-    nx.set_node_attributes(graph, key, values)
+    nx.set_node_attributes(graph, name=key, values=values)
 
 
 def nx_set_default_edge_attributes(graph, key, val):
@@ -667,7 +667,7 @@ def nx_set_default_edge_attributes(graph, key, val):
         values = {e: val[e] for e in unset_edges if e in val}
     else:
         values = {e: val for e in unset_edges}
-    nx.set_edge_attributes(graph, key, values)
+    nx.set_edge_attributes(graph, name=key, values=values)
 
 
 def nx_get_default_edge_attributes(graph, key, default=None):
@@ -719,7 +719,7 @@ def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> G = nx.Graph([(1, 2), (2, 3)])
-        >>> nx.set_node_attributes(G, 'part', {1: 'bar', 3: 'baz'})
+        >>> nx.set_node_attributes(G, name='part', values={1: 'bar', 3: 'baz'})
         >>> nodes = [1, 2, 3, 4]
         >>> #
         >>> assert len(list(ut.nx_gen_node_attrs(G, 'part', default=None, on_missing='error', on_keyerr='default'))) == 3
@@ -740,8 +740,8 @@ def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> G = nx.Graph([(1, 2), (2, 3)])
-        >>> nx.set_node_attributes(G, 'full', {1: 'A', 2: 'B', 3: 'C'})
-        >>> nx.set_node_attributes(G, 'part', {1: 'bar', 3: 'baz'})
+        >>> nx.set_node_attributes(G, name='full', values={1: 'A', 2: 'B', 3: 'C'})
+        >>> nx.set_node_attributes(G, name='part', values={1: 'bar', 3: 'baz'})
         >>> nodes = [1, 2, 3, 4]
         >>> attrs = dict(ut.nx_gen_node_attrs(G, 'full'))
         >>> input_grid = {
@@ -838,9 +838,9 @@ def nx_gen_edge_values(G, key, edges=None, default=util_const.NoParam,
         on_keyerr = 'error'
     # Generate `data_iter` edges and data dictionary
     if on_missing == 'error':
-        data_iter = (G.edge[u][v] for u, v in edges)
+        data_iter = (G.adj[u][v] for u, v in edges)
     elif on_missing == 'default':
-        data_iter = (G.edge[u][v] if G.has_edge(u, v) else {}
+        data_iter = (G.adj[u][v] if G.has_edge(u, v) else {}
                      for u, v in edges)
     else:
         raise KeyError('on_missing={} must be error, filter or default'.format(
@@ -854,9 +854,9 @@ def nx_gen_edge_values(G, key, edges=None, default=util_const.NoParam,
         raise KeyError('on_keyerr={} must be error or default'.format(on_keyerr))
     return value_iter
     # if default is util_const.NoParam:
-    #     return (G.edge[u][v][key] for u, v in edges)
+    #     return (G.adj[u][v][key] for u, v in edges)
     # else:
-    #     return (G.edge[u][v].get(key, default) for u, v in edges)
+    #     return (G.adj[u][v].get(key, default) for u, v in edges)
 
 
 def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
@@ -878,7 +878,7 @@ def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> G = nx.Graph([(1, 2), (2, 3), (3, 4)])
-        >>> nx.set_edge_attributes(G, 'part', {(1, 2): 'bar', (2, 3): 'baz'})
+        >>> nx.set_edge_attributes(G, name='part', values={(1, 2): 'bar', (2, 3): 'baz'})
         >>> edges = [(1, 2), (2, 3), (3, 4), (4, 5)]
         >>> func = ut.partial(ut.nx_gen_edge_attrs, G, 'part', default=None)
         >>> #
@@ -907,11 +907,11 @@ def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
             edges = G.edges()
     # Generate `edge_data` edges and data dictionary
     if on_missing == 'error':
-        edge_data = (((u, v), G.edge[u][v]) for u, v in edges)
+        edge_data = (((u, v), G.adj[u][v]) for u, v in edges)
     elif on_missing == 'filter':
-        edge_data = (((u, v), G.edge[u][v]) for u, v in edges if G.has_edge(u, v))
+        edge_data = (((u, v), G.adj[u][v]) for u, v in edges if G.has_edge(u, v))
     elif on_missing == 'default':
-        edge_data = (((u, v), G.edge[u][v])
+        edge_data = (((u, v), G.adj[u][v])
                      if G.has_edge(u, v) else ((u, v), {})
                      for u, v in edges)
     else:
@@ -940,15 +940,15 @@ def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
     # else:
     #     if on_missing == 'error':
     #         uv_iter = edges
-    #         uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+    #         uvd_iter = ((u, v, G.adj[u][v]) for u, v in uv_iter)
     #     elif on_missing == 'filter':
     #         # filter edges that don't exist
     #         uv_iter = (e for e in edges if G.has_edge(*e))
-    #         uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+    #         uvd_iter = ((u, v, G.adj[u][v]) for u, v in uv_iter)
     #     elif on_missing == 'default':
     #         # Return default data as if it existed
     #         uvd_iter = (
-    #             (u, v, G.edge[u][v])
+    #             (u, v, G.adj[u][v])
     #             if G.has_edge(u, v) else
     #             (u, v, {})
     #             for u, v in uv_iter
@@ -960,7 +960,7 @@ def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
     #         # return (((u, v), d[key]) for u, v, d in uvd_iter if key in d)
     #         return (((u, v), d[key]) for u, v, d in uvd_iter)
     #     else:
-    #         uvd_iter = ((u, v, G.edge[u][v]) for u, v in uv_iter)
+    #         uvd_iter = ((u, v, G.adj[u][v]) for u, v in uv_iter)
     #         return (((u, v), d.get(key, default)) for u, v, d in uvd_iter)
 
 
@@ -1006,10 +1006,8 @@ def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
     graph.add_nodes_from(nodes)
     graph.add_edges_from(edge_list)
     label_list = ['%.2f' % w for w in weight_list]
-    nx.set_edge_attributes(graph, 'weight', dict(zip(edge_list,
-                                                     weight_list)))
-    nx.set_edge_attributes(graph, 'label', dict(zip(edge_list,
-                                                     label_list)))
+    nx.set_edge_attributes(graph, name='weight', values=dict(zip(edge_list, weight_list)))
+    nx.set_edge_attributes(graph, name='label', values=dict(zip(edge_list, label_list)))
     return graph
 
 
@@ -1865,8 +1863,8 @@ def dfs_conditional(G, source, state, can_cross):
         >>> from utool.util_graph import *
         >>> G = nx.Graph()
         >>> G.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 5)])
-        >>> G.edge[2][3]['lava'] = True
-        >>> G.edge[3][4]['lava'] = True
+        >>> G.adj[2][3]['lava'] = True
+        >>> G.adj[3][4]['lava'] = True
         >>> def can_cross(G, edge, state):
         >>>     # can only cross lava once, then your lava protection wears off
         >>>     data = G.get_edge_data(*edge)
@@ -1875,7 +1873,7 @@ def dfs_conditional(G, source, state, can_cross):
         >>>         return True, state + lava
         >>>     return False, lava
         >>> assert 5 not in dfs_conditional(G, 1, state=0, can_cross=can_cross)
-        >>> G.edge[3][4]['lava'] = False
+        >>> G.adj[3][4]['lava'] = False
         >>> assert 5 in dfs_conditional(G, 1, state=0, can_cross=can_cross)
     """
     # stack based version
@@ -2015,7 +2013,7 @@ def color_nodes(graph, labelattr='label', brightness=.878,
         node_to_lbl = ut.map_vals(lambda nid: max(0, nid - offset), node_to_lbl)
         lbl_to_color = ut.dzip(range(outof + 1), unique_colors)
     node_to_color = ut.map_vals(lbl_to_color, node_to_lbl)
-    nx.set_node_attributes(graph, 'color', node_to_color)
+    nx.set_node_attributes(graph, name='color', values=node_to_color)
     ut.nx_ensure_agraph_color(graph)
 
 
@@ -2101,7 +2099,7 @@ def translate_graph(graph, t_xy):
             node: pos + t_xy
             for node, pos in attrdict.items()
         }
-        nx.set_node_attributes(graph, attr, attrdict)
+        nx.set_node_attributes(graph, name=attr, values=attrdict)
     edge_pos_attrs = ['ctrl_pts', 'end_pt', 'head_lp', 'lp', 'start_pt', 'tail_lp']
     ut.nx_delete_None_edge_attr(graph)
     for attr in edge_pos_attrs:
@@ -2111,7 +2109,7 @@ def translate_graph(graph, t_xy):
             if pos is not None else pos
             for node, pos in attrdict.items()
         }
-        nx.set_edge_attributes(graph, attr, attrdict)
+        nx.set_edge_attributes(graph, name=attr, values=attrdict)
 
 
 def translate_graph_to_origin(graph):
@@ -2145,7 +2143,7 @@ def stack_graphs(graph_list, vert=False, pad=None):
 
     for g, t_xy in zip(graph_list_, t_xy_list):
         translate_graph(g, t_xy)
-        nx.set_node_attributes(g, 'pin', 'true')
+        nx.set_node_attributes(g, name='pin', values='true')
 
     new_graph = nx.compose_all(graph_list_)
     #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
@@ -2351,10 +2349,10 @@ def mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost
         >>> cost_func   = lambda e: 1
         >>> weight_func = lambda e: (e[0]) / e[1]
         >>> comp_graph = nx.complement(graph)
-        >>> nx.set_edge_attributes(graph, 'cost', {e: cost_func(e) for e in graph.edges()})
-        >>> nx.set_edge_attributes(graph, 'weight', {e: weight_func(e) for e in graph.edges()})
-        >>> nx.set_edge_attributes(comp_graph, 'cost', {e: cost_func(e) for e in comp_graph.edges()})
-        >>> nx.set_edge_attributes(comp_graph, 'weight', {e: weight_func(e) for e in comp_graph.edges()})
+        >>> nx.set_edge_attributes(graph, name='cost', values={e: cost_func(e) for e in graph.edges()})
+        >>> nx.set_edge_attributes(graph, name='weight', values={e: weight_func(e) for e in graph.edges()})
+        >>> nx.set_edge_attributes(comp_graph, name='cost', values={e: cost_func(e) for e in comp_graph.edges()})
+        >>> nx.set_edge_attributes(comp_graph, name='weight', values={e: weight_func(e) for e in comp_graph.edges()})
         >>> candidates = list(comp_graph.edges(data=True))
         >>> max_cost = 2
         >>> cost = 'cost'
