@@ -1471,6 +1471,76 @@ def parse_function_names(sourcecode, top_level=True):
     return func_names
 
 
+def parse_import_names(sourcecode, top_level=True):
+    """
+    Finds all function names in a file without importing it
+
+    Args:
+        sourcecode (str):
+
+    Returns:
+        list: func_names
+
+    CommandLine:
+        python -m utool.util_inspect parse_function_names
+
+    References:
+        https://stackoverflow.com/questions/20445733/how-to-tell-which-modules-have-been-imported-in-some-source-code
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.py')
+        >>> #fpath = ut.truepath('~/code/bintrees/bintrees/avltree.py')
+        >>> sourcecode = ut.readfrom(fpath)
+        >>> func_names = parse_import_names(sourcecode)
+        >>> result = ('func_names = %s' % (ut.repr2(func_names),))
+        >>> print(result)
+    """
+    import ast
+    import_names = []
+    if six.PY2:
+        import utool as ut
+        sourcecode = ut.ensure_unicode(sourcecode)
+        encoded = sourcecode.encode('utf8')
+        pt = ast.parse(encoded)
+    else:
+        pt = ast.parse(sourcecode)
+
+    class ImportVisitor(ast.NodeVisitor):
+
+        def _parse_alias_list(self, aliases):
+            for alias in aliases:
+                if alias.asname is not None:
+                    import_names.append(alias.asname)
+                else:
+                    if '.' not in alias.name:
+                        import_names.append(alias.name)
+
+        def visit_Import(self, node):
+            self._parse_alias_list(node.names)
+            self.generic_visit(node)
+
+        def visit_ImportFrom(self, node):
+            self._parse_alias_list(node.names)
+            self.generic_visit(node)
+
+        def visit_FunctionDef(self, node):
+            # Ignore modules imported in functions
+            if not top_level:
+                ast.NodeVisitor.generic_visit(self, node)
+
+        def visit_ClassDef(self, node):
+            if not top_level:
+                ast.NodeVisitor.generic_visit(self, node)
+    try:
+        ImportVisitor().visit(pt)
+    except Exception:
+        pass
+    return import_names
+
+
 def find_funcs_called_with_kwargs(sourcecode, target_kwargs_name='kwargs'):
     r"""
     Finds functions that are called with the keyword `kwargs` variable

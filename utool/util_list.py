@@ -1710,19 +1710,32 @@ def argmax(input_, multi=False):
             return max(enumerate(input_), key=operator.itemgetter(1))[0]
 
 
-def argmin(input_):
+def argmin(input_, key=None):
     """
     Returns index / key of the item with the smallest value.
 
     Args:
         input_ (dict or list):
+
+    Note:
+        a[argmin(a, key=key)] == min(a, key=key)
     """
-    if isinstance(input_, dict):
-        return list(input_.keys())[argmin(list(input_.values()))]
-    elif hasattr(input_, 'index'):
-        return input_.index(min(input_))
+    # if isinstance(input_, dict):
+    #     return list(input_.keys())[argmin(list(input_.values()))]
+    # elif hasattr(input_, 'index'):
+    #     return input_.index(min(input_))
+    # else:
+    #     return min(enumerate(input_), key=operator.itemgetter(1))[0]
+    if isinstance(input, dict):
+        return list(input.keys())[argmin(list(input.values()), key=key)]
     else:
-        return min(enumerate(input_), key=operator.itemgetter(1))[0]
+        if key is None:
+            def _key(item):
+                return item[1]
+        else:
+            def _key(item):
+                return key(item[1])
+        return min(enumerate(input), key=_key)[0]
 
 
 def index_complement(index_list, len_=None):
