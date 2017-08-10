@@ -480,7 +480,8 @@ def import_module_from_fpath(module_fpath):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_import import *  # NOQA
-        >>> module_fpath = '?'
+        >>> import utool
+        >>> module_fpath = utool.__file__
         >>> module = import_module_from_fpath(module_fpath)
         >>> result = ('module = %s' % (str(module),))
         >>> print(result)
@@ -549,8 +550,10 @@ def import_module_from_fpath(module_fpath):
     import platform
     if isdir(module_fpath):
         module_fpath = join(module_fpath, '__init__.py')
-    print('module_fpath = %r' % (module_fpath,))
-    assert exists(module_fpath), 'module_fpath=%r does not exist' % (module_fpath,)
+    print('module_fpath = {!r}'.format(module_fpath))
+    if not exists(module_fpath):
+        raise ImportError('module_fpath={!r} does not exist'.format(
+            module_fpath))
     python_version = platform.python_version()
     modname = splitext(basename(module_fpath))[0]
     if modname == '__init__':
@@ -566,7 +569,8 @@ def import_module_from_fpath(module_fpath):
         loader = importlib.machinery.SourceFileLoader(modname, module_fpath)
         module = loader.load_module()
     else:
-        raise AssertionError('invalid python version=%r' % (python_version,))
+        raise AssertionError('invalid python version={!r}'.format(
+            python_version))
     return module
 
 
