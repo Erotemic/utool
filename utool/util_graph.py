@@ -200,17 +200,24 @@ def nx_transitive_reduction(G, mode=1):
 
 
 def nx_source_nodes(graph):
-    topsort_iter = nx.dag.topological_sort(graph)
-    source_iter = (node for node in topsort_iter
-                   if graph.in_degree(node) == 0)
-    return source_iter
+    # for node in nx.dag.topological_sort(graph):
+    for node in graph.nodes():
+        if graph.in_degree(node) == 0:
+            yield node
 
 
 def nx_sink_nodes(graph):
-    topsort_iter = nx.dag.topological_sort(graph)
-    sink_iter = (node for node in topsort_iter
-                 if graph.out_degree(node) == 0)
-    return sink_iter
+    # for node in nx.dag.topological_sort(graph):
+    for node in graph.nodes():
+        if graph.out_degree(node) == 0:
+            yield node
+
+
+# def nx_sink_nodes(graph):
+#     topsort_iter = nx.dag.topological_sort(graph)
+#     sink_iter = (node for node in topsort_iter
+#                  if graph.out_degree(node) == 0)
+#     return sink_iter
 
 
 def nx_to_adj_dict(graph):
@@ -556,7 +563,11 @@ def nx_delete_node_attr(graph, key, nodes=None):
         nodes = list(graph.nodes())
     removed = 0
     # keys = [key] if not isinstance(key, list) else key
-    graph_node = graph.node
+    if nx.__version__.startswith('1'):
+        graph_node = graph.node
+    else:
+        graph_node = graph.nodes
+
     if isinstance(key, list):
         for node in nodes:
             for key_ in key:
