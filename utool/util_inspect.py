@@ -129,13 +129,13 @@ class BaronWraper(object):
                                 docname = '<doctest%d>' % (count,) + func.name
                                 doc_nodes[docname] = doctest
                                 G.add_node(docname)
-                                G.node[docname]['color'] = (1, 0, 0)
+                                G.nodes[docname]['color'] = (1, 0, 0)
                                 count += 1
 
         with ut.Timer('building function call graph'):
             func_names = [func.name for func in functions]
             for callee in func_names:
-                #G.node[callee]['color'] = '0x000000'
+                #G.nodes[callee]['color'] = '0x000000'
                 G.add_node(six.text_type(callee))
             import re
             pat = re.compile(ut.regex_or(func_names))

@@ -559,27 +559,42 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
 
 
 def nx_delete_node_attr(graph, key, nodes=None):
+    """
+    Removes node attributes
+
+    Doctest:
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> G = nx.karate_club_graph()
+        >>> nx.set_node_attributes(G, name='foo', values='bar')
+        >>> datas = nx.get_node_attributes(G, 'club')
+        >>> assert len(nx.get_node_attributes(G, 'club')) == 34
+        >>> assert len(nx.get_node_attributes(G, 'foo')) == 34
+        >>> ut.nx_delete_node_attr(G, ['club', 'foo'], nodes=[1, 2])
+        >>> assert len(nx.get_node_attributes(G, 'club')) == 32
+        >>> assert len(nx.get_node_attributes(G, 'foo')) == 32
+        >>> ut.nx_delete_node_attr(G, ['club'])
+        >>> assert len(nx.get_node_attributes(G, 'club')) == 0
+        >>> assert len(nx.get_node_attributes(G, 'foo')) == 32
+    """
     if nodes is None:
         nodes = list(graph.nodes())
     removed = 0
     # keys = [key] if not isinstance(key, list) else key
-    if nx.__version__.startswith('1'):
-        graph_node = graph.node
-    else:
-        graph_node = graph.nodes
+    node_dict = nx_node_dict(graph)
 
     if isinstance(key, list):
         for node in nodes:
             for key_ in key:
                 try:
-                    del graph_node[node][key_]
+                    del node_dict[node][key_]
                     removed += 1
                 except KeyError:
                     pass
     else:
         for node in nodes:
             try:
-                del graph_node[node][key]
+                del node_dict[node][key]
                 removed += 1
             except KeyError:
                 pass
@@ -589,6 +604,37 @@ def nx_delete_node_attr(graph, key, nodes=None):
 def nx_delete_edge_attr(graph, key, edges=None):
     """
     Removes an attributes from specific edges in the graph
+
+    Doctest:
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> G = nx.karate_club_graph()
+        >>> nx.set_edge_attributes(G, name='spam', values='eggs')
+        >>> nx.set_edge_attributes(G, name='foo', values='bar')
+        >>> assert len(nx.get_edge_attributes(G, 'spam')) == 78
+        >>> assert len(nx.get_edge_attributes(G, 'foo')) == 78
+        >>> ut.nx_delete_edge_attr(G, ['spam', 'foo'], edges=[(1, 2)])
+        >>> assert len(nx.get_edge_attributes(G, 'spam')) == 77
+        >>> assert len(nx.get_edge_attributes(G, 'foo')) == 77
+        >>> ut.nx_delete_edge_attr(G, ['spam'])
+        >>> assert len(nx.get_edge_attributes(G, 'spam')) == 0
+        >>> assert len(nx.get_edge_attributes(G, 'foo')) == 77
+
+    Doctest:
+        >>> from utool.util_graph import *  # NOQA
+        >>> import utool as ut
+        >>> G = nx.MultiGraph()
+        >>> G.add_edges_from([(1, 2), (2, 3), (3, 4), (4, 5), (4, 5), (1, 2)])
+        >>> nx.set_edge_attributes(G, name='spam', values='eggs')
+        >>> nx.set_edge_attributes(G, name='foo', values='bar')
+        >>> assert len(nx.get_edge_attributes(G, 'spam')) == 6
+        >>> assert len(nx.get_edge_attributes(G, 'foo')) == 6
+        >>> ut.nx_delete_edge_attr(G, ['spam', 'foo'], edges=[(1, 2, 0)])
+        >>> assert len(nx.get_edge_attributes(G, 'spam')) == 5
+        >>> assert len(nx.get_edge_attributes(G, 'foo')) == 5
+        >>> ut.nx_delete_edge_attr(G, ['spam'])
+        >>> assert len(nx.get_edge_attributes(G, 'spam')) == 0
+        >>> assert len(nx.get_edge_attributes(G, 'foo')) == 5
     """
     removed = 0
     keys = [key] if not isinstance(key, (list, tuple)) else key
@@ -652,7 +698,8 @@ def nx_delete_None_node_attr(graph, nodes=None):
     if nodes is None:
         nodes = list(graph.nodes())
     for node in graph.nodes():
-        data = graph.node[node]
+        node_dict = nx_node_dict(graph)
+        data = node_dict[node]
         for key in list(data.keys()):
             try:
                 if data[key] is None:
@@ -701,10 +748,11 @@ def nx_gen_node_values(G, key, nodes, default=util_const.NoParam):
     """
     Generates attributes values of specific nodes
     """
+    node_dict = nx_node_dict(G)
     if default is util_const.NoParam:
-        return (G.node[n][key] for n in nodes)
+        return (node_dict[n][key] for n in nodes)
     else:
-        return (G.node[n].get(key, default) for n in nodes)
+        return (node_dict[n].get(key, default) for n in nodes)
 
 
 def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
@@ -806,12 +854,13 @@ def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
     if nodes is None:
         nodes = G.nodes()
     # Generate `node_data` nodes and data dictionary
+    node_dict = nx_node_dict(G)
     if on_missing == 'error':
-        node_data = ((n, G.node[n]) for n in nodes)
+        node_data = ((n, node_dict[n]) for n in nodes)
     elif on_missing == 'filter':
-        node_data = ((n, G.node[n]) for n in nodes if n in G)
+        node_data = ((n, node_dict[n]) for n in nodes if n in G)
     elif on_missing == 'default':
-        node_data = ((n, G.node.get(n, {})) for n in nodes)
+        node_data = ((n, node_dict.get(n, {})) for n in nodes)
     else:
         raise KeyError('on_missing={} must be error, filter or default'.format(
             on_missing))
@@ -1063,13 +1112,6 @@ def nx_ensure_agraph_color(graph):
         _fix_agraph_color(data)
 
 
-def nx_makenode(graph, name, **attrkw):
-    if 'size' in attrkw:
-        attrkw['width'], attrkw['height'] = attrkw.pop('size')
-    graph.add_node(name, **attrkw)
-    return name
-
-
 def nx_edges(graph, keys=False, data=False):
     if graph.is_multigraph():
         edges = graph.edges(keys=keys, data=data)
@@ -1177,27 +1219,6 @@ def edges_to_adjacency_list(edges):
     return parent_to_children
 
 
-def get_ancestor_levels(graph, tablename):
-    import utool as ut
-    root = nx.topological_sort(graph)[0]
-    reverse_edges = [(e2, e1) for e1, e2 in graph.edges()]
-    child_to_parents = ut.edges_to_adjacency_list(reverse_edges)
-    to_root = ut.paths_to_root(tablename, root, child_to_parents)
-    from_root = ut.reverse_path(to_root, root, child_to_parents)
-    ancestor_levels_ = ut.get_levels(from_root)
-    ancestor_levels = ut.longest_levels(ancestor_levels_)
-    return ancestor_levels
-
-
-def get_descendant_levels(graph, tablename):
-    import utool as ut
-    parent_to_children = ut.edges_to_adjacency_list(graph.edges())
-    to_leafs = ut.path_to_leafs(tablename, parent_to_children)
-    descendant_levels_ = ut.get_levels(to_leafs)
-    descendant_levels = ut.longest_levels(descendant_levels_)
-    return descendant_levels
-
-
 def paths_to_root(tablename, root, child_to_parents):
     """
 
@@ -1263,14 +1284,6 @@ def paths_to_root(tablename, root, child_to_parents):
     parents = child_to_parents[tablename]
     return {parent: paths_to_root(parent, root, child_to_parents)
             for parent in parents}
-
-
-def path_to_leafs(tablename, parent_to_children):
-    children = parent_to_children[tablename]
-    if len(children) == 0:
-        return None
-    return {child: path_to_leafs(child, parent_to_children)
-            for child in children}
 
 
 def get_allkeys(dict_):
@@ -1550,156 +1563,6 @@ def simplify_graph(graph):
     return new_graph
 
 
-def level_order(graph):
-    import utool as ut
-    node_to_level = ut.nx_dag_node_rank(graph)
-    #source = ut.nx_source_nodes(graph)[0]
-    #longest_paths = dict([(target, dag_longest_path(graph, source, target))
-    #                      for target in graph.nodes()])
-    #node_to_level = ut.map_dict_vals(len, longest_paths)
-    grouped = ut.group_items(node_to_level.keys(), node_to_level.values())
-    levels = ut.take(grouped, range(1, len(grouped) + 1))
-    return levels
-
-
-def merge_level_order(level_orders, topsort):
-    """
-    Merge orders of individual subtrees into a total ordering for
-    computation.
-
-    >>> level_orders = {
-    >>>     'multi_chip_multitest': [['dummy_annot'], ['chip'], ['multitest'],
-    >>>         ['multitest_score'], ],
-    >>>     'multi_fgweight_multitest': [ ['dummy_annot'], ['chip', 'probchip'],
-    >>>         ['keypoint'], ['fgweight'], ['multitest'], ['multitest_score'], ],
-    >>>     'multi_keypoint_nnindexer': [ ['dummy_annot'], ['chip'], ['keypoint'],
-    >>>         ['nnindexer'], ['multitest'], ['multitest_score'], ],
-    >>>     'normal': [ ['dummy_annot'], ['chip', 'probchip'], ['keypoint'],
-    >>>         ['fgweight'], ['spam'], ['multitest'], ['multitest_score'], ],
-    >>>     'nwise_notch_multitest_1': [ ['dummy_annot'], ['notch'], ['multitest'],
-    >>>         ['multitest_score'], ],
-    >>>     'nwise_notch_multitest_2': [ ['dummy_annot'], ['notch'], ['multitest'],
-    >>>         ['multitest_score'], ],
-    >>>     'nwise_notch_notchpair_1': [ ['dummy_annot'], ['notch'], ['notchpair'],
-    >>>         ['multitest'], ['multitest_score'], ],
-    >>>     'nwise_notch_notchpair_2': [ ['dummy_annot'], ['notch'], ['notchpair'],
-    >>>         ['multitest'], ['multitest_score'], ],
-    >>> }
-    >>> topsort = [u'dummy_annot', u'notch', u'probchip', u'chip', u'keypoint',
-    >>>            u'fgweight', u'nnindexer', u'spam', u'notchpair', u'multitest',
-    >>>            u'multitest_score']
-    >>> print(ut.repr3(ut.merge_level_order(level_orders, topsort)))
-
-    EG2:
-        level_orders = {u'normal': [[u'dummy_annot'], [u'chip', u'probchip'], [u'keypoint'], [u'fgweight'], [u'spam']]}
-        topsort = [u'dummy_annot', u'probchip', u'chip', u'keypoint', u'fgweight', u'spam']
-    """
-
-    import utool as ut
-    if False:
-        compute_order = []
-        level_orders = ut.map_dict_vals(ut.total_flatten, level_orders)
-        level_sets = ut.map_dict_vals(set, level_orders)
-        for tablekey in topsort:
-            compute_order.append((tablekey, [groupkey for groupkey, set_ in level_sets.items() if tablekey in set_]))
-        return compute_order
-    else:
-        # Do on common subgraph
-        import itertools
-        # Pointer to current level.: Start at the end and
-        # then work your way up.
-        main_ptr = len(topsort) - 1
-        stack = []
-        #from six.moves import zip_longest
-        keys = list(level_orders.keys())
-        type_to_ptr = {key: -1 for key in keys}
-        print('level_orders = %s' % (ut.repr3(level_orders),))
-        for count in itertools.count(0):
-            print('----')
-            print('count = %r' % (count,))
-            ptred_levels = []
-            for key in keys:
-                levels = level_orders[key]
-                ptr = type_to_ptr[key]
-                try:
-                    level = tuple(levels[ptr])
-                except IndexError:
-                    level = None
-                ptred_levels.append(level)
-            print('ptred_levels = %r' % (ptred_levels,))
-            print('main_ptr = %r' % (main_ptr,))
-            # groupkeys, groupxs = ut.group_indices(ptred_levels)
-            # Group keys are tablenames
-            # They point to the (type) of the input
-            # num_levelkeys = len(ut.total_flatten(ptred_levels))
-            groupkeys, groupxs = ut.group_indices(ptred_levels)
-            main_idx = None
-            while main_idx is None and main_ptr >= 0:
-                target = topsort[main_ptr]
-                print('main_ptr = %r' % (main_ptr,))
-                print('target = %r' % (target,))
-                # main_idx = ut.listfind(groupkeys, (target,))
-                # if main_idx is None:
-                possible_idxs = [idx for idx, keytup in enumerate(groupkeys) if keytup is not None and target in keytup]
-                if len(possible_idxs) == 1:
-                    main_idx = possible_idxs[0]
-                else:
-                    main_idx = None
-                if main_idx is None:
-                    main_ptr -= 1
-            if main_idx is None:
-                print('break I')
-                break
-            found_groups = ut.apply_grouping(keys, groupxs)[main_idx]
-            print('found_groups = %r' % (found_groups,))
-            stack.append((target, found_groups))
-            for k in found_groups:
-                type_to_ptr[k] -= 1
-
-            if len(found_groups) == len(keys):
-                main_ptr -= 1
-                if main_ptr < 0:
-                    print('break E')
-                    break
-        print('stack = %s' % (ut.repr3(stack),))
-        print('have = %r' % (sorted(ut.take_column(stack, 0)),))
-        print('need = %s' % (sorted(ut.total_flatten(level_orders.values())),))
-        compute_order = stack[::-1]
-
-    return compute_order
-
-
-def convert_multigraph_to_graph(G):
-    """
-    For each duplicate edge make a dummy node.
-    TODO: preserve data, keys, and directedness
-    """
-    import utool as ut
-    edge_list = list(G.edges())
-    node_list = list(G.nodes())
-    dupitem_to_idx = ut.find_duplicate_items(edge_list)
-    node_to_freq = ut.ddict(lambda: 0)
-    remove_idxs = ut.flatten(dupitem_to_idx.values())
-    ut.delete_items_by_index(edge_list, remove_idxs)
-
-    for dup_edge in dupitem_to_idx.keys():
-        freq = len(dupitem_to_idx[dup_edge])
-        u, v = dup_edge[0:2]
-        pair_node = dup_edge
-        pair_nodes = [pair_node + tuple([count]) for count in range(freq)]
-        for pair_node in pair_nodes:
-            node_list.append(pair_node)
-            for node in dup_edge:
-                node_to_freq[node] += freq
-            edge_list.append((u, pair_node))
-            edge_list.append((pair_node, v))
-
-    G2 = nx.DiGraph()
-    G2.add_edges_from(edge_list)
-    G2.add_nodes_from(node_list)
-    return G2
-
-
 def subgraph_from_edges(G, edge_list, ref_back=True):
     """
     Creates a networkx graph that is a subgraph of G
@@ -1736,6 +1599,13 @@ def subgraph_from_edges(G, edge_list, ref_back=True):
                 G_sub.remove_edge(*edge)
 
     return G_sub
+
+
+def nx_node_dict(G):
+    if nx.__version__.startswith('1'):
+        return getattr(G, 'node')
+    else:
+        return G.nodes
 
 
 def all_multi_paths(graph, source, target, data=False):
@@ -1791,43 +1661,6 @@ def all_multi_paths(graph, source, target, data=False):
     path_multiedges = list(nx_all_simple_edge_paths(graph, source, target,
                                                     keys=True, data=data))
     return path_multiedges
-    #import copy
-    #import utool as ut
-    #all_simple_paths = list(nx.all_simple_paths(graph, source, target))
-    #paths_from_source2 = ut.unique(ut.lmap(tuple, all_simple_paths))
-    #path_edges2 = [tuple(ut.itertwo(path)) for path in paths_from_source2]
-
-    ## expand paths with multi edge indexes
-    ## hacky implementation
-    #expanded_paths = []
-    #for path in path_edges2:
-    #    all_paths = [[]]
-    #    for u, v in path:
-    #        mutli_edge_data = graph.edge[u][v]
-    #        items = list(mutli_edge_data.items())
-    #        K = len(items)
-    #        if len(items) == 1:
-    #            path_iter = [all_paths]
-    #            pass
-    #        elif len(items) > 1:
-    #            path_iter = [[copy.copy(p) for p in all_paths]
-    #                         for k_ in range(K)]
-    #        for (k, edge_data), paths in zip(items, path_iter):
-    #            for p in paths:
-    #                p.append((u, v, {k: edge_data}))
-    #        all_paths = ut.flatten(path_iter)
-    #    expanded_paths.extend(all_paths)
-
-    #if data:
-    #    path_multiedges = [[(u, v, k, d) for u, v, kd in path for k, d in kd.items()]
-    #                       for path in expanded_paths]
-    #else:
-    #    path_multiedges = [[(u, v, k) for u, v, kd in path for k in kd.keys()]
-    #                       for path in expanded_paths]
-    ## path_multiedges = [[(u, v, list(kd.keys())[0]) for u, v, kd in path]
-    ##                    for path in expanded_paths]
-    ## path_multiedges = expanded_paths
-    #return path_multiedges
 
 
 def reverse_path_edges(edge_list):
@@ -2030,7 +1863,9 @@ def color_nodes(graph, labelattr='label', brightness=.878,
 
 def graph_info(graph, ignore=None, stats=False, verbose=False):
     import utool as ut
-    node_attrs = list(graph.node.values())
+
+    node_dict = nx_node_dict(graph)
+    node_attrs = list(node_dict.values())
     edge_attrs = list(ut.take_column(graph.edges(data=True), 2))
 
     if stats:
@@ -2181,13 +2016,14 @@ def nx_contracted_nodes(G, u, v, self_loops=True, inplace=False):
         new_edges = list(new_edges)
     else:
         H = G.copy()
-    v_data = H.node[v]
+    node_dict = nx_node_dict(H)
+    v_data = node_dict[v]
     H.remove_node(v)
     H.add_edges_from(new_edges)
-    if 'contraction' in H.node[u]:
-        H.node[u]['contraction'][v] = v_data
+    if 'contraction' in node_dict[u]:
+        node_dict[u]['contraction'][v] = v_data
     else:
-        H.node[u]['contraction'] = {v: v_data}
+        node_dict[u]['contraction'] = {v: v_data}
     return H
 
 

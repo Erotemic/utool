@@ -400,10 +400,10 @@ class EulerTourTree(ut.NiceRepr):
             u = node.key
             graph.add_node(u)  # Minor redundancy
             # Set node properties
-            graph.node[u]['value'] = node.value
+            graph.nodes[u]['value'] = node.value
             if labels is not None:
                 label = ','.join([str(getattr(node, k)) for k in labels])
-                graph.node[u]['label'] = label
+                graph.nodes[u]['label'] = label
             if node.left is not None:
                 v = node.left.key
                 graph.add_node(v)
