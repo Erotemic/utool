@@ -558,7 +558,7 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
                     yield n1, n2
 
 
-def nx_delete_node_attr(graph, key, nodes=None):
+def nx_delete_node_attr(graph, name, nodes=None):
     """
     Removes node attributes
 
@@ -585,7 +585,7 @@ def nx_delete_node_attr(graph, key, nodes=None):
 
     if isinstance(key, list):
         for node in nodes:
-            for key_ in key:
+            for key_ in name:
                 try:
                     del node_dict[node][key_]
                     removed += 1
@@ -601,7 +601,8 @@ def nx_delete_node_attr(graph, key, nodes=None):
     return removed
 
 
-def nx_delete_edge_attr(graph, key, edges=None):
+@profile
+def nx_delete_edge_attr(graph, name, edges=None):
     """
     Removes an attributes from specific edges in the graph
 
@@ -637,7 +638,7 @@ def nx_delete_edge_attr(graph, key, edges=None):
         >>> assert len(nx.get_edge_attributes(G, 'foo')) == 5
     """
     removed = 0
-    keys = [key] if not isinstance(key, (list, tuple)) else key
+    keys = [name] if not isinstance(name, (list, tuple)) else name
     if edges is None:
         if graph.is_multigraph():
             edges = graph.edges(keys=True)
@@ -1151,7 +1152,7 @@ def testdata_graph():
         >>> (graph, G) = testdata_graph()
         >>> import plottool as pt
         >>> ut.ensureqt()
-        >>> pt.show_nx(G, layout='pygraphviz')
+        >>> pt.show_nx(G, layout='agraph')
         >>> ut.show_if_requested()
     """
     import utool as ut
