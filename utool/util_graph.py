@@ -580,21 +580,21 @@ def nx_delete_node_attr(graph, name, nodes=None):
     if nodes is None:
         nodes = list(graph.nodes())
     removed = 0
-    # keys = [key] if not isinstance(key, list) else key
+    # names = [name] if not isinstance(name, list) else name
     node_dict = nx_node_dict(graph)
 
-    if isinstance(key, list):
+    if isinstance(name, list):
         for node in nodes:
-            for key_ in name:
+            for name_ in name:
                 try:
-                    del node_dict[node][key_]
+                    del node_dict[node][name_]
                     removed += 1
                 except KeyError:
                     pass
     else:
         for node in nodes:
             try:
-                del node_dict[node][key]
+                del node_dict[node][name]
                 removed += 1
             except KeyError:
                 pass
