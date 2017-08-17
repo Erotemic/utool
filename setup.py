@@ -71,6 +71,7 @@ def utool_setup():
         'numpy',  # 1.10 has hard time in comparison
         'pyparsing',
         'pint',
+        'delorean',
         #'decorator',
     ]
     import platform
@@ -78,6 +79,7 @@ def utool_setup():
     if platform.python_version().startswith('2.7'):
         INSTALL_REQUIRES += [
             'lockfile >= 0.10.2',
+            'futures',
         ]
 
     INSTALL_OPTIONAL = [
