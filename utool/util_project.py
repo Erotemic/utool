@@ -506,8 +506,8 @@ class UserProfile(util_dev.NiceRepr):
         self.project_name = name
         self.project_dpaths = None
         self.project_include_patterns = None
-        self.project_exclude_dirs = None
-        self.project_exclude_patterns = None
+        self.project_exclude_dirs = []
+        self.project_exclude_patterns = []
 
     def grep(self, *args, **kwargs):
         return grep_projects(user_profile=self, *args, **kwargs)
@@ -593,6 +593,8 @@ def ensure_user_profile(user_profile=None):
         import utool as ut
         if ut.is_developer():
             __GLOBAL_PROFILE__ = ibeis_user_profile()
+        else:
+            __GLOBAL_PROFILE__ = UserProfile('default')
     if user_profile is None:
         user_profile = __GLOBAL_PROFILE__
     return user_profile
@@ -624,6 +626,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     """
     import utool as ut
     user_profile = ensure_user_profile(user_profile)
+    print('user_profile = {!r}'.format(user_profile))
 
     kwargs = kwargs.copy()
     colored = kwargs.pop('colored', True)
@@ -765,6 +768,9 @@ class GrepResult(util_dev.NiceRepr):
                self.found_lxs_list)
         return ut.make_grep_resultstr(tup, self.extended_regex_list,
                                       self.reflags, colored=colored)
+
+    # def make_big_resultstr():
+    #     pass
 
     def pattern_filterflags(self, filter_pat):
         self.filter_pats.append(filter_pat)

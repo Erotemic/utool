@@ -1590,7 +1590,7 @@ def get_standard_exclude_dnames():
 
 
 def get_standard_include_patterns():
-    return ['*.py', '*.pyx', '*.pxi', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim']
+    return ['*.py', '*.pyx', '*.pxi', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim', '*.cmake']
 
 
 def matching_fpaths(dpath_list, include_patterns, exclude_dirs=[],
@@ -2001,9 +2001,11 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
     # from utool import util_str
     from utool import util_list
     if include_patterns is None:
-        include_patterns =  get_standard_include_patterns()
+        include_patterns =  ['*']
+        # include_patterns = get_standard_include_patterns()
     if greater_exclude_dirs is None:
-        greater_exclude_dirs =  get_standard_exclude_dnames()
+        greater_exclude_dirs = []
+        # greater_exclude_dirs =  get_standard_exclude_dnames()
     # ensure list input
     if isinstance(include_patterns, six.string_types):
         include_patterns = [include_patterns]
