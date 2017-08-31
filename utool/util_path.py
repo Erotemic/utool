@@ -2422,7 +2422,7 @@ class ChdirContext(object):
 
 def search_candidate_paths(candidate_path_list, candidate_name_list=None,
                            priority_paths=None, required_subpaths=[],
-                           verbose=not QUIET):
+                           verbose=None):
     """
     searches for existing paths that meed a requirement
 
@@ -2459,8 +2459,12 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None,
         >>> result = ('return_path = %s' % (str(return_path),))
         >>> print(result)
     """
-    print('[search_candidate_paths] Searching for candidate paths')
     import utool as ut
+    if verbose is None:
+        verbose = 0 if QUIET else 1
+
+    if verbose >= 1:
+        print('[search_candidate_paths] Searching for candidate paths')
 
     if candidate_name_list is not None:
         candidate_path_list_ = [join(dpath, fname) for dpath, fname in
@@ -2475,18 +2479,19 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None,
     return_path = None
     for path in candidate_path_list_:
         if path is not None and exists(path):
-            if verbose:
+            if verbose >= 2:
                 print('[search_candidate_paths] Found candidate directory %r' % (path,))
                 print('[search_candidate_paths] ... checking for approprate structure')
             # tomcat directory exists. Make sure it also contains a webapps dir
             subpath_list = [join(path, subpath) for subpath in required_subpaths]
             if all(ut.checkpath(path_, verbose=verbose) for path_ in subpath_list):
                 return_path = path
-                if verbose:
+                if verbose >= 2:
                     print('[search_candidate_paths] Found acceptable path')
                 return return_path
                 break
-    print('[search_candidate_paths] Failed to find acceptable path')
+    if verbose >= 1:
+        print('[search_candidate_paths] Failed to find acceptable path')
     return return_path
 
 

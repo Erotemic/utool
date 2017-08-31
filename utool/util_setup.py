@@ -236,6 +236,7 @@ def find_packages(recursive=True, maxdepth=None):
 
 
 def get_cmdclass():
+    """ DEPRICATE """
     try:
         from Cython.Distutils import build_ext
         cmdclass = {'build_ext': build_ext}
