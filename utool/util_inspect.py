@@ -1634,12 +1634,13 @@ def find_funcs_called_with_kwargs(sourcecode, target_kwargs_name='kwargs'):
                 if node.keywords:
                     for kwargs in node.keywords:
                         if kwargs.arg is None:
-                            kwargs_name = kwargs.value.id
-                            if funcname is not None and kwargs_name == target_kwargs_name:
-                                child_funcnamess.append(funcname)
-                            if debug:
-                                print('funcname = %r' % (funcname,))
-                                print('kwargs_name = %r' % (kwargs_name,))
+                            if hasattr(kwargs.value, 'id'):
+                                kwargs_name = kwargs.value.id
+                                if funcname is not None and kwargs_name == target_kwargs_name:
+                                    child_funcnamess.append(funcname)
+                                if debug:
+                                    print('funcname = %r' % (funcname,))
+                                    print('kwargs_name = %r' % (kwargs_name,))
             ast.NodeVisitor.generic_visit(self, node)
     try:
         KwargParseVisitor().visit(pt)

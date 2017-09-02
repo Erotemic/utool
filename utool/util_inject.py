@@ -6,8 +6,7 @@ Basic use case is to extend the print function into a logging function
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import builtins, range, zip, map  # NOQA
-#import builtins
-import six
+import six  # NOQA
 import sys
 import functools
 from utool._internal import meta_util_six

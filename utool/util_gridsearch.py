@@ -398,6 +398,10 @@ class Nesting(object):
         return recombine_nestings(self.as_list())
 
     @classmethod
+    def from_text(cls, text):
+        return cls.from_nestings(parse_nestings(text))
+
+    @classmethod
     def from_nestings(cls, nestings, type_='root'):
         if isinstance(nestings, list):
             if type_ == 'root':
@@ -417,6 +421,134 @@ class Nesting(object):
             for v in self.value:
                 for x in v.itertype(type_):
                     yield x
+
+
+def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\'):
+    r"""
+    References:
+        http://stackoverflow.com/questions/4801403/pyparsing-nested-mutiple-opener-clo
+
+    Example:
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
+        >>> string = r'lambda u: sign(u) * abs(u)**3.0 * greater(u, 0)'
+        >>> parsed_blocks = parse_nestings2(string)
+        >>> print('parsed_blocks = {!r}'.format(parsed_blocks))
+        >>> string = r'lambda u: sign("\"u(\'fdfds\')") * abs(u)**3.0 * greater(u, 0)'
+        >>> parsed_blocks = parse_nestings2(string)
+        >>> print('parsed_blocks = {!r}'.format(parsed_blocks))
+        >>> recombined = recombine_nestings(parsed_blocks)
+        >>> print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+        >>> print('recombined = %r' % (recombined,))
+        >>> print('orig       = %r' % (string,))
+    """
+    import utool as ut  # NOQA
+    import pyparsing as pp
+
+    def as_tagged(parent, doctag=None):
+        """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
+        namedItems = dict((v[1], k) for (k, vlist) in parent._ParseResults__tokdict.items()
+                          for v in vlist)
+        # collapse out indents if formatting is not desired
+        parentTag = None
+        if doctag is not None:
+            parentTag = doctag
+        else:
+            if parent._ParseResults__name:
+                parentTag = parent._ParseResults__name
+        if not parentTag:
+            parentTag = "ITEM"
+        out = []
+        for i, res in enumerate(parent._ParseResults__toklist):
+            if isinstance(res, pp.ParseResults):
+                if i in namedItems:
+                    child = as_tagged(res, namedItems[i])
+                else:
+                    child = as_tagged(res, None)
+                out.append(child)
+            else:
+                # individual token, see if there is a name for it
+                resTag = None
+                if i in namedItems:
+                    resTag = namedItems[i]
+                if not resTag:
+                    resTag = "ITEM"
+                child = (resTag, pp._ustr(res))
+                out += [child]
+        return (parentTag, out)
+
+    def combine_nested(opener, closer, content, name=None):
+        r"""
+        opener, closer, content = '(', ')', nest_body
+        """
+        import utool as ut  # NOQA
+        ret1 = pp.Forward()
+        # if opener == closer:
+        #     closer = pp.Regex('(?<!' + re.escape(closer) + ')')
+        _NEST = ut.identity
+        #_NEST = pp.Suppress
+        opener_ = _NEST(opener)
+        closer_ = _NEST(closer)
+
+        group = pp.Group(opener_ + pp.ZeroOrMore(content) + closer_)
+        ret2 = ret1 << group
+        if ret2 is None:
+            ret2 = ret1
+        else:
+            pass
+            #raise AssertionError('Weird pyparsing behavior. Comment this line if encountered. pp.__version__ = %r' % (pp.__version__,))
+        if name is None:
+            ret3 = ret2
+        else:
+            ret3 = ret2.setResultsName(name)
+        assert ret3 is not None, 'cannot have a None return'
+        return ret3
+
+    # Current Best Grammar
+    nest_body = pp.Forward()
+    nest_expr_list = []
+    for left, right in nesters:
+        if left == right:
+            # Treat left==right nestings as quoted strings
+            q = left
+            quotedString = pp.Group(q + pp.Regex(r'(?:[^{q}\n\r\\]|(?:{q}{q})|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*'.format(q=q)) + q)
+            nest_expr = quotedString.setResultsName('nest' + left + right)
+        else:
+            nest_expr = combine_nested(left, right, content=nest_body, name='nest' + left + right)
+        nest_expr_list.append(nest_expr)
+
+    # quotedString = Combine(Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*')+'"'|
+    #                        Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*")+"'").setName("quotedString using single or double quotes")
+
+    nonBracePrintables = ''.join(c for c in pp.printables if c not in ''.join(nesters)) + ' '
+    nonNested = pp.Word(nonBracePrintables).setResultsName('nonNested')
+    # nonNested = (pp.Word(nonBracePrintables) | pp.quotedString).setResultsName('nonNested')
+    nonNested = nonNested.leaveWhitespace()
+
+    # if with_curl and not with_paren and not with_brak:
+    nest_body_input = nonNested
+    for nest_expr in nest_expr_list:
+        nest_body_input = nest_body_input | nest_expr
+
+    nest_body << nest_body_input
+
+    nest_body = nest_body.leaveWhitespace()
+    parser = pp.ZeroOrMore(nest_body)
+
+    debug_ = ut.VERBOSE
+
+    if len(string) > 0:
+        tokens = parser.parseString(string)
+        if debug_:
+            print('string = %r' % (string,))
+            print('tokens List: ' + ut.repr3(tokens.asList()))
+            print('tokens XML: ' + tokens.asXML())
+        parsed_blocks = as_tagged(tokens)[1]
+        if debug_:
+            print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+    else:
+        parsed_blocks = []
+    return parsed_blocks
 
 
 def parse_nestings(string, only_curl=False):
