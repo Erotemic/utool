@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import ast
 import functools
 import inspect
 import os
@@ -1456,6 +1457,11 @@ def parse_function_names(sourcecode, top_level=True):
         pt = ast.parse(sourcecode)
 
     class FuncVisitor(ast.NodeVisitor):
+        def visit_If(self, node):
+            if not _node_is_main_if(node):
+                # Ignore the main statement
+                ast.NodeVisitor.generic_visit(self, node)
+
         def visit_FunctionDef(self, node):
             func_names.append(node.name)
             if not top_level:
@@ -1471,6 +1477,20 @@ def parse_function_names(sourcecode, top_level=True):
     return func_names
 
 
+def _node_is_main_if(node):
+    if isinstance(node.test, ast.Compare):
+        try:
+            if all([
+                isinstance(node.test.ops[0], ast.Eq),
+                node.test.left.id == '__name__',
+                node.test.comparators[0].s == '__main__',
+            ]):
+                return True
+        except Exception as ex:
+            pass
+    return False
+
+
 def parse_import_names(sourcecode, top_level=True):
     """
     Finds all function names in a file without importing it
@@ -1482,7 +1502,7 @@ def parse_import_names(sourcecode, top_level=True):
         list: func_names
 
     CommandLine:
-        python -m utool.util_inspect parse_function_names
+        python -m utool.util_inspect parse_import_names
 
     References:
         https://stackoverflow.com/questions/20445733/how-to-tell-which-modules-have-been-imported-in-some-source-code
@@ -1529,11 +1549,18 @@ def parse_import_names(sourcecode, top_level=True):
         def visit_FunctionDef(self, node):
             # Ignore modules imported in functions
             if not top_level:
-                ast.NodeVisitor.generic_visit(self, node)
+                self.generic_visit(node)
+                # ast.NodeVisitor.generic_visit(self, node)
 
         def visit_ClassDef(self, node):
             if not top_level:
-                ast.NodeVisitor.generic_visit(self, node)
+                self.generic_visit(node)
+                # ast.NodeVisitor.generic_visit(self, node)
+
+        def visit_If(self, node):
+            if not _node_is_main_if(node):
+                # Ignore the main statement
+                self.generic_visit(node)
     try:
         ImportVisitor().visit(pt)
     except Exception:

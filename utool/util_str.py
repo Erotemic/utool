@@ -1208,23 +1208,6 @@ def repr2(obj_, **kwargs):
     val_str = _make_valstr(**kwargs)
     return val_str(obj_)
 
-    # import utool as ut
-    # if isinstance(obj_, (list, tuple, set, frozenset, ut.oset)):
-    #     kwitems = dict(nl=False)
-    #     kwitems.update(kwargs)
-    #     return list_str(obj_, **kwitems)
-    # elif isinstance(obj_, dict):
-    #     kwitems = dict(nl=False)
-    #     kwitems.update(kwargs)
-    #     return dict_str(obj_, **kwitems)
-    # else:
-    #     kwitems = dict(with_dtype=False)
-    #     kwitems.update(kwargs)
-    #     if util_type.HAVE_NUMPY and isinstance(obj_, np.ndarray):
-    #         return numpy_str(obj_, **kwitems)
-    #     else:
-    #         return reprfunc(obj_, precision=kwargs.get('precision', None))
-
 
 def repr2_json(obj_, **kwargs):
     """ hack for json reprs """
