@@ -510,9 +510,9 @@ class XCtrl(object):
             print(ut.get_clipboard())
 
         import re
-        terminal_pattern = '|'.join([
-            re.escape('x-terminal-emulator.X-terminal-emulator'),
-            re.escape('terminator.Terminator')
+        terminal_pattern = r'\|'.join([
+            re.escape('terminator.Terminator'),  # gtk3 terminator
+            re.escape('x-terminal-emulator.X-terminal-emulator'),  # gtk2 terminator
         ])
 
         # Build xdtool script
