@@ -2534,6 +2534,17 @@ def win_shortcut(source, link_name):
             raise ctypes.WinError()
 
 
+def ancestor_paths(root=None, limit={}):
+    prev = None
+    if root is None:
+        root = os.getcwd()
+    path = root
+    while path != prev and prev not in limit:
+        yield path
+        prev = path
+        path = dirname(path)
+
+
 def symlink(real_path, link_path, overwrite=False, on_error='raise',
             verbose=2):
     """
