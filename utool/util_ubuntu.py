@@ -362,12 +362,18 @@ class XCtrl(object):
             python -m utool.util_ubuntu XCtrl.findall_window_ids gvim --src
             python -m utool.util_ubuntu XCtrl.findall_window_ids joncrall --src
 
+        xprop -id
+
+        wmctrl -l | awk '{print $1}' | xprop -id
+
+        0x00a00007 | grep "WM_CLASS(STRING)"
+
         """
         import utool as ut
         cmdkw = dict(verbose=False, quiet=True, silence=True)
-        winid_list = ut.cmd(
-            "wmctrl -lx | grep %s | awk '{print $1}'" % (pattern,),
-            **cmdkw)[0].strip().split('\n')
+        command = "wmctrl -lx | grep '%s' | awk '{print $1}'" % (pattern,)
+        print(command)
+        winid_list = ut.cmd(command, **cmdkw)[0].strip().split('\n')
         winid_list = [h for h in winid_list if h]
         winid_list = [int(h, 16) for h in winid_list]
         return winid_list
@@ -439,6 +445,9 @@ class XCtrl(object):
 
     @staticmethod
     def find_window_id(pattern, method='mru', error='raise'):
+        """
+        xprop -id 0x00a00007 | grep "WM_CLASS(STRING)"
+        """
         import utool as ut
         winid_candidates = XCtrl.findall_window_ids(pattern)
         if len(winid_candidates) == 0:
@@ -500,10 +509,17 @@ class XCtrl(object):
             print('text = %r' % (text,))
             print(ut.get_clipboard())
 
+        import re
+        terminal_pattern = '|'.join([
+            re.escape('x-terminal-emulator.X-terminal-emulator'),
+            re.escape('terminator.Terminator')
+        ])
+
         # Build xdtool script
         doscript = [
             ('remember_window_id', 'ACTIVE_WIN'),
-            ('focus', 'x-terminal-emulator.X-terminal-emulator'),
+            # ('focus', 'x-terminal-emulator.X-terminal-emulator'),
+            ('focus', terminal_pattern),
             ('key', 'ctrl+shift+v'),
             ('key', 'KP_Enter'),
         ]
