@@ -2420,6 +2420,23 @@ class ChdirContext(object):
             return False  # return a falsey value on error
 
 
+def ancestor_paths(start=None, limit={}):
+    """
+    All paths above you
+    """
+    import utool as ut
+    limit = ut.ensure_iterable(limit)
+    limit = {expanduser(p) for p in limit}.union(set(limit))
+    if start is None:
+        start = os.getcwd()
+    path = start
+    prev = None
+    while path != prev and prev not in limit:
+        yield path
+        prev = path
+        path = dirname(path)
+
+
 def search_candidate_paths(candidate_path_list, candidate_name_list=None,
                            priority_paths=None, required_subpaths=[],
                            verbose=None):
@@ -2532,17 +2549,6 @@ def win_shortcut(source, link_name):
             if checkpath(link_name):
                 return True
             raise ctypes.WinError()
-
-
-def ancestor_paths(root=None, limit={}):
-    prev = None
-    if root is None:
-        root = os.getcwd()
-    path = root
-    while path != prev and prev not in limit:
-        yield path
-        prev = path
-        path = dirname(path)
 
 
 def symlink(real_path, link_path, overwrite=False, on_error='raise',
