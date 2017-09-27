@@ -511,6 +511,7 @@ class XCtrl(object):
 
         import re
         terminal_pattern = r'\|'.join([
+            'terminal',
             re.escape('terminator.Terminator'),  # gtk3 terminator
             re.escape('x-terminal-emulator.X-terminal-emulator'),  # gtk2 terminator
         ])
