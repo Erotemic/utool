@@ -372,7 +372,7 @@ class XCtrl(object):
         import utool as ut
         cmdkw = dict(verbose=False, quiet=True, silence=True)
         command = "wmctrl -lx | grep '%s' | awk '{print $1}'" % (pattern,)
-        print(command)
+        # print(command)
         winid_list = ut.cmd(command, **cmdkw)[0].strip().split('\n')
         winid_list = [h for h in winid_list if h]
         winid_list = [int(h, 16) for h in winid_list]
