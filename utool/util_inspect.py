@@ -1422,7 +1422,7 @@ def special_parse_process_python_code(sourcecode):
     #class SpecialVisitor(ast.NodeVisitor):
 
 
-def parse_function_names(sourcecode, top_level=True):
+def parse_function_names(sourcecode, top_level=True, ignore_condition=1):
     """
     Finds all function names in a file without importing it
 
@@ -1447,9 +1447,9 @@ def parse_function_names(sourcecode, top_level=True):
         >>> print(result)
     """
     import ast
+    import utool as ut
     func_names = []
     if six.PY2:
-        import utool as ut
         sourcecode = ut.ensure_unicode(sourcecode)
         encoded = sourcecode.encode('utf8')
         pt = ast.parse(encoded)
@@ -1457,12 +1457,58 @@ def parse_function_names(sourcecode, top_level=True):
         pt = ast.parse(sourcecode)
 
     class FuncVisitor(ast.NodeVisitor):
+
+        def __init__(self):
+            super(FuncVisitor, self).__init__()
+            self.condition_names = None
+            self.condition_id = -9001
+            self.in_condition_chain = False
+
         def visit_If(self, node):
-            if not _node_is_main_if(node):
-                # Ignore the main statement
-                ast.NodeVisitor.generic_visit(self, node)
+            if ignore_condition:
+                return
+            # if ignore_conditional:
+            #     return
+            # Ignore the main statement
+            # print('----')
+            # print('node.test = {!r}'.format(node.test))
+            # print('node.orelse = {!r}'.format(node.orelse))
+            if _node_is_main_if(node):
+                return
+
+            # if isinstance(node.orelse, ast.If):
+            #     # THIS IS AN ELIF
+            #     self.condition_id += 1
+            #     self.in_condition_chain = True
+            #     ast.NodeVisitor.generic_visit(self, node)
+            #     self.in_condition_chain = False
+            #     pass
+            # # TODO: where does else get parsed exactly?
+
+            # Reset the set of conditionals
+            # self.condition_id = 0
+            # self.condition_names = ut.ddict(list)
+
+            # self.in_condition_chain = True
+            ast.NodeVisitor.generic_visit(self, node)
+            # self.in_condition_chain = False
+
+            # if False:
+            #     # IF THIS WAS AN ELSE:
+            #     if self.condition_names is not None:
+            #         # anything defined in all conditions is kosher
+            #         from six.moves import reduce
+            #         common_names = reduce(set.intersection,
+            #                               map(set, self.condition_names.values()))
+            #         self.func_names.extend(common_names)
+            #         self.condition_names = None
 
         def visit_FunctionDef(self, node):
+            # if self.in_condition_chain and self.condition_names is not None:
+            #     # dont immediately add things in conditions. Wait until we can
+            #     # ensure which definitions are common in all conditions.
+            #     self.condition_names[self.condition_id].append(node.name)
+            # else:
             func_names.append(node.name)
             if not top_level:
                 ast.NodeVisitor.generic_visit(self, node)
@@ -1473,6 +1519,7 @@ def parse_function_names(sourcecode, top_level=True):
     try:
         FuncVisitor().visit(pt)
     except Exception:
+        raise
         pass
     return func_names
 
