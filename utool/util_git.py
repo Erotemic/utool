@@ -811,6 +811,7 @@ class Repo(util_dev.NiceRepr):
             python -m utool.util_git --test-rename_branch --old=mymaster --new=ibeis_master
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> # SCRIPT
             >>> from utool.util_git import *  # NOQA
             >>> repo = ut.get_argval('--repo', str, '.')
@@ -877,6 +878,7 @@ def git_sequence_editor_squash(fpath):
         python -m utool.util_git --exec-git_sequence_editor_squash
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> import utool as ut
         >>> from utool.util_git import *  # NOQA

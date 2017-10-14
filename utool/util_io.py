@@ -167,7 +167,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
 
 
 def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='replace'):
-    """ Reads text from a file. Automatically returns utf8.
+    r""" Reads text from a file. Automatically returns utf8.
 
     Args:
         fpath (str): file path

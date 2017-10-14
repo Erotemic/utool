@@ -320,6 +320,7 @@ def augpath(path, augsuf='', augext='', augpref='', augdir=None, newext=None,
         str: newpath
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> path = 'somefile.txt'
         >>> augsuf = '_aug'
@@ -329,6 +330,7 @@ def augpath(path, augsuf='', augext='', augpref='', augdir=None, newext=None,
         somefile_aug.txt
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> path = 'somefile.txt'
         >>> augsuf = '_aug2'
@@ -677,6 +679,7 @@ def touch(fpath, times=None, verbose=True):
         verbose (bool):
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> fpath = '?'
         >>> times = None
@@ -1247,6 +1250,9 @@ def get_modpath(modname, prefer_pkg=False, prefer_main=False):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> utool_dir = dirname(dirname(ut.__file__))
         >>> modname = 'utool.util_path'
         >>> module_dir = get_modpath(modname)
         >>> result = ut.truepath_relative(module_dir, utool_dir)
@@ -1256,6 +1262,9 @@ def get_modpath(modname, prefer_pkg=False, prefer_main=False):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> utool_dir = dirname(dirname(ut.__file__))
         >>> modname = 'utool._internal'
         >>> module_dir = get_modpath(modname, prefer_pkg=True)
         >>> result = ut.ensure_unixslash(module_dir)
@@ -1264,6 +1273,9 @@ def get_modpath(modname, prefer_pkg=False, prefer_main=False):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from utool.util_path import *  # NOQA
+        >>> import utool as ut
+        >>> utool_dir = dirname(dirname(ut.__file__))
         >>> modname = 'utool'
         >>> module_dir = get_modpath(modname)
         >>> result = ut.truepath_relative(module_dir, utool_dir)
@@ -2268,6 +2280,7 @@ def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
         fpath: None
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> fname = 'Inno Setup 5\ISCC.exe'
         >>> search_dpaths = ut.get_install_dirs()
@@ -2660,6 +2673,7 @@ def remove_broken_links(dpath, verbose=True):
         python -m utool remove_broken_links:0
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_path import *  # NOQA
         >>> remove_broken_links('.')

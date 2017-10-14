@@ -127,6 +127,7 @@ def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
         >>> print('flag_list3 = %r' % (flag_list1,))
 
     Example2:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> import vtool as vt
@@ -155,6 +156,7 @@ def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
         >>> #feats4 = [w for w in ut.generate2(gen_feat_worker, arg_list4)]
 
     Example3:
+        >>> # DISABLE_DOCTEST
         >>> # FAILING_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> # Extremely weird case: freezes only if dsize > (313, 313) AND __testwarp was called beforehand.
@@ -377,6 +379,7 @@ def _test_buffered_generator():
         python -m utool.util_parallel --test-_test_buffered_generator
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> from utool.util_parallel import *  # NOQA
         >>> from utool.util_parallel import _test_buffered_generator  # NOQA
@@ -404,6 +407,7 @@ def _test_buffered_generator2():
     Test for numpy calls
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_parallel import *  # NOQA
         >>> _test_buffered_generator2()
     """
@@ -430,6 +434,7 @@ def _test_buffered_generator3():
     ut.generate
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_parallel import *  # NOQA
         >>> _test_buffered_generator3()
     """
@@ -630,6 +635,7 @@ def _test_buffered_generator_img():
         python -m utool.util_parallel --test-_test_buffered_generator_img
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> from utool.util_parallel import *  # NOQA
         >>> from utool.util_parallel import _test_buffered_generator_img  # NOQA
@@ -692,6 +698,7 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
         >>> # number=500) / 1000.0
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_parallel import *  # NOQA
         >>> import utool as ut
@@ -710,6 +717,7 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
         >>> assert result1 == result2, 'inconsistent results'
 
     Example1:
+        >>> # DISABLE_DOCTEST
         >>> # VERYSLLOOWWW_DOCTEST
         >>> from utool.util_parallel import _test_buffered_generator
         >>> _test_buffered_generator2()
@@ -803,6 +811,7 @@ def spawn_background_process(func, *args, **kwargs):
         python -m utool.util_parallel --test-spawn_background_process
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> from utool.util_parallel import *  # NOQA
         >>> import utool as ut

@@ -67,6 +67,7 @@ def inject_instance(self, classkey=None, allow_override=False,
         make_class_method_decorator
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # DOCTEST_DISABLE
         >>> utool.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
         >>> utool.inject_instance(invindex)
@@ -661,7 +662,7 @@ class ReloadingMetaclass(type):
         test_reloading_metaclass - shows a working example of this doctest
 
     Example:
-        >>> # DIABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_class import *  # NOQA
         >>> import utool as ut
         >>> @six.add_metaclass(ut.ReloadingMetaclass)
@@ -793,6 +794,7 @@ def reload_class_methods(self, class_, verbose=True):
         class_ (type): type to reload as
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_class import *  # NOQA
         >>> self = '?'
         >>> class_ = '?'

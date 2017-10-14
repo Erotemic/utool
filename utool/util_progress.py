@@ -290,6 +290,7 @@ class ProgressIter(object):
         >>> assert results1 == results2
 
     Example1:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range
@@ -300,6 +301,7 @@ class ProgressIter(object):
         >>> [ut.get_nth_prime_bruteforce(29) for x in progiter]
 
     Example2:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range
@@ -310,6 +312,7 @@ class ProgressIter(object):
         >>> [ut.get_nth_prime_bruteforce(29) for x in progiter]
 
     Example3:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range

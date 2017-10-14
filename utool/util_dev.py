@@ -551,6 +551,7 @@ class MemoryTracker(object):
     as memory usage difference w.r.t the last report.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool
         >>> import numpy as np
         >>> memtrack = utool.MemoryTracker('[ENTRY]')
@@ -1669,6 +1670,7 @@ def get_object_nbytes(obj, fallback_type=None, follow_pointers=False, exclude_mo
         nBytes = 8
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
         >>> import ibeis
@@ -2337,6 +2339,7 @@ def get_submodules_from_dpath(dpath, only_packages=False, recursive=True):
         python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_dev import *  # NOQA
         >>> import utool as ut
@@ -3040,6 +3043,7 @@ def fix_super_reload(this_class, self):
         self (instance): instance passed into super
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> class Parent(object):
         >>>     def __init__(self):
@@ -3097,6 +3101,7 @@ class Shortlist(NiceRepr):
     Removes smallest items if size grows to large.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> shortsize = 3
         >>> shortlist = Shortlist(shortsize)
         >>> print('shortlist = %r' % (shortlist,))
@@ -3163,6 +3168,7 @@ class PriorityQueue(NiceRepr):
         https://stackoverflow.com/questions/33024215/built-in-max-heap-api-in-python
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> items = dict(a=42, b=29, c=40, d=95, e=10)
         >>> self = ut.PriorityQueue(items)
@@ -3179,6 +3185,7 @@ class PriorityQueue(NiceRepr):
 
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> items = dict(a=(1.0, (2, 3)), b=(1.0, (1, 2)), c=(.9, (3, 2)))
         >>> self = ut.PriorityQueue(items)
@@ -3283,6 +3290,7 @@ class PriorityQueue(NiceRepr):
         Actually this can be quite inefficient
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> import utool as ut
             >>> items = list(zip(range(256), range(256)))
             >>> n = 32

@@ -67,6 +67,7 @@ class SetupRepo(object):
     Maybe make a new interface to SetupRepo?
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_project import *  # NOQA
         >>> import utool as ut
@@ -98,6 +99,7 @@ class SetupRepo(object):
         python -m utool SetupRepo.main --repo=ubelt --codedir=~/code --modname=ubelt -w
 
         Example:
+        >>> # DISABLE_DOCTEST
             >>> # SCRIPT
             >>> from utool.util_project import *  # NOQA
             >>> SetupRepo().main()
@@ -161,6 +163,7 @@ def setup_repo():
         ut.rrrr(0); ut.setup_repo()
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_project import *  # NOQA
         >>> import utool as ut

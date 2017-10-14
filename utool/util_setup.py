@@ -277,6 +277,7 @@ def autogen_sphinx_apidoc():
         python -m utool.util_setup --exec-autogen_sphinx_apidoc
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_setup import *  # NOQA
         >>> autogen_sphinx_apidoc()

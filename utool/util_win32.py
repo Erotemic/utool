@@ -65,6 +65,7 @@ def add_to_win32_PATH(script_fpath, *add_path_list):
         python -m utool.util_win32 --test-add_to_win32_PATH --newpath "C:\Program Files (x86)\Graphviz2.38\bin"
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_win32 import *  # NOQA
         >>> script_fpath = join(ut.truepath('~'), 'Sync/win7/registry', 'UPDATE_PATH.reg')

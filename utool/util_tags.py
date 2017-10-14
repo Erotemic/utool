@@ -68,6 +68,7 @@ def build_alias_map(regex_map, tag_vocab):
     Items at top are given preference.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> tags_list = [['t1', 't2'], [], ['t3'], ['t4', 't5']]
         >>> tag_vocab = ut.flat_unique(*tags_list)
         >>> regex_map = [('t[3-4]', 'A9'), ('t0', 'a0')]

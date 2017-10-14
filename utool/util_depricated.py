@@ -23,7 +23,7 @@ def cartesian(arrays, out=None):
         gist.github.com/hernamesbarbara/68d073f551565de02ac5
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_depricated import *  # NOQA
         >>> arrays = ([1, 2, 3], [4, 5], [6, 7])
         >>> out = cartesian(arrays)
@@ -33,6 +33,7 @@ def cartesian(arrays, out=None):
                [6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7]])
 
     Timeit:
+        >>> # DISABLE_DOCTEST
         >>> # Use itertools product instead
         >>> setup = 'import utool as ut\n' + ut.get_doctest_examples(ut.cartesian)[0][0]
         >>> statements = [

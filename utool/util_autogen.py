@@ -83,6 +83,7 @@ def makeinit(mod_dpath, exclude_modnames=[], use_star=False):
         python -m utool.util_autogen makeinit --modname=ibeis.algo
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_autogen import *  # NOQA
         >>> import utool as ut
@@ -190,6 +191,7 @@ def autofix_codeblock(codeblock, max_line_len=80,
     Uses autopep8 to format a block of code
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> codeblock = ut.codeblock(
             '''
@@ -233,6 +235,7 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
         python -m utool.util_autogen load_func_from_module
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
         >>> import utool as ut
@@ -377,6 +380,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
         python -m utool --tf auto_docstr
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> from utool.util_autogen import *  # NOQA
         >>> ut.util_autogen.rrr(verbose=False)

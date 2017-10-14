@@ -412,6 +412,7 @@ def combine_hashes(bytes_list, hasher=None):
     Only works on bytes
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> x = [b('1111'), b('2222')]
         >>> y = [b('11'), b('11'), b('22'), b('22')]
         >>> bytes_list = y
@@ -575,6 +576,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
 
 
     Example3:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np

@@ -2,6 +2,9 @@
 """
 Helpers for tests
 
+NOTE:
+    DEPRICATE THIS IN FAVOR OF pytest and xdoctest
+
 This module contains a more sane reimplementation of doctest functionality.
 (I.E.  asserts work and you don't have to worry about stdout mucking things up)
 The code isn't super clean though due to time constriaints.  Many functions
@@ -1015,11 +1018,9 @@ def parse_doctest_from_docstr(docstr):
     CommandLine:
         python -m utool.util_tests --exec-parse_doctest_from_docstr
 
-    Setup:
+    Doctest:
         >>> from utool.util_tests import *  # NOQA
         >>> import utool as ut
-
-    Doctest:
         >>> func_or_class = parse_doctest_from_docstr
         >>> func_or_class = ut.list_depth
         >>> #func_or_class = ut.util_depricated.cartesian
@@ -2043,6 +2044,7 @@ def execute_doctest(func, testnum=0, module=None):
     run from ipython notebooks.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
 
     IPython:

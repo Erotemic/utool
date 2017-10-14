@@ -555,6 +555,7 @@ def view_directory(dname=None, fname=None, verbose=True):
         python -m utool.util_cplat --test-view_directory
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # DOCTEST_DISABLE
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
@@ -563,7 +564,7 @@ def view_directory(dname=None, fname=None, verbose=True):
         >>> view_directory(dname, verbose)
 
     Example:
-        >>> # SCRIPT_TEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
         >>> base = ut.ensure_app_cache_dir('utool', 'test_vd')
@@ -665,6 +666,7 @@ def get_app_cache_dir(appname, *args):
 def ensure_app_cache_dir(appname, *args):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
         >>> dpath = ut.ensure_app_cache_dir('utool')
@@ -889,6 +891,7 @@ def cmd(*args, **kwargs):
         >>>     print('L ___ TEST CMD %d ___\n' % (count,))
 
     Example2:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> # ping is not as universal of a command as I thought
         >>> from utool.util_cplat import *  # NOQA
@@ -1134,6 +1137,7 @@ def get_python_dynlib():
         ?: dynlib
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # DOCTEST_DISABLE
         >>> from utool.util_cplat import *  # NOQA
         >>> dynlib = get_python_dynlib()
@@ -1160,6 +1164,7 @@ def get_path_dirs():
         python -m utool.util_cplat --exec-get_path_dirs
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
@@ -1406,6 +1411,7 @@ def print_system_users():
         python -m utool.util_cplat --test-print_system_users
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_cplat import *  # NOQA
         >>> result = print_system_users()
@@ -1452,6 +1458,7 @@ def unload_module(modname):
         python -m utool.util_cplat --test-unload_module
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import sys, gc  # NOQA
         >>> import pyhesaff
         >>> import utool as ut

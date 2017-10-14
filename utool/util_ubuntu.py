@@ -31,6 +31,7 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
         python -m utool.util_ubuntu --exec-add_new_mimetype_association --mime-name=sqlite --ext=.sqlite --exe-fpath=sqlitebrowser
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_ubuntu import *  # NOQA
         >>> import utool as ut
@@ -233,6 +234,7 @@ class XCtrl(object):
         python -m utool.util_ubuntu XCtrl
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # Script
         >>> import utool as ut
         >>> from utool import util_ubuntu
@@ -688,6 +690,7 @@ def monitor_mouse():
         python -m utool.util_ubuntu monitor_mouse
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_ubuntu import *  # NOQA
         >>> import utool as ut

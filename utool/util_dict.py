@@ -130,8 +130,8 @@ def map_dict_keys(func, dict_):
         >>> func = ord
         >>> newdict = map_dict_keys(func, dict_)
         >>> result = ut.repr2(newdict)
-        >>> print(result)
         >>> ut.assert_raises(AssertionError, map_dict_keys, len, dict_)
+        >>> print(result)
         {97: [1, 2, 3], 98: []}
     """
     if not hasattr(func, '__call__'):
@@ -271,6 +271,7 @@ class hashdict(dict):
     other dicts.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> h1 = hashdict({"apples": 1, "bananas":2})
         >>> h2 = hashdict({"bananas": 3, "mangoes": 5})
         >>> h1+h2
@@ -390,13 +391,11 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Returns:
         dict: stacked_dict
 
-    Setup:
-        >>> from utool.util_dict import *  # NOQA
-        >>> import utool as ut
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> # Usual case: multiple dicts as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
         >>> dict_list = [dict1_, dict2_]
@@ -408,6 +407,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: one dict as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict_list = [dict1_]
         >>> dict_stacked = dict_stack2(dict_list)
@@ -418,6 +419,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: zero dicts as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_list = []
         >>> dict_stacked = dict_stack2(dict_list)
         >>> result = ut.repr2(dict_stacked)
@@ -427,6 +430,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example3:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: empty dicts as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_list = [{}]
         >>> dict_stacked = dict_stack2(dict_list)
         >>> result = ut.repr2(dict_stacked)
@@ -436,6 +441,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example4:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: one dict is empty
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': [1, 2], 'b': [2, 3]}
         >>> dict2_ = {}
         >>> dict_list = [dict1_, dict2_]
@@ -447,6 +454,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example5:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: disjoint dicts
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': [1, 2], 'b': [2, 3]}
         >>> dict2_ = {'c': 4}
         >>> dict_list = [dict1_, dict2_]
@@ -718,6 +727,7 @@ def build_conflict_dict(key_list, val_list):
 def assert_keys_are_subset(dict1, dict2):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> dict1 = {1:1, 2:2, 3:3}
         >>> dict2 = {2:3, 3:3}
         >>> assert_keys_are_subset(dict1, dict2)
@@ -1111,6 +1121,7 @@ def dictinfo(dict_):
         str
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> dict_ = {}
         >>> result = dictinfo(dict_)
@@ -1474,6 +1485,7 @@ def dict_filter_nones(dict_):
         python -m utool.util_dict --exec-dict_filter_nones
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> # fails on python 3 because of dict None order
         >>> from utool.util_dict import *  # NOQA
@@ -1760,6 +1772,7 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         }
 
     Example1:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut

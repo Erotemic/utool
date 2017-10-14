@@ -551,6 +551,7 @@ def get_object_methods(obj):
     __dir__ function
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> obj = ut.NiceRepr()
@@ -1161,6 +1162,7 @@ def list_class_funcnames(fname, blank_pats=['    #']):
         list: funcname_list
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> fname = 'util_class.py'
         >>> blank_pats = ['    #']
@@ -1197,6 +1199,7 @@ def list_global_funcnames(fname, blank_pats=['    #']):
         list: funcname_list
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> fname = 'util_class.py'
         >>> blank_pats = ['    #']
@@ -2730,12 +2733,12 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
         >>> with_vals = True
         >>> kwarg_items = parse_kwarg_keys(source, with_vals=with_vals)
         >>> result = ('kwarg_items = %s' % (ut.repr2(kwarg_items, nl=1),))
-        >>> print(result)
         >>> kwarg_keys = ut.take_column(kwarg_items, 0)
         >>> assert 'baz' not in kwarg_keys
         >>> assert 'foo' in kwarg_keys
         >>> assert 'bloop' in kwarg_keys
         >>> assert 'bop' not in kwarg_keys
+        >>> print(result)
         kwarg_items = [
             ('foo', None),
             ('bar', 3),
@@ -3002,6 +3005,7 @@ def infer_function_info(func):
         >>> print(result)
 
     Example1:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut

@@ -413,6 +413,7 @@ def pack_into(text, textwidth=160, breakchars=' ', break_words=True,
     #FIXME:
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> text = "set_image_uris(ibs<139684018194000>, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [u'66ec193a-1619-b3b6-216d-1784b4833b61.jpg', u'd8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg', u'b73b72f4-4acb-c445-e72c-05ce02719d3d.jpg', u'0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg', u'0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg', u'2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg', u'a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png', u'42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg', u'c459d381-fd74-1d99-6215-e42e3f432ea9.jpg', u'33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg', u'97e8ea74-873f-2092-b372-f928a7be30fa.jpg', u'588bc218-83a5-d400-21aa-d499832632b0.jpg', u'163a890c-36f2-981e-3529-c552b6d668a3.jpg'], ) "  # NOQA
         >>> textwidth = 160
         >>> breakchars = ' '
@@ -2065,8 +2066,8 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
         >>> result = fname0 + '\n' + fname1 + '\n' + fname2
         >>> print(result)
         qaid=5_res_big_long_string___________________________________quuid=blahblahblahblahblahblah
-        qaid=5_res_kjrok785_quuid=blahblahblahblahblahblah
-        qaid=5_res_du1&i&5l_quuid=euuaxoyi
+        qaid=5_res_racfntgq_quuid=blahblahblahblahblahblah
+        qaid=5_res_racfntgq_quuid=yvuaffrp
     """
     from utool import util_hash
     fname = fmt_str.format(**fmt_dict)
@@ -2675,10 +2676,10 @@ def chr_range(*args, **kw):
         >>> import utool as ut
         >>> args = (5,)
         >>> result = ut.repr2(chr_range(2, base='a'))
-        >>> print(result)
         >>> print(chr_range(0, 5))
         >>> print(chr_range(0, 50))
         >>> print(chr_range(0, 5, 2))
+        >>> print(result)
         ['a', 'b']
     """
     if len(args) == 1:

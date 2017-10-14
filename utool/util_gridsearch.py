@@ -429,6 +429,7 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
         http://stackoverflow.com/questions/4801403/pyparsing-nested-mutiple-opener-clo
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> string = r'lambda u: sign(u) * abs(u)**3.0 * greater(u, 0)'
@@ -560,6 +561,7 @@ def parse_nestings(string, only_curl=False):
         python -m utool.util_gridsearch parse_nestings:1 --show
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> string = r'lambda u: sign(u) * abs(u)**3.0 * greater(u, 0)'
@@ -578,6 +580,7 @@ def parse_nestings(string, only_curl=False):
         ]
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> string = r'\chapter{Identification \textbf{foobar} workflow}\label{chap:application}'

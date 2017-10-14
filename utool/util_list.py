@@ -532,6 +532,7 @@ def invertible_total_flatten(unflat_list):
         python -m utool.util_list --exec-invertible_total_flatten --show
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
         >>> unflat_list = [0, [[1, 2, 3], 4, 5], 9, [2, 3], [1, [2, 3, 4]], 1, 2, 3]
@@ -1011,6 +1012,7 @@ def isect(list1, list2):
         list: new_list
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
         >>> list2 = [u'featweight_rowid']
@@ -1494,6 +1496,7 @@ def sortedby(item_list, key_list, reverse=False):
         >>> list_    = [1, 2, 3, 4, 5]
         >>> key_list = [2, 5, 3, 1, 5]
         >>> result = utool.sortedby(list_, key_list, reverse=True)
+        >>> print(result)
         [5, 2, 3, 1, 4]
 
     """
@@ -1633,15 +1636,16 @@ def argsort2(indexable, key=None, reverse=False):
         list: indices: list of indices such that sorts the indexable
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> # argsort works on dicts
-        >>> dict_ = {'a': 3, 'b': 2, 'c': 100}
+        >>> dict_ = indexable = {'a': 3, 'b': 2, 'c': 100}
         >>> indices = ut.argsort2(indexable)
-        >>> assert list(ub.take(dict_, indices)) == sorted(dict_.values())
+        >>> assert list(ut.take(dict_, indices)) == sorted(dict_.values())
         >>> # argsort works on lists
         >>> indexable = [100, 2, 432, 10]
         >>> indices = ut.argsort2(indexable)
-        >>> assert list(ub.take(indexable, indices)) == sorted(indexable)
+        >>> assert list(ut.take(indexable, indices)) == sorted(indexable)
         >>> # argsort works on iterators
         >>> indexable = reversed(range(100))
         >>> indices = ut.argsort2(indexable)
@@ -1685,6 +1689,7 @@ def argmax(input_, multi=False):
         %timeit max(input_.items(), key=operator.itemgetter(1))[0]
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *
         >>> import utool as ut
         >>> input_ = [1, 2, 3, 3, 2, 3, 2, 1]
@@ -2109,6 +2114,7 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
         tuple : (samples_list, overflow_samples)
 
     Examples:
+        >>> # DISABLE_DOCTEST
         >>> from utool import util_list
         >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]
         >>> util_list.sample_zip(items_list, 5)

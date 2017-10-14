@@ -72,6 +72,7 @@ def get_argval(argstr, type_=None, default=None):
         python -c "import utool; print([(type(x), x) for x in [utool.get_argval('--quest', float)]])" --quest 42
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
         >>> import sys
         >>> sys.argv.extend(['--spam', 'eggs', '--quest=holy grail', '--ans=42'])

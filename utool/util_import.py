@@ -157,6 +157,7 @@ def possible_import_patterns(modname):
     does not support from x import z, y
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> modname = 'package.submod.submod2.module'
         >>> result = ut.repr3(ut.possible_import_patterns(modname))

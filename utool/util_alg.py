@@ -694,6 +694,7 @@ def setcover_greedy(candidate_sets_dict, items=None, set_weights=None, item_valu
         https://en.wikipedia.org/wiki/Maximum_coverage_problem
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> candidate_sets_dict = {
@@ -1223,9 +1224,9 @@ def knapsack(items, maxweight, method='recursive'):
         >>> total_value1, items_subset1 = knapsack(items, maxweight, method='iterative')
         >>> result =  'total_value = %.2f\n' % (total_value,)
         >>> result += 'items_subset = %r' % (items_subset,)
-        >>> print(result)
         >>> ut.assert_eq(total_value1, total_value)
         >>> ut.assert_eq(items_subset1, items_subset)
+        >>> print(result)
         total_value = 11.00
         items_subset = [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
 
@@ -1242,10 +1243,10 @@ def knapsack(items, maxweight, method='recursive'):
         >>> total_weight = sum([t[1] for t in items_subset])
         >>> print('total_weight = %r' % (total_weight,))
         >>> result =  'total_value = %.2f' % (total_value,)
-        >>> print(result)
         >>> print('items_subset = %r' % (items_subset,))
         >>> print('items_subset1 = %r' % (items_subset1,))
         >>> #assert items_subset1 == items_subset, 'NOT EQ\n%r !=\n%r' % (items_subset1, items_subset)
+        >>> print(result)
         total_value = 15.05
 
     Timeit:
@@ -1290,6 +1291,7 @@ def knapsack_ilp(items, maxweight, verbose=False):
         python -m utool.util_alg knapsack_ilp
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> # Solve https://xkcd.com/287/
@@ -1836,6 +1838,7 @@ def maximum_distance_subset(items, K, verbose=False):
         X[n, k] = max( max( X[m, k - 1] + (sum_{p in prev_solution} dist(o, p)) for o < n and o not in prev solution) ) for m < n.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import scipy.spatial.distance as spdist
         >>> items = [1, 6, 20, 21, 22]
 

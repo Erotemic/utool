@@ -492,6 +492,7 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=
         tuple : (print, print_, printDBG, rrr, profile_)
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inject import *  # NOQA
         >>> from __future__ import absolute_import, division, print_function, unicode_literals
         >>> from util.util_inject import inject

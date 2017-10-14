@@ -1258,6 +1258,7 @@ def paths_to_root(tablename, root, child_to_parents):
         }
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> root = u'annotations'
@@ -1619,6 +1620,7 @@ def all_multi_paths(graph, source, target, data=False):
     path.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from dtool.depcache_control import *  # NOQA
         >>> from utool.util_graph import *  # NOQA
         >>> from dtool.example_depcache import testdata_depc
@@ -1754,6 +1756,7 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
         python -m utool.util_graph bfs_conditional
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import networkx as nx
         >>> import utool as ut
         >>> G = nx.Graph()
@@ -2061,6 +2064,7 @@ def approx_min_num_components(nodes, negative_edges):
         >>> nodes = [1, 2, 3, 4, 5, 6, 7]
         >>> negative_edges = [(1, 2), (2, 3), (4, 5)]
         >>> result = approx_min_num_components(nodes, negative_edges)
+        >>> print(result)
         2
     """
     import utool as ut

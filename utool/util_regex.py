@@ -326,6 +326,7 @@ def parse_docblock(func_code):
         http://code.activestate.com/recipes/576704-python-code-minifier/
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> import inspect
         >>> func_code = inspect.getsource(ut.modify_quoted_strs)
@@ -351,6 +352,7 @@ def parse_python_syntax(text):
     step3: perform context_sensitive_edit
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_regex import *   # NOQA
         >>> import utool
         >>> from os.path import normpath
@@ -393,6 +395,7 @@ def modify_quoted_strs(text, modify_func=None):
         modify_func (None):
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_regex import *  # NOQA
         >>> text = "'just' 'a' sentance with 'strings' in it "
         >>> text2 = "'this' 'text' wont work 'because \'of \"the\"\' \"nesting\"'"
@@ -450,6 +453,7 @@ def regex_parse(regex, text, fromstart=True):
         dict or None:
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_regex import *  # NOQA
         >>> regex = r'(?P<string>\'[^\']*\')'
         >>> text = " 'just' 'a' sentance with 'strings' in it "

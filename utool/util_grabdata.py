@@ -45,6 +45,7 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
         python -m utool.util_grabdata --test-archive_files
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut
@@ -205,6 +206,7 @@ def open_url_in_browser(url, browsername=None, fallback=False):
         python -m utool.util_grabdata --test-open_url_in_browser
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/isdl.php'
@@ -298,6 +300,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
         Delete any partially downloaded files
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/download.php/ispack.exe'
         >>> fpath = download_url(url)
@@ -440,6 +443,7 @@ def experiment_download_multiple_urls(url_list):
         signal.pause()
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> url_list = [
         >>>     'https://lev.cs.rpi.edu/public/installers/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe',   # NOQA
@@ -560,6 +564,7 @@ def clear_test_img_cache():
         python -m utool.util_grabdata --test-clear_test_img_cache
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> testimg_fpath = clear_test_img_cache()
@@ -935,6 +940,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
         >>> print(result)
 
     Examples:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> zipped_url = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
         >>> zipped_url = 'http://www.spam.com/eggs/data.zip'
