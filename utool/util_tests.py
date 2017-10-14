@@ -1212,16 +1212,6 @@ def get_doctest_examples(func_or_class, modpath=None):
             ut.printex(ex, '[util-test] error getting function line number')
 
     docstr = ut.get_docstr(func_or_class)
-    # TODO: maybe replace this with ubelt
-    # if False:
-    #     try:
-    #         import ubelt as ub
-    #         modpath = ut.get_modpath(sys.modules[func_or_class.__module__])
-    #         callname = func_or_class.__name__
-    #         examples = list(ub.util_test.parse_docstr_examples(
-    #             docstr, callname, modpath))
-    #     except Exception:
-    #         pass
 
     (testheader_list, testsrc_list, testwant_list,
      testlineoffset_list) = parse_doctest_from_docstr(docstr)
@@ -1630,11 +1620,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             want = None
             try:
                 if VERBOSE_TEST:
-                    print('attempting ubelt hack')
+                    print('attempting xdoctest hack')
                 # hack to get classmethods to read their example using
-                # the ubelt port
-                from ubelt.meta import docscrape_google
-                import ubelt.util_test
+                # the xdoctest port
+                from xdoctest import docscrape_google
+                from xdoctest import core as xdoc_core
+                from xdoctest import static_analysis as static
                 if func_.__doc__ is None:
                     raise TypeError
                 blocks = docscrape_google.split_google_docblocks(func_.__doc__)
@@ -1646,7 +1637,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
                 if len(example_blocks) == 0:
                     if VERBOSE_TEST:
-                        print('ubelt found no blocks')
+                        print('xdoctest found no blocks')
                     raise KeyError
 
                 callname = test_funcname_
@@ -1655,10 +1646,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                     # print('modname = %r' % (modname,))
                     # print('callname = %r' % (callname,))
                     # print('num = %r' % (num,))
-                    example = ubelt.util_test.DocExample(
-                        modname, callname, block, num)
-                    src = example.src
-                    want = example.want
+                    modpath = static.modname_to_modpath(modname)
+                    example = xdoc_core.DocTest(
+                        modpath=modpath, callname=callname, docsrc=block, num=num)
+                    src = example.format_src(colored=False, want=False,
+                                             linenos=False)
+                    want = '\n'.join(list(example.wants()))
                     testtup = TestTuple(test_funcname_, num, src, want=want,
                                         flag='--exec-' + test_funcname_,
                                         frame_fpath=frame_fpath, mode='exec',
@@ -1671,7 +1664,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 # src = '\n'.join([line[4:] for line in src.split('\n')])
             except (ImportError, KeyError, TypeError):
                 if VERBOSE_TEST:
-                    print('ubelt hack failed')
+                    print('xdoctest hack failed')
                 # varargs = ut.get_cmdline_varargs()
                 varargs = force_enable_testnames[1:]
                 # Create dummy doctest
@@ -1795,9 +1788,8 @@ def show_was_requested():
 
 
 try:
-    # Use ExitTestException from ubelt if possible
-    import ubelt as ub
-    ExitTestException = ub.util_test.ExitTestException
+    # Use ExitTestException from xdoctest if possible
+    from xdoctest.core import ExitTestException
 except ImportError:
     class ExitTestException(Exception):
         pass
