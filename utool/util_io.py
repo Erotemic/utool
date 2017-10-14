@@ -424,6 +424,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         http://docs.h5py.org/en/latest/mpi.html
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # ENABLE_IF HAS_H5PY
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
@@ -441,6 +442,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         >>> assert ut.delete(fpath)
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # ENABLE_IF HAS_H5PY
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
@@ -457,6 +459,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         >>> assert ut.delete(fpath)
 
     Timeit:
+        >>> # DISABLE_DOCTEST
         >>> # cPkl / numpy seems to be faster with this initial implementation
         >>> import utool as ut
         >>> data = (rng.rand(1000000, 128) * 255).astype(np.uint8).copy()
