@@ -2956,7 +2956,7 @@ def argparse_funckw(func, defaults={}, **kwargs):
         python -m utool.util_inspect argparse_funckw
 
     SeeAlso:
-        argparse_funckw
+        exec_funckw
         recursive_parse_kwargs
         parse_kwarg_keys
 

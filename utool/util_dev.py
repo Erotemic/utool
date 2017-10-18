@@ -2502,13 +2502,37 @@ def execstr_funckw(func):
 
     SeeAlso:
         ut.exec_func_src
+        ut.argparse_funckw
     """
     import utool as ut
     funckw = ut.get_func_kwargs(func)
     return ut.execstr_dict(funckw, explicit=True)
 
 
+def exec_argparse_funckw(func, globals_=None, defaults={}, **kwargs):
+    """
+    for doctests kwargs
+
+    SeeAlso:
+        ut.exec_func_src
+        ut.argparse_funckw
+    """
+    import utool as ut
+    funckw = ut.get_func_kwargs(func)
+    funckw.update(defaults)
+    parsekw = ut.argparse_dict(funckw, **kwargs)
+    if globals_:
+        globals_.update(parsekw)
+    return parsekw
+    # execstr = ut.execstr_dict(parsekw, explicit=True)
+    # exec(execstr, globals_)
+
+
 def exec_funckw(func, globals_):
+    """
+    SeeAlso:
+        ut.argparse_funckw
+    """
     exec(execstr_funckw(func), globals_)
 
 
