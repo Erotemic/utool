@@ -3054,7 +3054,7 @@ class NamedPartial(functools.partial, NiceRepr):
         return self.__name__
 
 
-def fix_super_reload(this_class, self):
+def super2(this_class, self):
     """
     Fixes an error where reload causes super(X, self) to raise an exception
 
@@ -3067,6 +3067,67 @@ def fix_super_reload(this_class, self):
         self (instance): instance passed into super
 
     Example:
+        >>> # ENABLE_DOCTEST
+        >>> # If the parent module is reloaded, the super call may fail
+        >>> # super(Foo, self).__init__()
+        >>> # This will work around the problem most of the time
+        >>> # ut.super2(Foo, self).__init__()
+        >>> class Parent(object):
+        >>>     def __init__(self):
+        >>>         self.parent_attr = 'bar'
+        >>> class ChildSafe(Parent):
+        >>>     def __init__(self):
+        >>>         ut.super2(ChildSafe, self).__init__()
+        >>> class ChildDanger(Parent):
+        >>>     def __init__(self):
+        >>>         super(ChildDanger, self).__init__()
+        >>> # initial loading is fine
+        >>> safe1 = ChildSafe()
+        >>> danger1 = ChildDanger()
+        >>> assert safe1.parent_attr == 'bar'
+        >>> assert danger1.parent_attr == 'bar'
+        >>> # But if we reload (via simulation), then there will be issues
+        >>> Parent_orig = Parent
+        >>> ChildSafe_orig = ChildSafe
+        >>> ChildDanger_orig = ChildDanger
+        >>> # reloading the changes the outer classname
+        >>> # but the inner class is still bound via the closure
+        >>> # (we simulate this by using the old functions)
+        >>> # (note in reloaded code the names would not change)
+        >>> class Parent_new(object):
+        >>>     __init__ = Parent_orig.__init__
+        >>> Parent_new.__name__ = 'Parent'
+        >>> class ChildSafe_new(Parent_new):
+        >>>     __init__ = ChildSafe_orig.__init__
+        >>> ChildSafe_new.__name__ = 'ChildSafe'
+        >>> class ChildDanger_new(Parent_new):
+        >>>     __init__ = ChildDanger_orig.__init__
+        >>> ChildDanger_new.__name__ = 'ChildDanger'
+        >>> #
+        >>> safe2 = ChildSafe_new()
+        >>> assert safe2.parent_attr == 'bar'
+        >>> import pytest
+        >>> with pytest.raises(TypeError):
+        >>>     danger2 = ChildDanger_new()
+    """
+    return super(fix_super_reload(this_class, self), self)
+
+
+def fix_super_reload(this_class, self):
+    """
+    Fixes an error where reload causes super(X, self) to raise an exception
+
+    The problem is that reloading causes X to point to the wrong version of the
+    class.  This function fixes the problem by searching and returning the
+    correct version of the class. See example for proper usage.
+
+    USE `ut.super2` INSTEAD
+
+    Args:
+        this_class (class): class passed into super
+        self (instance): instance passed into super
+
+    DisableExample:
         >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> class Parent(object):
@@ -3078,7 +3139,7 @@ def fix_super_reload(this_class, self):
         >>>         # Dont do this, it will error if you reload
         >>>         # super(Foo, self).__init__()
         >>>         # Do this instead
-        >>>         _Foo = ut.fix_super_reload(Foo, self)
+        >>>         _Foo = ut.super2(Foo, self)
         >>>         super(_Foo, self).__init__()
         >>> self = Foo()
         >>> assert self.parent_attr == 'bar'
