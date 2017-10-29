@@ -449,16 +449,18 @@ class Repo(util_dev.NiceRepr):
     def add_script(repo, key, script):
         repo.scripts[key] = script
 
-    def clone(repo):
+    def clone(repo, recursive=False):
         print('[git] check repo exists at %s' % (repo.dpath))
+        if recursive:
+            args = '--recursive'
+        else:
+            args = ''
         if not exists(repo.dpath):
             _cd(dirname(repo.dpath))
             print('repo.default_branch = %r' % (repo.default_branch,))
-            if repo.default_branch is None:
-                _syscmd('git clone {url}'.format(url=repo.url))
-            else:
-                _syscmd('git clone -b {branchname} {url}'.format(
-                    branchname=repo.default_branch, url=repo.url))
+            if repo.default_branch is not None:
+                args += ' -b {}'.format(repo.default_branch)
+            _syscmd('git clone {args} {url}'.format(args=args, url=repo.url))
 
     def owner(repo):
         url_parts = re.split('[/:]', repo.url)
