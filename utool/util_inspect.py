@@ -2063,8 +2063,8 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
     SeeAlso:
         ut.execstr_funckw
     """
-    if keys is not None:
-        key_list = keys
+    if keys is None:
+        keys = key_list
     import utool as ut
     sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
     if update is None:
@@ -2080,27 +2080,29 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
     globals_new = globals_.copy()
     if locals_ is not None:
         globals_new.update(locals_)
+        # globals_new.update({k: v for k, v in locals_.items()
+        #                     if k not in globals_new})
     orig_globals = globals_new.copy()
     #six.exec_(sourcecode, globals_new, locals_)
     if verbose:
         print(ut.color_text(sourcecode, 'python'))
     six.exec_(sourcecode, globals_new)
     # Draw intermediate steps
-    if key_list is None:
+    if keys is None:
         #return locals_
         # Remove keys created in function execution
         ut.delete_keys(globals_new, orig_globals.keys())
         if update:
             # update input globals?
             globals_.update(globals_new)
-        # ~~ TODO autodetermine the key_list from the function vars
+        # ~~ TODO autodetermine the keys from the function vars
         return globals_new
     else:
         if update:
             # update input globals?
             globals_.update(globals_new)
-        #var_list = ut.dict_take(locals_, key_list)
-        var_list = ut.dict_take(globals_new, key_list)
+        #var_list = ut.dict_take(locals_, keys)
+        var_list = ut.dict_take(globals_new, keys)
         return var_list
 
 
