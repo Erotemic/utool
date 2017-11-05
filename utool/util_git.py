@@ -491,6 +491,7 @@ class Repo(util_dev.NiceRepr):
             new_repo_url = new_repo_url.replace(old, new)
         # Inplace change
         repo.url = new_repo_url
+        print('new format repo.url = {!r}'.format(repo.url))
 
     def check_importable(repo):
         import utool as ut
