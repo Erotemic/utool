@@ -2136,6 +2136,27 @@ def exec_func_src2(func, globals_=None, locals_=None, sentinal=None,
     return locals2_
 
 
+def exec_func_src3(func, globals_, sentinal=None, verbose=False,
+                   start=None, stop=None):
+    """
+    execs a func and returns requested local vars.
+
+    Does not modify globals unless update=True (or in IPython)
+
+    SeeAlso:
+        ut.execstr_funckw
+    """
+    import utool as ut
+    sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
+    if sentinal is not None:
+        sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
+    if start is not None or stop is not None:
+        sourcecode = '\n'.join(sourcecode.splitlines()[slice(start, stop)])
+    if verbose:
+        print(ut.color_text(sourcecode, 'python'))
+    six.exec_(sourcecode, globals_)
+
+
 def execstr_func_doctest(func, num=0, start_sentinal=None, end_sentinal=None):
     """
     execs a func doctest and returns requested local vars.
