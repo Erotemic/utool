@@ -1962,7 +1962,7 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
 
     """
 
-    # FIXME: continue to fix ansii
+    # FIXME: continue to fix ansi
     if pos is None:
         # Align all occurences
         num_pos = max([line.count(character) for line in line_list])
