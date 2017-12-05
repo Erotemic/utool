@@ -3305,6 +3305,9 @@ class PriorityQueue(NiceRepr):
     def __len__(self):
         return len(self._dict)
 
+    def __eq__(self, other):
+        return self._dict == other._dict
+
     def __nice__(self):
         return 'size=%r' % (len(self),)
 
