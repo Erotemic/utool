@@ -1541,7 +1541,46 @@ def _node_is_main_if(node):
     return False
 
 
-def parse_import_names(sourcecode, top_level=True):
+def parse_project_imports(dpath):
+    """
+    dpath = ub.truepath('~/code/clab/clab')
+
+    Script:
+        >>> dpath = ut.get_argval('--dpath')
+        >>> parse_project_imports()
+
+    """
+    import ubelt as ub
+    import glob
+    from os.path import join, exists
+    package_modules = set()
+    for fpath in glob.glob(join(dpath, '**/*.py'), recursive=True):
+        try:
+            sourcecode = ub.readfrom(fpath)
+            _, modules = ut.parse_import_names(sourcecode, False, fpath=fpath)
+            for mod in modules:
+                package_modules.add(mod.split('.')[0])  # just bases
+            if 'clab/live' in package_modules:
+                raise ValueError()
+                break
+        except SyntaxError:
+            print('encountered SyntaxError in fpath = {!r}'.format(fpath))
+    import warnings
+    import inspect
+    stdlibs = [dirname(warnings.__file__), dirname(inspect.__file__)]
+    def is_module_batteries_included(m):
+        if m in sys.builtin_module_names:
+            return True
+        for p in stdlibs:
+            if exists(join(p, m + '.py')):
+                return True
+            if exists(join(p, m)):
+                return True
+    used_modules = sorted([m for m in package_modules if not is_module_batteries_included(m)])
+    print('used_modules non-buildin modules = {}'.format(ub.repr2(used_modules)))
+
+
+def parse_import_names(sourcecode, top_level=True, fpath=None):
     """
     Finds all function names in a file without importing it
 
@@ -1578,6 +1617,8 @@ def parse_import_names(sourcecode, top_level=True):
     else:
         pt = ast.parse(sourcecode)
 
+    modules = []
+
     class ImportVisitor(ast.NodeVisitor):
 
         def _parse_alias_list(self, aliases):
@@ -1592,9 +1633,28 @@ def parse_import_names(sourcecode, top_level=True):
             self._parse_alias_list(node.names)
             self.generic_visit(node)
 
+            for alias in node.names:
+                modules.append(alias.name)
+
         def visit_ImportFrom(self, node):
             self._parse_alias_list(node.names)
             self.generic_visit(node)
+
+            for alias in node.names:
+                prefix = ''
+                if node.level:
+                    if fpath is not None:
+                        from xdoctest import static_analysis as static
+                        modparts = static.split_modpath(os.path.abspath(fpath))[1].replace('\\', '/').split('/')
+                        parts = modparts[:-node.level]
+                        # parts = os.path.split(static.split_modpath(os.path.abspath(fpath))[1])[:-node.level]
+                        prefix = '.'.join(parts) + '.'
+                        # prefix = '.'.join(os.path.split(fpath)[-node.level:]) + '.'
+                    else:
+                        prefix = '.' * node.level
+                # modules.append(node.level * '.' + node.module + '.' + alias.name)
+                # modules.append(prefix + node.module + '.' + alias.name)
+                modules.append(prefix + node.module)
 
         def visit_FunctionDef(self, node):
             # Ignore modules imported in functions
@@ -1615,7 +1675,7 @@ def parse_import_names(sourcecode, top_level=True):
         ImportVisitor().visit(pt)
     except Exception:
         pass
-    return import_names
+    return import_names, modules
 
 
 def find_funcs_called_with_kwargs(sourcecode, target_kwargs_name='kwargs'):
