@@ -1580,7 +1580,7 @@ def parse_project_imports(dpath):
     print('used_modules non-buildin modules = {}'.format(ub.repr2(used_modules)))
 
 
-def parse_import_names(sourcecode, top_level=True, fpath=None):
+def parse_import_names(sourcecode, top_level=True, fpath=None, branch=False):
     """
     Finds all function names in a file without importing it
 
@@ -1668,9 +1668,11 @@ def parse_import_names(sourcecode, top_level=True, fpath=None):
                 # ast.NodeVisitor.generic_visit(self, node)
 
         def visit_If(self, node):
-            if not _node_is_main_if(node):
-                # Ignore the main statement
-                self.generic_visit(node)
+            if not branch:
+                # TODO: determine how to figure out if a name is in all branches
+                if not _node_is_main_if(node):
+                    # Ignore the main statement
+                    self.generic_visit(node)
     try:
         ImportVisitor().visit(pt)
     except Exception:
