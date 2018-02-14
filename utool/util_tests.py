@@ -1790,10 +1790,13 @@ def show_was_requested():
 
 try:
     # Use ExitTestException from xdoctest if possible
-    from xdoctest.core import ExitTestException
+    from xdoctest import ExitTestException
 except ImportError:
-    class ExitTestException(Exception):
-        pass
+    try:
+        from xdoctest.core import ExitTestException
+    except ImportError:
+        class ExitTestException(Exception):
+            pass
 
 
 def qt4ensure():
