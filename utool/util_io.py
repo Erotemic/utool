@@ -15,11 +15,6 @@ try:
     HAS_NUMPY = True
 except ImportError as ex:
     HAS_NUMPY = False
-try:
-    import h5py
-    HAS_H5PY = True
-except ImportError:
-    HAS_H5PY = False
 
 print, rrr, profile = util_inject.inject2(__name__)
 
@@ -425,7 +420,6 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> # ENABLE_IF HAS_H5PY
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
@@ -443,7 +437,6 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> # ENABLE_IF HAS_H5PY
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
@@ -559,6 +552,8 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
     Notes:
         pip install mpi4py
     """
+    import h5py
+
     verbose = _rectify_verb_write(verbose)
     if verbose:
         print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
@@ -618,6 +613,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
 
 
 def load_hdf5(fpath, verbose=None):
+    import h5py
     fname = basename(fpath)
     #file_ = h5py.File(fpath, 'r')
     #file_.values()

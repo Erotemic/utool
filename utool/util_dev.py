@@ -1315,10 +1315,10 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> result = str(utool.repr4(stats, nl=1, precision=4, with_dtype=True))
         >>> print(result)
         {
-            'mean': np.array([ 0.5206,  0.6425], dtype=np.float32),
-            'std': np.array([ 0.2854,  0.2517], dtype=np.float32),
-            'max': np.array([ 0.9637,  0.9256], dtype=np.float32),
-            'min': np.array([ 0.0202,  0.0871], dtype=np.float32),
+            'mean': np.array([0.5206, 0.6425], dtype=np.float32),
+            'std': np.array([0.2854, 0.2517], dtype=np.float32),
+            'max': np.array([0.9637, 0.9256], dtype=np.float32),
+            'min': np.array([0.0202, 0.0871], dtype=np.float32),
             'nMin': np.array([1, 1], dtype=np.int32),
             'nMax': np.array([1, 1], dtype=np.int32),
             'shape': (10, 2),
@@ -3072,6 +3072,7 @@ def super2(this_class, self):
         >>> # super(Foo, self).__init__()
         >>> # This will work around the problem most of the time
         >>> # ut.super2(Foo, self).__init__()
+        >>> import utool as ut
         >>> class Parent(object):
         >>>     def __init__(self):
         >>>         self.parent_attr = 'bar'

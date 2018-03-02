@@ -2092,12 +2092,13 @@ def norm_zero_one(array, dim=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
         >>> dim = None
         >>> array_norm = norm_zero_one(array, dim)
-        >>> result = np.array_str(array_norm, precision=3)
+        >>> result = ut.repr2(list(array_norm), precision=3)
         >>> print(result)
-        [ 0.512  0.     0.049  0.024  0.22   1.   ]
+        [0.512, 0.000, 0.049, 0.024, 0.220, 1.000]
     """
     if not util_type.is_float(array):
         array = array.astype(np.float32)
