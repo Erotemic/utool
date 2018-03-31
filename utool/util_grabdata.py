@@ -329,7 +329,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
     if new:
         import requests
         #from contextlib import closing
-        con = requests.get(url, stream=True)
+        con = requests.get(url, stream=True, timeout=TIMEOUT)
         try:
             #import math
             content_length = con.headers.get('content-length', None)
