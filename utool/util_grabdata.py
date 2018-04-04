@@ -22,6 +22,7 @@ print, rrr, profile = util_inject.inject2(__name__)
 QUIET = util_arg.QUIET
 BadZipfile = zipfile.BadZipfile
 
+TIMEOUT = 5.0
 
 def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
                   overwrite=False, verbose=True, common_prefix=False):
@@ -328,7 +329,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
     if new:
         import requests
         #from contextlib import closing
-        con = requests.get(url, stream=True)
+        con = requests.get(url, stream=True, timeout=TIMEOUT)
         try:
             #import math
             content_length = con.headers.get('content-length', None)
@@ -383,7 +384,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
         # iri error
         print('Detected iri error: %r' % (ex,))
         print('Falling back to requests.get (no progress is shown)')
-        resp = requests.get(url)
+        resp = requests.get(url, timeout=TIMEOUT)
         with open(filename, 'wb') as file_:
             file_.write(resp.content)
     if verbose:
@@ -660,7 +661,7 @@ def grab_selenium_chromedriver(redownload=False):
         # TODO: make this work for windows as well
         if ut.LINUX and ut.util_cplat.is64bit_python():
             import requests
-            rsp = requests.get('http://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+            rsp = requests.get('http://chromedriver.storage.googleapis.com/LATEST_RELEASE', timeout=TIMEOUT)
             assert rsp.status_code == 200
             url = 'http://chromedriver.storage.googleapis.com/' + rsp.text.strip() + '/chromedriver_linux64.zip'
             ut.grab_zipped_url(url, download_dir=chromedriver_dpath, redownload=True)
@@ -758,7 +759,7 @@ def grab_file_remote_hash(file_url, hash_list, verbose=False):
         # Get the actual hash from the remote server, save in memory
         try:
             with ut.Timer('checking remote hash', verbose=verbose):
-                resp = requests.get(hash_url)
+                resp = requests.get(hash_url, timeout=TIMEOUT)
                 hash_remote = six.text_type(resp.content.strip())
         except requests.exceptions.ConnectionError:
             hash_remote = ''
