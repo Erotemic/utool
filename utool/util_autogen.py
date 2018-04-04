@@ -917,6 +917,8 @@ def make_default_module_maintest(modname, modpath=None, test_code=None):
     """
     make_default_module_maintest
 
+    DEPRICATE
+
     TODO: use path relative to home dir if the file is a script
 
     Args:

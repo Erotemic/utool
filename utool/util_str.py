@@ -2720,6 +2720,9 @@ def autoformat_pep8(sourcecode, **kwargs):
         'recursive': False,
         'select': ,
         'verbose': 0,
+
+    Ignore:
+        autopep8 --recursive --in-place --ignore E126,E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,W602,E266,N801,N802,N803,N805,N806,N811,N813 .
     """
     import autopep8
     default_ignore = {
