@@ -100,7 +100,7 @@ elif six.PY3:
                 return str(func).replace('<built-in function', '<')
             else:
                 try:
-                    return getattr(func, '__class__').split('.')[-1]
+                    return str(getattr(func, '__class__')).strip("<class '").strip("'>").split('.')[-1]
                 except:
                     raise original
     def set_funcname(func, newname):
