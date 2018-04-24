@@ -760,7 +760,7 @@ def ensure_timedelta(str_or_num):
         return str_or_num
 
 
-def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
+def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=True):
     """
     TODO: ranme to datetimestr
     """
@@ -778,7 +778,7 @@ def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=False):
         #return 'NA'
 
 
-def unixtime_to_datetimeobj(unixtime, isutc=False):
+def unixtime_to_datetimeobj(unixtime, isutc=True):
     try:
         if unixtime == -1:
             return 'NA'
@@ -1012,7 +1012,7 @@ def get_posix_timedelta_str2(posixtime):
 #    return datetime.datetime.now().year
 
 
-def get_timestats_str(unixtime_list, newlines=1, full=True, isutc=False):
+def get_timestats_str(unixtime_list, newlines=1, full=True, isutc=True):
     r"""
     Args:
         unixtime_list (list):
@@ -1070,7 +1070,7 @@ def get_timestats_str(unixtime_list, newlines=1, full=True, isutc=False):
     return timestat_str
 
 
-def get_timestats_dict(unixtime_list, full=True, isutc=False):
+def get_timestats_dict(unixtime_list, full=True, isutc=tr):
     import utool as ut
     unixtime_stats = ut.get_stats(unixtime_list, use_nan=True)
     datetime_stats = {}
