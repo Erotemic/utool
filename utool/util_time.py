@@ -1070,7 +1070,7 @@ def get_timestats_str(unixtime_list, newlines=1, full=True, isutc=True):
     return timestat_str
 
 
-def get_timestats_dict(unixtime_list, full=True, isutc=tr):
+def get_timestats_dict(unixtime_list, full=True, isutc=True):
     import utool as ut
     unixtime_stats = ut.get_stats(unixtime_list, use_nan=True)
     datetime_stats = {}
