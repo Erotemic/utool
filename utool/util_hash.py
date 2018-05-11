@@ -1003,7 +1003,7 @@ def augment_uuid(uuid_, *hashables):
     # Python 2 and 3 diverge here because repr returns
     # ascii data in python2 and unicode text in python3
     # it would be nice to
-    warnings.warn('[ut] should not use repr when hashing', RuntimeWarning)
+    # warnings.warn('[ut] should not use repr when hashing', RuntimeWarning)
     def tmprepr(x):
         y = repr(x)
         # hack to remove u prefix
