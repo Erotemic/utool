@@ -421,7 +421,7 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data, self.ext)
 
 
-@util_decor.memoize
+#@util_decor.memoize
 def make_utool_json_encoder(allow_pickle=False):
     """
     References:

@@ -719,7 +719,7 @@ def get_dev_hints():
         ('invVR_mats2x2', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations')),
         ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
-        ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        # ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('img_in', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('arr', ('ndarray', '')),
         ('arr_', ('ndarray', '')),
@@ -760,7 +760,7 @@ def get_dev_hints():
         ('.*_str' , ('str', None)),
         ('.*_?list_?' , ('list', None)),
         ('.*_?dict_?' , ('dict', None)),
-        ('dict_?\d?' , ('dict', None)),
+        # ('dict_?\d?' , ('dict', None)),
         ('.*_tup' , ('tuple', None)),
         ('.*_sublist' , ('list', None)),
         ('fpath[0-9]?' , ('str', 'file path string')),
@@ -2451,7 +2451,10 @@ def get_func_argspec(func):
         return argspec
     if isinstance(func, property):
         func = func.fget
-    argspec = inspect.getargspec(func)
+    try:
+        argspec = inspect.getargspec(func)
+    except Exception:
+        argspec = inspect.getfullargspec(func)
     return argspec
 
 
