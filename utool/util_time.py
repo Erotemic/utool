@@ -377,7 +377,7 @@ def determine_timestamp_format(datetime_str, warn=True):
                       clean_datetime_str)
             clean_datetime_str = clean_datetime_str[:-6]
 
-    year_regex  = '(\d\d)?\d\d'
+    year_regex  = r'(\d\d)?\d\d'
     month_regex = '[0-1]?[0-9]'
     day_regex   = '[0-3]?[0-9]'
 

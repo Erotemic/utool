@@ -654,7 +654,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         text = hashstr2[:hashlen]
     return text
 
-"""
+r"""
 def valid_filename_ascii_chars():
     # Find invalid chars
     ntfs_inval = '< > : " / \ | ? *'.split(' ')
