@@ -47,7 +47,7 @@ after_success:
     - codecov 
     - gpg --version
     - gpg2 --version
-    - export GPG_EXECUTABLE=gpg
+    - export GPG_EXECUTABLE=gpg2
     - openssl version
     - | 
         __heredoc__='''
