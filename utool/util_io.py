@@ -15,11 +15,6 @@ try:
     HAS_NUMPY = True
 except ImportError as ex:
     HAS_NUMPY = False
-try:
-    import h5py
-    HAS_H5PY = True
-except ImportError:
-    HAS_H5PY = False
 
 print, rrr, profile = util_inject.inject2(__name__)
 
@@ -101,7 +96,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
     CommandLine:
         python -m utool.util_io --exec-write_to --show
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_io import *  # NOQA
         >>> import utool as ut
@@ -144,8 +139,9 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
             file_.writelines(to_write)
         else:
             # Ensure python2 writes in bytes
-            if six.PY2 and isinstance(to_write, unicode):
-                to_write = to_write.encode('utf8')
+            if six.PY2:
+                if isinstance(to_write, unicode):  # NOQA
+                    to_write = to_write.encode('utf8')
             try:
                 file_.write(to_write)
             except UnicodeEncodeError as ex:
@@ -166,7 +162,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
 
 
 def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='replace'):
-    """ Reads text from a file. Automatically returns utf8.
+    r""" Reads text from a file. Automatically returns utf8.
 
     Args:
         fpath (str): file path
@@ -261,12 +257,13 @@ def save_cPkl(fpath, data, verbose=None, n=None):
 
 
 def load_cPkl(fpath, verbose=None, n=None):
-    """
+    r"""
     Loads a pickled file with optional verbosity.
     Aims for compatibility between python2 and python3.
 
 
-    TestPickleExtentsSimple:
+    Ignore:
+        >>> import utool as ut
         >>> def makedata_simple():
         >>>     data = np.empty((500, 2 ** 20), dtype=np.uint8) + 1
         >>>     return data
@@ -284,7 +281,7 @@ def load_cPkl(fpath, verbose=None, n=None):
         >>> data = ut.load_cPkl(fpath)
         >>> memtrack.report()
 
-    TestPickleExtentsComplex:
+    Ignore:
         >>> def makedata_complex():
         >>>     rng = np.random.RandomState(42)
         >>>     item1 = np.empty((100, 2 ** 20), dtype=np.uint8) + 1
@@ -311,15 +308,15 @@ def load_cPkl(fpath, verbose=None, n=None):
         >>> data2 = ut.load_cPkl(fpath)
         >>> memtrack.report()
 
-    TestPickleCacher:
+    Ignore:
+        >>> import utool as ut
         >>> memtrack = ut.MemoryTracker()
         >>> cacher = ut.Cacher('tmp', cache_dir='.', cfgstr='foo')
         >>> data3 = cacher.ensure(makedata_complex)
         >>> memtrack.report()
         >>> data4 = cacher.ensure(makedata_complex)
         >>> memtrack.report()
-
-
+        >>> import utool as ut
         >>> memtrack = ut.MemoryTracker()
         >>> fpath = '/home/joncrall/Desktop/smkcache/inva_PZ_Master1VUUIDS((5616)vxihbjwtggyovrto)_vpgwpcafbjkkpjdf.cPkl'
         >>> print(ut.get_file_nBytes_str(fpath))
@@ -422,8 +419,8 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         http://docs.h5py.org/en/latest/quick.html
         http://docs.h5py.org/en/latest/mpi.html
 
-    Example:
-        >>> # ENABLE_IF HAS_H5PY
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
@@ -439,8 +436,8 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         >>> assert np.all(data == data2)
         >>> assert ut.delete(fpath)
 
-    Example:
-        >>> # ENABLE_IF HAS_H5PY
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
         >>> import utool as ut
@@ -455,7 +452,8 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         >>> assert all([np.all(data[key] == data2[key]) for key in data.keys()])
         >>> assert ut.delete(fpath)
 
-    Timeit:
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> # cPkl / numpy seems to be faster with this initial implementation
         >>> import utool as ut
         >>> data = (rng.rand(1000000, 128) * 255).astype(np.uint8).copy()
@@ -555,6 +553,8 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
     Notes:
         pip install mpi4py
     """
+    import h5py
+
     verbose = _rectify_verb_write(verbose)
     if verbose:
         print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
@@ -614,6 +614,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
 
 
 def load_hdf5(fpath, verbose=None):
+    import h5py
     fname = basename(fpath)
     #file_ = h5py.File(fpath, 'r')
     #file_.values()

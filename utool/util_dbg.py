@@ -129,6 +129,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
         python -m utool.util_dbg --test-execstr_dict
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_dbg import *  # NOQA
         >>> my_dictionary = {'a': True, 'b': False}
@@ -1132,15 +1133,17 @@ def formatex(ex, msg='[!?] Caught exception',
         >>>         return result
         >>> result = failfunc().replace('\n\n', '')
         >>> print(result)
+
         <!!! WARNING !!!>
         Traceback (most recent call last):
           File "<string>", line 15, in failfunc
         Exception: test exception. This is not an error[test] Testing Exception
-        <type 'exceptions.Exception'>: test exception. This is not an error
+        <class 'Exception'>: test exception. This is not an error
         [test] N = 0
-        [test] !!! foo not populated!
+        [test] foo = NameError (this likely due to a misformatted printex and is not related to the exception)
         [test] tb = True
         </!!! WARNING !!!>
+
     """
     # Get error prefix and local info
     if prefix is None:

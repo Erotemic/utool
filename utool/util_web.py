@@ -118,6 +118,11 @@ def render_html(html_str):
     from os.path import abspath
     import webbrowser
 
+    try:
+        html_str = html_str.decode('utf8')
+    except Exception:
+        pass
+
     html_dpath = ut.ensure_app_resource_dir('utool', 'temp_html')
     fpath = abspath(ut.unixjoin(html_dpath, 'temp.html'))
     url = 'file://' + fpath

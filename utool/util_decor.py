@@ -821,8 +821,8 @@ def preserve_sig(wrapper, orig_func, force=False):
         >>> _wrp_preserve2 = ut.preserve_sig(wrapper, orig_func, False)
         >>> print('_wrp_preserve2 = %r' % (_wrp_preserve1,))
         >>> print('_wrp_preserve2 = %r' % (_wrp_preserve2,))
-        >>> print('source _wrp_preserve1 = %s' % (ut.get_func_sourcecode(_wrp_preserve1),))
-        >>> print('source _wrp_preserve2 = %s' % (ut.get_func_sourcecode(_wrp_preserve2)),)
+        >>> #print('source _wrp_preserve1 = %s' % (ut.get_func_sourcecode(_wrp_preserve1),))
+        >>> #print('source _wrp_preserve2 = %s' % (ut.get_func_sourcecode(_wrp_preserve2)),)
         >>> result = str(_wrp_preserve1)
         >>> print(result)
     """

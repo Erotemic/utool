@@ -72,13 +72,6 @@ def ensure_unicode_strlist(str_list):
     return new_str_list
 
 
-def insert_before_sentinal(text, repl_, sentinal):
-    import re
-    parts = re.split('(' + sentinal + ')', text)
-    assert len(parts) == 3
-    return parts[0] + repl_ + parts[1] + parts[2]
-
-
 def replace_between_tags(text, repl_, start_tag, end_tag=None):
     r"""
     Replaces text between sentinal lines in a block of text.
@@ -361,10 +354,6 @@ def indent_rest(str_, indent='    '):
     return str_.replace('\n', '\n' + indent)
 
 
-def indentcat(str1, str2, indent='    '):
-    return str1  + str2.replace('\n', '\n' + indent)
-
-
 def indentjoin(strlist, indent='\n    ', suffix=''):
     r"""
     Convineince indentjoin
@@ -424,6 +413,7 @@ def pack_into(text, textwidth=160, breakchars=' ', break_words=True,
     #FIXME:
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> text = "set_image_uris(ibs<139684018194000>, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [u'66ec193a-1619-b3b6-216d-1784b4833b61.jpg', u'd8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg', u'b73b72f4-4acb-c445-e72c-05ce02719d3d.jpg', u'0cd05978-3d83-b2ee-2ac9-798dd571c3b3.jpg', u'0a9bc03d-a75e-8d14-0153-e2949502aba7.jpg', u'2deeff06-5546-c752-15dc-2bd0fdb1198a.jpg', u'a9b70278-a936-c1dd-8a3b-bc1e9a998bf0.png', u'42fdad98-369a-2cbc-67b1-983d6d6a3a60.jpg', u'c459d381-fd74-1d99-6215-e42e3f432ea9.jpg', u'33fd9813-3a2b-774b-3fcc-4360d1ae151b.jpg', u'97e8ea74-873f-2092-b372-f928a7be30fa.jpg', u'588bc218-83a5-d400-21aa-d499832632b0.jpg', u'163a890c-36f2-981e-3529-c552b6d668a3.jpg'], ) "  # NOQA
         >>> textwidth = 160
         >>> breakchars = ' '
@@ -698,9 +688,7 @@ def byte_str(nBytes, unit='bytes', precision=2):
         nUnit = nBytes / (2.0 ** 40)
     else:
         raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
-    return scalar_str(nUnit, precision) + ' ' + unit
-    #fmtstr = ('%.'
-    #return ('%.' + str(precision) + 'f %s') % (nUnit, unit)
+    return repr2(nUnit, precision=precision) + ' ' + unit
 
 
 def second_str(nsecs, unit=None, precision=None, abbrev=True):
@@ -727,83 +715,6 @@ def second_str(nsecs, unit=None, precision=None, abbrev=True):
 def file_megabytes_str(fpath):
     from utool import util_path
     return ('%.2f MB' % util_path.file_megabytes(fpath))
-
-
-# <Alias repr funcs>
-# TODO: Remove any type of global information
-
-USE_GLOBAL_INFO = False
-if USE_GLOBAL_INFO:
-
-    GLOBAL_TYPE_ALIASES = []
-
-    def extend_global_aliases(type_aliases):
-        """
-        State function for aliased_repr calls
-        """
-        global GLOBAL_TYPE_ALIASES
-        GLOBAL_TYPE_ALIASES.extend(type_aliases)
-
-    def var_aliased_repr(var, type_aliases):
-        """
-        Replaces unweildy type strings with predefined more human-readable
-        aliases
-
-        Args:
-            var: some object
-
-        Returns:
-            str: an "intelligently" chosen string representation of var
-        """
-        global GLOBAL_TYPE_ALIASES
-        # Replace aliased values
-        for alias_type, alias_name in (type_aliases + GLOBAL_TYPE_ALIASES):
-            if isinstance(var, alias_type):
-                return alias_name + '<' + six.text_type(id(var)) + '>'
-        return repr(var)
-
-    def list_aliased_repr(list_, type_aliases=[]):
-        """
-        Replaces unweildy type strings with predefined more human-readable
-        aliases
-
-        Args:
-            list_ (list): ``list`` to get repr
-
-        Returns:
-            str: string representation of ``list_``
-        """
-        return [var_aliased_repr(item, type_aliases)
-                for item in list_]
-
-    def dict_aliased_repr(dict_, type_aliases=[]):
-        """
-        Replaces unweildy type strings with predefined more human-readable
-        aliases
-
-        Args:
-            dict_ (dict): dictionary to get repr
-
-        Returns:
-            str: string representation of ``dict_``
-        """
-        return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
-                for (key, val) in six.iteritems(dict_)]
-
-# </Alias repr funcs>
-
-
-def newlined_list(list_, joinstr=', ', textwidth=160):
-    """
-    Converts a list to a string but inserts a new line after textwidth chars
-    DEPRICATE
-    """
-    newlines = ['']
-    for word in enumerate(list_):
-        if len(newlines[-1]) + len(word) > textwidth:
-            newlines.append('')
-        newlines[-1] += word + joinstr
-    return '\n'.join(newlines)
 
 
 def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
@@ -842,7 +753,6 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
         >>> print(result)
         byte_str(1024, 'MB', precision=2)
     """
-    #repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
     import utool as ut
     # if truncate:
     # truncatekw = {'maxlen': 20}
@@ -850,17 +760,14 @@ def func_str(func, args=[], kwargs={}, type_aliases=[], packed=False,
     truncatekw = {}
 
     argrepr_list = ([] if args is None else
-                    ut.get_itemstr_list(args, with_comma=False, nl=False,
-                                        truncate=truncate,
+                    ut.get_itemstr_list(args, nl=False, truncate=truncate,
                                         truncatekw=truncatekw))
     kwrepr_list = ([] if kwargs is None else
-                   ut.dict_itemstr_list(kwargs, explicit=True,
-                                        with_comma=False, nl=False,
+                   ut.dict_itemstr_list(kwargs, explicit=True, nl=False,
                                         truncate=truncate,
                                         truncatekw=truncatekw))
     repr_list = argrepr_list + kwrepr_list
 
-    #argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
     argskwargs_str = ', '.join(repr_list)
     _str = '%s(%s)' % (meta_util_six.get_funcname(func), argskwargs_str)
     if packed:
@@ -933,218 +840,273 @@ def func_callsig(func, with_name=True):
     return callsig
 
 
-def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None,
-                force_dtype=False, with_dtype=None, **kwargs):
-    """ extended version of np.core.numeric.array_repr
+# def array_repr2(arr, max_line_width=None, precision=None, suppress_small=None,
+#                 force_dtype=False, with_dtype=None, **kwargs):
+#     """ extended version of np.core.numeric.array_repr
 
-    ut.editfile(np.core.numeric.__file__)
+#     ut.editfile(np.core.numeric.__file__)
 
-    On linux:
-    _typelessdata [numpy.int64, numpy.float64, numpy.complex128, numpy.int64]
+#     On linux:
+#     _typelessdata [numpy.int64, numpy.float64, numpy.complex128, numpy.int64]
 
-    On BakerStreet
-    _typelessdata [numpy.int32, numpy.float64, numpy.complex128, numpy.int32]
+#     On BakerStreet
+#     _typelessdata [numpy.int32, numpy.float64, numpy.complex128, numpy.int32]
 
-    # WEIRD
-    np.int64 is np.int64
-    _typelessdata[0] is _typelessdata[-1]
-    _typelessdata[0] == _typelessdata[-1]
+#     # WEIRD
+#     np.int64 is np.int64
+#     _typelessdata[0] is _typelessdata[-1]
+#     _typelessdata[0] == _typelessdata[-1]
 
-    TODO:
-        replace force_dtype with with_dtype
-
-
-    id(_typelessdata[-1])
-    id(_typelessdata[0])
+#     TODO:
+#         replace force_dtype with with_dtype
 
 
-    from numpy.core.numeric import _typelessdata
-    _typelessdata
-
-    References:
-        http://stackoverflow.com/questions/28455982/why-are-there-two-np-int64s
-        -in-numpy-core-numeric-typelessdata-why-is-numpy-in/28461928#28461928
-    """
-    import numpy as np
-    from numpy.core.numeric import _typelessdata
-
-    if arr.__class__ is not np.ndarray:
-        cName = arr.__class__.__name__
-    else:
-        cName = 'array'
-
-    prefix = cName + '('
-
-    if arr.size > 0 or arr.shape == (0,):
-        separator = ', '
-        lst = array2string2(
-            arr, max_line_width, precision, suppress_small, separator, prefix,
-            **kwargs)
-    else:
-        # show zero-length shape unless it is (0,)
-        lst = '[], shape=%s' % (repr(arr.shape),)
-
-    skipdtype = ((arr.dtype.type in _typelessdata) and arr.size > 0)
-
-    if with_dtype is None:
-        with_dtype = not (skipdtype and not (cName == 'array' and force_dtype))
-
-    if not with_dtype:
-        return '%s(%s)' % (cName, lst)
-    else:
-        typename = arr.dtype.name
-        # Quote typename in the output if it is 'complex'.
-        if typename and not (typename[0].isalpha() and typename.isalnum()):
-            typename = '\'%s\'' % typename
-
-        lf = ''
-        if issubclass(arr.dtype.type, np.flexible):
-            if arr.dtype.names:
-                typename = '%s' % six.text_type(arr.dtype)
-            else:
-                typename = '\'%s\'' % six.text_type(arr.dtype)
-            lf = '\n' + ' ' * len(prefix)
-        return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
+#     id(_typelessdata[-1])
+#     id(_typelessdata[0])
 
 
-def array2string2(a, max_line_width=None, precision=None, suppress_small=None,
-                  separator=' ', prefix="", style=repr, formatter=None,
-                  threshold=None):
-    """
-    expanded version of np.core.arrayprint.array2string
-    """
-    import numpy as np
+#     from numpy.core.numeric import _typelessdata
+#     _typelessdata
 
-    if a.shape == ():
-        x = a.item()
-        try:
-            import warnings
-            lst = a._format(x)
-            msg = "The `_format` attribute is deprecated in Numpy " \
-                  "2.0 and will be removed in 2.1. Use the " \
-                  "`formatter` kw instead."
-            warnings.warn(msg, DeprecationWarning)
-        except AttributeError:
-            if isinstance(x, tuple):
-                x = np.core.arrayprint._convert_arrays(x)
-            lst = style(x)
-    elif reduce(np.core.arrayprint.product, a.shape) == 0:
-        # treat as a null array if any of shape elements == 0
-        lst = "[]"
-    else:
-        lst = _array2string2(
-            a, max_line_width, precision, suppress_small, separator, prefix,
-            formatter=formatter, threshold=threshold)
-    return lst
+#     References:
+#         http://stackoverflow.com/questions/28455982/why-are-there-two-np-int64s
+#         -in-numpy-core-numeric-typelessdata-why-is-numpy-in/28461928#28461928
+#     """
+#     data = arr
+#     strvals = kwargs.get('strvals', False)
+#     # precision = kwargs.get('precision', None)
+#     # suppress_small = kwargs.get('supress_small', None)
+#     # max_line_width = kwargs.get('max_line_width', None)
+#     # with_dtype = kwargs.get('with_dtype', not strvals)
+#     newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
+
+#     # if with_dtype and strvals:
+#     #     raise ValueError('cannot format with strvals and dtype')
+
+#     separator = ' '
+
+#     if strvals:
+#         prefix = ''
+#         suffix = ''
+#     else:
+#         modname = type(data).__module__
+#         # substitute shorthand for numpy module names
+#         np_nice = 'np'
+#         modname = re.sub('\\bnumpy\\b', np_nice, modname)
+#         modname = re.sub('\\bma.core\\b', 'ma', modname)
+
+#         class_name = type(data).__name__
+#         if class_name == 'ndarray':
+#             class_name = 'array'
+
+#         prefix = class_name + '('
+
+#         if with_dtype:
+#             dtype_repr = data.dtype.name
+#             # dtype_repr = np.core.arrayprint.dtype_short_repr(data.dtype)
+#             suffix = ',{}dtype={}.{})'.format(itemsep, np_nice, dtype_repr)
+#         else:
+#             suffix = ')'
+
+#     if not strvals and data.size == 0 and data.shape != (0,):
+#         # Special case for displaying empty data
+#         prefix = modname + '.empty('
+#         body = repr(tuple(map(int, data.shape)))
+#     else:
+#         body = np.array2string(data, precision=precision,
+#                                separator=separator,
+#                                suppress_small=suppress_small,
+#                                prefix=prefix,
+#                                legacy='1.13',
+#                                max_line_width=max_line_width)
+#     if not newlines:
+#         # remove newlines if we need to
+#         body = re.sub('\n *', '', body)
+#     formatted = body
+#     #+ suffix
+#     return formatted
+
+    # the old way of doing this breaks
+    # import numpy as np
+    # from numpy.core.numeric import _typelessdata
+
+    # if arr.__class__ is not np.ndarray:
+    #     cName = arr.__class__.__name__
+    # else:
+    #     cName = 'array'
+
+    # prefix = cName + '('
+
+    # if arr.size > 0 or arr.shape == (0,):
+    #     separator = ', '
+    #     lst = array2string2(
+    #         arr, max_line_width, precision, suppress_small, separator, prefix,
+    #         **kwargs)
+    # else:
+    #     # show zero-length shape unless it is (0,)
+    #     lst = '[], shape=%s' % (repr(arr.shape),)
+
+    # skipdtype = ((arr.dtype.type in _typelessdata) and arr.size > 0)
+
+    # if with_dtype is None:
+    #     with_dtype = not (skipdtype and not (cName == 'array' and force_dtype))
+
+    # if not with_dtype:
+    #     return '%s(%s)' % (cName, lst)
+    # else:
+    #     typename = arr.dtype.name
+    #     # Quote typename in the output if it is 'complex'.
+    #     if typename and not (typename[0].isalpha() and typename.isalnum()):
+    #         typename = '\'%s\'' % typename
+
+    #     lf = ''
+    #     if issubclass(arr.dtype.type, np.flexible):
+    #         if arr.dtype.names:
+    #             typename = '%s' % six.text_type(arr.dtype)
+    #         else:
+    #             typename = '\'%s\'' % six.text_type(arr.dtype)
+    #         lf = '\n' + ' ' * len(prefix)
+    #     return cName + '(%s, %sdtype=%s)' % (lst, lf, typename)
 
 
-def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
-                   prefix="", formatter=None, threshold=None):
-    """
-    expanded version of np.core.arrayprint._array2string
-    TODO: make a numpy pull request with a fixed version
+# def array2string2(a, max_line_width=None, precision=None, suppress_small=None,
+#                   separator=' ', prefix="", style=repr, formatter=None,
+#                   threshold=None):
+#     """
+#     expanded version of np.core.arrayprint.array2string
+#     """
+#     import numpy as np
 
-    """
-    arrayprint = np.core.arrayprint
+#     if a.shape == ():
+#         x = a.item()
+#         try:
+#             import warnings
+#             lst = a._format(x)
+#             msg = "The `_format` attribute is deprecated in Numpy " \
+#                   "2.0 and will be removed in 2.1. Use the " \
+#                   "`formatter` kw instead."
+#             warnings.warn(msg, DeprecationWarning)
+#         except AttributeError:
+#             if isinstance(x, tuple):
+#                 x = np.core.arrayprint._convert_arrays(x)
+#             lst = style(x)
+#     elif reduce(np.core.arrayprint.product, a.shape) == 0:
+#         # treat as a null array if any of shape elements == 0
+#         lst = "[]"
+#     else:
+#         lst = _array2string2(
+#             a, max_line_width, precision, suppress_small, separator, prefix,
+#             formatter=formatter, threshold=threshold)
+#     return lst
 
-    if max_line_width is None:
-        max_line_width = arrayprint._line_width
 
-    if precision is None:
-        precision = arrayprint._float_output_precision
+# def _array2string2(a, max_line_width, precision, suppress_small, separator=' ',
+#                    prefix="", formatter=None, threshold=None):
+#     """
+#     expanded version of np.core.arrayprint._array2string
+#     TODO: make a numpy pull request with a fixed version
 
-    if suppress_small is None:
-        suppress_small = arrayprint._float_output_suppress_small
+#     """
+#     arrayprint = np.core.arrayprint
 
-    if formatter is None:
-        formatter = arrayprint._formatter
+#     if max_line_width is None:
+#         max_line_width = arrayprint._line_width
 
-    if threshold is None:
-        threshold = arrayprint._summaryThreshold
+#     if precision is None:
+#         precision = arrayprint._float_output_precision
 
-    if threshold > 0 and a.size > threshold:
-        summary_insert = "..., "
-        data = arrayprint._leading_trailing(a)
-    else:
-        summary_insert = ""
-        data = arrayprint.ravel(a)
+#     if suppress_small is None:
+#         suppress_small = arrayprint._float_output_suppress_small
 
-    formatdict = {'bool' : arrayprint._boolFormatter,
-                  'int' : arrayprint.IntegerFormat(data),
-                  'float' : arrayprint.FloatFormat(data, precision, suppress_small),
-                  'longfloat' : arrayprint.LongFloatFormat(precision),
-                  'complexfloat' : arrayprint.ComplexFormat(data, precision,
-                                                            suppress_small),
-                  'longcomplexfloat' : arrayprint.LongComplexFormat(precision),
-                  'datetime' : arrayprint.DatetimeFormat(data),
-                  'timedelta' : arrayprint.TimedeltaFormat(data),
-                  'numpystr' : arrayprint.repr_format,
-                  'str' : str}
+#     if formatter is None:
+#         formatter = arrayprint._formatter
 
-    if formatter is not None:
-        fkeys = [k for k in formatter.keys() if formatter[k] is not None]
-        if 'all' in fkeys:
-            for key in formatdict.keys():
-                formatdict[key] = formatter['all']
-        if 'int_kind' in fkeys:
-            for key in ['int']:
-                formatdict[key] = formatter['int_kind']
-        if 'float_kind' in fkeys:
-            for key in ['float', 'longfloat']:
-                formatdict[key] = formatter['float_kind']
-        if 'complex_kind' in fkeys:
-            for key in ['complexfloat', 'longcomplexfloat']:
-                formatdict[key] = formatter['complex_kind']
-        if 'str_kind' in fkeys:
-            for key in ['numpystr', 'str']:
-                formatdict[key] = formatter['str_kind']
-        for key in formatdict.keys():
-            if key in fkeys:
-                formatdict[key] = formatter[key]
+#     if threshold is None:
+#         threshold = arrayprint._summaryThreshold
 
-    try:
-        format_function = a._format
-        msg = "The `_format` attribute is deprecated in Numpy 2.0 and " \
-              "will be removed in 2.1. Use the `formatter` kw instead."
-        import warnings
-        warnings.warn(msg, DeprecationWarning)
-    except AttributeError:
-        # find the right formatting function for the array
-        dtypeobj = a.dtype.type
-        if issubclass(dtypeobj, np.core.arrayprint._nt.bool_):
-            format_function = formatdict['bool']
-        elif issubclass(dtypeobj, np.core.arrayprint._nt.integer):
-            if issubclass(dtypeobj, np.core.arrayprint._nt.timedelta64):
-                format_function = formatdict['timedelta']
-            else:
-                format_function = formatdict['int']
-        elif issubclass(dtypeobj, np.core.arrayprint._nt.floating):
-            if issubclass(dtypeobj, np.core.arrayprint._nt.longfloat):
-                format_function = formatdict['longfloat']
-            else:
-                format_function = formatdict['float']
-        elif issubclass(dtypeobj, np.core.arrayprint._nt.complexfloating):
-            if issubclass(dtypeobj, np.core.arrayprint._nt.clongfloat):
-                format_function = formatdict['longcomplexfloat']
-            else:
-                format_function = formatdict['complexfloat']
-        elif issubclass(dtypeobj, (np.core.arrayprint._nt.unicode_,
-                                   np.core.arrayprint._nt.string_)):
-            format_function = formatdict['numpystr']
-        elif issubclass(dtypeobj, np.core.arrayprint._nt.datetime64):
-            format_function = formatdict['datetime']
-        else:
-            format_function = formatdict['numpystr']
+#     if threshold > 0 and a.size > threshold:
+#         summary_insert = "..., "
+#         data = arrayprint._leading_trailing(a)
+#     else:
+#         summary_insert = ""
+#         data = arrayprint.ravel(a)
 
-    # skip over "["
-    next_line_prefix = " "
-    # skip over array(
-    next_line_prefix += " " * len(prefix)
+#     formatdict = {'bool' : arrayprint._boolFormatter,
+#                   'int' : arrayprint.IntegerFormat(data),
+#                   'float' : arrayprint.FloatFormat(data, precision, suppress_small),
+#                   'longfloat' : arrayprint.LongFloatFormat(precision),
+#                   'complexfloat' : arrayprint.ComplexFormat(data, precision,
+#                                                             suppress_small),
+#                   'longcomplexfloat' : arrayprint.LongComplexFormat(precision),
+#                   'datetime' : arrayprint.DatetimeFormat(data),
+#                   'timedelta' : arrayprint.TimedeltaFormat(data),
+#                   'numpystr' : arrayprint.repr_format,
+#                   'str' : str}
 
-    lst = np.core.arrayprint._formatArray(a, format_function, len(a.shape), max_line_width,
-                                          next_line_prefix, separator,
-                                          np.core.arrayprint._summaryEdgeItems, summary_insert)[:-1]
-    return lst
+#     if formatter is not None:
+#         fkeys = [k for k in formatter.keys() if formatter[k] is not None]
+#         if 'all' in fkeys:
+#             for key in formatdict.keys():
+#                 formatdict[key] = formatter['all']
+#         if 'int_kind' in fkeys:
+#             for key in ['int']:
+#                 formatdict[key] = formatter['int_kind']
+#         if 'float_kind' in fkeys:
+#             for key in ['float', 'longfloat']:
+#                 formatdict[key] = formatter['float_kind']
+#         if 'complex_kind' in fkeys:
+#             for key in ['complexfloat', 'longcomplexfloat']:
+#                 formatdict[key] = formatter['complex_kind']
+#         if 'str_kind' in fkeys:
+#             for key in ['numpystr', 'str']:
+#                 formatdict[key] = formatter['str_kind']
+#         for key in formatdict.keys():
+#             if key in fkeys:
+#                 formatdict[key] = formatter[key]
+
+#     try:
+#         format_function = a._format
+#         msg = "The `_format` attribute is deprecated in Numpy 2.0 and " \
+#               "will be removed in 2.1. Use the `formatter` kw instead."
+#         import warnings
+#         warnings.warn(msg, DeprecationWarning)
+#     except AttributeError:
+#         # find the right formatting function for the array
+#         dtypeobj = a.dtype.type
+#         if issubclass(dtypeobj, np.core.arrayprint._nt.bool_):
+#             format_function = formatdict['bool']
+#         elif issubclass(dtypeobj, np.core.arrayprint._nt.integer):
+#             if issubclass(dtypeobj, np.core.arrayprint._nt.timedelta64):
+#                 format_function = formatdict['timedelta']
+#             else:
+#                 format_function = formatdict['int']
+#         elif issubclass(dtypeobj, np.core.arrayprint._nt.floating):
+#             if issubclass(dtypeobj, np.core.arrayprint._nt.longfloat):
+#                 format_function = formatdict['longfloat']
+#             else:
+#                 format_function = formatdict['float']
+#         elif issubclass(dtypeobj, np.core.arrayprint._nt.complexfloating):
+#             if issubclass(dtypeobj, np.core.arrayprint._nt.clongfloat):
+#                 format_function = formatdict['longcomplexfloat']
+#             else:
+#                 format_function = formatdict['complexfloat']
+#         elif issubclass(dtypeobj, (np.core.arrayprint._nt.unicode_,
+#                                    np.core.arrayprint._nt.string_)):
+#             format_function = formatdict['numpystr']
+#         elif issubclass(dtypeobj, np.core.arrayprint._nt.datetime64):
+#             format_function = formatdict['datetime']
+#         else:
+#             format_function = formatdict['numpystr']
+
+#     # skip over "["
+#     next_line_prefix = " "
+#     # skip over array(
+#     next_line_prefix += " " * len(prefix)
+
+#     lst = np.core.arrayprint._formatArray(a, format_function, len(a.shape), max_line_width,
+#                                           next_line_prefix, separator,
+#                                           np.core.arrayprint._summaryEdgeItems, summary_insert)[:-1]
+#     return lst
 
 
 def numpy_str(arr, strvals=False, precision=None, pr=None,
@@ -1154,79 +1116,91 @@ def numpy_str(arr, strvals=False, precision=None, pr=None,
     """
     suppress_small = False turns off scientific representation
     """
-    kwargs = kwargs.copy()
-    if 'suppress' in kwargs:
-        suppress_small = kwargs['suppress']
-    if max_line_width is None and 'linewidth' in kwargs:
-        max_line_width = kwargs.pop('linewidth')
+    # strvals = kwargs.get('strvals', False)
+    itemsep = kwargs.get('itemsep', ' ')
+    # precision = kwargs.get('precision', None)
+    # suppress_small = kwargs.get('supress_small', None)
+    # max_line_width = kwargs.get('max_line_width', None)
+    # with_dtype = kwargs.get('with_dtype', False)
+    newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
+    data = arr
 
-    if pr is not None:
-        precision = pr
-    # TODO: make this a util_str func for numpy reprs
+    # if with_dtype and strvals:
+    #     raise ValueError('cannot format with strvals and dtype')
+
+    separator = ',' + itemsep
+
     if strvals:
-        valstr = np.array_str(arr, precision=precision,
-                              suppress_small=suppress_small, **kwargs)
+        prefix = ''
+        suffix = ''
     else:
-        #valstr = np.array_repr(arr, precision=precision)
-        valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype,
-                             with_dtype=with_dtype,
-                             suppress_small=suppress_small,
-                             max_line_width=max_line_width,
-                             threshold=threshold, **kwargs)
-        numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
-        for npval in numpy_vals:
-            valstr = valstr.replace(npval, 'np.' + npval)
-        if valstr.find('\n') >= 0:
-            # Align multiline arrays
-            valstr = valstr.replace('\n', '\n   ')
-    return valstr
+        modname = type(data).__module__
+        # substitute shorthand for numpy module names
+        np_nice = 'np'
+        modname = re.sub('\\bnumpy\\b', np_nice, modname)
+        modname = re.sub('\\bma.core\\b', 'ma', modname)
 
+        class_name = type(data).__name__
+        if class_name == 'ndarray':
+            class_name = 'array'
 
-def numeric_str(num, precision=None, **kwargs):
-    """
-    Args:
-        num (scalar or array):
-        precision (int):
+        prefix = modname + '.' + class_name + '('
 
-    Returns:
-        str:
-
-    CommandLine:
-        python -m utool.util_str --test-numeric_str
-
-    References:
-        http://stackoverflow.com/questions/4541155/check-if-a-number-is-int-or-float
-
-    Notes:
-        isinstance(np.array([3], dtype=np.uint8)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.int32)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.uint64)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=object)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.float32)[0], numbers.Integral)
-        isinstance(np.array([3], dtype=np.float64)[0], numbers.Integral)
-
-    CommandLine:
-        python -m utool.util_str --test-numeric_str
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_str import *  # NOQA
-        >>> precision = 2
-        >>> result = [numeric_str(num, precision) for num in [1, 2.0, 3.43343,4432]]
-        >>> print(result)
-        ['1', '2.00', '3.43', '4432']
-    """
-    import numbers
-    if np.isscalar(num):
-        if not isinstance(num, numbers.Integral):
-            return scalar_str(num, precision)
-            #fmtstr = ('%.' + str(precision) + 'f')
-            #return fmtstr  % num
+        if with_dtype:
+            dtype_repr = data.dtype.name
+            # dtype_repr = np.core.arrayprint.dtype_short_repr(data.dtype)
+            suffix = ',{}dtype={}.{})'.format(itemsep, np_nice, dtype_repr)
         else:
-            return '%d' % (num)
-        return
+            suffix = ')'
+
+    if not strvals and data.size == 0 and data.shape != (0,):
+        # Special case for displaying empty data
+        prefix = modname + '.empty('
+        body = repr(tuple(map(int, data.shape)))
     else:
-        return numpy_str(num, precision=precision, **kwargs)
+        body = np.array2string(data, precision=precision,
+                               separator=separator,
+                               suppress_small=suppress_small,
+                               prefix=prefix,
+                               max_line_width=max_line_width)
+    if not newlines:
+        # remove newlines if we need to
+        body = re.sub('\n *', '', body)
+    formatted = prefix + body + suffix
+    return formatted
+
+    # kwargs = kwargs.copy()
+    # if 'suppress' in kwargs:
+    #     suppress_small = kwargs['suppress']
+    # if max_line_width is None and 'linewidth' in kwargs:
+    #     max_line_width = kwargs.pop('linewidth')
+
+    # import ubelt as ub
+    # return ub.repr2(arr, precision=precision, force_dtype=force_dtype,
+    #                 with_dtype=with_dtype, suppress_small=suppress_small,
+    #                 max_line_width=max_line_width, threshold=threshold,
+    #                 **kwargs)
+
+    # if pr is not None:
+    #     precision = pr
+    # # TODO: make this a util_str func for numpy reprs
+    # if strvals:
+    #     valstr = np.array_str(arr, precision=precision,
+    #                           suppress_small=suppress_small, **kwargs)
+    # else:
+    #     #valstr = np.array_repr(arr, precision=precision)
+    #     valstr = array_repr2(arr, precision=precision, force_dtype=force_dtype,
+    #                          with_dtype=with_dtype,
+    #                          suppress_small=suppress_small,
+    #                          max_line_width=max_line_width,
+    #                          threshold=threshold, **kwargs)
+    #     numpy_vals = itertools.chain(util_type.NUMPY_SCALAR_NAMES, ['array'])
+    #     for npval in numpy_vals:
+    #         valstr = valstr.replace(npval, 'np.' + npval)
+    #     if valstr.find('\n') >= 0:
+    #         # Align multiline arrays
+    #         valstr = valstr.replace('\n', '\n   ')
+    # return valstr
 
 
 def reprfunc(val, precision=None):
@@ -1349,28 +1323,11 @@ def repr2(obj_, **kwargs):
     val_str = _make_valstr(**kwargs)
     return val_str(obj_)
 
-    # import utool as ut
-    # if isinstance(obj_, (list, tuple, set, frozenset, ut.oset)):
-    #     kwitems = dict(nl=False)
-    #     kwitems.update(kwargs)
-    #     return list_str(obj_, **kwitems)
-    # elif isinstance(obj_, dict):
-    #     kwitems = dict(nl=False)
-    #     kwitems.update(kwargs)
-    #     return dict_str(obj_, **kwitems)
-    # else:
-    #     kwitems = dict(with_dtype=False)
-    #     kwitems.update(kwargs)
-    #     if util_type.HAVE_NUMPY and isinstance(obj_, np.ndarray):
-    #         return numpy_str(obj_, **kwitems)
-    #     else:
-    #         return reprfunc(obj_, precision=kwargs.get('precision', None))
-
 
 def repr2_json(obj_, **kwargs):
     """ hack for json reprs """
     import utool as ut
-    kwargs['trailing_comma'] = False
+    kwargs['trailing_sep'] = False
     json_str = ut.repr2(obj_, **kwargs)
     json_str = str(json_str.replace('\'', '"'))
     json_str = json_str.replace('(', '[')
@@ -1390,12 +1347,6 @@ def repr4(obj_, **kwargs):
     return repr2(obj_, **kwargs)
 
 
-def repr5(obj_, **kwargs):
-    kwargs['nl'] = kwargs.pop('nl', kwargs.pop('newlines', 2))
-    kwargs['precision'] = kwargs.pop('precision', 2)
-    return repr2(obj_, **kwargs)
-
-
 def dict_str(dict_, **dictkw):
     r"""
     Makes a pretty printable / human-readable string representation of a
@@ -1407,7 +1358,7 @@ def dict_str(dict_, **dictkw):
     Args:
         dict_ (dict_):  a dictionary
         **dictkw: stritems, strkeys, strvals, nl, newlines, truncate, nobr,
-                  nobraces, align, trailing_comma, explicit, itemsep,
+                  nobraces, align, trailing_sep, explicit, itemsep,
                   truncatekw, sorted_, indent_, key_order, precision,
                   with_comma, key_order_metric, maxlen, recursive, use_numpy,
                   with_dtype, force_dtype, packed
@@ -1498,9 +1449,9 @@ def dict_str(dict_, **dictkw):
     align = dictkw.pop('align', False)
 
     # Doesn't actually put in trailing comma if on same line
-    trailing_comma = dictkw.get('trailing_comma', True)
+    trailing_sep = dictkw.get('trailing_sep', True)
     explicit = dictkw.get('explicit', False)
-    with_comma = dictkw.get('with_comma', True)
+    with_comma  = True
     itemsep = dictkw.get('itemsep', ' ')
 
     if len(dict_) == 0:
@@ -1524,12 +1475,12 @@ def dict_str(dict_, **dictkw):
         sep = ',\n' if with_comma else '\n'
         if nobraces:
             retstr =  sep.join(itemstr_list)
-            if trailing_comma:
+            if trailing_sep:
                 retstr += ','
         else:
             parts = [ut.indent(itemstr, '    ') for itemstr in itemstr_list]
             body_str = sep.join(parts)
-            if trailing_comma:
+            if trailing_sep:
                 body_str += ','
             retstr =  (lbr + '\n' + body_str + '\n' + rbr)
             if align:
@@ -1635,7 +1586,7 @@ def list_str(list_, **listkw):
     Args:
         list_ (list): input list
         **listkw: nl, newlines, packed, truncate, nobr, nobraces, itemsep,
-                  trailing_comma, truncatekw, with_comma, strvals, recursive,
+                  trailing_sep, truncatekw, strvals, recursive,
                   indent_, precision, use_numpy, with_dtype, force_dtype,
                   stritems, strkeys, align, explicit, sorted_, key_order,
                   key_order_metric, maxlen
@@ -1687,8 +1638,8 @@ def list_str(list_, **listkw):
 
     itemsep = listkw.get('itemsep', ' ')
     # Doesn't actually put in trailing comma if on same line
-    trailing_comma = listkw.get('trailing_comma', True)
-    with_comma = listkw.get('with_comma', True)
+    trailing_sep = listkw.get('trailing_sep', True)
+    with_comma = True
 
     itemstr_list = get_itemstr_list(list_, **listkw)
     is_tuple = isinstance(list_, tuple)
@@ -1710,7 +1661,7 @@ def list_str(list_, **listkw):
         sep = ',\n' if with_comma else '\n'
         if nobraces:
             body_str = sep.join(itemstr_list)
-            if trailing_comma:
+            if trailing_sep:
                 body_str += ','
             retstr = body_str
         else:
@@ -1718,13 +1669,13 @@ def list_str(list_, **listkw):
                 # DEPRICATE?
                 joinstr = sep + itemsep * len(lbr)
                 body_str = joinstr.join([itemstr for itemstr in itemstr_list])
-                if trailing_comma:
+                if trailing_sep:
                     body_str += ','
                 braced_body_str = (lbr + '' + body_str + '' + rbr)
             else:
                 body_str = sep.join([
                     ut.indent(itemstr) for itemstr in itemstr_list])
-                if trailing_comma:
+                if trailing_sep:
                     body_str += ','
                 braced_body_str = (lbr + '\n' + body_str + '\n' + rbr)
             retstr = braced_body_str
@@ -1746,7 +1697,8 @@ def list_str(list_, **listkw):
 def _make_valstr(**kwargs):
     import utool as ut
 
-    strvals = kwargs.get('sv', kwargs.get('strvals', False))
+    stritems = kwargs.get('si', kwargs.get('stritems', False))
+    strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
     valfunc = six.text_type if strvals else reprfunc
 
     if not kwargs.get('recursive', True):
@@ -1806,8 +1758,6 @@ def get_itemstr_list(list_, **listkw):
 
     def make_item_str(item):
         item_str = _valstr(item)
-        # if listkw.get('with_comma', True):
-        #     item_str += ','
         return item_str
 
     items = list(list_)
@@ -1828,7 +1778,6 @@ def get_itemstr_list(list_, **listkw):
         except Exception:
             sortx = ut.argsort2(itemstr_list)
         itemstr_list = ut.take(itemstr_list, sortx)
-
     return itemstr_list
 
 
@@ -1933,29 +1882,6 @@ def horiz_string(*args, **kwargs):
 hz_str = horiz_string
 
 
-def listinfo_str(list_):
-    info_list = enumerate([(type(item), item) for item in list_])
-    info_str  = indentjoin(map(repr, info_list, '\n  '))
-    return info_str
-
-
-def str2(obj):
-    if isinstance(obj, dict):
-        return six.text_type(obj).replace(', ', '\n')[1:-1]
-    if isinstance(obj, type):
-        return six.text_type(obj).replace('<type \'', '').replace('\'>', '')
-    else:
-        return six.text_type(obj)
-
-
-#def get_unix_timedelta_str(unixtime_diff):
-#    """ string representation of time deltas """
-#    timedelta = util_time.get_unix_timedelta(unixtime_diff)
-#    sign = '+' if unixtime_diff >= 0 else '-'
-#    timedelta_str = sign + six.text_type(timedelta)
-#    return timedelta_str
-
-
 def str_between(str_, startstr, endstr):
     r"""
     gets substring between two sentianl strings
@@ -1982,14 +1908,6 @@ def str_between(str_, startstr, endstr):
             endpos = None
     newstr = str_[startpos:endpos]
     return newstr
-
-
-def padded_str_range(start, end):
-    """ Builds a list of (end - start) strings padded with zeros """
-    nDigits = np.ceil(np.log10(end))
-    fmt = '%0' + six.text_type(nDigits) + 'd'
-    str_range = (fmt % num for num in range(start, end))
-    return list(str_range)
 
 
 def get_callable_name(func):
@@ -2158,7 +2076,7 @@ def align_lines(line_list, character='=', replchar=None, pos=0):
 
     """
 
-    # FIXME: continue to fix ansii
+    # FIXME: continue to fix ansi
     if pos is None:
         # Align all occurences
         num_pos = max([line.count(character) for line in line_list])
@@ -2224,24 +2142,12 @@ def strip_ansi(text):
     return ansi_escape.sub('', text)
 
 
-# def strip_non_ansi(text):
-#     """ keeps only ansii """
-#     def invert_regex(pat):
-#         return '^(.(?!(' + pat + ')))*$'
-#     non_ansi_escape = re.compile(invert_regex(r'\x1b[^m]*m'))
-#     return non_ansi_escape.sub('', text)
-
-
-def get_freespace_str(dir_='.'):
-    """ returns string denoting free disk space in a directory """
-    from utool import util_cplat
-    return byte_str2(util_cplat.get_free_diskbytes(dir_))
-
-
 # FIXME: HASHLEN is a global var in util_hash
 def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
                       hashlen=16, ABS_MAX_LEN=255, hack27=False):
     r"""
+    DEPRICATE
+
     Formats a string and hashes certain parts if the resulting string becomes
     too long. Used for making filenames fit onto disk.
 
@@ -2274,8 +2180,8 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
         >>> result = fname0 + '\n' + fname1 + '\n' + fname2
         >>> print(result)
         qaid=5_res_big_long_string___________________________________quuid=blahblahblahblahblahblah
-        qaid=5_res_kjrok785_quuid=blahblahblahblahblahblah
-        qaid=5_res_du1&i&5l_quuid=euuaxoyi
+        qaid=5_res_racfntgq_quuid=blahblahblahblahblahblah
+        qaid=5_res_racfntgq_quuid=yvuaffrp
     """
     from utool import util_hash
     fname = fmt_str.format(**fmt_dict)
@@ -2342,49 +2248,6 @@ def multi_replace(str_, search_list, repl_list):
     return newstr
 
 
-def replace_nonquoted_text(text, search_list, repl_list):
-    r"""
-    replace_nonquoted_text
-
-    WARNING: this function is not safely implemented. It can break of searching
-    for single characters or underscores. Depends on utool.modify_quoted_strs
-    which is also unsafely implemented
-
-    Args:
-        text (str):
-        search_list (list):
-        repl_list (list):
-
-    Example:
-        >>> from utool.util_str import *  # NOQA
-        >>> text = '?'
-        >>> search_list = '?'
-        >>> repl_list = '?'
-        >>> result = replace_nonquoted_text(text, search_list, repl_list)
-        >>> print(result)
-    """
-    # Hacky way to preserve quoted text
-    # this will not work if search_list uses underscores or single characters
-    def preserve_quoted_str(quoted_str):
-        return '\'' + '_'.join(list(quoted_str[1:-1])) + '\''
-    def unpreserve_quoted_str(quoted_str):
-        return '\'' + ''.join(list(quoted_str[1:-1])[::2]) + '\''
-    import utool as ut
-    text_ = ut.modify_quoted_strs(text, preserve_quoted_str)
-    for search, repl in zip(search_list, repl_list):
-        text_ = text_.replace(search, repl)
-    text_ = ut.modify_quoted_strs(text_, unpreserve_quoted_str)
-    return text_
-
-
-def singular_string(str_, plural_suffix='s', singular_suffix=''):
-    """
-    tries to use english grammar to make a string singular
-    very naive implementation. will break often
-    """
-    return str_[:-1] if str_.endswith(plural_suffix) else str_
-
-
 def pluralize(wordtext, num=2, plural_suffix='s'):
     r"""
     Heuristically changes a word to its plural form if `num` is not 1
@@ -2449,34 +2312,6 @@ def quantstr(typestr, num, plural_suffix='s'):
         The list contains 0 items
     """
     return six.text_type(num) + ' ' + pluralize(typestr, num, plural_suffix)
-
-
-def remove_vowels(str_):
-    """ strips all vowels from a string """
-    for char_ in 'AEOIUaeiou':
-        str_ = str_.replace(char_, '')
-    return str_
-
-
-def clipstr(str_, maxlen):
-    """
-    tries to shorten string as much as it can until it is just barely readable
-    """
-    if len(str_) > maxlen:
-        str2 = (str_[0] + remove_vowels(str_[1:])).replace('_', '')
-        if len(str2) > maxlen:
-            return str2[0:maxlen]
-        else:
-            return str_[0:maxlen]
-    else:
-        return str_
-#def parse_commas_wrt_groups(str_):
-#    """
-#    str_ = 'cdef np.ndarray[np.float64_t, cast=True] x, y, z'
-#    """
-#    nLParen = 0
-#    nLBracket = 0
-#    pass
 
 
 def msgblock(key, text, side='|'):
@@ -2594,7 +2429,7 @@ def get_textdiff(text1, text2, num_context_lines=0, ignore_whitespace=False):
                         diff_lines.append(visual_break)
                 prev = valid
         else:
-            diff_lines = util_list.filter_items(all_diff_lines, isvalid_list)
+            diff_lines = util_list.compress(all_diff_lines, isvalid_list)
     return '\n'.join(diff_lines)
 
 
@@ -2650,15 +2485,6 @@ def doctest_code_line(line_str, varname=None, verbose=True):
     if verbose:
         print(doctest_line_str)
     return doctest_line_str
-
-
-def code_repr(var, varname=None, **kwargs):
-    import utool as ut
-    varstr = ut.repr2(var, **kwargs)
-    varname_ = ut.get_varname_from_stack(var, N=1, default=None) if varname is None else varname
-    varprefix = varname_ + ' = ' if varname_ is not None else ''
-    code_str = ut.hz_str(varprefix, varstr)
-    return code_str
 
 
 def doctest_repr(var, varname=None, precision=2, verbose=True):
@@ -2894,6 +2720,9 @@ def autoformat_pep8(sourcecode, **kwargs):
         'recursive': False,
         'select': ,
         'verbose': 0,
+
+    Ignore:
+        autopep8 --recursive --in-place --ignore E126,E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,W602,E266,N801,N802,N803,N805,N806,N811,N813 .
     """
     import autopep8
     default_ignore = {
@@ -2964,10 +2793,10 @@ def chr_range(*args, **kw):
         >>> import utool as ut
         >>> args = (5,)
         >>> result = ut.repr2(chr_range(2, base='a'))
-        >>> print(result)
         >>> print(chr_range(0, 5))
         >>> print(chr_range(0, 50))
         >>> print(chr_range(0, 5, 2))
+        >>> print(result)
         ['a', 'b']
     """
     if len(args) == 1:
@@ -3627,6 +3456,26 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
         wrapkw = dict(width=width, break_on_hyphens=False,
                       break_long_words=False)
         wrapped_block = '\n'.join(textwrap.wrap(text_, **wrapkw))
+
+        if False:
+            # for a one-time purpose
+            print('HACKING')
+            print('width = {!r}'.format(width))
+            # HACK
+            words = text_.split(', (')
+            lines = []
+            line = ''
+            for _, w1 in enumerate(words):
+                if _ > 0:
+                    w1 = '(' + w1 + ', '
+                if len(line + w1) > width:
+                    line += ''
+                    lines.append(line)
+                    line = ''
+                line += w1
+            lines.append(line)
+            wrapped_block = '\n'.join(lines)
+
     # HACK for last nl (seems to only happen if nl follows a seperator)
     last_is_nl = text.endswith('\n') and  not wrapped_block.endswith('\n')
     first_is_nl = len(text) > 1 and text.startswith('\n') and not wrapped_block.startswith('\n')

@@ -1,0 +1,20 @@
+# tqdm
+numpy
+xxhash >= 1.0.1
+Pygments >= 2.2.0
+
+autopep8
+astor
+pyperclip >= 1.5.7
+pyfiglet >= 0.7.2
+boto
+
+
+lru-dict >= 1.1.1  # import as lru
+# guppy
+sphinx
+setproctitle
+sphinxcontrib-napoleon
+objgraph
+h5py
+delorean

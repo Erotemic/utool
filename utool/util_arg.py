@@ -755,6 +755,7 @@ def autogen_argparse2(dpath_list):
     LIST OF FLAGS THAT THE PROGRAM SILENTLY TAKES
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_arg import *  # NOQA
         >>> import utool as ut
         >>> dpath_list = [
@@ -1168,7 +1169,7 @@ def argval(key, default=None, type=None, smartcast=True, return_exists=False,
     """
     alias for get_argval
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> import sys

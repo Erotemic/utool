@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
+"""
+DEPRICATE
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import re
-#from .util_classes import AutoReloader
 
 MAX_VALSTR = -1
-#100000
-
-#__BASE_CLASS__ = AutoReloader
-__BASE_CLASS__ = object
 
 
-class AbstractPrintable(__BASE_CLASS__):
-    'A base class that prints its attributes instead of the memory address'
+class AbstractPrintable(object):
+    """
+    A base class that prints its attributes instead of the memory address
+    """
 
     def __init__(self, child_print_exclude=[]):
         self._printable_exclude = ['_printable_exclude'] + child_print_exclude
 
     def __str__(self):
-        from utool.util_dev import printableType
         head = printableType(self)
         body = self.get_printable(type_bit=True)
         body = re.sub('\n *\n *\n', '\n\n', body)
@@ -49,7 +48,6 @@ class AbstractPrintable(__BASE_CLASS__):
                       val_bit=True,
                       max_valstr=MAX_VALSTR,
                       justlength=False):
-        from utool.util_dev import printableVal, printableType
         from utool.util_str import truncate_str
         body = ''
         attri_list = []
@@ -94,3 +92,94 @@ class AbstractPrintable(__BASE_CLASS__):
 
 
 # - --------------
+
+def printableType(val, name=None, parent=None):
+    """
+    Tries to make a nice type string for a value.
+    Can also pass in a Printable parent object
+    """
+    import numpy as np
+    if parent is not None and hasattr(parent, 'customPrintableType'):
+        # Hack for non - trivial preference types
+        _typestr = parent.customPrintableType(name)
+        if _typestr is not None:
+            return _typestr
+    if isinstance(val, np.ndarray):
+        info = npArrInfo(val)
+        _typestr = info.dtypestr
+    elif isinstance(val, object):
+        _typestr = val.__class__.__name__
+    else:
+        _typestr = str(type(val))
+        _typestr = _typestr.replace('type', '')
+        _typestr = re.sub('[\'><]', '', _typestr)
+        _typestr = re.sub('  *', ' ', _typestr)
+        _typestr = _typestr.strip()
+    return _typestr
+
+
+def printableVal(val, type_bit=True, justlength=False):
+    """
+    Very old way of doing pretty printing. Need to update and refactor.
+    DEPRICATE
+    """
+    from utool import util_dev
+    # Move to util_dev
+    # NUMPY ARRAY
+    import numpy as np
+    if type(val) is np.ndarray:
+        info = npArrInfo(val)
+        if info.dtypestr.startswith('bool'):
+            _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'
+            # + '\n  |_____'
+        elif info.dtypestr.startswith('float'):
+            _valstr = util_dev.get_stats_str(val)
+        else:
+            _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
+    # String
+    elif isinstance(val, (str, unicode)):  # NOQA
+        _valstr = '\'%s\'' % val
+    # List
+    elif isinstance(val, list):
+        if justlength or len(val) > 30:
+            _valstr = 'len=' + str(len(val))
+        else:
+            _valstr = '[ ' + (', \n  '.join([str(v) for v in val])) + ' ]'
+    # ??? isinstance(val, AbstractPrintable):
+    elif hasattr(val, 'get_printable') and type(val) != type:
+        _valstr = val.get_printable(type_bit=type_bit)
+    elif isinstance(val, dict):
+        _valstr = '{\n'
+        for val_key in val.keys():
+            val_val = val[val_key]
+            _valstr += '  ' + str(val_key) + ' : ' + str(val_val) + '\n'
+        _valstr += '}'
+    else:
+        _valstr = str(val)
+    if _valstr.find('\n') > 0:  # Indent if necessary
+        _valstr = _valstr.replace('\n', '\n    ')
+        _valstr = '\n    ' + _valstr
+    _valstr = re.sub('\n *$', '', _valstr)  # Replace empty lines
+    return _valstr
+
+
+def npArrInfo(arr):
+    """
+    OLD update and refactor
+    """
+    from utool.DynamicStruct import DynStruct
+    info = DynStruct()
+    info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
+    info.dtypestr  = str(arr.dtype)
+    if info.dtypestr == 'bool':
+        info.bittotal = 'T=%d, F=%d' % (sum(arr), sum(1 - arr))
+    elif info.dtypestr == 'object':
+        info.minmaxstr = 'NA'
+    elif info.dtypestr[0] == '|':
+        info.minmaxstr = 'NA'
+    else:
+        if arr.size > 0:
+            info.minmaxstr = '(%r, %r)' % (arr.min(), arr.max())
+        else:
+            info.minmaxstr = '(None)'
+    return info

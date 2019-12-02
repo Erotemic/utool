@@ -154,7 +154,7 @@ class EulerTourTree(ut.NiceRepr):
         Henzinger and King 1995
         http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.192.8615&rep=rep1&type=pdf
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
         >>> ETT = EulerTourTree
@@ -172,7 +172,7 @@ class EulerTourTree(ut.NiceRepr):
         >>> #other.print_tree()
         >>> #self.print_tree()
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> import networkx as nx
         >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
@@ -226,7 +226,7 @@ class EulerTourTree(ut.NiceRepr):
         CommandLine:
             python -m utool.experimental.euler_tour_tree_avl reroot
 
-        Example:
+        Ignore:
             >>> # DISABLE_DOCTEST
             >>> import networkx as nx
             >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
@@ -400,10 +400,10 @@ class EulerTourTree(ut.NiceRepr):
             u = node.key
             graph.add_node(u)  # Minor redundancy
             # Set node properties
-            graph.node[u]['value'] = node.value
+            graph.nodes[u]['value'] = node.value
             if labels is not None:
                 label = ','.join([str(getattr(node, k)) for k in labels])
-                graph.node[u]['label'] = label
+                graph.nodes[u]['label'] = label
             if node.left is not None:
                 v = node.left.key
                 graph.add_node(v)
@@ -851,7 +851,7 @@ DEBUG_SPLIT = 0
 
 def backtrace_root(node):
     """
-    Example:
+    Ignore:
         >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
         >>> self = EulerTourTree(range(10))
         >>> self._assert_nodes()
@@ -935,7 +935,7 @@ def avl_split(root, node):
     CommandLine:
         python -m utool.experimental.euler_tour_tree_avl avl_split
 
-    Example:
+    Ignore:
         >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
         >>> self = EulerTourTree(ut.chr_range(10))
         >>> self.print_tree()
@@ -945,7 +945,7 @@ def avl_split(root, node):
         >>> ascii_tree(part2)
         >>> ascii_tree(bnode)
 
-    Example:
+    Ignore:
         >>> from utool.experimental.euler_tour_tree_avl import *  # NOQA
         >>> test_avl_split(verbose=2)
     """

@@ -6,8 +6,7 @@ Basic use case is to extend the print function into a logging function
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import builtins, range, zip, map  # NOQA
-#import builtins
-import six
+import six  # NOQA
 import sys
 import functools
 from utool._internal import meta_util_six
@@ -493,6 +492,7 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None, N=
         tuple : (print, print_, printDBG, rrr, profile_)
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inject import *  # NOQA
         >>> from __future__ import absolute_import, division, print_function, unicode_literals
         >>> from util.util_inject import inject

@@ -39,7 +39,7 @@ def get_table_csv(cur, tablename, exclude_columns=[]):
         python -m ibeis.control.SQLDatabaseControl --test-get_table_csv
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
         >>> # build test data
         >>> import ibeis

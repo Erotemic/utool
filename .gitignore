@@ -1,6 +1,7 @@
 # idk why this exists. probably jon's vimrc
 '
 
+.cache
 *.py[cod]
 
 # C extensions

@@ -10,7 +10,7 @@ import sys
 import platform
 import subprocess
 import shlex
-from os.path import exists, normpath, basename, dirname, join
+from os.path import exists, normpath, basename, dirname, join, expanduser
 from utool import util_inject
 from utool._internal import meta_util_cplat
 from utool._internal.meta_util_path import unixpath, truepath
@@ -61,6 +61,19 @@ PYLIB_DICT = {
     'linux': '.so',
     'darwin': '.dylib',
 }
+
+
+def get_plat_specifier():
+    """
+    Standard platform specifier used by distutils
+    """
+    import setuptools  # NOQA
+    import distutils
+    plat_name = distutils.util.get_platform()
+    plat_specifier = ".%s-%s" % (plat_name, sys.version[0:3])
+    if hasattr(sys, 'gettotalrefcount'):
+        plat_specifier += '-pydebug'
+    return plat_specifier
 
 
 def in_pyinstaller_package():
@@ -542,6 +555,7 @@ def view_directory(dname=None, fname=None, verbose=True):
         python -m utool.util_cplat --test-view_directory
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # DOCTEST_DISABLE
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
@@ -550,10 +564,10 @@ def view_directory(dname=None, fname=None, verbose=True):
         >>> view_directory(dname, verbose)
 
     Example:
-        >>> # SCRIPT_TEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
-        >>> base = ut.ensure_app_resource_dir('utool', 'test_vd')
+        >>> base = ut.ensure_app_cache_dir('utool', 'test_vd')
         >>> dirs = [
         >>>     '',
         >>>     'dir1',
@@ -614,6 +628,54 @@ vd = view_directory
 get_resource_dir = meta_util_cplat.get_resource_dir
 
 get_app_resource_dir = meta_util_cplat.get_app_resource_dir
+
+
+def platform_cache_dir():
+    """
+    Returns a directory which should be writable for any application
+    This should be used for temporary deletable data.
+    """
+    if WIN32:  # nocover
+        dpath_ = '~/AppData/Local'
+    elif LINUX:  # nocover
+        dpath_ = '~/.cache'
+    elif DARWIN:  # nocover
+        dpath_  = '~/Library/Caches'
+    else:  # nocover
+        raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
+    dpath = normpath(expanduser(dpath_))
+    return dpath
+
+
+def get_app_cache_dir(appname, *args):
+    r"""
+    Returns a writable directory for an application.
+    This should be used for temporary deletable data.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        str: dpath: writable cache directory
+    """
+    dpath = join(platform_cache_dir(), appname, *args)
+    return dpath
+
+
+def ensure_app_cache_dir(appname, *args):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_cplat import *  # NOQA
+        >>> import utool as ut
+        >>> dpath = ut.ensure_app_cache_dir('utool')
+        >>> assert exists(dpath)
+    """
+    import utool as ut
+    dpath = get_app_cache_dir(appname, *args)
+    ut.ensuredir(dpath)
+    return dpath
 
 
 def ensure_app_resource_dir(*args, **kwargs):
@@ -737,7 +799,8 @@ def run_realtime_process(exe, shell=False):
         line = proc.stdout.readline()
         yield line
         if retcode is not None:
-            raise StopIteration('process finished')
+            return
+            # raise StopIteration('process finished')
 
 
 def _run_process(proc):
@@ -751,7 +814,8 @@ def _run_process(proc):
             # Grab any remaining data in stdout
             for line in proc.stdout.readlines():
                 yield line
-            raise StopIteration('process finished')
+            return
+            # raise StopIteration('process finished')
 
 
 def quote_single_command(cmdstr):
@@ -829,6 +893,7 @@ def cmd(*args, **kwargs):
         >>>     print('L ___ TEST CMD %d ___\n' % (count,))
 
     Example2:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> # ping is not as universal of a command as I thought
         >>> from utool.util_cplat import *  # NOQA
@@ -1074,6 +1139,7 @@ def get_python_dynlib():
         ?: dynlib
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # DOCTEST_DISABLE
         >>> from utool.util_cplat import *  # NOQA
         >>> dynlib = get_python_dynlib()
@@ -1100,6 +1166,7 @@ def get_path_dirs():
         python -m utool.util_cplat --exec-get_path_dirs
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_cplat import *  # NOQA
         >>> import utool as ut
@@ -1346,6 +1413,7 @@ def print_system_users():
         python -m utool.util_cplat --test-print_system_users
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_cplat import *  # NOQA
         >>> result = print_system_users()
@@ -1392,6 +1460,7 @@ def unload_module(modname):
         python -m utool.util_cplat --test-unload_module
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import sys, gc  # NOQA
         >>> import pyhesaff
         >>> import utool as ut

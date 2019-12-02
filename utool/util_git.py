@@ -449,16 +449,18 @@ class Repo(util_dev.NiceRepr):
     def add_script(repo, key, script):
         repo.scripts[key] = script
 
-    def clone(repo):
+    def clone(repo, recursive=False):
         print('[git] check repo exists at %s' % (repo.dpath))
+        if recursive:
+            args = '--recursive'
+        else:
+            args = ''
         if not exists(repo.dpath):
             _cd(dirname(repo.dpath))
             print('repo.default_branch = %r' % (repo.default_branch,))
-            if repo.default_branch is None:
-                _syscmd('git clone {url}'.format(url=repo.url))
-            else:
-                _syscmd('git clone -b {branchname} {url}'.format(
-                    branchname=repo.default_branch, url=repo.url))
+            if repo.default_branch is not None:
+                args += ' -b {}'.format(repo.default_branch)
+            _syscmd('git clone {args} {url}'.format(args=args, url=repo.url))
 
     def owner(repo):
         url_parts = re.split('[/:]', repo.url)
@@ -489,6 +491,7 @@ class Repo(util_dev.NiceRepr):
             new_repo_url = new_repo_url.replace(old, new)
         # Inplace change
         repo.url = new_repo_url
+        print('new format repo.url = {!r}'.format(repo.url))
 
     def check_importable(repo):
         import utool as ut
@@ -811,6 +814,7 @@ class Repo(util_dev.NiceRepr):
             python -m utool.util_git --test-rename_branch --old=mymaster --new=ibeis_master
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> # SCRIPT
             >>> from utool.util_git import *  # NOQA
             >>> repo = ut.get_argval('--repo', str, '.')
@@ -877,6 +881,7 @@ def git_sequence_editor_squash(fpath):
         python -m utool.util_git --exec-git_sequence_editor_squash
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> import utool as ut
         >>> from utool.util_git import *  # NOQA

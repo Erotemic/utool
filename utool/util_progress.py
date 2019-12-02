@@ -113,17 +113,17 @@ def test_progress():
             time.sleep(sleeptime2)
 
 
-def get_num_chunks(nTotal, chunksize):
+def get_num_chunks(length, chunksize):
     r"""
     Returns the number of chunks that a list will be split into given a
     chunksize.
 
     Args:
-        nTotal (int):
+        length (int):
         chunksize (int):
 
     Returns:
-        int: nTotalChunks
+        int: n_chunks
 
     CommandLine:
         python -m utool.util_progress --exec-get_num_chunks:0
@@ -131,15 +131,15 @@ def get_num_chunks(nTotal, chunksize):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_progress import *  # NOQA
-        >>> nTotal = 2000
+        >>> length = 2000
         >>> chunksize = 256
-        >>> nTotalChunks = get_num_chunks(nTotal, chunksize)
-        >>> result = ('nTotalChunks = %s' % (six.text_type(nTotalChunks),))
+        >>> n_chunks = get_num_chunks(length, chunksize)
+        >>> result = ('n_chunks = %s' % (six.text_type(n_chunks),))
         >>> print(result)
-        nTotalChunks = 8
+        n_chunks = 8
     """
-    nTotalChunks = int(math.ceil(nTotal / chunksize))
-    return nTotalChunks
+    n_chunks = int(math.ceil(length / chunksize))
+    return n_chunks
 
 
 def ProgChunks(list_, chunksize, nInput=None, **kwargs):
@@ -153,7 +153,7 @@ def ProgChunks(list_, chunksize, nInput=None, **kwargs):
         nInput (None): (default = None)
 
     Kwargs:
-        nTotal, freq
+        length, freq
 
     Returns:
         ProgressIter: progiter_
@@ -177,8 +177,8 @@ def ProgChunks(list_, chunksize, nInput=None, **kwargs):
     """
     if nInput is None:
         nInput = len(list_)
-    nTotalChunks = get_num_chunks(nInput, chunksize)
-    kwargs['nTotal'] = nTotalChunks
+    n_chunks = get_num_chunks(nInput, chunksize)
+    kwargs['length'] = n_chunks
     if 'freq' not in kwargs:
         kwargs['freq'] = 1
     chunk_iter = util_iter.ichunks(list_, chunksize)
@@ -194,7 +194,7 @@ class ProgressIter(object):
     """
     Wraps a for loop with progress reporting
 
-    lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1, start=True,
+    lbl='Progress: ', length=0, flushfreq=4, startafter=-1, start=True,
     repl=False, approx=False, disable=False, writefreq=1, with_time=False,
     backspace=True, pad_stdout=False, wfreq=None, ffreq=None, freq=None,
     total=None, num=None, with_totaltime=None
@@ -205,7 +205,7 @@ class ProgressIter(object):
     Args:
         iterable (): iterable normally passed to for loop
         lbl (str):  progress label
-        nTotal (int):
+        length (int):
         flushfreq (int):
         startafter (int):
         start (bool):
@@ -219,8 +219,8 @@ class ProgressIter(object):
         autoadjust (bool): no adjusting frequency if True (default False)
         wfreq (None): alias for write_freq
         ffreq (None): alias for flush_freq
-        total (None): alias for nTotal
-        num (None):   alias for nTotal
+        total (None): alias for length
+        num (None):   alias for length
 
     Timeit::
         import utool as ut
@@ -285,11 +285,12 @@ class ProgressIter(object):
         >>> results4 = [x for x in ut.ProgressIter(range(num), wfreq=1, adjust=True)]
         >>> results2 = [x for x in range(num)]
         >>> results3 = [x for x in ut.progiter((y + 1 for y in range(num2)),
-        >>>                                    nTotal=num2, wfreq=1000,
+        >>>                                    ntotal=num2, wfreq=1000,
         >>>                                    backspace=True, adjust=True)]
         >>> assert results1 == results2
 
     Example1:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range
@@ -300,6 +301,7 @@ class ProgressIter(object):
         >>> [ut.get_nth_prime_bruteforce(29) for x in progiter]
 
     Example2:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range
@@ -310,29 +312,30 @@ class ProgressIter(object):
         >>> [ut.get_nth_prime_bruteforce(29) for x in progiter]
 
     Example3:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
         >>> from six.moves import range
         >>> import time
         >>> crazy_time_list = [.001, .01, .0001] * 1000
         >>> crazy_time_iter = (time.sleep(x) for x in crazy_time_list)
-        >>> progiter = ut.ProgressIter(crazy_time_iter, lbl='crazy times', nTotal=len(crazy_time_list), freq=10)
+        >>> progiter = ut.ProgressIter(crazy_time_iter, lbl='crazy times', length=len(crazy_time_list), freq=10)
         >>> list(progiter)
 
     """
     def __init__(self, iterable=None, *args, **kwargs):
         self.iterable = iterable
-        if len(args) < 2 and 'nTotal' not in kwargs:
+        if len(args) < 2 and 'nTotal' not in kwargs and 'length' not in kwargs:
             try:
-                nTotal = len(iterable)
-                kwargs['nTotal'] = nTotal
+                length = len(iterable)
+                kwargs['length'] = length
             except Exception:
                 pass
         self.use_rate           = kwargs.pop('use_rate', True)
         self.use_rate = True  # Force
         self.lbl                = kwargs.get('lbl', 'lbl')
         self.lbl                = kwargs.get('label', self.lbl)
-        self.nTotal             = kwargs.get('nTotal', kwargs.get('length', 0))
+        self.length             = kwargs.get('nTotal', kwargs.get('length', 0))
         #self.backspace          = kwargs.get('backspace', True)
         self.backspace          = kwargs.get('backspace', kwargs.get('bs', False))
         self.freq               = kwargs.get('freq', 1)
@@ -347,6 +350,7 @@ class ProgressIter(object):
         self.time_thresh        = kwargs.pop('time_thresh', None)
         self.prog_hook          = kwargs.pop('prog_hook', None)
         self.prehack            = kwargs.pop('prehack', None)
+        self.freq_est_strat     = kwargs.pop('freq_est', 'between')
         if 'separate' in kwargs:
             print('WARNING separate no longer supported by ProgIter')
 
@@ -357,8 +361,8 @@ class ProgressIter(object):
         #self.level              = kwargs.pop('level', 0)
 
         self.parent_index       = kwargs.pop('parent_index', 0)
-        self.parent_nTotal      = kwargs.pop('parent_nTotal', 1)
-        self.parent_offset      = self.parent_index * self.nTotal
+        self.parent_length      = kwargs.pop('parent_length', 1)
+        self.parent_offset      = self.parent_index * self.length
         self._cursor_at_newline = True
 
         # Window sizes for estimates
@@ -415,9 +419,9 @@ class ProgressIter(object):
 
     #def get_subindexers(prog_iter, num_substeps):
     #    # FIXME and  make this a method of progiter
-    #    step_min = (((prog_iter.count - 1) / prog_iter.nTotal) *
+    #    step_min = (((prog_iter.count - 1) / prog_iter.length) *
     #                prog_iter.substep_size + prog_iter.substep_min)
-    #    step_size = (1.0 / prog_iter.nTotal) * prog_iter.substep_size
+    #    step_size = (1.0 / prog_iter.length) * prog_iter.substep_size
 
     #    substep_size = step_size / num_substeps
     #    substep_min_list = [(step * substep_size) + step_min
@@ -438,8 +442,8 @@ class ProgressIter(object):
     #            print('\n')
     #    subprog_partial_list = [
     #        partial(ProgressIter,
-    #                parent_nTotal=prog_iter.nTotal * num_substeps,
-    #                parent_index=(prog_iter.count - 1) + (prog_iter.nTotal * step))
+    #                parent_length=prog_iter.length * num_substeps,
+    #                parent_index=(prog_iter.count - 1) + (prog_iter.length * step))
     #        for step in range(num_substeps)]
     #    return subprog_partial_list
 
@@ -459,13 +463,13 @@ class ProgressIter(object):
     #    return msg_fmtstr_time
 
     @staticmethod
-    def build_msg_fmtstr_head_cols(nTotal, lbl):
-        nTotal_ = '?' if nTotal == 0 else six.text_type(nTotal)
+    def build_msg_fmtstr_head_cols(length, lbl):
+        nTotal_ = '?' if length == 0 else six.text_type(length)
         msg_head_columns = ['', lbl, ' {count:4d}/', nTotal_ , '...  ']
         return msg_head_columns
 
     @staticmethod
-    def build_msg_fmtstr2(lbl, nTotal, invert_rate, backspace):
+    def build_msg_fmtstr2(lbl, length, invert_rate, backspace):
         r"""
         Args:
             lbl (str):
@@ -483,11 +487,11 @@ class ProgressIter(object):
             >>> lbl = 'foo'
             >>> invert_rate = True
             >>> backspace = False
-            >>> nTotal = None
+            >>> length = None
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> msg_fmtstr_time = ProgressIter.build_msg_fmtstr2(lbl, nTotal, invert_rate, backspace)
+            >>> msg_fmtstr_time = ProgressIter.build_msg_fmtstr2(lbl, length, invert_rate, backspace)
             >>> result = ('%s' % (ut.repr2(msg_fmtstr_time),))
             >>> print(result)
         """
@@ -508,7 +512,7 @@ class ProgressIter(object):
         # FIXME: hideing cursor persists if the program crashes
         CLEAR_AFTER = CLEARLINE_EL0
 
-        msg_head = ProgressIter.build_msg_fmtstr_head_cols(nTotal, lbl)
+        msg_head = ProgressIter.build_msg_fmtstr_head_cols(length, lbl)
         if backspace:
             msg_head = [CLEAR_BEFORE] + msg_head
 
@@ -520,7 +524,7 @@ class ProgressIter(object):
             ),
             (
                 ''
-                if nTotal == 0 else
+                if length == 0 else
                 ' etr={etr},'
             ),
             ' ellapsed={ellapsed},',
@@ -564,7 +568,7 @@ class ProgressIter(object):
             self.write = lambda msg: self.stream.write(msg)  # NOQA
             self.flush = lambda: self.stream.flush()  # NOQA
 
-        nTotal        = self.nTotal * self.parent_nTotal  # hack
+        length        = self.length * self.parent_length  # hack
         freq          = self.freq
         self.count    = 0
         between_count = 0
@@ -595,8 +599,8 @@ class ProgressIter(object):
 
         # Write initial message
         #force_newlines = not self.backspace
-        start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(nTotal, self.lbl))
-        self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
+        start_msg_fmt = ''.join(self.build_msg_fmtstr_head_cols(length, self.lbl))
+        self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, length,
                                                  self.invert_rate,
                                                  self.backspace)
 
@@ -625,7 +629,7 @@ class ProgressIter(object):
             self._cursor_at_newline = True
 
         if self.prog_hook is not None:
-            self.prog_hook(self.count, nTotal)
+            self.prog_hook(self.count, length)
 
         # TODO: on windows is time.clock better?
         # http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
@@ -634,7 +638,15 @@ class ProgressIter(object):
 
         start = 1 + self.parent_offset
 
+        if self.freq_est_strat == 'between':
+            FREQ_EST = 0
+        elif self.freq_est_strat == 'absolute':
+            FREQ_EST = 1
+        else:
+            FREQ_EST = 1
+
         USE_RECORD = True
+
         # use last 64 times to compute a more stable average rate
         measure_between_time = collections.deque([], maxlen=self.est_window)
 
@@ -656,17 +668,21 @@ class ProgressIter(object):
                 between_count     = self.count - last_count
                 total_seconds     = (now_time - start_time)
                 self.total_seconds = total_seconds
-                if USE_RECORD:
-                    measure_between_time.append(between_count / (float(between_time) + 1E-9))
-                    iters_per_second = sum(measure_between_time) / len(measure_between_time)
-                else:
-                    iters_per_second = between_count / (float(between_time) + 1E-9)
+                if FREQ_EST == 0:
+                    if USE_RECORD:
+                        measure_between_time.append(between_count / (float(between_time) + 1E-9))
+                        iters_per_second = sum(measure_between_time) / len(measure_between_time)
+                    else:
+                        iters_per_second = between_count / (float(between_time) + 1E-9)
+                elif FREQ_EST == 1:
+                    iters_per_second = (now_time - start_time) / self.count
+
                 self.iters_per_second = iters_per_second
                 # If the future is known
-                if nTotal is None:
+                if length is None:
                     est_seconds_left = -1
                 else:
-                    iters_left = nTotal - self.count
+                    iters_left = length - self.count
                     est_seconds_left = iters_left / (iters_per_second + 1E-9)
                 self.est_seconds_left = est_seconds_left
 
@@ -715,7 +731,7 @@ class ProgressIter(object):
                     # to enter the body of a for loop. (But we may have
                     # executed the body implicitly in the yeild....  so it is
                     # ambiguous. In the second case 0 will be executed twice.
-                    self.prog_hook(self.count, nTotal)
+                    self.prog_hook(self.count, length)
 
         if self.prehack:
             self.set_extra('')
@@ -733,7 +749,7 @@ class ProgressIter(object):
                 # enter the body of a for loop. (But we may have executed the
                 # body implicitly in the yeild....  so it is ambiguous. In the
                 # second case 0 will be executed twice.
-                self.prog_hook(self.count, nTotal)
+                self.prog_hook(self.count, length)
 
         self.ensure_newline()
 
@@ -743,8 +759,8 @@ class ProgressIter(object):
             instant_invert_rate = self.iters_per_second < 0.1
             if self.auto_invert_rate and self.invert_rate != instant_invert_rate:
                 self.invert_rate = instant_invert_rate
-                nTotal = self.nTotal * self.parent_nTotal  # hack
-                self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, nTotal,
+                length = self.length * self.parent_length  # hack
+                self.msg_fmtstr = self.build_msg_fmtstr2(self.lbl, length,
                                                          self.invert_rate,
                                                          self.backspace)
             rate = 1.0 / (self.iters_per_second + 1E-9) if self.invert_rate else self.iters_per_second
@@ -794,11 +810,11 @@ class ProgressIter(object):
         resonably decent hueristics for how much time to wait before
         updating progress.
         """
-        if self.nTotal > 1E5:
+        if self.length > 1E5:
             time_thresh = 2.5
-        elif self.nTotal > 1E4:
+        elif self.length > 1E4:
             time_thresh = 2.0
-        elif self.nTotal > 1E3:
+        elif self.length > 1E3:
             time_thresh = 1.0
         else:
             time_thresh = 0.5
@@ -853,7 +869,7 @@ def progress_str(max_val, lbl='Progress: ', repl=False, approx=False,
     return fmt_str
 
 
-def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
+def log_progress(lbl='Progress: ', length=0, flushfreq=4, startafter=-1,
                  start=True, repl=False, approx=False, disable=False,
                  writefreq=1, with_time=False, backspace=True,
                  pad_stdout=False, wfreq=None, ffreq=None, freq=None, total=None,
@@ -866,9 +882,9 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
     global AGGROFLUSH
     # Alias kwargs with simpler names
     if num is not None:
-        nTotal = num
+        length = num
     if total is not None:
-        nTotal = total
+        length = total
     if wfreq is not None:
         writefreq = wfreq
     if ffreq is not None:
@@ -879,7 +895,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         with_time = with_totaltime
     # flush frequency must be a multiple of write frequency
     flushfreq = max(int(round(flushfreq / writefreq)), 1) * writefreq
-    if nTotal < startafter or disable:
+    if length < startafter or disable:
         # Do not mark progress if only executing a small number of tasks
         def mark_progress(*args):
             pass
@@ -890,7 +906,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         write_fn = util_logging._utool_write()
         flush_fn = util_logging._utool_flush()
         # build format string for displaying progress
-        fmt_str = progress_str(nTotal, lbl=lbl, repl=repl, approx=approx,
+        fmt_str = progress_str(length, lbl=lbl, repl=repl, approx=approx,
                                backspace=backspace)
         if AGGROFLUSH:
             # Progress function which automatically flushes
@@ -917,7 +933,7 @@ def log_progress(lbl='Progress: ', nTotal=0, flushfreq=4, startafter=-1,
         if with_time:
             tt = util_time.tic(lbl)
 
-        def end_progress(count_=nTotal, write_fn=write_fn, flush_fn=flush_fn):
+        def end_progress(count_=length, write_fn=write_fn, flush_fn=flush_fn):
             write_fn(fmt_str % (count_))
             write_fn('\n')
             flush_fn()

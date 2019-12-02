@@ -259,7 +259,7 @@ def render_latex(input_text, dpath=None, fname=None, preamb_extra=None,
     CommandLine:
         python -m utool.util_latex render_latex '$O(n^2)$' --fpath=~/slides/tmp.jpg
 
-    Example:
+    Script:
         >>> # SCRIPT
         >>> from utool.util_latex import *  # NOQA
         >>> from os.path import split, expanduser

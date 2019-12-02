@@ -130,8 +130,8 @@ def map_dict_keys(func, dict_):
         >>> func = ord
         >>> newdict = map_dict_keys(func, dict_)
         >>> result = ut.repr2(newdict)
-        >>> print(result)
         >>> ut.assert_raises(AssertionError, map_dict_keys, len, dict_)
+        >>> print(result)
         {97: [1, 2, 3], 98: []}
     """
     if not hasattr(func, '__call__'):
@@ -169,12 +169,51 @@ class AutoVivification(dict):
         >>> print(result)
         dict_ = {0: {10: {100: None}}}
     """
-    def __getitem__(self, item):
+    def __getitem__(self, key):
         try:
-            return dict.__getitem__(self, item)
+            # value = super(AutoVivification, self).__getitem__(key)
+            value = dict.__getitem__(self, key)
         except KeyError:
-            value = self[item] = type(self)()
-            return value
+            value = self[key] = type(self)()
+        return value
+
+
+class OrderedAutoVivification(OrderedDict):
+    """
+    Implementation of perl's autovivification feature.
+
+    An OrderedAutoVivification is an infinitely nested default dict of ordered
+    dicts.
+
+    References:
+        http://stackoverflow.com/questions/651794/best-way-to-init-dict-of-dicts
+
+    Doctest:
+        >>> from utool.util_dict import *  # NOQA
+        >>> dict_ = AutoOrderedDict()
+        >>> # Notice that there is no KeyError
+        >>> dict_[0][10][100] = None
+        >>> dict_[0][10][1] = None
+        >>> result = ('dict_ = %r' % (dict_,))
+        >>> print(result)
+        dict_ = {0: {10: {100: None, 1: None}}}
+    """
+    def __getitem__(self, key):
+        try:
+            # value = super(OrderedAutoVivification, self).__getitem__(key)
+            value = OrderedDict.__getitem__(self, key)
+        except KeyError:
+            value = self[key] = type(self)()
+        return value
+
+    def __repr__(self):
+        import utool as ut
+        return ut.repr2(self)
+
+    __str__ = __repr__
+
+AutoDict = AutoVivification
+AutoOrderedDict = OrderedAutoVivification
 
 
 def count_dict_vals(dict_of_lists):
@@ -232,6 +271,7 @@ class hashdict(dict):
     other dicts.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> h1 = hashdict({"apples": 1, "bananas":2})
         >>> h2 = hashdict({"bananas": 3, "mangoes": 5})
         >>> h1+h2
@@ -351,13 +391,11 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Returns:
         dict: stacked_dict
 
-    Setup:
-        >>> from utool.util_dict import *  # NOQA
-        >>> import utool as ut
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> # Usual case: multiple dicts as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict2_ = {'a': 2, 'b': 3, 'c': 4}
         >>> dict_list = [dict1_, dict2_]
@@ -369,6 +407,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: one dict as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': 1, 'b': 2}
         >>> dict_list = [dict1_]
         >>> dict_stacked = dict_stack2(dict_list)
@@ -379,6 +419,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: zero dicts as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_list = []
         >>> dict_stacked = dict_stack2(dict_list)
         >>> result = ut.repr2(dict_stacked)
@@ -388,6 +430,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example3:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: empty dicts as input
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict_list = [{}]
         >>> dict_stacked = dict_stack2(dict_list)
         >>> result = ut.repr2(dict_stacked)
@@ -397,6 +441,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example4:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: one dict is empty
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': [1, 2], 'b': [2, 3]}
         >>> dict2_ = {}
         >>> dict_list = [dict1_, dict2_]
@@ -408,6 +454,8 @@ def dict_stack2(dict_list, key_suffix=None, default=None):
     Example5:
         >>> # ENABLE_DOCTEST
         >>> # Corner case: disjoint dicts
+        >>> from utool.util_dict import *  # NOQA
+        >>> import utool as ut
         >>> dict1_ = {'a': [1, 2], 'b': [2, 3]}
         >>> dict2_ = {'c': 4}
         >>> dict_list = [dict1_, dict2_]
@@ -679,6 +727,7 @@ def build_conflict_dict(key_list, val_list):
 def assert_keys_are_subset(dict1, dict2):
     """
     Example:
+        >>> # DISABLE_DOCTEST
         >>> dict1 = {1:1, 2:2, 3:3}
         >>> dict2 = {2:3, 3:3}
         >>> assert_keys_are_subset(dict1, dict2)
@@ -1072,6 +1121,7 @@ def dictinfo(dict_):
         str
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> dict_ = {}
         >>> result = dictinfo(dict_)
@@ -1435,6 +1485,7 @@ def dict_filter_nones(dict_):
         python -m utool.util_dict --exec-dict_filter_nones
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> # fails on python 3 because of dict None order
         >>> from utool.util_dict import *  # NOQA
@@ -1721,6 +1772,7 @@ def hierarchical_map_vals(func, node, max_depth=None, depth=0):
         }
 
     Example1:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_dict import *  # NOQA
         >>> import utool as ut

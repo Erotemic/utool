@@ -91,7 +91,7 @@ class Indenter(object):
         python -m utool.util_print --exec-Indenter
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_print import *  # NOQA
         >>> import utool as ut
         >>> ut.util_print._test_indent_print()

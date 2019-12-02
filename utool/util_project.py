@@ -67,6 +67,7 @@ class SetupRepo(object):
     Maybe make a new interface to SetupRepo?
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_project import *  # NOQA
         >>> import utool as ut
@@ -98,6 +99,7 @@ class SetupRepo(object):
         python -m utool SetupRepo.main --repo=ubelt --codedir=~/code --modname=ubelt -w
 
         Example:
+        >>> # DISABLE_DOCTEST
             >>> # SCRIPT
             >>> from utool.util_project import *  # NOQA
             >>> SetupRepo().main()
@@ -161,6 +163,7 @@ def setup_repo():
         ut.rrrr(0); ut.setup_repo()
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_project import *  # NOQA
         >>> import utool as ut
@@ -506,8 +509,8 @@ class UserProfile(util_dev.NiceRepr):
         self.project_name = name
         self.project_dpaths = None
         self.project_include_patterns = None
-        self.project_exclude_dirs = None
-        self.project_exclude_patterns = None
+        self.project_exclude_dirs = []
+        self.project_exclude_patterns = []
 
     def grep(self, *args, **kwargs):
         return grep_projects(user_profile=self, *args, **kwargs)
@@ -545,7 +548,16 @@ def ibeis_user_profile():
     self = UserProfile(name='ibeis')
     #self.project_dpaths = REPOS1.PROJECT_REPOS
     self.project_dpaths = REPOS1.IBEIS_REPOS
-    self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
+    # self.project_dpaths += [ut.truepath('~/latex/crall-candidacy-2015/')]
+    self.project_dpaths += [
+        ut.truepath('~/local'),
+        ut.truepath('~/code/fixtex'),
+        ut.truepath('~/code/pyrf'),
+        ut.truepath('~/code/detecttools'),
+        ut.truepath('~/code/pydarknet'),
+    ]
+    self.project_dpaths = ut.unique(self.project_dpaths)
+    # self.project_dpaths += [ut.truepath('~/local/vim/rc')]
     self.project_include_patterns = [
         '*.py', '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
         #'*.py',  # '*.cxx', '*.cpp', '*.hxx', '*.hpp', '*.c', '*.h', '*.vim'
@@ -584,6 +596,8 @@ def ensure_user_profile(user_profile=None):
         import utool as ut
         if ut.is_developer():
             __GLOBAL_PROFILE__ = ibeis_user_profile()
+        else:
+            __GLOBAL_PROFILE__ = UserProfile('default')
     if user_profile is None:
         user_profile = __GLOBAL_PROFILE__
     return user_profile
@@ -615,6 +629,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     """
     import utool as ut
     user_profile = ensure_user_profile(user_profile)
+    print('user_profile = {!r}'.format(user_profile))
 
     kwargs = kwargs.copy()
     colored = kwargs.pop('colored', True)
@@ -687,7 +702,8 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     msg_list = msg_list1 + msg_list2
 
     if new:
-        return GrepResult(found_fpath_list, found_lines_list, found_lxs_list, extended_regex_list, reflags)
+        return GrepResult(found_fpath_list, found_lines_list, found_lxs_list,
+                          extended_regex_list, reflags)
     else:
         return msg_list
 
@@ -699,8 +715,7 @@ def glob_projects(pat, user_profile=None, recursive=True):
         ut.import_modname(modname)
         exec(ut.execstr_funckw(table.get_rowid), globals())
 
-        pass
-
+    Ignore:
         >>> import utool as ut
         >>> ut.testenv('utool.util_project', 'glob_projects', globals())
         >>> from utool.util_project import *  # NOQA
@@ -755,6 +770,9 @@ class GrepResult(util_dev.NiceRepr):
                self.found_lxs_list)
         return ut.make_grep_resultstr(tup, self.extended_regex_list,
                                       self.reflags, colored=colored)
+
+    # def make_big_resultstr():
+    #     pass
 
     def pattern_filterflags(self, filter_pat):
         self.filter_pats.append(filter_pat)

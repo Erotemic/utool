@@ -190,7 +190,7 @@ def itertwo(iterable, wrap=False):
         >>> print(result)
         edges = [(1, 2), (2, 3), (3, 4)]
 
-    Timeit:
+    Ignore:
         >>> import vtool as vt
         >>> import utool as ut
         >>> # itertwo is slower than zip slicing on python lists
@@ -502,7 +502,10 @@ def interleave(args):
     arg_iters = list(map(iter, args))
     cycle_iter = it.cycle(arg_iters)
     for iter_ in cycle_iter:
-        yield six.next(iter_)
+        try:
+            yield six.next(iter_)
+        except StopIteration:
+            return
 
 
 def and_iters(*args):
@@ -517,16 +520,36 @@ def random_product(items, num=None, rng=None):
         items (list of sequences): items to get caresian product of
             packed in a list or tuple.
             (note this deviates from api of it.product)
+
+    Example:
+        import utool as ut
+        items = [(1, 2, 3), (4, 5, 6, 7)]
+        rng = 0
+        list(ut.random_product(items, rng=0))
+        list(ut.random_product(items, num=3, rng=0))
     """
     import utool as ut
-    # Shuffle a copy of each sequence in items.
-    shuffled_items = [ut.shuffle(list(ut.aslist(item)), rng=rng)
-                      for item in items]
-    # Then their product is shuffled by default
-    for count, tup in enumerate(it.product(*shuffled_items), start=1):
-        yield tup
-        if count >= num:
-            break
+    rng = ut.ensure_rng(rng, 'python')
+    seen = set()
+    items = [list(g) for g in items]
+    max_num = ut.prod(map(len, items))
+    if num is None:
+        num = max_num
+    if num > max_num:
+        raise ValueError('num exceedes maximum number of products')
+
+    # TODO: make this more efficient when num is large
+    if num > max_num // 2:
+        for prod in ut.shuffle(list(it.product(*items)), rng=rng):
+            yield prod
+    else:
+        while len(seen) < num:
+            # combo = tuple(sorted(rng.choice(items, size, replace=False)))
+            idxs = tuple(rng.randint(0, len(g) - 1) for g in items)
+            if idxs not in seen:
+                seen.add(idxs)
+                prod = tuple(g[x] for g, x in zip(items, idxs))
+                yield prod
 
 
 def random_combinations(items, size, num=None, rng=None):
@@ -545,7 +568,7 @@ def random_combinations(items, size, num=None, rng=None):
     CommandLine:
         python -m utool.util_iter random_combinations
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
         >>> import utool as ut
@@ -557,7 +580,7 @@ def random_combinations(items, size, num=None, rng=None):
         >>> result = ('combos = %s' % (ut.repr2(combos),))
         >>> print(result)
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
         >>> import utool as ut
@@ -591,6 +614,7 @@ def random_combinations(items, size, num=None, rng=None):
             # combo = tuple(sorted(rng.choice(items, size, replace=False)))
             combo = tuple(sorted(rng.sample(items, size)))
             if combo not in combos:
+                # TODO: store indices instead of combo values
                 combos.add(combo)
                 yield combo
 

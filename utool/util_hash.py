@@ -412,6 +412,7 @@ def combine_hashes(bytes_list, hasher=None):
     Only works on bytes
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> x = [b('1111'), b('2222')]
         >>> y = [b('11'), b('11'), b('22'), b('22')]
         >>> bytes_list = y
@@ -449,7 +450,7 @@ def hash_data(data, hashlen=None, alphabet=None):
     CommandLine:
         python -m utool.util_hash hash_data
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import utool as ut
@@ -527,7 +528,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         python3 -m utool.util_hash hashstr:3
 
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> data = 'foobar'
@@ -538,7 +539,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> print(result)
         text = mi5yum60mbxhyp+x
 
-    Example1:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> data = ''
@@ -549,7 +550,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> print(result)
         text = 0000000000000000
 
-    Example2:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np
@@ -561,7 +562,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> print(result)
         text = z5lqw0bzt4dmb9yy
 
-    Example2:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np
@@ -574,7 +575,8 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         >>> print(result)
 
 
-    Example3:
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import numpy as np
@@ -652,7 +654,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         text = hashstr2[:hashlen]
     return text
 
-"""
+r"""
 def valid_filename_ascii_chars():
     # Find invalid chars
     ntfs_inval = '< > : " / \ | ? *'.split(' ')
@@ -734,7 +736,7 @@ def convert_bytes_to_bigbase(bytes_, alphabet=ALPHABET_27):
     CommandLine:
         python -m utool.util_hash convert_bytes_to_bigbase
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import utool as ut
@@ -806,10 +808,11 @@ def convert_hexstr_to_bigbase(hexstr, alphabet=ALPHABET, bigbase=BIGBASE):
 
 def hashstr_md5(data):
     """
-    >>> from utool.util_hash import *  # NOQA
-    >>> fpath = ut.grab_test_imgpath('patsy.jpg')
-    >>> %timeit ut.get_file_hash(fpath, hasher=hashlib.sha1())
-    >>> %timeit ut.get_file_hash(fpath, hasher=hashlib.md5())
+    Ignore:
+        >>> from utool.util_hash import *  # NOQA
+        >>> fpath = ut.grab_test_imgpath('patsy.jpg')
+        >>> %timeit ut.get_file_hash(fpath, hasher=hashlib.sha1())
+        >>> %timeit ut.get_file_hash(fpath, hasher=hashlib.md5())
 
     """
     text = hashlib.md5(data).hexdigest()
@@ -846,7 +849,7 @@ def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1,
         python -m utool.util_hash --test-get_file_hash:0
         python -m utool.util_hash --test-get_file_hash:1
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> fpath = ut.grab_test_imgpath('patsy.jpg')
@@ -863,7 +866,7 @@ def get_file_hash(fpath, blocksize=65536, hasher=None, stride=1,
 
         '\x16\x00\x80Xx\x8c-H\xcdP\xf6\x02\x9frl\xbf\x99VQ\xb5'
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> #fpath = ut.grab_file_url('http://en.wikipedia.org/wiki/List_of_comets_by_type')
@@ -901,7 +904,7 @@ def write_hash_file(fpath, hash_tag='md5', recompute=False):
     CommandLine:
         python -m utool.util_hash --test-write_hash_file
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> from utool.util_hash import *  # NOQA
@@ -940,7 +943,7 @@ def write_hash_file_for_path(path, recompute=False):
     CommandLine:
         python -m utool.util_hash --test-write_hash_file_for_path
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> import os
         >>> import utool as ut
@@ -1001,7 +1004,7 @@ def augment_uuid(uuid_, *hashables):
     # Python 2 and 3 diverge here because repr returns
     # ascii data in python2 and unicode text in python3
     # it would be nice to
-    warnings.warn('[ut] should not use repr when hashing', RuntimeWarning)
+    # warnings.warn('[ut] should not use repr when hashing', RuntimeWarning)
     def tmprepr(x):
         y = repr(x)
         # hack to remove u prefix
@@ -1039,7 +1042,7 @@ def combine_uuids(uuids, ordered=True, salt=''):
     CommandLine:
         python -m utool.util_hash --test-combine_uuids
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import utool as ut
@@ -1134,7 +1137,7 @@ def hashable_to_uuid(hashable_):
     CommandLine:
         python -m utool.util_hash --test-hashable_to_uuid
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_hash import *  # NOQA
         >>> import utool as ut

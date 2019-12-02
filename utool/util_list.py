@@ -532,6 +532,7 @@ def invertible_total_flatten(unflat_list):
         python -m utool.util_list --exec-invertible_total_flatten --show
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
         >>> unflat_list = [0, [[1, 2, 3], 4, 5], 9, [2, 3], [1, [2, 3, 4]], 1, 2, 3]
@@ -678,7 +679,7 @@ def invertible_flatten2_numpy(unflat_arrs, axis=0):
     CommandLine:
         python -m utool.util_list --test-invertible_flatten2_numpy
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTET
         >>> from utool.util_list import *  # NOQA
         >>> unflat_arrs = [np.array([1, 2, 1]), np.array([5, 9]), np.array([4])]
@@ -735,7 +736,7 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         python -m utool.util_list --test-unflat_unique_rowid_map:0
         python -m utool.util_list --test-unflat_unique_rowid_map:1
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
@@ -755,7 +756,7 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         >>> ut.assert_eq(num_input0[0], 4)
         [[11, 12, 13], [12, 15], [11], []]
 
-    Example1:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
@@ -1011,6 +1012,7 @@ def isect(list1, list2):
         list: new_list
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> list1 = ['featweight_rowid', 'feature_rowid', 'config_rowid', 'featweight_forground_weight']
         >>> list2 = [u'featweight_rowid']
@@ -1494,6 +1496,7 @@ def sortedby(item_list, key_list, reverse=False):
         >>> list_    = [1, 2, 3, 4, 5]
         >>> key_list = [2, 5, 3, 1, 5]
         >>> result = utool.sortedby(list_, key_list, reverse=True)
+        >>> print(result)
         [5, 2, 3, 1, 4]
 
     """
@@ -1633,15 +1636,16 @@ def argsort2(indexable, key=None, reverse=False):
         list: indices: list of indices such that sorts the indexable
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> # argsort works on dicts
-        >>> dict_ = {'a': 3, 'b': 2, 'c': 100}
+        >>> dict_ = indexable = {'a': 3, 'b': 2, 'c': 100}
         >>> indices = ut.argsort2(indexable)
-        >>> assert list(ub.take(dict_, indices)) == sorted(dict_.values())
+        >>> assert list(ut.take(dict_, indices)) == sorted(dict_.values())
         >>> # argsort works on lists
         >>> indexable = [100, 2, 432, 10]
         >>> indices = ut.argsort2(indexable)
-        >>> assert list(ub.take(indexable, indices)) == sorted(indexable)
+        >>> assert list(ut.take(indexable, indices)) == sorted(indexable)
         >>> # argsort works on iterators
         >>> indexable = reversed(range(100))
         >>> indices = ut.argsort2(indexable)
@@ -1685,18 +1689,19 @@ def argmax(input_, multi=False):
         %timeit max(input_.items(), key=operator.itemgetter(1))[0]
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_list import *
         >>> import utool as ut
         >>> input_ = [1, 2, 3, 3, 2, 3, 2, 1]
         >>> ut.argmax(input_, multi=True)
-        >>> input_ = {1: 1, 2: 2, 3: 3, 3: 4}
+        >>> input_ = {1: 4, 2: 2, 3: 3, 3: 4}
         >>> ut.argmax(input_, multi=True)
     """
     if multi:
         if isinstance(input_, dict):
-            # shouldn't be able to get more than one for dicts
             keys = list(input_.keys())
-            return [keys[idx] for idx in argmax(keys, multi=multi)]
+            values = list(input_.values())
+            return [keys[idx] for idx in argmax(values, multi=multi)]
         else:
             return where(equal([max(input_)], input_))
     else:
@@ -1710,19 +1715,32 @@ def argmax(input_, multi=False):
             return max(enumerate(input_), key=operator.itemgetter(1))[0]
 
 
-def argmin(input_):
+def argmin(input_, key=None):
     """
     Returns index / key of the item with the smallest value.
 
     Args:
         input_ (dict or list):
+
+    Note:
+        a[argmin(a, key=key)] == min(a, key=key)
     """
-    if isinstance(input_, dict):
-        return list(input_.keys())[argmin(list(input_.values()))]
-    elif hasattr(input_, 'index'):
-        return input_.index(min(input_))
+    # if isinstance(input_, dict):
+    #     return list(input_.keys())[argmin(list(input_.values()))]
+    # elif hasattr(input_, 'index'):
+    #     return input_.index(min(input_))
+    # else:
+    #     return min(enumerate(input_), key=operator.itemgetter(1))[0]
+    if isinstance(input, dict):
+        return list(input.keys())[argmin(list(input.values()), key=key)]
     else:
-        return min(enumerate(input_), key=operator.itemgetter(1))[0]
+        if key is None:
+            def _key(item):
+                return item[1]
+        else:
+            def _key(item):
+                return key(item[1])
+        return min(enumerate(input), key=_key)[0]
 
 
 def index_complement(index_list, len_=None):
@@ -2096,6 +2114,7 @@ def sample_zip(items_list, num_samples, allow_overflow=False, per_bin=1):
         tuple : (samples_list, overflow_samples)
 
     Examples:
+        >>> # DISABLE_DOCTEST
         >>> from utool import util_list
         >>> items_list = [[1, 2, 3, 4, 0], [5, 6, 7], [], [8, 9], [10]]
         >>> util_list.sample_zip(items_list, 5)

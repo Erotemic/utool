@@ -1,8 +1,7 @@
-[![Travis](https://img.shields.io/travis/Erotemic/utool.svg)](https://travis-ci.org/Erotemic/utool)
-[![Pypi](https://img.shields.io/pypi/v/utool.svg)](https://pypi.python.org/pypi/utool)
+|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor| 
 
-
-# utool
+utool
+-----
 
 Useful Utility Tools For You!
 
@@ -46,22 +45,40 @@ functions in this repo are mature, the repo itself is a work in progress.  Some
 functions may be broken, deprecated, unfinished, or undocumented. Thus, some
 APIs may refactored or removed in the future.
 
-# Documenation
+Documenation
+------------
 http://erotemic.github.io/utool
 
 
-# Installation
+Installation
+--------------
 Installation can now be done via pypi
 
-```bash
-pip install utool
-```
+.. code:: bash
+
+    pip install utool
 
 If the pypi release is currently broken. Installing utool can be done via pip
 and github. Generally the next branch has the latest and greatest.
 
-```bash
-pip install git+https://github.com/Erotemic/utool.git@next
-```
+.. code:: bash
+
+    pip install git+https://github.com/Erotemic/utool.git@next
 
 Utool is released under the Apache License Version 2.0
+
+
+.. |CircleCI| image:: https://circleci.com/gh/Erotemic/utool.svg?style=svg
+    :target: https://circleci.com/gh/Erotemic/utool
+.. |Travis| image:: https://img.shields.io/travis/Erotemic/utool/master.svg?label=Travis%20CI
+   :target: https://travis-ci.org/Erotemic/utool?branch=master
+.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/utool?branch=master&svg=True
+   :target: https://ci.appveyor.com/project/Erotemic/utool/branch/master
+.. |Codecov| image:: https://codecov.io/github/Erotemic/utool/badge.svg?branch=master&service=github
+   :target: https://codecov.io/github/Erotemic/utool?branch=master
+.. |Pypi| image:: https://img.shields.io/pypi/v/utool.svg
+   :target: https://pypi.python.org/pypi/utool
+.. |Downloads| image:: https://img.shields.io/pypi/dm/utool.svg
+   :target: https://pypistats.org/packages/utool
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/utool/badge/?version=latest
+    :target: http://utool.readthedocs.io/en/latest/

@@ -1,33 +1,4 @@
 #!/usr/bin/env python
-"""
-pip install git+https://github.com/Erotemic/utool.git@next
-
-Pypi:
-     # Presetup
-     pip install twine
-
-     # First tag the source-code
-     VERSION=$(python -c "import setup; print(setup.version)")
-     echo $VERSION
-     git tag $VERSION -m "tarball tag $VERSION"
-     git push --tags origin master
-
-     # NEW API TO UPLOAD TO PYPI
-     # https://packaging.python.org/tutorials/distributing-packages/
-
-     # Build wheel or source distribution
-     python setup.py bdist_wheel --universal
-
-     # Use twine to upload. This will prompt for username and password
-     twine upload --username erotemic --skip-existing dist/*
-
-     # Check the url to make sure everything worked
-     https://pypi.org/project/utool/
-
-     # ---------- OLD ----------------
-     # Check the url to make sure everything worke
-     https://pypi.python.org/pypi?:action=display&name=utool
-"""
 # -*- coding: utf-8 -*-
 # Utool is released under the Apache License Version 2.0
 # no warenty liability blah blah blah blah legal blah
@@ -35,129 +6,161 @@ Pypi:
 from __future__ import absolute_import, division, print_function
 from setuptools import setup
 import sys
+from os.path import exists
 
 
-def parse_version():
-    """ Statically parse the version number from __init__.py """
-    from os.path import dirname, join
+def parse_version(fpath):
+    """
+    Statically parse the version number from a python file
+    """
     import ast
-    init_fpath = join(dirname(__file__), 'utool', '__init__.py')
-    with open(init_fpath) as file_:
+    if not exists(fpath):
+        raise ValueError('fpath={!r} does not exist'.format(fpath))
+    with open(fpath, 'r') as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
     class VersionVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
-                try:
-                    if target.id == '__version__':
-                        self.version = node.value.s
-                except AttributeError:
-                    pass
+                if getattr(target, 'id', None) == '__version__':
+                    self.version = node.value.s
     visitor = VersionVisitor()
     visitor.visit(pt)
     return visitor.version
 
 
-version = parse_version()
+def parse_description():
+    """
+    Parse the description in the README file
+
+    CommandLine:
+        pandoc --from=markdown --to=rst --output=README.rst README.md
+        python -c "import setup; print(setup.parse_description())"
+    """
+    from os.path import dirname, join, exists
+    readme_fpath = join(dirname(__file__), 'README.rst')
+    # This breaks on pip install, so check that it exists.
+    if exists(readme_fpath):
+        with open(readme_fpath, 'r') as f:
+            text = f.read()
+        return text
+    return ''
 
 
-def utool_setup():
-    INSTALL_REQUIRES = [
-        'six >= 1.8.0',
-        'psutil >= 2.1.3',
-        'parse >= 1.6.6',
-        #'numpy >= 1.8.0',  # TODO REMOVE DEPENDENCY
-        'numpy',  # 1.10 has hard time in comparison
-        'pyparsing',
-        'pint',
-        #'decorator',
-    ]
+def parse_requirements(fname='requirements.txt', with_version=False):
+    """
+    Parse the package dependencies listed in a requirements file but strips
+    specific versioning information.
+
+    Args:
+        fname (str): path to requirements file
+        with_version (bool, default=False): if true include version specs
+
+    Returns:
+        List[str]: list of requirements items
+
+    CommandLine:
+        python -c "import setup; print(setup.parse_requirements())"
+        python -c "import setup; print(chr(10).join(setup.parse_requirements(with_version=True)))"
+    """
+    from os.path import exists
+    import re
+    require_fpath = fname
+
+    def parse_line(line):
+        """
+        Parse information from a line in a requirements text file
+        """
+        if line.startswith('-r '):
+            # Allow specifying requirements in other files
+            target = line.split(' ')[1]
+            for info in parse_require_file(target):
+                yield info
+        else:
+            info = {'line': line}
+            if line.startswith('-e '):
+                info['package'] = line.split('#egg=')[1]
+            else:
+                # Remove versioning from the package
+                pat = '(' + '|'.join(['>=', '==', '>']) + ')'
+                parts = re.split(pat, line, maxsplit=1)
+                parts = [p.strip() for p in parts]
+
+                info['package'] = parts[0]
+                if len(parts) > 1:
+                    op, rest = parts[1:]
+                    if ';' in rest:
+                        # Handle platform specific dependencies
+                        # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
+                        version, platform_deps = map(str.strip, rest.split(';'))
+                        info['platform_deps'] = platform_deps
+                    else:
+                        version = rest  # NOQA
+                    info['version'] = (op, version)
+            yield info
+
+    def parse_require_file(fpath):
+        with open(fpath, 'r') as f:
+            for line in f.readlines():
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    for info in parse_line(line):
+                        yield info
+
+    def gen_packages_items():
+        if exists(require_fpath):
+            for info in parse_require_file(require_fpath):
+                parts = [info['package']]
+                if with_version and 'version' in info:
+                    parts.extend(info['version'])
+                if not sys.version.startswith('3.4'):
+                    # apparently package_deps are broken in 3.4
+                    platform_deps = info.get('platform_deps')
+                    if platform_deps is not None:
+                        parts.append(';' + platform_deps)
+                item = ''.join(parts)
+                yield item
+
+    packages = list(gen_packages_items())
+    return packages
+
+
+def native_mb_python_tag():
+    import sys
     import platform
+    major = sys.version_info[0]
+    minor = sys.version_info[1]
+    ver = '{}{}'.format(major, minor)
+    if platform.python_implementation() == 'CPython':
+        # TODO: get if cp27m or cp27mu
+        impl = 'cp'
+        if ver == '27':
+            IS_27_BUILT_WITH_UNICODE = True  # how to determine this?
+            if IS_27_BUILT_WITH_UNICODE:
+                abi = 'mu'
+            else:
+                abi = 'm'
+        else:
+            abi = 'm'
+    else:
+        raise NotImplementedError(impl)
+    mb_tag = '{impl}{ver}-{impl}{ver}{abi}'.format(**locals())
+    return mb_tag
 
-    if platform.python_version().startswith('2.7'):
-        INSTALL_REQUIRES += [
-            'lockfile >= 0.10.2',
-        ]
 
-    INSTALL_OPTIONAL = [
-        'autopep8',
-        'astor',
-        'pyperclip >= 1.5.7',
-        'pyfiglet >= 0.7.2',
-        'boto'
-        #pip install pygments-markdown-lexer
-    ]
+version = VERSION = parse_version('utool/__init__.py')  # must be global for git tags
 
-    #REQUIRES_LINKS = [
-    #]
-
-    #OPTIONAL_DEPENDS_LINKS = [
-    #    #'git+https://github.com/amitdev/lru-dict',  # TODO REMOVE DEPENDENCY
-    #    #'git+https://github.com/pwaller/pyfiglet',
-
-    #]
-
-    INSTALL_OPTIONAL_DEV = [  # NOQA
-        'lru-dict >= 1.1.1',  # import as lru
-        'guppy',
-        'sphinx',
-        'setproctitle',
-        'sphinxcontrib-napoleon',
-        'objgraph',
-        'h5py',
-        'delorean',
-    ]
-
-    # format optional dependencies
-    INSTALL_EXTRA = {item.split(' ')[0]: item for item in INSTALL_OPTIONAL}
-
-    # TODO: remove optional depends
-    #INSTALL_OPTIONAL += INSTALL_OPTIONAL_DEV
-    #INSTALL_REQUIRES += INSTALL_OPTIONAL
-
-    try:
-        # HACK: Please remove someday
-        from utool import util_setup
-        import utool
-        from os.path import dirname
-        for arg in iter(sys.argv[:]):
-            # Clean clutter files
-            if arg in ['clean']:
-                clutter_dirs = ['cyth']
-                CLUTTER_PATTERNS = [
-                    '\'',
-                    'cyth',
-                    '*.dump.txt',
-                    '*.sqlite3',
-                    '*.prof',
-                    '*.prof.txt',
-                    '*.lprof',
-                    '*.ln.pkg',
-                    'failed.txt',
-                    'failed_doctests.txt',
-                    'failed_shelltests.txt',
-                    'test_pyflann_index.flann',
-                    'test_pyflann_ptsdata.npz',
-                    '_timeings.txt',
-                    'timeings.txt',
-                    'Tgen.sh',
-                    'raw_profile.*.prof',
-                    'clean_profile.*.prof',
-                    'raw_profile.txt',
-                    'clean_profile.txt',
-                    'profile_output.*',
-                ]
-                utool.clean(dirname(__file__), CLUTTER_PATTERNS, clutter_dirs)
-        ext_modules = util_setup.find_ext_modules()
-        cmdclass = util_setup.get_cmdclass()
-    except Exception as ex:
-        print(ex)
-        ext_modules = {}
-        cmdclass = {}
-
+if __name__ == '__main__':
     # run setuptools setup function
+    extras_require = {
+        'all': parse_requirements('requirements.txt'),
+        'tests': parse_requirements('requirements/tests.txt'),
+        'optional': parse_requirements('requirements/optional.txt'),
+    }
+
     setup(
         name='utool',
+        version=VERSION,
         packages=[
             'utool',
             'utool._internal',
@@ -165,30 +168,14 @@ def utool_setup():
             'utool.util_scripts',
         ],
         #packages=util_setup.find_packages(),
-        version=version,
-        description='Useful utilities',
+        description='Useful utilities and the kitchen sink',
+        long_description=parse_description(),
+        long_description_content_type='text/x-rst',
         url='https://github.com/Erotemic/utool',
-        ext_modules=ext_modules,
-        cmdclass=cmdclass,
         author='Jon Crall',
         author_email='erotemic@gmail.com',
-        keywords='',
-        install_requires=INSTALL_REQUIRES,
-        extras_require=INSTALL_EXTRA,
-        package_data={},
-        scripts=[
-            # 'utool/util_scripts/makesetup.py',
-            'utool/util_scripts/makeinit.py',
-            #'utool/util_scripts/utprof.sh',
-            #'utool/util_scripts/utprof.py',
-            #'utool/util_scripts/utprof_cleaner.py',
-            # 'utool/util_scripts/utoolwc.py',
-            # 'utool/util_scripts/grabzippedurl.py',
-            # 'utool/util_scripts/autogen_sphinx_docs.py',
-            # 'utool/util_scripts/permit_gitrepo.py',
-            # 'utool/util_scripts/viewdir.py',
-            # 'utool/util_scripts/pipinfo.py',
-        ],
+        install_requires=parse_requirements('requirements/runtime.txt'),
+        extras_require=extras_require,
         classifiers=[
             # List of classifiers available at:
             # https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -203,7 +190,3 @@ def utool_setup():
             'Programming Language :: Python :: 3',
         ],
     )
-
-
-if __name__ == '__main__':
-    utool_setup()

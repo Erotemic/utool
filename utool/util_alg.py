@@ -150,7 +150,7 @@ def compare_groups(true_groups, pred_groups):
         pred_hybrid - the hybrid split/merges needed that would need to be done
             for the pred_groups to match true_groups.
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
@@ -260,7 +260,7 @@ def grouping_delta(old, new, pure=True):
         hybrid - which old groups had split/merge actions applied.
         unchanged - which old groups are the same as new groups.
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
@@ -297,7 +297,7 @@ def grouping_delta(old, new, pure=True):
         },
 
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
@@ -694,6 +694,7 @@ def setcover_greedy(candidate_sets_dict, items=None, set_weights=None, item_valu
         https://en.wikipedia.org/wiki/Maximum_coverage_problem
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> candidate_sets_dict = {
@@ -1223,9 +1224,9 @@ def knapsack(items, maxweight, method='recursive'):
         >>> total_value1, items_subset1 = knapsack(items, maxweight, method='iterative')
         >>> result =  'total_value = %.2f\n' % (total_value,)
         >>> result += 'items_subset = %r' % (items_subset,)
-        >>> print(result)
         >>> ut.assert_eq(total_value1, total_value)
         >>> ut.assert_eq(items_subset1, items_subset)
+        >>> print(result)
         total_value = 11.00
         items_subset = [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
 
@@ -1242,10 +1243,10 @@ def knapsack(items, maxweight, method='recursive'):
         >>> total_weight = sum([t[1] for t in items_subset])
         >>> print('total_weight = %r' % (total_weight,))
         >>> result =  'total_value = %.2f' % (total_value,)
-        >>> print(result)
         >>> print('items_subset = %r' % (items_subset,))
         >>> print('items_subset1 = %r' % (items_subset1,))
         >>> #assert items_subset1 == items_subset, 'NOT EQ\n%r !=\n%r' % (items_subset1, items_subset)
+        >>> print(result)
         total_value = 15.05
 
     Timeit:
@@ -1290,6 +1291,7 @@ def knapsack_ilp(items, maxweight, verbose=False):
         python -m utool.util_alg knapsack_ilp
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> # Solve https://xkcd.com/287/
@@ -1836,6 +1838,7 @@ def maximum_distance_subset(items, K, verbose=False):
         X[n, k] = max( max( X[m, k - 1] + (sum_{p in prev_solution} dist(o, p)) for o < n and o not in prev solution) ) for m < n.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import scipy.spatial.distance as spdist
         >>> items = [1, 6, 20, 21, 22]
 
@@ -2089,12 +2092,13 @@ def norm_zero_one(array, dim=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import utool as ut
         >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
         >>> dim = None
         >>> array_norm = norm_zero_one(array, dim)
-        >>> result = np.array_str(array_norm, precision=3)
+        >>> result = ut.repr2(list(array_norm), precision=3)
         >>> print(result)
-        [ 0.512  0.     0.049  0.024  0.22   1.   ]
+        [0.512, 0.000, 0.049, 0.024, 0.220, 1.000]
     """
     if not util_type.is_float(array):
         array = array.astype(np.float32)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import ast
 import functools
 import inspect
 import os
@@ -103,9 +104,10 @@ class BaronWraper(object):
 
     def internal_call_graph(self, with_doctests=False):
         """
-        >>> import plottool as pt
-        >>> pt.qt4ensure()
-        >>> pt.show_nx(G)
+        Ignore:
+            >>> import plottool as pt
+            >>> pt.qt4ensure()
+            >>> pt.show_nx(G)
         """
         import utool as ut
         import networkx as nx
@@ -129,13 +131,13 @@ class BaronWraper(object):
                                 docname = '<doctest%d>' % (count,) + func.name
                                 doc_nodes[docname] = doctest
                                 G.add_node(docname)
-                                G.node[docname]['color'] = (1, 0, 0)
+                                G.nodes[docname]['color'] = (1, 0, 0)
                                 count += 1
 
         with ut.Timer('building function call graph'):
             func_names = [func.name for func in functions]
             for callee in func_names:
-                #G.node[callee]['color'] = '0x000000'
+                #G.nodes[callee]['color'] = '0x000000'
                 G.add_node(six.text_type(callee))
             import re
             pat = re.compile(ut.regex_or(func_names))
@@ -356,6 +358,8 @@ def check_module_usage(modpath_patterns):
         python -m utool.util_inspect check_module_usage --pat="preproc_probchip.py"
         python -m utool.util_inspect check_module_usage --pat="guiback.py"
 
+        python -m utool.util_inspect check_module_usage --pat="util_str.py"
+
     Ignore:
 
     Example:
@@ -548,6 +552,7 @@ def get_object_methods(obj):
     __dir__ function
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
         >>> obj = ut.NiceRepr()
@@ -572,7 +577,7 @@ def help_members(obj, use_other=False):
     CommandLine:
         python -m utool.util_inspect help_members
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
@@ -715,7 +720,7 @@ def get_dev_hints():
         ('invVR_mats2x2', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations')),
         ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
-        ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        # ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('img_in', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('arr', ('ndarray', '')),
         ('arr_', ('ndarray', '')),
@@ -756,7 +761,7 @@ def get_dev_hints():
         ('.*_str' , ('str', None)),
         ('.*_?list_?' , ('list', None)),
         ('.*_?dict_?' , ('dict', None)),
-        ('dict_?\d?' , ('dict', None)),
+        # ('dict_?\d?' , ('dict', None)),
         ('.*_tup' , ('tuple', None)),
         ('.*_sublist' , ('list', None)),
         ('fpath[0-9]?' , ('str', 'file path string')),
@@ -1158,6 +1163,7 @@ def list_class_funcnames(fname, blank_pats=['    #']):
         list: funcname_list
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> fname = 'util_class.py'
         >>> blank_pats = ['    #']
@@ -1194,6 +1200,7 @@ def list_global_funcnames(fname, blank_pats=['    #']):
         list: funcname_list
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> fname = 'util_class.py'
         >>> blank_pats = ['    #']
@@ -1322,8 +1329,11 @@ def set_funcname(func, newname):
     return meta_util_six.set_funcname(func, newname)
 
 
-def get_imfunc(func):
-    return meta_util_six.get_imfunc(func)
+def get_method_func(func):
+    if six.PY2:
+        return func.im_func
+    else:
+        return func.__func__
 
 
 def get_funcglobals(func):
@@ -1416,7 +1426,7 @@ def special_parse_process_python_code(sourcecode):
     #class SpecialVisitor(ast.NodeVisitor):
 
 
-def parse_function_names(sourcecode, top_level=True):
+def parse_function_names(sourcecode, top_level=True, ignore_condition=1):
     """
     Finds all function names in a file without importing it
 
@@ -1441,9 +1451,9 @@ def parse_function_names(sourcecode, top_level=True):
         >>> print(result)
     """
     import ast
+    import utool as ut
     func_names = []
     if six.PY2:
-        import utool as ut
         sourcecode = ut.ensure_unicode(sourcecode)
         encoded = sourcecode.encode('utf8')
         pt = ast.parse(encoded)
@@ -1451,7 +1461,58 @@ def parse_function_names(sourcecode, top_level=True):
         pt = ast.parse(sourcecode)
 
     class FuncVisitor(ast.NodeVisitor):
+
+        def __init__(self):
+            super(FuncVisitor, self).__init__()
+            self.condition_names = None
+            self.condition_id = -9001
+            self.in_condition_chain = False
+
+        def visit_If(self, node):
+            if ignore_condition:
+                return
+            # if ignore_conditional:
+            #     return
+            # Ignore the main statement
+            # print('----')
+            # print('node.test = {!r}'.format(node.test))
+            # print('node.orelse = {!r}'.format(node.orelse))
+            if _node_is_main_if(node):
+                return
+
+            # if isinstance(node.orelse, ast.If):
+            #     # THIS IS AN ELIF
+            #     self.condition_id += 1
+            #     self.in_condition_chain = True
+            #     ast.NodeVisitor.generic_visit(self, node)
+            #     self.in_condition_chain = False
+            #     pass
+            # # TODO: where does else get parsed exactly?
+
+            # Reset the set of conditionals
+            # self.condition_id = 0
+            # self.condition_names = ut.ddict(list)
+
+            # self.in_condition_chain = True
+            ast.NodeVisitor.generic_visit(self, node)
+            # self.in_condition_chain = False
+
+            # if False:
+            #     # IF THIS WAS AN ELSE:
+            #     if self.condition_names is not None:
+            #         # anything defined in all conditions is kosher
+            #         from six.moves import reduce
+            #         common_names = reduce(set.intersection,
+            #                               map(set, self.condition_names.values()))
+            #         self.func_names.extend(common_names)
+            #         self.condition_names = None
+
         def visit_FunctionDef(self, node):
+            # if self.in_condition_chain and self.condition_names is not None:
+            #     # dont immediately add things in conditions. Wait until we can
+            #     # ensure which definitions are common in all conditions.
+            #     self.condition_names[self.condition_id].append(node.name)
+            # else:
             func_names.append(node.name)
             if not top_level:
                 ast.NodeVisitor.generic_visit(self, node)
@@ -1462,22 +1523,170 @@ def parse_function_names(sourcecode, top_level=True):
     try:
         FuncVisitor().visit(pt)
     except Exception:
+        raise
         pass
     return func_names
 
 
-def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
-    r"""
-    CommandLine:
-        python3 -m utool.util_inspect find_child_kwarg_funcs
+def _node_is_main_if(node):
+    if isinstance(node.test, ast.Compare):
+        try:
+            if all([
+                isinstance(node.test.ops[0], ast.Eq),
+                node.test.left.id == '__name__',
+                node.test.comparators[0].s == '__main__',
+            ]):
+                return True
+        except Exception as ex:
+            pass
+    return False
 
-    SeeAlso:
-        argparse_funckw
-        find_child_kwarg_funcs
-        recursive_parse_kwargs
-        parse_kwarg_keys
-        parse_func_kwarg_keys
-        get_func_kwargs
+
+def parse_project_imports(dpath):
+    """
+    dpath = ub.truepath('~/code/clab/clab')
+
+    Script:
+        >>> dpath = ut.get_argval('--dpath')
+        >>> parse_project_imports()
+
+    """
+    import ubelt as ub
+    import glob
+    from os.path import join, exists
+    package_modules = set()
+    for fpath in glob.glob(join(dpath, '**/*.py'), recursive=True):
+        try:
+            sourcecode = ub.readfrom(fpath)
+            _, modules = ut.parse_import_names(sourcecode, False, fpath=fpath)
+            for mod in modules:
+                package_modules.add(mod.split('.')[0])  # just bases
+            if 'clab/live' in package_modules:
+                raise ValueError()
+                break
+        except SyntaxError:
+            print('encountered SyntaxError in fpath = {!r}'.format(fpath))
+    import warnings
+    import inspect
+    stdlibs = [dirname(warnings.__file__), dirname(inspect.__file__)]
+    def is_module_batteries_included(m):
+        if m in sys.builtin_module_names:
+            return True
+        for p in stdlibs:
+            if exists(join(p, m + '.py')):
+                return True
+            if exists(join(p, m)):
+                return True
+    used_modules = sorted([m for m in package_modules if not is_module_batteries_included(m)])
+    print('used_modules non-buildin modules = {}'.format(ub.repr2(used_modules)))
+
+
+def parse_import_names(sourcecode, top_level=True, fpath=None, branch=False):
+    """
+    Finds all function names in a file without importing it
+
+    Args:
+        sourcecode (str):
+
+    Returns:
+        list: func_names
+
+    CommandLine:
+        python -m utool.util_inspect parse_import_names
+
+    References:
+        https://stackoverflow.com/questions/20445733/how-to-tell-which-modules-have-been-imported-in-some-source-code
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_inspect import *  # NOQA
+        >>> import utool as ut
+        >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.py')
+        >>> #fpath = ut.truepath('~/code/bintrees/bintrees/avltree.py')
+        >>> sourcecode = ut.readfrom(fpath)
+        >>> func_names = parse_import_names(sourcecode)
+        >>> result = ('func_names = %s' % (ut.repr2(func_names),))
+        >>> print(result)
+    """
+    import ast
+    import_names = []
+    if six.PY2:
+        import utool as ut
+        sourcecode = ut.ensure_unicode(sourcecode)
+        encoded = sourcecode.encode('utf8')
+        pt = ast.parse(encoded)
+    else:
+        pt = ast.parse(sourcecode)
+
+    modules = []
+
+    class ImportVisitor(ast.NodeVisitor):
+
+        def _parse_alias_list(self, aliases):
+            for alias in aliases:
+                if alias.asname is not None:
+                    import_names.append(alias.asname)
+                else:
+                    if '.' not in alias.name:
+                        import_names.append(alias.name)
+
+        def visit_Import(self, node):
+            self._parse_alias_list(node.names)
+            self.generic_visit(node)
+
+            for alias in node.names:
+                modules.append(alias.name)
+
+        def visit_ImportFrom(self, node):
+            self._parse_alias_list(node.names)
+            self.generic_visit(node)
+
+            for alias in node.names:
+                prefix = ''
+                if node.level:
+                    if fpath is not None:
+                        from xdoctest import static_analysis as static
+                        modparts = static.split_modpath(os.path.abspath(fpath))[1].replace('\\', '/').split('/')
+                        parts = modparts[:-node.level]
+                        # parts = os.path.split(static.split_modpath(os.path.abspath(fpath))[1])[:-node.level]
+                        prefix = '.'.join(parts) + '.'
+                        # prefix = '.'.join(os.path.split(fpath)[-node.level:]) + '.'
+                    else:
+                        prefix = '.' * node.level
+                # modules.append(node.level * '.' + node.module + '.' + alias.name)
+                # modules.append(prefix + node.module + '.' + alias.name)
+                modules.append(prefix + node.module)
+
+        def visit_FunctionDef(self, node):
+            # Ignore modules imported in functions
+            if not top_level:
+                self.generic_visit(node)
+                # ast.NodeVisitor.generic_visit(self, node)
+
+        def visit_ClassDef(self, node):
+            if not top_level:
+                self.generic_visit(node)
+                # ast.NodeVisitor.generic_visit(self, node)
+
+        def visit_If(self, node):
+            if not branch:
+                # TODO: determine how to figure out if a name is in all branches
+                if not _node_is_main_if(node):
+                    # Ignore the main statement
+                    self.generic_visit(node)
+    try:
+        ImportVisitor().visit(pt)
+    except Exception:
+        pass
+    return import_names, modules
+
+
+def find_funcs_called_with_kwargs(sourcecode, target_kwargs_name='kwargs'):
+    r"""
+    Finds functions that are called with the keyword `kwargs` variable
+
+    CommandLine:
+        python3 -m utool.util_inspect find_funcs_called_with_kwargs
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1495,7 +1704,7 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
                     def biz(**kwargs):
                         foo2(**kwargs)
                 ''')
-        >>> child_funcnamess = ut.find_child_kwarg_funcs(sourcecode)
+        >>> child_funcnamess = ut.find_funcs_called_with_kwargs(sourcecode)
         >>> print('child_funcnamess = %r' % (child_funcnamess,))
         >>> assert 'foo2' not in child_funcnamess, 'foo2 should not be found'
         >>> assert 'bar' in child_funcnamess, 'bar should be found'
@@ -1565,12 +1774,13 @@ def find_child_kwarg_funcs(sourcecode, target_kwargs_name='kwargs'):
                 if node.keywords:
                     for kwargs in node.keywords:
                         if kwargs.arg is None:
-                            kwargs_name = kwargs.value.id
-                            if funcname is not None and kwargs_name == target_kwargs_name:
-                                child_funcnamess.append(funcname)
-                            if debug:
-                                print('funcname = %r' % (funcname,))
-                                print('kwargs_name = %r' % (kwargs_name,))
+                            if hasattr(kwargs.value, 'id'):
+                                kwargs_name = kwargs.value.id
+                                if funcname is not None and kwargs_name == target_kwargs_name:
+                                    child_funcnamess.append(funcname)
+                                if debug:
+                                    print('funcname = %r' % (funcname,))
+                                    print('kwargs_name = %r' % (kwargs_name,))
             ast.NodeVisitor.generic_visit(self, node)
     try:
         KwargParseVisitor().visit(pt)
@@ -1916,8 +2126,8 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
     SeeAlso:
         ut.execstr_funckw
     """
-    if keys is not None:
-        key_list = keys
+    if keys is None:
+        keys = key_list
     import utool as ut
     sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
     if update is None:
@@ -1933,28 +2143,81 @@ def exec_func_src(func, globals_=None, locals_=None, key_list=None,
     globals_new = globals_.copy()
     if locals_ is not None:
         globals_new.update(locals_)
+        # globals_new.update({k: v for k, v in locals_.items()
+        #                     if k not in globals_new})
     orig_globals = globals_new.copy()
     #six.exec_(sourcecode, globals_new, locals_)
     if verbose:
         print(ut.color_text(sourcecode, 'python'))
     six.exec_(sourcecode, globals_new)
     # Draw intermediate steps
-    if key_list is None:
+    if keys is None:
         #return locals_
         # Remove keys created in function execution
         ut.delete_keys(globals_new, orig_globals.keys())
         if update:
             # update input globals?
             globals_.update(globals_new)
-        # ~~ TODO autodetermine the key_list from the function vars
+        # ~~ TODO autodetermine the keys from the function vars
         return globals_new
     else:
         if update:
             # update input globals?
             globals_.update(globals_new)
-        #var_list = ut.dict_take(locals_, key_list)
-        var_list = ut.dict_take(globals_new, key_list)
+        #var_list = ut.dict_take(locals_, keys)
+        var_list = ut.dict_take(globals_new, keys)
         return var_list
+
+
+def exec_func_src2(func, globals_=None, locals_=None, sentinal=None,
+                   verbose=False, start=None, stop=None):
+    """
+    execs a func and returns requested local vars.
+
+    Does not modify globals unless update=True (or in IPython)
+
+    SeeAlso:
+        ut.execstr_funckw
+    """
+    import utool as ut
+    sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
+    if globals_ is None:
+        globals_ = ut.get_parent_frame().f_globals
+    if locals_ is None:
+        locals_ = ut.get_parent_frame().f_locals
+    if sentinal is not None:
+        sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
+    if start is not None or stop is not None:
+        sourcecode = '\n'.join(sourcecode.splitlines()[slice(start, stop)])
+    if verbose:
+        print(ut.color_text(sourcecode, 'python'))
+    # TODO: find the name of every variable that was assigned in the function
+    # and get it from the context
+    locals2_ = locals_.copy()
+    globals2_ = globals_.copy()
+    six.exec_(sourcecode, globals2_, locals2_)
+    return locals2_
+
+
+def exec_func_src3(func, globals_, sentinal=None, verbose=False,
+                   start=None, stop=None):
+    """
+    execs a func and returns requested local vars.
+
+    Does not modify globals unless update=True (or in IPython)
+
+    SeeAlso:
+        ut.execstr_funckw
+    """
+    import utool as ut
+    sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
+    if sentinal is not None:
+        sourcecode = ut.replace_between_tags(sourcecode, '', sentinal)
+    if start is not None or stop is not None:
+        sourcecode = '\n'.join(sourcecode.splitlines()[slice(start, stop)])
+    if verbose:
+        print(ut.color_text(sourcecode, 'python'))
+    six.exec_(sourcecode, globals_)
 
 
 def execstr_func_doctest(func, num=0, start_sentinal=None, end_sentinal=None):
@@ -2189,7 +2452,10 @@ def get_func_argspec(func):
         return argspec
     if isinstance(func, property):
         func = func.fget
-    argspec = inspect.getargspec(func)
+    try:
+        argspec = inspect.getargspec(func)
+    except Exception:
+        argspec = inspect.getfullargspec(func)
     return argspec
 
 
@@ -2253,6 +2519,8 @@ def get_kwargs(func):
 
 def lookup_attribute_chain(attrname, namespace):
     """
+
+    Ignore:
         >>> attrname = funcname
         >>> namespace = mod.__dict__
 
@@ -2376,7 +2644,7 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
     kwargs_list = found_explicit + found_implicit
 
     def hack_lookup_mod_attrs(attr):
-        # HACKS TODO: have find_child_kwarg_funcs infer an attribute is a
+        # HACKS TODO: have find_funcs_called_with_kwargs infer an attribute is a
         # module / function / type. In the module case, we can import it and
         # look it up.  Maybe args, or returns can help infer type.  Maybe just
         # register some known varnames.  Maybe jedi has some better way to do
@@ -2450,7 +2718,7 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
     if spec.keywords is not None:
         if verbose:
             print('[inspect] Checking spec.keywords=%r' % (spec.keywords,))
-        subfunc_name_list = ut.find_child_kwarg_funcs(sourcecode, spec.keywords)
+        subfunc_name_list = ut.find_funcs_called_with_kwargs(sourcecode, spec.keywords)
         if verbose:
             print('[inspect] Checking subfunc_name_list=%r' % (subfunc_name_list,))
         for subfunc_name in subfunc_name_list:
@@ -2462,6 +2730,14 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
             except TypeError:
                 print('warning: unable to recursivley parse type of : %r' % (subfunc_name,))
     return kwargs_list
+
+
+def get_funckw(func, recursive=True):
+    import utool as ut
+    funckw_ = ut.get_func_kwargs(func, recursive=recursive)
+    # if recursive:
+    #     funckw_.update(dict(ut.recursive_parse_kwargs(func)))
+    return funckw_
 
 
 def parse_func_kwarg_keys(func, with_vals=False):
@@ -2476,13 +2752,13 @@ def parse_func_kwarg_keys(func, with_vals=False):
 
     """
     sourcecode = get_func_sourcecode(func, strip_docstr=True,
-                                        strip_comments=True)
+                                     strip_comments=True)
     kwkeys = parse_kwarg_keys(sourcecode, with_vals=with_vals)
     #ut.get_func_kwargs  TODO
     return kwkeys
 
 
-def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, remove_linenums=None):
+def get_func_kwargs(func, recursive=True):
     """
     func = ibeis.run_experiment
 
@@ -2499,20 +2775,16 @@ def get_func_kwargs(func, stripdef=False, stripret=False, strip_docstr=False, re
         header_kw = {}
     else:
         header_kw = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
-    # TODO
     if argspec.keywords is not None:
-        # parse our keywords from func body if possible
-        # possibly recursively
-        pass
+        header_kw.update(dict(ut.recursive_parse_kwargs(func)))
     return header_kw
 
 
 def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
-    r""" very hacky way to infer some of the kwarg keys
-
-    TODO: use a code parse tree here.  Use hints.  Find other docstrings of
-    functions that are called with kwargs. Find the name of the kwargs
-    variable.
+    r"""
+    Parses the source code to find keys used by the `**kwargs` keywords
+    dictionary variable. if `with_vals` is True, we also attempt to infer the
+    default values.
 
     Args:
         source (str):
@@ -2527,7 +2799,6 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
 
     SeeAlso:
         argparse_funckw
-        find_child_kwarg_funcs
         recursive_parse_kwargs
         parse_kwarg_keys
         parse_func_kwarg_keys
@@ -2553,12 +2824,12 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
         >>> with_vals = True
         >>> kwarg_items = parse_kwarg_keys(source, with_vals=with_vals)
         >>> result = ('kwarg_items = %s' % (ut.repr2(kwarg_items, nl=1),))
-        >>> print(result)
         >>> kwarg_keys = ut.take_column(kwarg_items, 0)
         >>> assert 'baz' not in kwarg_keys
         >>> assert 'foo' in kwarg_keys
         >>> assert 'bloop' in kwarg_keys
         >>> assert 'bop' not in kwarg_keys
+        >>> print(result)
         kwarg_items = [
             ('foo', None),
             ('bar', 3),
@@ -2568,217 +2839,160 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
             ('bloop', None),
         ]
     """
-    import re
     import utool as ut
-    if False:
-        keyname = ut.named_field('keyname', ut.REGEX_VARNAME)
-        esc = re.escape
-        # TODO: both kinds of quotes
-        getfuncnames = ut.regex_or(['get', 'pop'])
-        getfunc_pattern = esc(keywords + '.') + getfuncnames + esc("('") + keyname + esc("',")
-        getitem_pattern = esc(keywords + "[\'") + keyname + esc("\']")
-        if with_vals:
-            WS = ut.REGEX_WHITESPACE
-            valname = WS + ut.named_field('valname', ut.REGEX_RVAL) + WS + esc(')')
-            getfunc_pattern += valname
-        not_quotes = r'^[^\'\"]*'
-        getfunc_pattern_ = not_quotes + getfunc_pattern
-        getitem_pattern_ = not_quotes + getitem_pattern
-        # Parse get/pop kwargs
-        regex1 = re.compile(getfunc_pattern_, flags=re.MULTILINE)
-        groupdict_list1 = [match.groupdict() for match in regex1.finditer(source)]
-        kwarg_keys1 = [groupdict_['keyname'] for groupdict_ in groupdict_list1]
-        # Parse __getitem__ kwargs
-        regex2 = re.compile(getitem_pattern_, flags=re.MULTILINE)
-        groupdict_list2 = [match.groupdict() for match in regex2.finditer(source)]
-        kwarg_keys2 = [groupdict_['keyname'] for groupdict_ in groupdict_list2]
-        if with_vals:
-            kwarg_vals = [ut.smart_cast2(groupdict_['valname'])
-                          for groupdict_ in groupdict_list1]
-            parsed_list1 = list(zip(kwarg_keys1, kwarg_vals))
-            parsed_list2 = [(key, None) for key in kwarg_keys2]
-            return parsed_list1 + parsed_list2
-        else:
-            return kwarg_keys1 + kwarg_keys2
-    else:
-        import ast
-        sourcecode = 'from __future__ import print_function, unicode_literals\n' + ut.unindent(source)
-        pt = ast.parse(sourcecode)
-        kwargs_items = []
-        debug = VERYVERB_INSPECT
-        target_kwargs_name = keywords
+    import ast
+    sourcecode = 'from __future__ import print_function, unicode_literals\n' + ut.unindent(source)
+    pt = ast.parse(sourcecode)
+    kwargs_items = []
+    debug = VERYVERB_INSPECT
+    target_kwargs_name = keywords
 
-        if debug:
-            import astor
-            print('\nInput:')
-            print('target_kwargs_name = %r' % (target_kwargs_name,))
-            print('\nSource:')
-            print(sourcecode)
-            print('\nParse:')
-            print(astor.dump(pt))
+    if debug:
+        import astor
+        print('\nInput:')
+        print('target_kwargs_name = %r' % (target_kwargs_name,))
+        print('\nSource:')
+        print(sourcecode)
+        print('\nParse:')
+        print(astor.dump(pt))
 
-        class KwargParseVisitor(ast.NodeVisitor):
-            """
-            TODO: understand ut.update_existing and dict update
-            ie, know when kwargs is passed to these functions and
-            then look assume the object that was updated is a dictionary
-            and check wherever that is passed to kwargs as well.
+    class KwargParseVisitor(ast.NodeVisitor):
+        """
+        TODO: understand ut.update_existing and dict update
+        ie, know when kwargs is passed to these functions and
+        then look assume the object that was updated is a dictionary
+        and check wherever that is passed to kwargs as well.
 
-            Other visit_<classname> values:
-                http://greentreesnakes.readthedocs.io/en/latest/nodes.html
-            """
-            def __init__(self):
-                super(KwargParseVisitor, self).__init__()
-                self.const_lookup = {}
-                self.first = True
+        Other visit_<classname> values:
+            http://greentreesnakes.readthedocs.io/en/latest/nodes.html
+        """
+        def __init__(self):
+            super(KwargParseVisitor, self).__init__()
+            self.const_lookup = {}
+            self.first = True
 
-            # def visit_Assign(self, node):
-            #     # print('VISIT FunctionDef node = %r' % (node,))
-            #     # print('VISIT FunctionDef node = %r' % (node.__dict__,))
-            #     # for target in node.targets:
-            #     #     print('target.id = %r' % (target.id,))
-            #     # print('node.value = %r' % (node.value,))
-            #     # TODO: assign constants to
-            #     # self.const_lookup
-            #     ast.NodeVisitor.generic_visit(self, node)
-
-            # def visit_Name(self, node):
-            #     if debug:
-            #         print('VISIT FunctionDef node = %r' % (node,))
-            #         # print('node.args.kwarg = %r' % (node.args.kwarg,))
-            #     print('VISIT FunctionDef node = %r' % (node,))
-            #     # print('node.ctx = %r' % (node.ctx,))
-            #     # print('ast.Store = %r' % (ast.Store,))
-            #     if isinstance(node.ctx, ast.Load):
-            #         print('node.ctx.__dict__ = %r' % (node.ctx.__dict__,))
-            #         print('VISIT FunctionDef node = %r' % (node.__dict__,))
-            #     if isinstance(node.ctx, ast.Store):
-            #         print('node.ctx.__dict__ = %r' % (node.ctx.__dict__,))
-            #         print('VISIT FunctionDef node = %r' % (node.__dict__,))
-            #     ast.NodeVisitor.generic_visit(self, node)
-
-            def visit_FunctionDef(self, node):
-                if debug:
-                    print('VISIT FunctionDef node = %r' % (node,))
-                    # print('node.args.kwarg = %r' % (node.args.kwarg,))
-                if six.PY2:
-                    kwarg_name = node.args.kwarg
+        def visit_FunctionDef(self, node):
+            if debug:
+                print('VISIT FunctionDef node = %r' % (node,))
+                # print('node.args.kwarg = %r' % (node.args.kwarg,))
+            if six.PY2:
+                kwarg_name = node.args.kwarg
+            else:
+                if node.args.kwarg is None:
+                    kwarg_name = None
                 else:
-                    if node.args.kwarg is None:
-                        kwarg_name = None
-                    else:
-                        kwarg_name = node.args.kwarg.arg
+                    kwarg_name = node.args.kwarg.arg
 
-                # Record any constants defined in function definitions
-                defaults_vals = node.args.defaults
-                offset = len(node.args.args) - len(defaults_vals)
-                default_keys = node.args.args[offset:]
-                for kwname, kwval in zip(default_keys, defaults_vals):
-                    # try:
-                    if six.PY2:
-                        if isinstance(kwval, ast.Name):
-                            val = eval(kwval.id, {}, {})
-                            self.const_lookup[kwname.id] = val
-                    else:
-                        if isinstance(kwval, ast.NameConstant):
-                            val = kwval.value
-                            self.const_lookup[kwname.arg] = val
-                    # except Exception:
-                    #     pass
+            # Record any constants defined in function definitions
+            defaults_vals = node.args.defaults
+            offset = len(node.args.args) - len(defaults_vals)
+            default_keys = node.args.args[offset:]
+            for kwname, kwval in zip(default_keys, defaults_vals):
+                # try:
+                if six.PY2:
+                    if isinstance(kwval, ast.Name):
+                        val = eval(kwval.id, {}, {})
+                        self.const_lookup[kwname.id] = val
+                else:
+                    if isinstance(kwval, ast.NameConstant):
+                        val = kwval.value
+                        self.const_lookup[kwname.arg] = val
+                # except Exception:
+                #     pass
 
-                if self.first or kwarg_name != target_kwargs_name:
-                    # target kwargs is still in scope
-                    ast.NodeVisitor.generic_visit(self, node)
-                    # always visit the first function
-                    self.first = False
-
-            def visit_Subscript(self, node):
-                if debug:
-                    print('VISIT SUBSCRIPT node = %r' % (node,))
-                    # print(ut.repr4(node.__dict__,))
-                if isinstance(node.value, ast.Name):
-                    if node.value.id == target_kwargs_name:
-                        if isinstance(node.slice, ast.Index):
-                            index = node.slice
-                            key = index.value
-                            if isinstance(key, ast.Str):
-                                # item = (key.s, None)
-                                item = (key.s, None)
-                                kwargs_items.append(item)
-
-            @staticmethod
-            def _eval_bool_op(val):
-                # Can we handle this more intelligently?
-                val_value = None
-                if isinstance(val.op, ast.Or):
-                    if any([isinstance(x, ast.NameConstant) and x.value is True for x in val.values]):
-                        val_value = True
-                elif isinstance(val.op, ast.And):
-                    if any([isinstance(x, ast.NameConstant) and x.value is False for x in val.values]):
-                        val_value = False
-                return val_value
-
-            def visit_Call(self, node):
-                if debug:
-                    print('VISIT Call node = %r' % (node,))
-                    # print(ut.repr4(node.__dict__,))
-                if isinstance(node.func, ast.Attribute):
-                    try:
-                        objname = node.func.value.id
-                    except AttributeError:
-                        return
-                    methodname = node.func.attr
-                    # funcname = objname + '.' + methodname
-                    if objname == target_kwargs_name and methodname in {'get', 'pop'}:
-                        args = node.args
-                        if len(args) == 2:
-                            key, val = args
-                            if isinstance(key, ast.Name):
-                                # TODO lookup constant
-                                pass
-                            elif isinstance(key, ast.Str):
-                                key_value = key.s
-                                val_value = None   # ut.NoParam
-                                if isinstance(val, ast.Str):
-                                    val_value = val.s
-                                elif isinstance(val, ast.Num):
-                                    val_value = val.n
-                                elif isinstance(val, ast.Name):
-                                    if val.id == 'None':
-                                        val_value = None
-                                    else:
-                                        val_value = self.const_lookup.get(
-                                                val.id, None)
-                                        # val_value = 'TODO lookup const'
-                                        # TODO: lookup constants?
-                                        pass
-                                elif six.PY3:
-                                    if isinstance(val, ast.NameConstant):
-                                        val_value = val.value
-                                    elif isinstance(val, ast.Call):
-                                        val_value = None
-                                    elif isinstance(val, ast.BoolOp):
-                                        val_value = self._eval_bool_op(val)
-                                    elif isinstance(val, ast.Dict):
-                                        if len(val.keys) == 0:
-                                            val_value = {}
-                                        else:
-                                            val_value = {}
-                                        # val_value = callable
-                                    else:
-                                        print('Warning: util_inspect doent know how to parse {}'.format(repr(val)))
-                                item = (key_value, val_value)
-                                kwargs_items.append(item)
+            if self.first or kwarg_name != target_kwargs_name:
+                # target kwargs is still in scope
                 ast.NodeVisitor.generic_visit(self, node)
-        try:
-            KwargParseVisitor().visit(pt)
-        except Exception:
-            raise
-            pass
-        if with_vals:
-            return kwargs_items
-        else:
-            return ut.take_column(kwargs_items, 0)
+                # always visit the first function
+                self.first = False
+
+        def visit_Subscript(self, node):
+            if debug:
+                print('VISIT SUBSCRIPT node = %r' % (node,))
+                # print(ut.repr4(node.__dict__,))
+            if isinstance(node.value, ast.Name):
+                if node.value.id == target_kwargs_name:
+                    if isinstance(node.slice, ast.Index):
+                        index = node.slice
+                        key = index.value
+                        if isinstance(key, ast.Str):
+                            # item = (key.s, None)
+                            item = (key.s, None)
+                            kwargs_items.append(item)
+
+        @staticmethod
+        def _eval_bool_op(val):
+            # Can we handle this more intelligently?
+            val_value = None
+            if isinstance(val.op, ast.Or):
+                if any([isinstance(x, ast.NameConstant) and x.value is True for x in val.values]):
+                    val_value = True
+            elif isinstance(val.op, ast.And):
+                if any([isinstance(x, ast.NameConstant) and x.value is False for x in val.values]):
+                    val_value = False
+            return val_value
+
+        def visit_Call(self, node):
+            if debug:
+                print('VISIT Call node = %r' % (node,))
+                # print(ut.repr4(node.__dict__,))
+            if isinstance(node.func, ast.Attribute):
+                try:
+                    objname = node.func.value.id
+                except AttributeError:
+                    return
+                methodname = node.func.attr
+                # funcname = objname + '.' + methodname
+                if objname == target_kwargs_name and methodname in {'get', 'pop'}:
+                    args = node.args
+                    if len(args) == 2:
+                        key, val = args
+                        if isinstance(key, ast.Name):
+                            # TODO lookup constant
+                            pass
+                        elif isinstance(key, ast.Str):
+                            key_value = key.s
+                            val_value = None   # ut.NoParam
+                            if isinstance(val, ast.Str):
+                                val_value = val.s
+                            elif isinstance(val, ast.Num):
+                                val_value = val.n
+                            elif isinstance(val, ast.Name):
+                                if val.id == 'None':
+                                    val_value = None
+                                else:
+                                    val_value = self.const_lookup.get(
+                                            val.id, None)
+                                    # val_value = 'TODO lookup const'
+                                    # TODO: lookup constants?
+                                    pass
+                            elif six.PY3:
+                                if isinstance(val, ast.NameConstant):
+                                    val_value = val.value
+                                elif isinstance(val, ast.Call):
+                                    val_value = None
+                                elif isinstance(val, ast.BoolOp):
+                                    val_value = self._eval_bool_op(val)
+                                elif isinstance(val, ast.Dict):
+                                    if len(val.keys) == 0:
+                                        val_value = {}
+                                    else:
+                                        val_value = {}
+                                    # val_value = callable
+                                else:
+                                    print('Warning: util_inspect doent know how to parse {}'.format(repr(val)))
+                            item = (key_value, val_value)
+                            kwargs_items.append(item)
+            ast.NodeVisitor.generic_visit(self, node)
+    try:
+        KwargParseVisitor().visit(pt)
+    except Exception:
+        raise
+        pass
+    if with_vals:
+        return kwargs_items
+    else:
+        return ut.take_column(kwargs_items, 0)
 
 
 class KWReg(object):
@@ -2833,7 +3047,7 @@ def argparse_funckw(func, defaults={}, **kwargs):
         python -m utool.util_inspect argparse_funckw
 
     SeeAlso:
-        argparse_funckw
+        exec_funckw
         recursive_parse_kwargs
         parse_kwarg_keys
 
@@ -2852,11 +3066,7 @@ def argparse_funckw(func, defaults={}, **kwargs):
         }
     """
     import utool as ut
-    recursive = True
-    if recursive:
-        funckw_ = dict(ut.recursive_parse_kwargs(func))
-    else:
-        funckw_ = ut.get_func_kwargs(func)
+    funckw_ = ut.get_funckw(func, recursive=True)
     funckw_.update(defaults)
     funckw = ut.argparse_dict(funckw_, **kwargs)
     return funckw
@@ -2874,7 +3084,7 @@ def infer_function_info(func):
         python -m utool --tf infer_function_info:0
         python -m utool --tf infer_function_info:1 --funcname=ibeis_cnn.models.siam.ignore_hardest_cases
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
@@ -2885,7 +3095,8 @@ def infer_function_info(func):
         >>> result = ut.repr4(funcinfo.__dict__)
         >>> print(result)
 
-    Example1:
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
@@ -3067,120 +3278,10 @@ def infer_function_info(func):
     return funcinfo
 
 
-def parse_callname(searchline, sentinal='def '):
-    """
-    Parses the function or class name from a signature line
-    originally part of the vim plugin
-    """
-    rparen_pos = searchline.find('(')
-    if rparen_pos > 0:
-        callname = searchline[len(sentinal):rparen_pos].strip(' ')
-        return callname
-    return None
-
-
-def find_pattern_above_row(pattern, line_list, row, maxIter=50):
-    """ originally part of the vim plugin """
-    import re
-    # Janky way to find function name
-    ix = 0
-    while True:
-        pos = row - ix
-        if maxIter is not None and ix > maxIter:
-            break
-        if pos < 0:
-            break
-            raise AssertionError('end of buffer')
-        searchline = line_list[pos]
-        if re.match(pattern, searchline) is not None:
-            return searchline, pos
-        ix += 1
-
-
-def find_pyclass_above_row(line_list, row):
-    """ originally part of the vim plugin """
-    # Get text posision
-    pattern = '^class [a-zA-Z_]'
-    classline, classpos = find_pattern_above_row(pattern, line_list, row, maxIter=None)
-    return classline, classpos
-
-
-def find_pyfunc_above_row(line_list, row, orclass=False):
-    """
-    originally part of the vim plugin
-
-    CommandLine:
-        python -m utool.util_inspect --test-find_pyfunc_above_row
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_inspect import *  # NOQA
-        >>> import utool as ut
-        >>> func = find_pyfunc_above_row
-        >>> fpath = meta_util_six.get_funcglobals(func)['__file__'].replace('.pyc', '.py')
-        >>> line_list = ut.read_from(fpath, aslines=True)
-        >>> row = meta_util_six.get_funccode(func).co_firstlineno + 1
-        >>> pyfunc, searchline = find_pyfunc_above_row(line_list, row)
-        >>> result = pyfunc
-        >>> print(result)
-        find_pyfunc_above_row
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_inspect import *  # NOQA
-        >>> import utool as ut
-        >>> fpath = ut.util_inspect.__file__.replace('.pyc', '.py')
-        >>> line_list = ut.read_from(fpath, aslines=True)
-        >>> row = 1608
-        >>> pyfunc, searchline = find_pyfunc_above_row(line_list, row, orclass=True)
-        >>> result = pyfunc
-        >>> print(result)
-        find_pyfunc_above_row
-    """
-    import utool as ut
-    searchlines = []  # for debugging
-    funcname = None
-    # Janky way to find function name
-    func_sentinal   = 'def '
-    method_sentinal = '    def '
-    class_sentinal = 'class '
-    for ix in range(200):
-        func_pos = row - ix
-        searchline = line_list[func_pos]
-        searchline = ut.ensure_unicode(searchline)
-        cleanline = searchline.strip(' ')
-        searchlines.append(cleanline)
-        if searchline.startswith(func_sentinal):  # and cleanline.endswith(':'):
-            # Found a valid function name
-            funcname = parse_callname(searchline, func_sentinal)
-            if funcname is not None:
-                break
-        if orclass and searchline.startswith(class_sentinal):
-            # Found a valid class name (as funcname)
-            funcname = parse_callname(searchline, class_sentinal)
-            if funcname is not None:
-                break
-        if searchline.startswith(method_sentinal):  # and cleanline.endswith(':'):
-            # Found a valid function name
-            funcname = parse_callname(searchline, method_sentinal)
-            if funcname is not None:
-                classline, classpos = find_pyclass_above_row(line_list, func_pos)
-                classname = parse_callname(classline, class_sentinal)
-                if classname is not None:
-                    funcname = '.'.join([classname, funcname])
-                    break
-                else:
-                    funcname = None
-    return funcname, searchlines
-
-
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect, allexamples=True)"
-        python -c "import utool, utool.util_inspect; utool.doctest_funcs(utool.util_inspect)"
         python -m utool.util_inspect --enableall
-        python -m utool.util_inspect --enableall --test-iter-module-doctestable:1
         python -m utool.util_inspect --allexamples
     """
     import multiprocessing

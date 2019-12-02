@@ -388,6 +388,7 @@ def sample_domain(min_, max_, nSamp, mode='linear'):
         >>> max_ = 1000
         >>> nSamp  = 7
         >>> result = utool.sample_domain(min_, max_, nSamp)
+        >>> print(result)
         [10, 151, 293, 434, 576, 717, 859]
     """
     if mode == 'linear':

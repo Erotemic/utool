@@ -23,9 +23,8 @@ from utool import util_decor
 try:
     import numpy as np
     HAVE_NUMPY = True
-except ImportError as ex:
+except ImportError:
     HAVE_NUMPY = False
-    pass
 # TODO: remove print_, or grab it dynamically from util_logger
 print, rrr, profile = util_inject.inject2(__name__)
 print_ = util_inject.make_module_write_func(__name__)
@@ -440,7 +439,7 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         diff_list = [np.abs(a - b) for a, b in ut.itertwo(result_list)]
         print('diff stats')
         for diffs in diff_list:
-            ut.print_stats(diffs, axis=None, use_median=True)
+            print(ut.repr4(ut.get_stats(diffs, precision=2, use_median=True)))
         print('diff_list = %r' % (diff_list,))
         print('sum_list = %r' % (sum_list,))
         print('passed_list = %r' % (passed_list,))
@@ -551,6 +550,7 @@ class MemoryTracker(object):
     as memory usage difference w.r.t the last report.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool
         >>> import numpy as np
         >>> memtrack = utool.MemoryTracker('[ENTRY]')
@@ -999,7 +999,7 @@ class InteractiveIter(object):
         if iiter.num_items == 0:
             raise StopIteration
         # TODO: replace with ub.ProgIter
-        mark_, end_ = util_progress.log_progress(total=iiter.num_items,
+        mark_, end_ = util_progress.log_progress(length=iiter.num_items,
                                                  lbl='interaction: ', freq=1)
         prompt_on_start = False
         if prompt_on_start:
@@ -1265,10 +1265,10 @@ def get_jagged_stats(arr_list, **kwargs):
         >>> result = ut.align(str(ut.repr4(stats_dict)), ':')
         >>> print(result)
         {
-            'max'    : [4.0, 10.0, 3.0],
-            'min'    : [1.0, 3.0, 3.0],
             'mean'   : [2.5, 6.5, 3.0],
             'std'    : [1.118034, 3.5, 0.0],
+            'max'    : [4.0, 10.0, 3.0],
+            'min'    : [1.0, 3.0, 3.0],
             'nMin'   : [1, 1, 3],
             'nMax'   : [1, 1, 3],
             'shape'  : ['(4,)', '(2,)', '(4,)'],
@@ -1296,7 +1296,6 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
             (min, max, mean, std, nMin, nMax, shape)
 
     SeeAlso:
-        print_stats
         get_stats_str
 
     CommandLine:
@@ -1315,10 +1314,10 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> result = str(utool.repr4(stats, nl=1, precision=4, with_dtype=True))
         >>> print(result)
         {
-            'max': np.array([ 0.9637,  0.9256], dtype=np.float32),
-            'min': np.array([ 0.0202,  0.0871], dtype=np.float32),
-            'mean': np.array([ 0.5206,  0.6425], dtype=np.float32),
-            'std': np.array([ 0.2854,  0.2517], dtype=np.float32),
+            'mean': np.array([0.5206, 0.6425], dtype=np.float32),
+            'std': np.array([0.2854, 0.2517], dtype=np.float32),
+            'max': np.array([0.9637, 0.9256], dtype=np.float32),
+            'min': np.array([0.0202, 0.0871], dtype=np.float32),
             'nMin': np.array([1, 1], dtype=np.int32),
             'nMax': np.array([1, 1], dtype=np.int32),
             'shape': (10, 2),
@@ -1336,7 +1335,7 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         >>> stats = get_stats(list_, axis, use_nan=True)
         >>> result = str(utool.repr2(stats, precision=1, strkeys=True))
         >>> print(result)
-        {max: 41.0, min: 0.0, mean: 20.0, std: 13.2, nMin: 7, nMax: 3, shape: (100,), num_nan: 1}
+        {mean: 20.0, std: 13.2, max: 41.0, min: 0.0, nMin: 7, nMax: 3, shape: (100,), num_nan: 1}
     """
     datacast = np.float32
     # Assure input is in numpy format
@@ -1366,10 +1365,10 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         nMin = np.sum(nparr == min_val, axis=axis)
         nMax = np.sum(nparr == max_val, axis=axis)
         stats = OrderedDict([
-            ('max',   (max_val)),
-            ('min',   (min_val)),
             ('mean',  datacast(mean_)),
             ('std',   datacast(std_)),
+            ('max',   (max_val)),
+            ('min',   (min_val)),
             ('nMin',  np.int32(nMin)),
             ('nMax',  np.int32(nMax)),
         ])
@@ -1405,9 +1404,6 @@ def set_overlaps(set1, set2, s1='s1', s2='s2'):
     ])
     return overlaps
 
-get_overlaps = set_overlaps
-get_setdiff_info = set_overlaps
-
 
 def set_overlap_items(set1, set2, s1='s1', s2='s2'):
     import utool as ut
@@ -1422,6 +1418,10 @@ def set_overlap_items(set1, set2, s1='s1', s2='s2'):
         ('%s - %s' % (s2, s1), set2.difference(set1)),
     ])
     return overlaps
+
+get_overlaps = set_overlaps
+get_setdiff_info = set_overlaps
+get_setdiff_items = set_overlap_items
 
 # --- Info Strings ---
 
@@ -1453,11 +1453,10 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
         >>> stat_str = get_stats_str(list_, newlines, keys, exclude_keys, lbl, precision)
         >>> result = str(stat_str)
         >>> print(result)
-        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
+        {'mean': 3, 'std': 1.41, 'max': 5, 'min': 1, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
 
     SeeAlso:
         repr2
-        print_stats
         get_stats
     """
     from utool.util_str import repr4
@@ -1518,183 +1517,6 @@ def get_stats_str(list_=None, newlines=False, keys=None, exclude_keys=[], lbl=No
     if align:
         stat_str = ut.align(stat_str, ':')
     return stat_str
-
-
-def print_stats(list_, lbl=None, newlines=False, precision=2, axis=0, **kwargs):
-    """
-    Prints string representation of stat of list_
-
-    CommandLine:
-        python -m utool.util_dev --test-print_stats
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_dev import *  # NOQA
-        >>> list_ = [1, 2, 3, 4, 5]
-        >>> lbl = None
-        >>> newlines = False
-        >>> precision = 2
-        >>> result = print_stats(list_, lbl, newlines, precision)
-        {'max': 5, 'min': 1, 'mean': 3, 'std': 1.41, 'nMin': 1, 'nMax': 1, 'shape': (5,)}
-
-    SeeAlso:
-        get_stats_str
-        get_stats
-
-    """
-    if lbl is not None:
-        print('Stats for %s' % lbl)
-    stat_str = get_stats_str(list_, newlines=newlines, precision=2, axis=axis, **kwargs)
-    print(stat_str)
-    return stat_str
-
-
-def npArrInfo(arr):
-    """
-    OLD update and refactor
-    """
-    from utool.DynamicStruct import DynStruct
-    info = DynStruct()
-    info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
-    info.dtypestr  = str(arr.dtype)
-    if info.dtypestr == 'bool':
-        info.bittotal = 'T=%d, F=%d' % (sum(arr), sum(1 - arr))
-    elif info.dtypestr == 'object':
-        info.minmaxstr = 'NA'
-    elif info.dtypestr[0] == '|':
-        info.minmaxstr = 'NA'
-    else:
-        if arr.size > 0:
-            info.minmaxstr = '(%r, %r)' % (arr.min(), arr.max())
-        else:
-            info.minmaxstr = '(None)'
-    return info
-
-
-def printableType(val, name=None, parent=None):
-    """
-    Tries to make a nice type string for a value.
-    Can also pass in a Printable parent object
-    """
-    if parent is not None and hasattr(parent, 'customPrintableType'):
-        # Hack for non - trivial preference types
-        _typestr = parent.customPrintableType(name)
-        if _typestr is not None:
-            return _typestr
-    if isinstance(val, np.ndarray):
-        info = npArrInfo(val)
-        _typestr = info.dtypestr
-    elif isinstance(val, object):
-        _typestr = val.__class__.__name__
-    else:
-        _typestr = str(type(val))
-        _typestr = _typestr.replace('type', '')
-        _typestr = re.sub('[\'><]', '', _typestr)
-        _typestr = re.sub('  *', ' ', _typestr)
-        _typestr = _typestr.strip()
-    return _typestr
-
-
-def printableVal(val, type_bit=True, justlength=False):
-    """
-    Very old way of doing pretty printing. Need to update and refactor.
-    DEPRICATE
-    """
-    from utool import util_dev
-    # Move to util_dev
-    # NUMPY ARRAY
-    if type(val) is np.ndarray:
-        info = npArrInfo(val)
-        if info.dtypestr.startswith('bool'):
-            _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'
-            # + '\n  |_____'
-        elif info.dtypestr.startswith('float'):
-            _valstr = util_dev.get_stats_str(val)
-        else:
-            _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
-    # String
-    elif isinstance(val, (str, unicode)):
-        _valstr = '\'%s\'' % val
-    # List
-    elif isinstance(val, list):
-        if justlength or len(val) > 30:
-            _valstr = 'len=' + str(len(val))
-        else:
-            _valstr = '[ ' + (', \n  '.join([str(v) for v in val])) + ' ]'
-    # ??? isinstance(val, AbstractPrintable):
-    elif hasattr(val, 'get_printable') and type(val) != type:
-        _valstr = val.get_printable(type_bit=type_bit)
-    elif isinstance(val, dict):
-        _valstr = '{\n'
-        for val_key in val.keys():
-            val_val = val[val_key]
-            _valstr += '  ' + str(val_key) + ' : ' + str(val_val) + '\n'
-        _valstr += '}'
-    else:
-        _valstr = str(val)
-    if _valstr.find('\n') > 0:  # Indent if necessary
-        _valstr = _valstr.replace('\n', '\n    ')
-        _valstr = '\n    ' + _valstr
-    _valstr = re.sub('\n *$', '', _valstr)  # Replace empty lines
-    return _valstr
-
-
-def myprint(input_=None, prefix='', indent='', lbl=''):
-    """
-    OLD PRINT FUNCTION USED WITH PRINTABLE VAL
-    TODO: Refactor and update
-    """
-    if len(lbl) > len(prefix):
-        prefix = lbl
-    if len(prefix) > 0:
-        prefix += ' '
-    print_(indent + prefix + str(type(input_)) + ' ')
-    if isinstance(input_, list):
-        print(indent + '[')
-        for item in iter(input_):
-            myprint(item, indent=indent + '  ')
-        print(indent + ']')
-    elif isinstance(input_, six.string_types):
-        print(input_)
-    elif isinstance(input_, dict):
-        print(printableVal(input_))
-    else:
-        print(indent + '{')
-        attribute_list = dir(input_)
-        for attr in attribute_list:
-            if attr.find('__') == 0:
-                continue
-            val = str(input_.__getattribute__(attr))
-            #val = input_[attr]
-            # Format methods nicer
-            #if val.find('built-in method'):
-            #    val = '<built-in method>'
-            print(indent + '  ' + attr + ' : ' + val)
-        print(indent + '}')
-
-
-def info(var, lbl):
-    if isinstance(var, np.ndarray):
-        return npinfo(var, lbl)
-    if isinstance(var, list):
-        return listinfo(var, lbl)
-
-
-def npinfo(ndarr, lbl='ndarr'):
-    info = ''
-    info += (lbl + ': shape=%r ; dtype=%r' % (ndarr.shape, ndarr.dtype))
-    return info
-
-
-def listinfo(list_, lbl='ndarr'):
-    if not isinstance(list_, list):
-        raise Exception('!!')
-    info = ''
-    type_set = set([])
-    for _ in iter(list_):
-        type_set.add(str(type(_)))
-    info += (lbl + ': len=%r ; types=%r' % (len(list_), type_set))
-    return info
 
 
 #expected_type = np.float32
@@ -1847,6 +1669,7 @@ def get_object_nbytes(obj, fallback_type=None, follow_pointers=False, exclude_mo
         nBytes = 8
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_dev import *  # NOQA
         >>> import ibeis
@@ -2515,6 +2338,7 @@ def get_submodules_from_dpath(dpath, only_packages=False, recursive=True):
         python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_dev import *  # NOQA
         >>> import utool as ut
@@ -2677,13 +2501,37 @@ def execstr_funckw(func):
 
     SeeAlso:
         ut.exec_func_src
+        ut.argparse_funckw
     """
     import utool as ut
     funckw = ut.get_func_kwargs(func)
     return ut.execstr_dict(funckw, explicit=True)
 
 
+def exec_argparse_funckw(func, globals_=None, defaults={}, **kwargs):
+    """
+    for doctests kwargs
+
+    SeeAlso:
+        ut.exec_func_src
+        ut.argparse_funckw
+    """
+    import utool as ut
+    funckw = ut.get_func_kwargs(func)
+    funckw.update(defaults)
+    parsekw = ut.argparse_dict(funckw, **kwargs)
+    if globals_:
+        globals_.update(parsekw)
+    return parsekw
+    # execstr = ut.execstr_dict(parsekw, explicit=True)
+    # exec(execstr, globals_)
+
+
 def exec_funckw(func, globals_):
+    """
+    SeeAlso:
+        ut.argparse_funckw
+    """
     exec(execstr_funckw(func), globals_)
 
 
@@ -3205,7 +3053,7 @@ class NamedPartial(functools.partial, NiceRepr):
         return self.__name__
 
 
-def fix_super_reload(this_class, self):
+def super2(this_class, self):
     """
     Fixes an error where reload causes super(X, self) to raise an exception
 
@@ -3217,7 +3065,70 @@ def fix_super_reload(this_class, self):
         this_class (class): class passed into super
         self (instance): instance passed into super
 
-    Example:
+    Ignore:
+        >>> # ENABLE_DOCTEST
+        >>> # If the parent module is reloaded, the super call may fail
+        >>> # super(Foo, self).__init__()
+        >>> # This will work around the problem most of the time
+        >>> # ut.super2(Foo, self).__init__()
+        >>> import utool as ut
+        >>> class Parent(object):
+        >>>     def __init__(self):
+        >>>         self.parent_attr = 'bar'
+        >>> class ChildSafe(Parent):
+        >>>     def __init__(self):
+        >>>         ut.super2(ChildSafe, self).__init__()
+        >>> class ChildDanger(Parent):
+        >>>     def __init__(self):
+        >>>         super(ChildDanger, self).__init__()
+        >>> # initial loading is fine
+        >>> safe1 = ChildSafe()
+        >>> danger1 = ChildDanger()
+        >>> assert safe1.parent_attr == 'bar'
+        >>> assert danger1.parent_attr == 'bar'
+        >>> # But if we reload (via simulation), then there will be issues
+        >>> Parent_orig = Parent
+        >>> ChildSafe_orig = ChildSafe
+        >>> ChildDanger_orig = ChildDanger
+        >>> # reloading the changes the outer classname
+        >>> # but the inner class is still bound via the closure
+        >>> # (we simulate this by using the old functions)
+        >>> # (note in reloaded code the names would not change)
+        >>> class Parent_new(object):
+        >>>     __init__ = Parent_orig.__init__
+        >>> Parent_new.__name__ = 'Parent'
+        >>> class ChildSafe_new(Parent_new):
+        >>>     __init__ = ChildSafe_orig.__init__
+        >>> ChildSafe_new.__name__ = 'ChildSafe'
+        >>> class ChildDanger_new(Parent_new):
+        >>>     __init__ = ChildDanger_orig.__init__
+        >>> ChildDanger_new.__name__ = 'ChildDanger'
+        >>> #
+        >>> safe2 = ChildSafe_new()
+        >>> assert safe2.parent_attr == 'bar'
+        >>> import pytest
+        >>> with pytest.raises(TypeError):
+        >>>     danger2 = ChildDanger_new()
+    """
+    return super(fix_super_reload(this_class, self), self)
+
+
+def fix_super_reload(this_class, self):
+    """
+    Fixes an error where reload causes super(X, self) to raise an exception
+
+    The problem is that reloading causes X to point to the wrong version of the
+    class.  This function fixes the problem by searching and returning the
+    correct version of the class. See example for proper usage.
+
+    USE `ut.super2` INSTEAD
+
+    Args:
+        this_class (class): class passed into super
+        self (instance): instance passed into super
+
+    DisableExample:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> class Parent(object):
         >>>     def __init__(self):
@@ -3228,7 +3139,7 @@ def fix_super_reload(this_class, self):
         >>>         # Dont do this, it will error if you reload
         >>>         # super(Foo, self).__init__()
         >>>         # Do this instead
-        >>>         _Foo = ut.fix_super_reload(Foo, self)
+        >>>         _Foo = ut.super2(Foo, self)
         >>>         super(_Foo, self).__init__()
         >>> self = Foo()
         >>> assert self.parent_attr == 'bar'
@@ -3275,6 +3186,7 @@ class Shortlist(NiceRepr):
     Removes smallest items if size grows to large.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> shortsize = 3
         >>> shortlist = Shortlist(shortsize)
         >>> print('shortlist = %r' % (shortlist,))
@@ -3341,6 +3253,7 @@ class PriorityQueue(NiceRepr):
         https://stackoverflow.com/questions/33024215/built-in-max-heap-api-in-python
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> items = dict(a=42, b=29, c=40, d=95, e=10)
         >>> self = ut.PriorityQueue(items)
@@ -3357,6 +3270,7 @@ class PriorityQueue(NiceRepr):
 
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> items = dict(a=(1.0, (2, 3)), b=(1.0, (1, 2)), c=(.9, (3, 2)))
         >>> self = ut.PriorityQueue(items)
@@ -3390,6 +3304,9 @@ class PriorityQueue(NiceRepr):
 
     def __len__(self):
         return len(self._dict)
+
+    def __eq__(self, other):
+        return self._dict == other._dict
 
     def __nice__(self):
         return 'size=%r' % (len(self),)
@@ -3461,6 +3378,7 @@ class PriorityQueue(NiceRepr):
         Actually this can be quite inefficient
 
         Example:
+            >>> # DISABLE_DOCTEST
             >>> import utool as ut
             >>> items = list(zip(range(256), range(256)))
             >>> n = 32
@@ -3509,6 +3427,13 @@ class PriorityQueue(NiceRepr):
                 raise
         del _dict[key]
         return key, val
+
+
+def pandas_reorder(df, order):
+    import utool as ut
+    new_order = ut.partial_order(df.columns, order)
+    new_df = df.reindex_axis(new_order, axis=1)
+    return new_df
 
 
 if __name__ == '__main__':

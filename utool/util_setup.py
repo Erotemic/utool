@@ -236,6 +236,7 @@ def find_packages(recursive=True, maxdepth=None):
 
 
 def get_cmdclass():
+    """ DEPRICATE """
     try:
         from Cython.Distutils import build_ext
         cmdclass = {'build_ext': build_ext}
@@ -276,6 +277,7 @@ def autogen_sphinx_apidoc():
         python -m utool.util_setup --exec-autogen_sphinx_apidoc
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_setup import *  # NOQA
         >>> autogen_sphinx_apidoc()
@@ -349,7 +351,7 @@ def autogen_sphinx_apidoc():
         ext_search_text = r'extensions = \[[^/]*\]'
         # TODO: http://sphinx-doc.org/ext/math.html#module-sphinx.ext.pngmath
         #'sphinx.ext.mathjax',
-        exclude_modules = []  # ['ibeis.all_imports']
+        exclude_modules = []
         ext_repl_text = ut.codeblock(
             '''
             MOCK_MODULES = {exclude_modules}

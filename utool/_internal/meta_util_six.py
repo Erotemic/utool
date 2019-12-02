@@ -73,9 +73,6 @@ if six.PY2:
     #
     def set_funcdoc(func, newdoc):
         return setattr(func, 'func_doc', newdoc)
-    #
-    def get_imfunc(func):
-        return getattr(func, 'im_func')
 
     def get_funccode(func):
         return getattr(func, 'func_code')
@@ -94,7 +91,7 @@ elif six.PY3:
     def get_funcname(func):
         try:
             return getattr(func, '__name__')
-        except AttributeError:
+        except AttributeError as original:
             if isinstance(func, functools.partial):
                 return get_funcname(func.func)
             if isinstance(func, types.BuiltinFunctionType):
@@ -102,7 +99,10 @@ elif six.PY3:
                 #return str(cv2.imread).replace('>', '').replace('<built-in function', '')
                 return str(func).replace('<built-in function', '<')
             else:
-                raise
+                try:
+                    return str(getattr(func, '__class__')).strip("<class '").strip("'>").split('.')[-1]
+                except:
+                    raise original
     def set_funcname(func, newname):
         return setattr(func, '__name__', newname)
     #
@@ -113,9 +113,6 @@ elif six.PY3:
         return getattr(func, '__doc__')
     def set_funcdoc(func, newdoc):
         return setattr(func, '__doc__', newdoc)
-    #
-    def get_imfunc(func):
-        return getattr(func, '__func__')
 
     def get_funccode(func):
         return getattr(func, '__code__')

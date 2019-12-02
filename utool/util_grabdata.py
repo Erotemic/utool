@@ -22,6 +22,8 @@ print, rrr, profile = util_inject.inject2(__name__)
 QUIET = util_arg.QUIET
 BadZipfile = zipfile.BadZipfile
 
+TIMEOUT = 5.0
+
 
 def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
                   overwrite=False, verbose=True, common_prefix=False):
@@ -44,11 +46,12 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
     CommandLine:
         python -m utool.util_grabdata --test-archive_files
 
-    Example:
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut
-        >>> archive_fpath = ut.get_app_resource_dir('utool', 'testarchive.zip')
+        >>> archive_fpath = ut.get_app_cache_dir('utool', 'testarchive.zip')
         >>> # remove an existing test archive
         >>> ut.delete(archive_fpath)
         >>> assert not exists(archive_fpath), 'archive should not exist'
@@ -204,7 +207,8 @@ def open_url_in_browser(url, browsername=None, fallback=False):
     CommandLine:
         python -m utool.util_grabdata --test-open_url_in_browser
 
-    Example:
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/isdl.php'
@@ -297,7 +301,8 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
     TODO:
         Delete any partially downloaded files
 
-    Example:
+    Ignore:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/download.php/ispack.exe'
         >>> fpath = download_url(url)
@@ -325,7 +330,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
     if new:
         import requests
         #from contextlib import closing
-        con = requests.get(url, stream=True)
+        con = requests.get(url, stream=True, timeout=TIMEOUT)
         try:
             #import math
             content_length = con.headers.get('content-length', None)
@@ -337,10 +342,10 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
                 if chunk_size is None:
                     chunk_size = 2 ** 20  # one megabyte at a time
                 content_length = int(content_length)
-                #nTotal = int(math.ceil(content_length / chunk_size))
+                #length = int(math.ceil(content_length / chunk_size))
                 with open(filename, 'wb') as file_:
                     chunk_iter = con.iter_content(chunk_size=chunk_size)
-                    #chunk_iter = ut.ProgIter(chunk_iter, nTotal=nTotal, lbl='downloading', freq=1)
+                    #chunk_iter = ut.ProgIter(chunk_iter, length=length, lbl='downloading', freq=1)
                     for count, chunk in enumerate(chunk_iter):
                         if chunk:
                             if reporthook:
@@ -380,7 +385,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
         # iri error
         print('Detected iri error: %r' % (ex,))
         print('Falling back to requests.get (no progress is shown)')
-        resp = requests.get(url)
+        resp = requests.get(url, timeout=TIMEOUT)
         with open(filename, 'wb') as file_:
             file_.write(resp.content)
     if verbose:
@@ -438,35 +443,6 @@ def experiment_download_multiple_urls(url_list):
         signal.signal(signal.SIGINT, signal_handler)
         print('Press Ctrl+C')
         signal.pause()
-
-    Example:
-        >>> # UNSTABLE_DOCTEST
-        >>> url_list = [
-        >>>     'https://lev.cs.rpi.edu/public/installers/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe',   # NOQA
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     ]
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/L10/L10_R1/S1_L10_R1_PICT0070.JPG'
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0001.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0002.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0003.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0004.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0005.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0006.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0007.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0008.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0022.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0023.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0024.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0025.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0026.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0027.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0028.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0029.JPG'
-        >>> ]
     """
     import requests
     import os
@@ -480,7 +456,7 @@ def experiment_download_multiple_urls(url_list):
         if response.ok:
             with open(filename, 'wb') as file_:
                 _iter = response.iter_content(chunk_size=1024)
-                for chunk in ut.ProgressIter(_iter, nTotal=-1, freq=1):
+                for chunk in ut.ProgIter(_iter, length=-1, freq=1):
                     if chunk:  # filter out keep-alive new chunks
                         file_.write(chunk)
                         file_.flush()
@@ -537,7 +513,8 @@ TESTIMG_URL_DICT = {
     'jeff.png'  : 'http://i.imgur.com/l00rECD.png',
     'ada2.jpg'  : 'http://i.imgur.com/zHOpTCb.jpg',
     'ada.jpg'   : 'http://i.imgur.com/iXNf4Me.jpg',
-    'lena.png'  : 'http://i.imgur.com/JGrqMnV.png',
+    'lena.png'  : 'http://i.imgur.com/JGrqMnV.png',  # depricate lena
+    'astro.png' : 'https://i.imgur.com/KXhKM72.png',  # Use instead of lena
     'carl.jpg'  : 'http://i.imgur.com/flTHWFD.jpg',
     'easy1.png' : 'http://i.imgur.com/Qqd0VNq.png',
     'easy2.png' : 'http://i.imgur.com/BDP8MIu.png',
@@ -560,6 +537,7 @@ def clear_test_img_cache():
         python -m utool.util_grabdata --test-clear_test_img_cache
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> testimg_fpath = clear_test_img_cache()
@@ -567,7 +545,7 @@ def clear_test_img_cache():
         >>> print(result)
     """
     import utool as ut
-    download_dir = util_cplat.get_app_resource_dir('utool')
+    download_dir = util_cplat.get_app_cache_dir('utool')
     for key in TESTIMG_URL_DICT:
         fpath = join(download_dir, key)
         ut.delete(fpath)
@@ -654,7 +632,7 @@ def grab_selenium_chromedriver(redownload=False):
         # TODO: make this work for windows as well
         if ut.LINUX and ut.util_cplat.is64bit_python():
             import requests
-            rsp = requests.get('http://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+            rsp = requests.get('http://chromedriver.storage.googleapis.com/LATEST_RELEASE', timeout=TIMEOUT)
             assert rsp.status_code == 200
             url = 'http://chromedriver.storage.googleapis.com/' + rsp.text.strip() + '/chromedriver_linux64.zip'
             ut.grab_zipped_url(url, download_dir=chromedriver_dpath, redownload=True)
@@ -752,7 +730,7 @@ def grab_file_remote_hash(file_url, hash_list, verbose=False):
         # Get the actual hash from the remote server, save in memory
         try:
             with ut.Timer('checking remote hash', verbose=verbose):
-                resp = requests.get(hash_url)
+                resp = requests.get(hash_url, timeout=TIMEOUT)
                 hash_remote = six.text_type(resp.content.strip())
         except requests.exceptions.ConnectionError:
             hash_remote = ''
@@ -805,7 +783,7 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         python -m utool.util_grabdata --test-grab_file_url:0
         python -m utool.util_grabdata --test-grab_file_url:1
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut  # NOQA
@@ -820,7 +798,7 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         >>> print(result)
         lena.png
 
-    Example1:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut  # NOQA
@@ -835,7 +813,7 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         fname = basename(file_url)
     # Download zipfile to
     if download_dir is None:
-        download_dir = util_cplat.get_app_resource_dir(appname)
+        download_dir = util_cplat.get_app_cache_dir(appname)
     # Zipfile should unzip to:
     fpath = join(download_dir, fname)
     # If check hash, get remote hash and assert local copy is the same
@@ -898,13 +876,6 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
     return fpath
 
 
-#def grab_multiple_files(url_list, download_dir=None):
-#    import utool as ut
-#    #funckw = dict(download_dir=download_dir, verbose=False)
-#    fpath_list = list(ut.generate(ut.grab_file_url, url_list))
-#    return fpath_list
-
-
 def grab_zipped_url(zipped_url, ensure=True, appname='utool',
                     download_dir=None, force_commonprefix=True, cleanup=False,
                     redownload=False, spoof=False):
@@ -942,6 +913,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
         >>> print(result)
 
     Examples:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> zipped_url = 'https://lev.cs.rpi.edu/public/data/testdata.zip'
         >>> zipped_url = 'http://www.spam.com/eggs/data.zip'
@@ -952,7 +924,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
     data_name = split_archive_ext(zip_fname)[0]
     # Download zipfile to
     if download_dir is None:
-        download_dir = util_cplat.get_app_resource_dir(appname)
+        download_dir = util_cplat.get_app_cache_dir(appname)
     # Zipfile should unzip to:
     data_dir = join(download_dir, data_name)
     if ensure or redownload:

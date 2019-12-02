@@ -19,14 +19,17 @@ class PythonStatement(object):
         return self.stmt
 
 
-def dump_autogen_code(fpath, autogen_text, codetype='python', fullprint=None):
+def dump_autogen_code(fpath, autogen_text, codetype='python', fullprint=None,
+                      show_diff=None, dowrite=None):
     """
     Helper that write a file if -w is given on command line, otherwise
     it just prints it out. It has the opption of comparing a diff to the file.
     """
     import utool as ut
-    dowrite = ut.get_argflag(('-w', '--write'))
-    show_diff = ut.get_argflag('--diff')
+    if dowrite is None:
+        dowrite = ut.get_argflag(('-w', '--write'))
+    if show_diff is None:
+        show_diff = ut.get_argflag('--diff')
     num_context_lines = ut.get_argval('--diff', type_=int, default=None)
     show_diff = show_diff or num_context_lines is not None
 
@@ -80,6 +83,7 @@ def makeinit(mod_dpath, exclude_modnames=[], use_star=False):
         python -m utool.util_autogen makeinit --modname=ibeis.algo
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_autogen import *  # NOQA
         >>> import utool as ut
@@ -187,6 +191,7 @@ def autofix_codeblock(codeblock, max_line_len=80,
     Uses autopep8 to format a block of code
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> codeblock = ut.codeblock(
             '''
@@ -218,7 +223,7 @@ def autofix_codeblock(codeblock, max_line_len=80,
     return fixed_codeblock
 
 
-def load_func_from_module(modname, funcname, verbose=True, moddir=None):
+def load_func_from_module(modname, funcname, verbose=True, moddir=None, modpath=None):
     r"""
     Args:
         modname (str):  module name
@@ -230,6 +235,7 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
         python -m utool.util_autogen load_func_from_module
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
         >>> import utool as ut
@@ -256,6 +262,34 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
     print('funcname = %r' % (funcname,))
     print('moddir = %r' % (moddir,))
 
+    try:
+        from xdoctest import static_analysis as static
+        from xdoctest import utils
+        print('modpath = {!r}'.format(modpath))
+    except ImportError:
+        modpath = None
+    else:
+        if modpath is None:
+            modpath = static.modname_to_modpath(modname)
+            if modpath is None:
+                modname = modname.split('.')[-1]
+                if moddir is not None:
+                    modpath = join(moddir, modname + '.py')
+                    if not exists(modpath):
+                        modpath = None
+                if modpath is None:
+                    raise Exception('Cannot find modname={} in moddir={}'.format(modname, moddir))
+        print('modpath = {!r}'.format(modpath))
+        module = utils.import_module_from_path(modpath)
+        print('module = {!r}'.format(module))
+        try:
+            func = eval('module.{}'.format(funcname))
+        except AttributeError:
+            imp.reload(module)
+            func = eval('module.{}'.format(funcname))
+        print('func = {!r}'.format(func))
+        return func, module, error_str
+
     if not isinstance(modname, six.string_types):
         error_str = 'modname=%r is not a string. bad input' % (modname,)
     else:
@@ -274,32 +308,33 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
                     break
             return func, mod, error_str
             # ut.get_modpath_from_modname(modname)
-        try:
-            module = __import__(modname)
-        except ImportError:
-            if moddir is not None:
-                #parts =
-                # There can be a weird double import error thing happening here
-                # Rectify the dots in the filename
-                module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
-            else:
-                raise
-        #import inspect
-        try:
-            imp.reload(module)
-        except Exception as ex:
-            pass
-        if False:
-            # Try removing pyc if it exists
-            if module.__file__.endswith('.pyc'):
-                ut.delete(module.__file__, verbose=False)
-                try:
-                    module = __import__(modname)
-                except ImportError:
-                    if moddir is not None:
-                        module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
-                    else:
-                        raise
+        if module is None:
+            try:
+                module = __import__(modname)
+            except ImportError:
+                if moddir is not None:
+                    #parts =
+                    # There can be a weird double import error thing happening here
+                    # Rectify the dots in the filename
+                    module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
+                else:
+                    raise
+            #import inspect
+            # try:
+            #     imp.reload(module)
+            # except Exception as ex:
+            #     pass
+        # if False:
+        #     # Try removing pyc if it exists
+        #     if module.__file__.endswith('.pyc'):
+        #         ut.delete(module.__file__, verbose=False)
+        #         try:
+        #             module = __import__(modname)
+        #         except ImportError:
+        #             if moddir is not None:
+        #                 module = ut.import_module_from_fpath(join(moddir, modname.split('.')[-1] + '.py'))
+        #             else:
+        #                 raise
         try:
             imp.reload(module)
         except Exception as ex:
@@ -358,7 +393,7 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None):
     return func, module, error_str
 
 
-def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
+def auto_docstr(modname, funcname, verbose=True, moddir=None, modpath=None, **kwargs):
     r"""
     called from vim. Uses strings of filename and modnames to build docstr
 
@@ -374,6 +409,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
         python -m utool --tf auto_docstr
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> from utool.util_autogen import *  # NOQA
         >>> ut.util_autogen.rrr(verbose=False)
@@ -386,7 +422,7 @@ def auto_docstr(modname, funcname, verbose=True, moddir=None, **kwargs):
     """
     #import utool as ut
     func, module, error_str = load_func_from_module(
-        modname, funcname, verbose=verbose, moddir=moddir)
+        modname, funcname, verbose=verbose, moddir=moddir, modpath=modpath)
     if error_str is None:
         try:
             docstr = make_default_docstr(func, **kwargs)
@@ -877,9 +913,11 @@ def remove_codeblock_syntax_sentinals(code_text):
     return code_text_
 
 
-def make_default_module_maintest(modname, modpath=None):
+def make_default_module_maintest(modname, modpath=None, test_code=None):
     """
     make_default_module_maintest
+
+    DEPRICATE
 
     TODO: use path relative to home dir if the file is a script
 
@@ -931,8 +969,6 @@ def make_default_module_maintest(modname, modpath=None):
     cmdline = ut.codeblock(
         '''
         python {pyargs}
-        python {pyargs} --allexamples
-        # REM python {pyargs} --allexamples --noface --nosrc
         ''')
 
     if not use_modrun:
@@ -944,6 +980,17 @@ def make_default_module_maintest(modname, modpath=None):
 
     cmdline = ut.indent(cmdline, ' ' * 8).lstrip(' ').format(pyargs=pyargs)
 
+    if test_code is None:
+        test_code = ut.codeblock(
+            r'''
+            import multiprocessing
+            multiprocessing.freeze_support()  # for win32
+            import utool as ut  # NOQA
+            ut.doctest_funcs()
+            ''')
+
+    test_code = ut.indent(test_code, ' ' * 4).lstrip(' ')
+
     text = ut.codeblock(
         r'''
         # STARTBLOCK
@@ -952,13 +999,11 @@ def make_default_module_maintest(modname, modpath=None):
             CommandLine:
                 {cmdline}
             """
-            import multiprocessing
-            multiprocessing.freeze_support()  # for win32
-            import utool as ut  # NOQA
-            ut.doctest_funcs()
+            {test_code}
         # ENDBLOCK
         '''
-    ).format(cmdline=cmdline)
+    ).format(cmdline=cmdline, test_code=test_code)
+    print('test_code = {!r}'.format(test_code))
     text = remove_codeblock_syntax_sentinals(text)
     return text
 

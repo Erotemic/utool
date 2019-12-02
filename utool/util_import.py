@@ -157,6 +157,7 @@ def possible_import_patterns(modname):
     does not support from x import z, y
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import utool as ut
         >>> modname = 'package.submod.submod2.module'
         >>> result = ut.repr3(ut.possible_import_patterns(modname))
@@ -480,39 +481,37 @@ def import_module_from_fpath(module_fpath):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_import import *  # NOQA
-        >>> module_fpath = '?'
+        >>> import utool
+        >>> module_fpath = utool.__file__
         >>> module = import_module_from_fpath(module_fpath)
         >>> result = ('module = %s' % (str(module),))
         >>> print(result)
 
 
     Ignore:
-        module_fpath = '/home/joncrall/code/h5py/h5py'
-        module_fpath = '/home/joncrall/code/h5py/build/lib.linux-x86_64-2.7/h5py'
-        ut.ls(module_fpath)
-        imp.find_module('h5py', '/home/joncrall/code/h5py/')
+        import shutil
+        import ubelt as ub
+        test_root = ub.ensure_app_cache_dir('test_fpath_import')
+        # Clear the directory
+        shutil.rmtree(test_root)
+        test_root = ub.ensure_app_cache_dir('test_fpath_import')
 
-
-        # Define two temporary modules that are not in sys.path
-        # and have the same name but different values.
+        # -----
+        # Define two temporary modules with the same name that are not in sys.path
         import sys, os, os.path
-        def ensuredir(path):
-            if not os.path.exists(path):
-                os.mkdir(path)
-        ensuredir('tmp')
-        ensuredir('tmp/tmp1')
-        ensuredir('tmp/tmp2')
-        ensuredir('tmp/tmp1/testmod')
-        ensuredir('tmp/tmp2/testmod')
-        with open('tmp/tmp1/testmod/__init__.py', 'w') as file_:
-            file_.write('foo = \"spam\"\nfrom . import sibling')
-        with open('tmp/tmp1/testmod/sibling.py', 'w') as file_:
-            file_.write('bar = \"ham\"')
-        with open('tmp/tmp2/testmod/__init__.py', 'w') as file_:
-            file_.write('foo = \"eggs\"\nfrom . import sibling')
-        with open('tmp/tmp1/testmod/sibling.py', 'w') as file_:
-            file_.write('bar = \"jam\"')
+        from os.path import join
 
+        # Even though they have the same name they have different values
+        mod1_fpath = ub.ensuredir((test_root, 'path1', 'testmod'))
+        ub.writeto(join(mod1_fpath, '__init__.py'), 'version = 1\nfrom . import sibling\na1 = 1')
+        ub.writeto(join(mod1_fpath, 'sibling.py'), 'spam = \"ham\"\nb1 = 2')
+
+        # Even though they have the same name they have different values
+        mod2_fpath = ub.ensuredir((test_root, 'path2', 'testmod'))
+        ub.writeto(join(mod2_fpath, '__init__.py'), 'version = 2\nfrom . import sibling\na2 = 3')
+        ub.writeto(join(mod2_fpath, 'sibling.py'), 'spam = \"jam\"\nb2 = 4')
+
+        # -----
         # Neither module should be importable through the normal mechanism
         try:
             import testmod
@@ -520,37 +519,75 @@ def import_module_from_fpath(module_fpath):
         except ImportError as ex:
             pass
 
-        # Try temporarilly adding the directory of a module to the path
-        sys.path.insert(0, 'tmp/tmp1')
-        testmod1 = __import__('testmod', globals(), locals(), 0)
-        sys.path.remove('tmp/tmp1')
-        print(testmod1.foo)
-        print(testmod1.sibling.bar)
+        mod1 = ut.import_module_from_fpath(mod1_fpath)
+        print('mod1.version = {!r}'.format(mod1.version))
+        print('mod1.version = {!r}'.format(mod1.version))
+        print(mod1.version == 1, 'mod1 version is 1')
+        print('mod1.a1 = {!r}'.format(mod1.a1))
 
-        sys.path.insert(0, 'tmp/tmp2')
-        testmod2 = __import__('testmod', globals(), locals(), 0)
-        sys.path.remove('tmp/tmp2')
-        print(testmod2.foo)
-        print(testmod2.sibling.bar)
+        mod2 = ut.import_module_from_fpath(mod2_fpath)
+        print('mod2.version = {!r}'.format(mod2.version))
+        print(mod2.version == 2, 'mod2 version is 2')
+        print('mod2.a2 = {!r}'.format(mod1.a2))
 
-        assert testmod1.foo == "spam"
-        assert testmod1.sibling.bar == "ham"
+        # BUT Notice how mod1 is mod2
+        print(mod1 is mod2)
 
-        # Fails, returns spam
-        assert testmod2.foo == "eggs"
-        assert testmod2.sibling.bar == "jam"
+        # mod1 has attributes from mod1 and mod2
+        print('mod1.a1 = {!r}'.format(mod1.a1))
+        print('mod1.a2 = {!r}'.format(mod1.a2))
+        print('mod2.a1 = {!r}'.format(mod2.a1))
+        print('mod2.a2 = {!r}'.format(mod2.a2))
 
-        sys.path.append('/home/username/code/h5py')
-        import h5py
-        sys.path.append('/home/username/code/h5py/build/lib.linux-x86_64-2.7/')
-        import h5py
+        # Both are version 2
+        print('mod1.version = {!r}'.format(mod1.version))
+        print('mod2.version = {!r}'.format(mod2.version))
+
+        # However sibling always remains at version1 (ham)
+        print('mod2.sibling.spam = {!r}'.format(mod2.sibling.spam))
+
+        # now importing testmod works because it reads from sys.modules
+        import testmod
+
+        # reloading mod1 overwrites attrs again
+        mod1 = ut.import_module_from_fpath(mod1_fpath)
+
+        # Removing both from sys.modules
+        del sys.modules['testmod']
+        del sys.modules['testmod.sibling']
+        mod2 = ut.import_module_from_fpath(mod2_fpath)
+
+        print(not hasattr(mod2, 'a1'),
+            'mod2 no longer has a1 and it reloads itself correctly')
+
+
+        # -------
+
+        del sys.modules['testmod']
+        del sys.modules['testmod.sibling']
+        mod1 = ut.import_module_from_fpath(mod1_fpath)
+
+
+        # third test
+        mod3_fpath = ub.ensuredir((test_root, 'path3', 'testmod'))
+        ub.writeto(join(mod3_fpath, '__init__.py'), 'version = 3')
+
+        module_fpath = mod3_fpath
+        modname = 'testmod'
+
+        # third test
+        mod4_fpath = ub.ensuredir((test_root, 'path3', 'novelmod'))
+        ub.writeto(join(mod4_fpath, '__init__.py'), 'version = 4')
+
     """
     from os.path import basename, splitext, isdir, join, exists, dirname, split
     import platform
     if isdir(module_fpath):
         module_fpath = join(module_fpath, '__init__.py')
-    print('module_fpath = %r' % (module_fpath,))
-    assert exists(module_fpath), 'module_fpath=%r does not exist' % (module_fpath,)
+    print('module_fpath = {!r}'.format(module_fpath))
+    if not exists(module_fpath):
+        raise ImportError('module_fpath={!r} does not exist'.format(
+            module_fpath))
     python_version = platform.python_version()
     modname = splitext(basename(module_fpath))[0]
     if modname == '__init__':
@@ -565,8 +602,10 @@ def import_module_from_fpath(module_fpath):
         import importlib.machinery
         loader = importlib.machinery.SourceFileLoader(modname, module_fpath)
         module = loader.load_module()
+        # module = loader.exec_module(modname)
     else:
-        raise AssertionError('invalid python version=%r' % (python_version,))
+        raise AssertionError('invalid python version={!r}'.format(
+            python_version))
     return module
 
 

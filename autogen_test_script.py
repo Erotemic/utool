@@ -15,6 +15,7 @@ def make_run_tests_script_text(test_headers, test_argvs, quick_tests=None,
     TODO move to util_autogen or just depricate
 
     Examples:
+        >>> # DISABLE_DOCTEST
         >>> from utool.util_tests import *  # NOQA
         >>> import utool  # NOQA
         >>> testdirs = ['~/code/ibeis/test_ibs*.py']
@@ -297,6 +298,7 @@ def autogen_ibeis_runtest():
     """ special case to generate tests script for IBEIS
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from autogen_test_script import *  # NOQA
         >>> test_script = autogen_ibeis_runtest()
         >>> print(test_script)

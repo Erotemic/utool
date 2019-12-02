@@ -421,7 +421,7 @@ class Cacher(object):
         save_cache(self.dpath, self.fname, cfgstr, data, self.ext)
 
 
-@util_decor.memoize
+#@util_decor.memoize
 def make_utool_json_encoder(allow_pickle=False):
     """
     References:
@@ -921,6 +921,7 @@ def shelf_open(fpath):
         python -m utool.util_cache --test-shelf_open
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> import utool as ut
         >>> fpath = ut.unixjoin(ut.ensure_app_resource_dir('utool'), 'testshelf.shelf')
@@ -1180,6 +1181,7 @@ def get_lru_cache(max_size=5):
         python -m utool.util_cache --test-get_lru_cache
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_cache import *  # NOQA
         >>> import utool as ut  # NOQA

@@ -68,6 +68,7 @@ def build_alias_map(regex_map, tag_vocab):
     Items at top are given preference.
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> tags_list = [['t1', 't2'], [], ['t3'], ['t4', 't5']]
         >>> tag_vocab = ut.flat_unique(*tags_list)
         >>> regex_map = [('t[3-4]', 'A9'), ('t0', 'a0')]
@@ -166,7 +167,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         python -m utool.util_tags --exec-filterflags_general_tags:1
         python -m utool.util_tags --exec-filterflags_general_tags:2
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
@@ -178,7 +179,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
-    Example1:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
@@ -189,7 +190,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
-    Example2:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
