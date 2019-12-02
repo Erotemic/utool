@@ -812,7 +812,7 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         python -m utool.util_grabdata --test-grab_file_url:0
         python -m utool.util_grabdata --test-grab_file_url:1
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut  # NOQA
@@ -827,7 +827,7 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         >>> print(result)
         lena.png
 
-    Example1:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> import utool as ut  # NOQA

@@ -190,7 +190,7 @@ def itertwo(iterable, wrap=False):
         >>> print(result)
         edges = [(1, 2), (2, 3), (3, 4)]
 
-    Timeit:
+    Ignore:
         >>> import vtool as vt
         >>> import utool as ut
         >>> # itertwo is slower than zip slicing on python lists

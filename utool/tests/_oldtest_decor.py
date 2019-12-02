@@ -143,7 +143,7 @@ def test_decorator_module():
 
 def main():
     r"""
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.tests.test_decor import *  # NOQA
         >>> result = main()

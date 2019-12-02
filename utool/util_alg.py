@@ -297,7 +297,7 @@ def grouping_delta(old, new, pure=True):
         },
 
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut

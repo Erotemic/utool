@@ -577,7 +577,7 @@ def help_members(obj, use_other=False):
     CommandLine:
         python -m utool.util_inspect help_members
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
