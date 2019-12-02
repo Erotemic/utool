@@ -1,2 +1,2 @@
 #!/bin/bash
-xdoctest ubelt --style=google all
+xdoctest utool --style=google all
