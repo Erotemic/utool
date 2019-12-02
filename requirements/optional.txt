@@ -11,7 +11,7 @@ boto
 
 
 lru-dict >= 1.1.1  # import as lru
-guppy
+# guppy
 sphinx
 setproctitle
 sphinxcontrib-napoleon
