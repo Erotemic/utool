@@ -8,7 +8,7 @@ IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)
 
 # Module for funcs that need python 2 syntax to work in python 2
 def ignores_exc_tb(*args, **kwargs):
-    """
+    r"""
     PYTHON 2 ONLY VERSION -- needs to be in its own file for syntactic reasons
 
     ignore_exc_tb decorates a function and remove both itself

@@ -24,6 +24,7 @@ BadZipfile = zipfile.BadZipfile
 
 TIMEOUT = 5.0
 
+
 def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
                   overwrite=False, verbose=True, common_prefix=False):
     r"""
@@ -45,7 +46,7 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
     CommandLine:
         python -m utool.util_grabdata --test-archive_files
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
@@ -206,7 +207,7 @@ def open_url_in_browser(url, browsername=None, fallback=False):
     CommandLine:
         python -m utool.util_grabdata --test-open_url_in_browser
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_grabdata import *  # NOQA
@@ -300,7 +301,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
     TODO:
         Delete any partially downloaded files
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_grabdata import *  # NOQA
         >>> url = 'http://www.jrsoftware.org/download.php/ispack.exe'
@@ -442,36 +443,6 @@ def experiment_download_multiple_urls(url_list):
         signal.signal(signal.SIGINT, signal_handler)
         print('Press Ctrl+C')
         signal.pause()
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> # UNSTABLE_DOCTEST
-        >>> url_list = [
-        >>>     'https://lev.cs.rpi.edu/public/installers/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe',   # NOQA
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     'https://lev.cs.rpi.edu/public/models/vgg.caffe.slice_0_30_None.pickle',
-        >>>     ]
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/L10/L10_R1/S1_L10_R1_PICT0070.JPG'
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0001.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0002.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0003.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0004.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0005.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0006.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0007.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0008.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0022.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0023.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0024.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0025.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0026.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0027.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0028.JPG',
-        >>>     'https://snapshotserengeti.s3.msi.umn.edu/S1/B04/B04_R1/S1_B04_R1_PICT0029.JPG'
-        >>> ]
     """
     import requests
     import os

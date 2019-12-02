@@ -330,7 +330,6 @@ def parse_docblock(func_code):
         >>> import utool as ut
         >>> import inspect
         >>> func_code = inspect.getsource(ut.modify_quoted_strs)
-        >>> func_code =
     """
     import pyparsing
     doublequote_comment = pyparsing.QuotedString(quoteChar='"""', escChar='\\', multiline=True)
@@ -383,7 +382,7 @@ def parse_python_syntax(text):
 
 
 def modify_quoted_strs(text, modify_func=None):
-    """
+    r"""
 
     modify_quoted_strs
 

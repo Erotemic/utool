@@ -96,7 +96,7 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
     CommandLine:
         python -m utool.util_io --exec-write_to --show
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_io import *  # NOQA
         >>> import utool as ut
