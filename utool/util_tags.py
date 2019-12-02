@@ -167,7 +167,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         python -m utool.util_tags --exec-filterflags_general_tags:1
         python -m utool.util_tags --exec-filterflags_general_tags:2
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
@@ -179,7 +179,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
-    Example1:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut
@@ -190,7 +190,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
         >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
-    Example2:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_tags import *  # NOQA
         >>> import utool as ut

@@ -1529,12 +1529,11 @@ def simplify_graph(graph):
         python2 -c "import networkx as nx; print(nx.__version__)"
         python3 -c "import networkx as nx; print(nx.__version__)"
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_graph import *  # NOQA
         >>> import utool as ut
         >>> graph = nx.DiGraph([('a', 'b'), ('a', 'c'), ('a', 'e'),
-
         >>>                     ('a', 'd'), ('b', 'd'), ('c', 'e'),
         >>>                     ('d', 'e'), ('c', 'e'), ('c', 'd')])
         >>> new_graph = simplify_graph(graph)

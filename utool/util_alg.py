@@ -150,7 +150,7 @@ def compare_groups(true_groups, pred_groups):
         pred_hybrid - the hybrid split/merges needed that would need to be done
             for the pred_groups to match true_groups.
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
@@ -260,7 +260,7 @@ def grouping_delta(old, new, pure=True):
         hybrid - which old groups had split/merge actions applied.
         unchanged - which old groups are the same as new groups.
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut

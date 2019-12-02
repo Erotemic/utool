@@ -502,7 +502,10 @@ def interleave(args):
     arg_iters = list(map(iter, args))
     cycle_iter = it.cycle(arg_iters)
     for iter_ in cycle_iter:
-        yield six.next(iter_)
+        try:
+            yield six.next(iter_)
+        except StopIteration:
+            return
 
 
 def and_iters(*args):
@@ -565,7 +568,7 @@ def random_combinations(items, size, num=None, rng=None):
     CommandLine:
         python -m utool.util_iter random_combinations
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
         >>> import utool as ut
@@ -577,7 +580,7 @@ def random_combinations(items, size, num=None, rng=None):
         >>> result = ('combos = %s' % (ut.repr2(combos),))
         >>> print(result)
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_iter import *  # NOQA
         >>> import utool as ut

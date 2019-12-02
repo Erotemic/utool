@@ -736,7 +736,7 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         python -m utool.util_list --test-unflat_unique_rowid_map:0
         python -m utool.util_list --test-unflat_unique_rowid_map:1
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut
@@ -756,7 +756,7 @@ def unflat_unique_rowid_map(func, unflat_rowids, **kwargs):
         >>> ut.assert_eq(num_input0[0], 4)
         [[11, 12, 13], [12, 15], [11], []]
 
-    Example1:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_list import *  # NOQA
         >>> import utool as ut

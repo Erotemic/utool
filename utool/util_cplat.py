@@ -799,7 +799,8 @@ def run_realtime_process(exe, shell=False):
         line = proc.stdout.readline()
         yield line
         if retcode is not None:
-            raise StopIteration('process finished')
+            return
+            # raise StopIteration('process finished')
 
 
 def _run_process(proc):
@@ -813,7 +814,8 @@ def _run_process(proc):
             # Grab any remaining data in stdout
             for line in proc.stdout.readlines():
                 yield line
-            raise StopIteration('process finished')
+            return
+            # raise StopIteration('process finished')
 
 
 def quote_single_command(cmdstr):

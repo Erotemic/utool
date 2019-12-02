@@ -715,8 +715,7 @@ def glob_projects(pat, user_profile=None, recursive=True):
         ut.import_modname(modname)
         exec(ut.execstr_funckw(table.get_rowid), globals())
 
-        pass
-
+    Ignore:
         >>> import utool as ut
         >>> ut.testenv('utool.util_project', 'glob_projects', globals())
         >>> from utool.util_project import *  # NOQA

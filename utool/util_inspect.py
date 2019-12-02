@@ -104,9 +104,10 @@ class BaronWraper(object):
 
     def internal_call_graph(self, with_doctests=False):
         """
-        >>> import plottool as pt
-        >>> pt.qt4ensure()
-        >>> pt.show_nx(G)
+        Ignore:
+            >>> import plottool as pt
+            >>> pt.qt4ensure()
+            >>> pt.show_nx(G)
         """
         import utool as ut
         import networkx as nx
@@ -2518,6 +2519,8 @@ def get_kwargs(func):
 
 def lookup_attribute_chain(attrname, namespace):
     """
+
+    Ignore:
         >>> attrname = funcname
         >>> namespace = mod.__dict__
 
@@ -3081,7 +3084,7 @@ def infer_function_info(func):
         python -m utool --tf infer_function_info:0
         python -m utool --tf infer_function_info:1 --funcname=ibeis_cnn.models.siam.ignore_hardest_cases
 
-    Example0:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_inspect import *  # NOQA
         >>> import utool as ut
@@ -3092,7 +3095,7 @@ def infer_function_info(func):
         >>> result = ut.repr4(funcinfo.__dict__)
         >>> print(result)
 
-    Example1:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> # SCRIPT
         >>> from utool.util_inspect import *  # NOQA

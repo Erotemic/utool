@@ -257,12 +257,12 @@ def save_cPkl(fpath, data, verbose=None, n=None):
 
 
 def load_cPkl(fpath, verbose=None, n=None):
-    """
+    r"""
     Loads a pickled file with optional verbosity.
     Aims for compatibility between python2 and python3.
 
 
-    TestPickleExtentsSimple:
+    Ignore:
         >>> def makedata_simple():
         >>>     data = np.empty((500, 2 ** 20), dtype=np.uint8) + 1
         >>>     return data
@@ -280,7 +280,7 @@ def load_cPkl(fpath, verbose=None, n=None):
         >>> data = ut.load_cPkl(fpath)
         >>> memtrack.report()
 
-    TestPickleExtentsComplex:
+    Ignore:
         >>> def makedata_complex():
         >>>     rng = np.random.RandomState(42)
         >>>     item1 = np.empty((100, 2 ** 20), dtype=np.uint8) + 1
@@ -307,7 +307,7 @@ def load_cPkl(fpath, verbose=None, n=None):
         >>> data2 = ut.load_cPkl(fpath)
         >>> memtrack.report()
 
-    TestPickleCacher:
+    Ignore:
         >>> memtrack = ut.MemoryTracker()
         >>> cacher = ut.Cacher('tmp', cache_dir='.', cfgstr='foo')
         >>> data3 = cacher.ensure(makedata_complex)
@@ -418,7 +418,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         http://docs.h5py.org/en/latest/quick.html
         http://docs.h5py.org/en/latest/mpi.html
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
@@ -435,7 +435,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         >>> assert np.all(data == data2)
         >>> assert ut.delete(fpath)
 
-    Example:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> from utool.util_io import *  # NOQA
         >>> import numpy as np
@@ -451,7 +451,7 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
         >>> assert all([np.all(data[key] == data2[key]) for key in data.keys()])
         >>> assert ut.delete(fpath)
 
-    Timeit:
+    Ignore:
         >>> # DISABLE_DOCTEST
         >>> # cPkl / numpy seems to be faster with this initial implementation
         >>> import utool as ut
