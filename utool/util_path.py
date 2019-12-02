@@ -2172,14 +2172,17 @@ def expand_win32_shortname(path1):
         #    import win32file
         #    path2 = win32file.GetLongPathName(path1)
         #except ImportError:
-            import ctypes
-            #import win32file
+        import ctypes
+        #import win32file
+        if six.PY2:
             path1 = unicode(path1)
-            buflen = 260  # max size
-            buf = ctypes.create_unicode_buffer(buflen)
-            ctypes.windll.kernel32.GetLongPathNameW(path1, buf, buflen)
-            # If the path doesnt exist windows doesnt return anything
-            path2 = buf.value if len(buf.value) > 0 else path1
+        else:
+            path1 = str(path1)
+        buflen = 260  # max size
+        buf = ctypes.create_unicode_buffer(buflen)
+        ctypes.windll.kernel32.GetLongPathNameW(path1, buf, buflen)
+        # If the path doesnt exist windows doesnt return anything
+        path2 = buf.value if len(buf.value) > 0 else path1
     except Exception as ex:
         print(ex)
         util_dbg.printex(ex, 'cannot fix win32 shortcut', keys=['path1', 'path2'])
@@ -2201,7 +2204,7 @@ def platform_path(path):
     CommandLine:
         python -m utool.util_path --test-platform_path
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> # FIXME: find examples of the wird paths this fixes (mostly on win32 i think)
         >>> from utool.util_path import *  # NOQA
@@ -2214,7 +2217,7 @@ def platform_path(path):
         ... else:
         ...     ut.assert_eq(path2, r'some/weird/path')
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut    # NOQA
