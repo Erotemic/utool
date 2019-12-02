@@ -7,5 +7,6 @@ pint
 gitpython
 delorean
 ubelt
-# lockfile >= 0.10.2 ; python_version > 2.7
-# futures;python_version>2.7
+
+lockfile >= 0.10.2;python_version>'2.7'
+futures;python_version>'2.7'
