@@ -8,7 +8,9 @@ gitpython
 delorean
 ubelt
 pandas
-networkx
+
+networkx == 2.2 ; python_version<'3.0'
+networkx >= 2.2.0 ; python_version>'3.0'
 
 lockfile >= 0.10.2 ; python_version<'3.0'
 futures >= 1.0.0 ; python_version<'3.0'

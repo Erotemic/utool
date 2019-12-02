@@ -23,9 +23,8 @@ from utool import util_decor
 try:
     import numpy as np
     HAVE_NUMPY = True
-except ImportError as ex:
+except ImportError:
     HAVE_NUMPY = False
-    pass
 # TODO: remove print_, or grab it dynamically from util_logger
 print, rrr, profile = util_inject.inject2(__name__)
 print_ = util_inject.make_module_write_func(__name__)
@@ -3066,7 +3065,7 @@ def super2(this_class, self):
         this_class (class): class passed into super
         self (instance): instance passed into super
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> # If the parent module is reloaded, the super call may fail
         >>> # super(Foo, self).__init__()

@@ -1169,7 +1169,7 @@ def argval(key, default=None, type=None, smartcast=True, return_exists=False,
     """
     alias for get_argval
 
-    Example:
+    Ignore:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> import sys
