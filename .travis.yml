@@ -31,7 +31,11 @@ install:
   - | 
       MB_PYTHON_TAG="py2.py3-none-any"
       VERSION=$(python -c "import setup; print(setup.VERSION)") 
+      echo "VERSION = $VERSION"
+      echo "MB_PYTHON_TAG = $MB_PYTHON_TAG"
+  - | 
       python setup.py bdist_wheel --universal 
+  - |
       BDIST_WHEEL_PATH=$(ls dist/*-$VERSION-$MB_PYTHON_TAG*.whl)
       echo "BDIST_WHEEL_PATH = $BDIST_WHEEL_PATH"
   - pip install $BDIST_WHEEL_PATH
