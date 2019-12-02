@@ -157,8 +157,6 @@ if __name__ == '__main__':
         'tests': parse_requirements('requirements/tests.txt'),
         'optional': parse_requirements('requirements/optional.txt'),
     }
-    import ubelt as ub
-    print('extras_require = {}'.format(ub.repr2(extras_require)))
 
     setup(
         name='utool',
