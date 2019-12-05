@@ -193,3 +193,6 @@ cache:
     apt: true
     directories:
         - $HOME/.pip-cache
+        - $HOME/gpg_install_prefix
+        - $HOME/.cache/pip
+        - $HOME/download
