@@ -8,7 +8,6 @@ env:
         - secure: "V0BTB/JG3VxldZJjpVDIxaOZaZ8jiLgwkZdekxuX1Gi/m/W8bX9NfH5CFQFb3db4Finv5XhX1poUvS90u5Z7KMUaEwzp5wC5OTWzLBrpJ/WqM/gHDwpQYyZe95OeKeBbs9bFx5IZ+2debygOK3HcJQT73hcQRjZcOkNRBDtEgihUEzq/750pAurAPGJdq6gGtrOhfPqHk/tJhcQ5fJ4qGaYo471fPFUBJnSYF3UX2joncJkeA8L9qEaFn3jR4lFBFaMXpJEsTEDmd2IIJd4mrIf/36bDq/0nvuQzj1Nfj/um2/YxXs0EkCYoCcEKUSHMUC2B+7WTnReOudEpsdPqukiCiUVoUAZ76ANJ2AxQyycy921oVSakyPA52D+Drex3tq6tJRYj/0m68fb/Wg6rw9eR0aG52Pp6a9E+UKA00zHaNeLXBcKBdCkrxGxaCAIb6zd4KHF/0iZIlJqtpKLp1ZAtJDvjdHEKRMilk7LNkqQRb67QAMDijHdPD0WWTb8ezSJ7afpAUyvnA7L69hf8F6wYRutFsa9qnjXEUAiKJ85u0JpSYSh/+YNfs5IQDR9DG0KxXgqXpzAXc3kDVbDxG7jCRd+oaxzZPea8mDxOKv9ezKNtKbHnCoy7WULB6hT0PfR/r65+7U5xFSnYmDH+kwosjj8RBO7PBqrYf1HIwS0="
 
 
-dist: trusty
 language: python
 sudo: false
 
@@ -24,6 +23,7 @@ python:
   - "2.7"
   - "3.5"
   - "3.6"
+  - "3.7"
   #
 before_install:
   - pip install pip -U
