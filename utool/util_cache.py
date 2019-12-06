@@ -499,7 +499,7 @@ def make_utool_json_encoder(allow_pickle=False):
                 # return [json.JSONEncoder.default(o) for o in obj]
             elif isinstance(obj, util_type.PRIMATIVE_TYPES):
                 return json.JSONEncoder.default(self, obj)
-            elif hasattr(obj, '__getstate__'):
+            elif  hasattr(obj, '__getstate__') and not isinstance(obj, uuid.UUID):
                 return obj.__getstate__()
             else:
                 for type_, tag in type_to_tag.items():
@@ -589,6 +589,13 @@ def to_json(val, allow_pickle=False, pretty=False):
         >>> print('reconstructed = ' + ut.repr3(reload_val, nl=1))
         >>> assert reload_val[6] == val[6].tolist()
         >>> assert reload_val[6] is not val[6]
+
+    Example:
+        >>> # test 3.7 safe uuid
+        >>> import uuid
+        >>> import utool as ut
+        >>> ut.to_json([uuid.uuid4()])
+
     """
     UtoolJSONEncoder = make_utool_json_encoder(allow_pickle)
     json_kw = {}
