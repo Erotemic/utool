@@ -148,18 +148,13 @@ def native_mb_python_tag():
     return mb_tag
 
 
-version = VERSION = parse_version('utool/__init__.py')  # must be global for git tags
+NAME = 'utool'
+VERSION = parse_version('utool/__init__.py')  # must be global for git tags
 
 if __name__ == '__main__':
     # run setuptools setup function
-    extras_require = {
-        'all': parse_requirements('requirements.txt'),
-        'tests': parse_requirements('requirements/tests.txt'),
-        'optional': parse_requirements('requirements/optional.txt'),
-    }
-
     setup(
-        name='utool',
+        name=NAME,
         version=VERSION,
         packages=[
             'utool',
@@ -175,7 +170,11 @@ if __name__ == '__main__':
         author='Jon Crall',
         author_email='erotemic@gmail.com',
         install_requires=parse_requirements('requirements/runtime.txt'),
-        extras_require=extras_require,
+        extras_require={
+            'all': parse_requirements('requirements.txt'),
+            'tests': parse_requirements('requirements/tests.txt'),
+            'optional': parse_requirements('requirements/optional.txt'),
+        },
         classifiers=[
             # List of classifiers available at:
             # https://pypi.python.org/pypi?%3Aaction=list_classifiers
