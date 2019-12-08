@@ -117,7 +117,7 @@ class TestETT(object):
         >>> mst = nx.Graph(edges)
         >>> #mst = nx.balanced_tree(2, 11)
         >>> self = TestETT.from_tree(mst)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qt4ensure()
         >>> pt.show_nx(mst)
 
@@ -134,7 +134,7 @@ class TestETT(object):
         >>> from utool.experimental.dynamic_connectivity import *  # NOQA
         >>> mst = nx.balanced_tree(2, 4)
         >>> self = TestETT.from_tree(mst)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qt4ensure()
         >>> pt.show_nx(self.to_networkx(), pnum=(2, 1, 1), fnum=1)
 
@@ -406,7 +406,7 @@ class EulerTourTree(object):
         >>> ]
         >>> mst = nx.Graph(edges)
         >>> self = EulerTourTree.from_tree(mst)
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> pt.qt4ensure()
         >>> fnum = 1
         >>> pnum_ = pt.make_pnum_nextgen(1, 3)
@@ -752,7 +752,7 @@ class DynConnGraph(object):
         >>> from utool.experimental.dynamic_connectivity import *  # NOQA
         >>> import networkx as nx
         >>> import utool as ut
-        >>> import plottool as pt
+        >>> import plottool_ibeis as pt
         >>> graph = nx.Graph([
         >>>    (0, 1), (0, 2), (0, 3), (1, 3), (2, 4), (3, 4), (2, 3),
         >>>    (5, 6), (5, 7), (5, 8), (6, 8), (7, 9), (8, 9), (7, 8),
@@ -770,7 +770,7 @@ class DynConnGraph(object):
     """
 
     def show_internals(self, fnum=None):
-        import plottool as pt
+        import plottool_ibeis as pt
         pt.qtensure()
 
         pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=len(self.forests))

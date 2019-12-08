@@ -239,7 +239,6 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None, modpath=
         >>> # UNSTABLE_DOCTEST
         >>> from utool.util_autogen import *  # NOQA
         >>> import utool as ut
-        >>> #modname = 'plottool.plots'
         >>> #funcname = 'multi_plot'
         >>> modname = 'utool.util_path'
         >>> funcname = 'checkpath'
@@ -723,9 +722,7 @@ def make_example_docstr(funcname=None, modname=None, argname_list=None,
     # TODO: infer this
     if is_show_func:
         examplecode_lines += [
-            'ut.quit_if_noshow()',
-            'import plottool as pt',
-            'ut.show_if_requested()',
+            '# xdoctest: +REQUIRES(--show)',
         ]
 
     examplecode = '\n'.join(examplecode_lines)

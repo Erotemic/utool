@@ -286,8 +286,6 @@ def check_module_installed(modname):
 
     CommandLine:
         python -m utool.util_import check_module_installed --show --verbimp --modname=this
-        python -m utool.util_import check_module_installed --show --verbimp --modname=guitool
-        python -m utool.util_import check_module_installed --show --verbimp --modname=guitool.__PYQT__
         python -m utool.util_import check_module_installed --show --verbimp --modname=ibeis.scripts.iccv
 
     Example:

@@ -93,7 +93,10 @@ def nx_transitive_reduction(G, mode=1):
         >>> G_tr = nx_transitive_reduction(G, mode=1)
         >>> G_tr2 = nx_transitive_reduction(G, mode=1)
         >>> ut.quit_if_noshow()
-        >>> import plottool as pt
+        >>> try:
+        >>>     import plottool_ibeis as pt
+        >>> except ImportError:
+        >>>     import plottool as pt
         >>> G_ = nx.dag.transitive_closure(G)
         >>> pt.show_nx(G    , pnum=(1, 5, 1), fnum=1)
         >>> pt.show_nx(G_tr , pnum=(1, 5, 2), fnum=1)
@@ -1074,8 +1077,12 @@ def nx_from_matrix(weight_matrix, nodes=None, remove_self=True):
 
 def nx_ensure_agraph_color(graph):
     """ changes colors to hex strings on graph attrs """
-    from plottool import color_funcs
-    import plottool as pt
+    try:
+        from plottool_ibeis import color_funcs
+        import plottool_ibeis as pt
+    except ImportError:
+        from plottool import color_funcs
+        import plottool as pt
     #import six
     def _fix_agraph_color(data):
         try:
@@ -1828,7 +1835,10 @@ def bfs_conditional(G, source, reverse=False, keys=True, data=False,
 def color_nodes(graph, labelattr='label', brightness=.878,
                 outof=None, sat_adjust=None):
     """ Colors edges and nodes by nid """
-    import plottool as pt
+    try:
+        import plottool_ibeis as pt
+    except ImportError:
+        import plottool as pt
     import utool as ut
     node_to_lbl = nx.get_node_attributes(graph, labelattr)
     unique_lbls = sorted(set(node_to_lbl.values()))
@@ -1920,7 +1930,10 @@ def graph_info(graph, ignore=None, stats=False, verbose=False):
 
 def get_graph_bounding_box(graph):
     # import utool as ut
-    import vtool as vt
+    try:
+        import vtool_ibeis as vt
+    except ImportError:
+        import vtool as vt
     #nx.get_node_attrs = nx.get_node_attributes
     nodes = list(graph.nodes())
     # pos_list = nx_gen_node_values(graph, 'pos', nodes, default=(0, 0))

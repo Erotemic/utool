@@ -175,7 +175,6 @@ def get_package_testables(module=None, **tagkw):
 
     CommandLine:
         python -m utool get_package_testables --show --mod ibeis
-        python -m utool get_package_testables --show --mod plottool
         python -m utool get_package_testables --show --mod utool --tags SCRIPT
         python -m utool get_package_testables --show --mod utool --tags ENABLE
 
@@ -1782,7 +1781,10 @@ def show_was_requested():
     returns True if --show is specified on the commandline or you are in
     IPython (and presumably want some sort of interaction
     """
-    import plottool as pt
+    try:
+        import plottool_ibeis as pt
+    except ImportError:
+        import plottool as pt
     return pt.show_was_requested()
     #import utool as ut
     #return ut.get_argflag('--show') or ut.inIPython()
@@ -1800,12 +1802,18 @@ except ImportError:
 
 
 def qt4ensure():
-    import plottool as pt
+    try:
+        import plottool_ibeis as pt
+    except ImportError:
+        import plottool as pt
     pt.qtensure()
 
 
 def qtensure():
-    import plottool as pt
+    try:
+        import plottool_ibeis as pt
+    except ImportError:
+        import plottool as pt
     pt.qtensure()
 
 
@@ -1817,7 +1825,10 @@ def quit_if_noshow():
 
 
 def show_if_requested():
-    import plottool as pt
+    try:
+        import plottool_ibeis as pt
+    except ImportError:
+        import plottool as pt
     pt.show_if_requested(N=2)
 
 

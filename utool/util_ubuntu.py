@@ -302,8 +302,10 @@ class XCtrl(object):
 
         """
         import utool as ut
-        import plottool as pt  # NOQA
-        import plottool.screeninfo as screeninfo
+        try:
+            import plottool_ibeis.screeninfo as screeninfo
+        except ImportError:
+            import plottool.screeninfo as screeninfo
         monitor_infos = {
             i + 1: screeninfo.get_resolution_info(i)
             for i in range(2)

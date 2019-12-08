@@ -450,9 +450,6 @@ class Pref(PrefNode):
         self_keys = set(self.__dict__.keys())
         for key, val in six.iteritems(kwargs):
             if key in self_keys:
-                #print('update: key=%r, %r' % (key, val))
-                #if type(val) == types.ListType:
-                    #val = val[0]
                 self.__setattr__(key, val)
 
     # Method for QTWidget
@@ -460,7 +457,10 @@ class Pref(PrefNode):
         # moving gui code away from utool
         try:
             #from utool._internal.PreferenceWidget import EditPrefWidget
-            from guitool.PreferenceWidget import EditPrefWidget
+            try:
+                from guitool_ibeis.PreferenceWidget import EditPrefWidget
+            except ImportError:
+                from guitool.PreferenceWidget import EditPrefWidget
             editpref_widget = EditPrefWidget(self)
             editpref_widget.show()
             return editpref_widget
@@ -598,16 +598,17 @@ def test_Preferences():
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> # FIXME depends on guitool
+        >>> # xdoctest: +REQUIRES(module:guitool_ibeis)
+        >>> # FIXME depends on guitool_ibei
         >>> from utool.Preferences import *  # NOQA
         >>> import utool as ut
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> import guitool_ibeis
+        >>> guitool_ibeis.ensure_qtapp()
         >>> root = test_Preferences()
         >>> ut.quit_if_noshow()
         >>> widget = root.createQWidget()
         >>> #widget.show()
-        >>> guitool.qtapp_loop(widget)
+        >>> guitool_ibeis.qtapp_loop(widget)
     """
     root = Pref()
     root.a = Pref()

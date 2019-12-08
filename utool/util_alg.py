@@ -1773,7 +1773,10 @@ def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
         # prob.add(sum(x[i] for i in containing_sets) >= 1)
 
     import utool as ut
-    import vtool as vt
+    try:
+        import vtool_ibeis as vt
+    except ImportError:
+        import vtool as vt
     points = np.array(items)[:, None]
     # Initial sorting of 1d points
     initial_sortx = points.argsort(axis=0).flatten()
@@ -2059,7 +2062,11 @@ def safe_pdist(arr, *args, **kwargs):
     if arr is None or len(arr) < 2:
         return None
     else:
-        import vtool as vt
+        try:
+            import vtool_ibeis as vt
+        except ImportError:
+            import vtool as vt
+
         arr_ = vt.atleast_nd(arr, 2)
         return spdist.pdist(arr_, *args, **kwargs)
 

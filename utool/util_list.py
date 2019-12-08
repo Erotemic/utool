@@ -1293,7 +1293,6 @@ def flag_unique_items(list_):
         import ubelt as ub
         ub.Timerit.DEFAULT_VERBOSE = False
 
-        import plottool as pt
         ut.qtensure()
         exps = [0, .25, .5, .75, 1, 2]
         pnum_ = pt.make_pnum_nextgen(nSubplots=len(exps))

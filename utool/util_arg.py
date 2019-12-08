@@ -761,9 +761,6 @@ def autogen_argparse2(dpath_list):
         >>> dpath_list = [
         ...     ut.truepath('~/code/utool/utool'),
         ...     ut.truepath('~/code/ibeis/ibeis'),
-        ...     ut.truepath('~/code/guitool/guitool'),
-        ...     ut.truepath('~/code/vtool/vtool'),
-        ...     ut.truepath('~/code/plottool/plottool'),
         ... ]
         >>> flagtups_list = autogen_argparse2(dpath_list)
         >>> flagtup_list_ = [ut.regex_replace('[)(\']','',tupstr) for tupstr in ut.flatten(flagtups_list)]

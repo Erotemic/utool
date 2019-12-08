@@ -10,12 +10,6 @@ it is not named well
 set PATH=%HOME%\code\utool\utool\util_scripts;%PATH%
 classfuncs.py %HOME%/code/ibeis/ibeis/control/IBEISControl.py %HOME%/code/ibeis
 
-classfuncs.py ~/code/plottool/plottool/fig_presenter.py
-
-fname = ut.truepath('~/code/plottool/plottool/fig_presenter.py')
-import sys
-sys.argv.append('~/code/plottool/plottool/fig_presenter.py')
-
 classfuncs.py C:/Users/joncrall/code/ibeis/ibeis/algo/hots/query_request.py %HOME%/code/ibeis
 """
 from __future__ import absolute_import, division, print_function

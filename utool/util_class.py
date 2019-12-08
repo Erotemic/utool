@@ -82,8 +82,10 @@ def inject_instance(self, classkey=None, allow_override=False,
             classkey = self.__class__
             if classkey == 'ibeis.gui.models_and_views.IBEISTableView':
                 # HACK HACK HACK
-                # from guitool.__PYQT__ import QtGui  # NOQA
-                from guitool.__PYQT__ import QtWidgets  # NOQA
+                try:
+                    from guitool_ibeis.__PYQT__ import QtWidgets  # NOQA
+                except ImportError:
+                    from guitool.__PYQT__ import QtWidgets  # NOQA
                 classkey = QtWidgets.QAbstractItemView
             if len(__CLASSTYPE_ATTRIBUTES__[classkey]) == 0:
                 print('[utool] Warning: no classes of type %r are registered' % (classkey,))

@@ -316,13 +316,6 @@ def autogen_ibeis_runtest():
         'ibeis/tests/assert_modules.py'
     ]
 
-    #test_repos = [
-    #    '~/code/ibeis'
-    #    '~/code/vtool'
-    #    '~/code/hesaff'
-    #    '~/code/guitool'
-    #]
-
     #test_pattern = [
     #    '~/code/ibeis/test_ibs*.py'
     #]

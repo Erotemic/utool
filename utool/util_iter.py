@@ -191,30 +191,47 @@ def itertwo(iterable, wrap=False):
         edges = [(1, 2), (2, 3), (3, 4)]
 
     Ignore:
-        >>> import vtool as vt
-        >>> import utool as ut
-        >>> # itertwo is slower than zip slicing on python lists
-        >>> # but faster on numpy arrays
-        >>> setup = ut.codeblock(
-            '''
-            import random
-            import utool as ut
-            import numpy as np
-            rng = random.Random(0)
-            iterable = [rng.randint(0, 2000) for _ in range(100000)]
-            iterable2 = np.array(iterable)
-            ''')
-        >>> stmt_list = ut.codeblock(
-            '''
-            list(zip(iterable, iterable[1:]))
-            list(ut.itertwo(iterable))
-            list(ut.iter_window(iterable, 2))
-            list(zip(iterable2, iterable2[1:]))
-            list(zip(iterable2.tolist(), iterable2.tolist()[1:]))
-            list(ut.itertwo(iterable2))
-            list(ut.itertwo(iterable2.tolist()))
-            ''').split('\n')
-        >>> passed, times, outputs = ut.timeit_compare(stmt_list, setup, iterations=10)
+        >>> # BENCHMARK
+        >>> import random
+        >>> import numpy as np
+        >>> rng = random.Random(0)
+        >>> iterable = [rng.randint(0, 2000) for _ in range(100000)]
+        >>> iterable2 = np.array(iterable)
+        >>> #
+        >>> import ubelt as ub
+        >>> ti = ub.Timerit(100, bestof=10, verbose=2)
+        >>> #
+        >>> for timer in ti.reset('list-zip'):
+        >>>     with timer:
+        >>>         list(zip(iterable, iterable[1:]))
+        >>> #
+        >>> for timer in ti.reset('list-itertwo'):
+        >>>     with timer:
+        >>>         list(itertwo(iterable))
+        >>> #
+        >>> for timer in ti.reset('iter_window(2)'):
+        >>>     with timer:
+        >>>         list(ub.iter_window(iterable, 2))
+        >>> #
+        >>> for timer in ti.reset('list-zip-numpy'):
+        >>>     with timer:
+        >>>         list(zip(iterable2, iterable2[1:]))
+        >>> #
+        >>> for timer in ti.reset('list-zip-numpy.tolist'):
+        >>>     with timer:
+        >>>         list(zip(iterable2.tolist(), iterable2.tolist()[1:]))
+        >>> #
+        >>> for timer in ti.reset('list-itertwo-numpy'):
+        >>>     with timer:
+        >>>         list(itertwo(iterable2))
+        >>> #
+        >>> for timer in ti.reset('list-itertwo-numpy-tolist'):
+        >>>     with timer:
+        >>>         list(itertwo(iterable2.tolist()))
+        >>> #
+        >>> print(ub.repr2(ti.rankings))
+        >>> print(ub.repr2(ti.consistency))
+
 
     """
     # it.tee may be slow, but works on all iterables

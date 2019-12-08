@@ -130,14 +130,10 @@ def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
         >>> # DISABLE_DOCTEST
         >>> # UNSTABLE_DOCTEST
         >>> # Trying to recreate the freeze seen in IBEIS
-        >>> import vtool as vt
-        >>> #def gen_chip(tup):
-        >>> #    import vtool as vt
-        >>> #    cfpath, gfpath, bbox, theta, new_size, filter_list = tup
-        >>> #    chipBGR = vt.compute_chip(gfpath, bbox, theta, new_size, filter_list)
-        >>> #    height, width = chipBGR.shape[0:2]
-        >>> #    vt.imwrite(cfpath, chipBGR)
-        >>> #    return cfpath, width, height
+        >>> try:
+        >>>     import vtool_ibeis as vt
+        >>> except ImportError:
+        >>>     import vtool as vt
         >>> import utool as ut
         >>> from ibeis.algo.preproc.preproc_chip import gen_chip
         >>> #from ibeis.algo.preproc.preproc_feat import gen_feat_worker
@@ -161,7 +157,10 @@ def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
         >>> # Trying to recreate the freeze seen in IBEIS
         >>> # Extremely weird case: freezes only if dsize > (313, 313) AND __testwarp was called beforehand.
         >>> # otherwise the parallel loop works fine. Could be an opencv 3.0.0-dev issue.
-        >>> import vtool as vt
+        >>> try:
+        >>>     import vtool_ibeis as vt
+        >>> except ImportError:
+        >>>     import vtool as vt
         >>> import utool as ut
         >>> from ibeis.algo.preproc.preproc_chip import gen_chip
         >>> import cv2
@@ -355,7 +354,10 @@ def __testwarp(tup):
     # THIS DOES NOT CAUSE A PROBLEM FOR SOME FREAKING REASON
     import cv2
     import numpy as np
-    import vtool as vt
+    try:
+        import vtool_ibeis as vt
+    except ImportError:
+        import vtool as vt
     img = tup[0]
     M = vt.rotation_mat3x3(.1)[0:2].dot(vt.translation_mat3x3(-10, 10))
     #new = cv2.warpAffine(img, M[0:2], (500, 500), flags=cv2.INTER_LANCZOS4,
@@ -438,7 +440,10 @@ def _test_buffered_generator3():
         >>> from utool.util_parallel import *  # NOQA
         >>> _test_buffered_generator3()
     """
-    import vtool as vt
+    try:
+        import vtool_ibeis as vt
+    except ImportError:
+        import vtool as vt
     import utool as ut
     # ---- Func and Sleep Definitions
     args = list(map(ut.grab_test_imgpath, ut.get_valid_test_imgkeys()))
@@ -607,7 +612,10 @@ def _test_buffered_generator_general2(bgfunc, bgargs, fgfunc,
 def bgfunc(path):
     # Test for /_test_buffered_generator_img
     #import utool as ut
-    import vtool as vt
+    try:
+        import vtool_ibeis as vt
+    except ImportError:
+        import vtool as vt
     for _ in range(1):
         img = vt.imread(path)
     img = img ** 1.1
@@ -643,10 +651,8 @@ def _test_buffered_generator_img():
         >>> _test_buffered_generator_img()
     """
     import utool as ut
-    #import vtool as vt
     args = [ut.grab_test_imgpath(key) for key in ut.util_grabdata.get_valid_test_imgkeys()]
     #import cv2
-    #import vtool as vt
     #func = cv2.imread
     #bffunc = vt.imread
     def sleepfunc_bufwin(x, niters=10):

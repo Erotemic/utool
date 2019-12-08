@@ -274,9 +274,12 @@ def render_latex(input_text, dpath=None, fname=None, preamb_extra=None,
         >>>     ut.startfile(jpg_fpath)
     """
     import utool as ut
-    import vtool as vt
+    try:
+        import vtool_ibeis as vt
+    except ImportError:
+        import vtool as vt
     # turn off page numbers
-    input_text_ = '\pagenumbering{gobble}\n' + input_text
+    input_text_ = '\\pagenumbering{gobble}\n' + input_text
     # fname, _ = splitext(fname)
     img_fname = ut.ensure_ext(fname, ['.jpg'] + list(ut.IMG_EXTENSIONS))
     img_fpath = join(dpath, img_fname)
