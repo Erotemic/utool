@@ -2583,14 +2583,19 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
         ]
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(module:ibeis)
         >>> from utool.util_inspect import *  # NOQA
         >>> from ibeis.algo.hots import chip_match
         >>> import utool as ut
-        >>> root_func = chip_match.ChipMatch.show_ranked_matches
-        >>> path_ = None
-        >>> result = ut.repr2(recursive_parse_kwargs(root_func))
-        >>> print(result)
+        >>> recursive_parse_kwargs(chip_match.ChipMatch.show_ranked_matches)
+        >>> recursive_parse_kwargs(chip_match.ChipMatch)
+
+        import ibeis
+        import utool as ut
+        ibs = ibeis.opendb(defaultdb='testdb1')
+        kwkeys1 = ibs.parse_annot_stats_filter_kws()
+        ut.recursive_parse_kwargs(ibs.get_annotconfig_stats, verbose=1)
+        kwkeys2 = list(ut.recursive_parse_kwargs(ibs.get_annotconfig_stats).keys())
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -2671,7 +2676,10 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
                 except (KeyError, TypeError):
                     # limited support for class lookup
                     if ut.is_method(root_func) and spec.args[0] == attr:
-                        subdict = root_func.im_class.__dict__
+                        if six.PY2:
+                            subdict = root_func.im_class.__dict__
+                        else:
+                            subdict = root_func.__class__.__dict__
                     else:
                         # FIXME TODO lookup_attribute_chain
                         subdict = hack_lookup_mod_attrs(attr)
@@ -2715,14 +2723,14 @@ def recursive_parse_kwargs(root_func, path_=None, verbose=None):
             print('[inspect] Checking spec.keywords=%r' % (spec.keywords,))
         subfunc_name_list = ut.find_funcs_called_with_kwargs(sourcecode, spec.keywords)
         if verbose:
-            print('[inspect] Checking subfunc_name_list=%r' % (subfunc_name_list,))
+            print('[inspect] Checking subfunc_name_list with len {}'.format(len(subfunc_name_list)))
         for subfunc_name in subfunc_name_list:
             try:
                 new_subkw = check_subfunc_name(subfunc_name)
                 if verbose:
                     print('[inspect] * Found %r' % (new_subkw,))
                 kwargs_list.extend(new_subkw)
-            except TypeError:
+            except (TypeError, Exception):
                 print('warning: unable to recursivley parse type of : %r' % (subfunc_name,))
     return kwargs_list
 
