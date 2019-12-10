@@ -47,32 +47,3 @@ nosetests.xml
 # profiler
 *.lprof
 *.prof
-
-# Test data
-vtool/tests/testdata*
-test_data*.shelf
-ibeis/model/detect/rf
-tmp.py
-
-*.flann
-*.npz
-
-# utool output
-_test_times.txt
-failed.txt
-
-# Cyth
-*_cyth.pyx
-*_cyth.pxd
-*_cyth.pyd
-*_cyth.so
-*_cyth.c
-*_cyth.html
-*_cyth_bench.py
-run_cyth_benchmarks.sh
-
-*.orig
-_doc
-failed_doctests.txt
-timeings.txt
-test_times.txt
