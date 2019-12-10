@@ -952,10 +952,24 @@ class GlobalShelfContext(object):
 
     def __enter__(self):
         #self.shelf = get_global_shelf(self.appname)
+
+        try:
+            import dbm
+            DBMError = dbm.error
+        except Exception:
+            DBMError = OSError
+
         try:
             shelf_fpath = get_global_shelf_fpath(self.appname, ensure=True)
             if VERBOSE:
                 print('[cache] open: ' + shelf_fpath)
+            self.shelf = shelve.open(shelf_fpath)
+        except DBMError as ex:
+            from utool import util_dbg
+            util_dbg.printex(ex, 'Failed opening shelf_fpath due to bad version, remove and retry',
+                             key_list=['shelf_fpath'])
+            import utool as ut
+            ut.delete(shelf_fpath)
             self.shelf = shelve.open(shelf_fpath)
         except Exception as ex:
             from utool import util_dbg
