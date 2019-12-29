@@ -7,6 +7,10 @@ proper binary wheel with auditwheel and it exists in the wheelhouse directory.
 Otherwise, for source tarballs and universal wheels this script runs the
 setup.py script to create the wheels as well.
 
+Running this script with the default arguments will perform any builds and gpg
+signing, but nothing will be uploaded to pypi unless the user explicitly sets
+TAG_AND_UPLOAD=True or answers yes to the prompts.
+
 Args:
     # These environment variables must / should be set
     TWINE_USERNAME : username for pypi
