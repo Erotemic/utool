@@ -44,7 +44,7 @@ install:
   - pip install $BDIST_WHEEL_PATH
     
 script: 
-  - travis_wait ./run_doctests.sh
+  - travis_wait ./run_tests.sh
 
 after_success: 
     - codecov 
