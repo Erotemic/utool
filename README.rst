@@ -1,7 +1,11 @@
-|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor| 
+|Pypi| |Downloads| |Codecov| |Travis| |Appveyor| 
 
 utool
 -----
+
+Notice: This is a "kitchen sink" library. While it is still somewhat maintained, I am trying to "end-of-life" it as soon as possible. I have refactored it into several other projects. Please see https://github.com/Erotemic/ubelt for a well-maintained curated collection of utilities. Also see https://github.com/Erotemic/xdev for ports of the more developer-y functions in this libray.
+
+----
 
 Useful Utility Tools For You!
 
@@ -45,7 +49,6 @@ functions in this repo are mature, the repo itself is a work in progress.  Some
 functions may be broken, deprecated, unfinished, or undocumented. Thus, some
 APIs may refactored or removed in the future.
 
-Notice: This is a "kitchen sink" library. While it is still somewhat maintained, I am trying to "end-of-life" it as soon as possible. I have refactored it into several other projects. Please see https://github.com/Erotemic/ubelt for a well-maintained curated collection of utilities. Also see https://github.com/Erotemic/xdev for ports of the more developer-y functions in this libray.
 
 Documenation
 ------------
