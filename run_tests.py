@@ -10,6 +10,7 @@ if __name__ == '__main__':
         '--cov-report', 'term',
         '--xdoctest',
         '--cov=' + package_name,
+        package_name,
     ]
     pytest_args = pytest_args + sys.argv[1:]
     pytest.main(pytest_args)
