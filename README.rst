@@ -64,11 +64,11 @@ Installation can now be done via pypi
     pip install utool
 
 If the pypi release is currently broken. Installing utool can be done via pip
-and github. Generally the next branch has the latest and greatest.
+and github. 
 
 .. code:: bash
 
-    pip install git+https://github.com/Erotemic/utool.git@next
+    pip install git+https://github.com/Erotemic/utool.git@master
 
 Utool is released under the Apache License Version 2.0
 
