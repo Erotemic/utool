@@ -50,7 +50,7 @@ if util_cplat.WIN32:
 
 def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
               force_serial=False, use_pool=False, chunksize=None, nprocs=None,
-              progkw={}, nTasks=None, verbose=None):
+              progkw={}, nTasks=None, verbose=None, use_futures_thread=False):
     r"""
     Interfaces to either multiprocessing or futures.
     Esentially maps ``args_gen`` onto ``func`` using pool.imap.
@@ -88,6 +88,7 @@ def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
         >>> _ = list(generate2(func, args_gen, ordered=False))
         >>> _ = list(generate2(func, args_gen, force_serial=True))
         >>> _ = list(generate2(func, args_gen, use_pool=True))
+        >>> _ = list(generate2(func, args_gen, use_futures_thread=True))
         >>> _ = list(generate2(func, args_gen, ordered=False, verbose=False))
 
     Example0:
@@ -100,12 +101,17 @@ def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
         >>> args_list = list(range(0, num))
         >>> flag_generator0 = ut.generate2(ut.is_prime, zip(range(0, num)), force_serial=True)
         >>> flag_list0 = list(flag_generator0)
-        >>> print('TESTING PARALLEL')
+        >>> print('TESTING PARALLEL (PROCESS)')
         >>> flag_generator1 = ut.generate2(ut.is_prime, zip(range(0, num)))
         >>> flag_list1 = list(flag_generator1)
+        >>> print('TESTING PARALLEL (THREAD)')
+        >>> flag_generator2 = ut.generate2(ut.is_prime, zip(range(0, num)), use_futures_thread=True)
+        >>> flag_list2 = list(flag_generator2)
         >>> print('ASSERTING')
         >>> assert len(flag_list1) == num
+        >>> assert len(flag_list2) == num
         >>> assert flag_list0 == flag_list1
+        >>> assert flag_list0 == flag_list2
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -262,8 +268,12 @@ def generate2(func, args_gen, kw_gen=None, ntasks=None, ordered=True,
                 pool.close()
                 pool.join()
         else:
+            if use_futures_thread:
+                executor_cls = futures.ThreadPoolExecutor
+            else:
+                executor_cls = futures.ProcessPoolExecutor
             # Use futures
-            executor = futures.ProcessPoolExecutor(nprocs)
+            executor = executor_cls(nprocs)
             try:
                 fs_list = [executor.submit(func, *a, **k)
                            for a, k in zip(args_gen, kw_gen)]
