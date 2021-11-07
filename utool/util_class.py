@@ -949,7 +949,7 @@ def reloadable_class(cls):
     return six.add_metaclass(ReloadingMetaclass)(cls)
 
 
-class KwargsWrapper(collections.Mapping):
+class KwargsWrapper(collections.abc.Mapping):
     """
     Allows an arbitrary object attributes to be passed as a **kwargs
     argument
