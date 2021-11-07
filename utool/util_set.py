@@ -11,7 +11,7 @@ class _Link(object):
     __slots__ = ('prev', 'next', 'key', '__weakref__')
 
 
-class OrderedSet(collections.MutableSet):
+class OrderedSet(collections.abc.MutableSet):
     """ Set the remembers the order elements were added
      Big-O running times for all methods are the same as for regular sets.
      The internal self._map dictionary maps keys to links in a doubly linked list.
