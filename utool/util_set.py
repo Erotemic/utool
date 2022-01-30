@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range  # NOQA
-import collections
+try:
+    from collections.abc import MutableSet
+except Exception:
+    from collections import MutableSet
 import weakref
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__)
@@ -11,7 +14,7 @@ class _Link(object):
     __slots__ = ('prev', 'next', 'key', '__weakref__')
 
 
-class OrderedSet(collections.MutableSet):
+class OrderedSet(MutableSet):
     """ Set the remembers the order elements were added
      Big-O running times for all methods are the same as for regular sets.
      The internal self._map dictionary maps keys to links in a doubly linked list.
