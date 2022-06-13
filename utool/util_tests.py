@@ -923,7 +923,7 @@ def parse_docblocks_from_docstr(docstr, offsets=False):
         prev_indent = indent_
 
     # tag_pattern = ut.regex_or(['Args:', 'Return:', 'CommandLine':])
-    tag_pattern = '[^\s]+: *$'
+    tag_pattern = '[^\\s]+: *$'
 
     group_id = 0
     prev_indent = 0

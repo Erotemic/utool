@@ -75,7 +75,7 @@ def add_to_win32_PATH(script_fpath, *add_path_list):
     """
     import utool as ut
     write_dir = dirname(script_fpath)
-    key = '[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment]'
+    key = r'[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment]'
     rtype = 'REG_EXPAND_SZ'
     # Read current PATH values
     win_pathlist = list(os.environ['PATH'].split(os.path.pathsep))

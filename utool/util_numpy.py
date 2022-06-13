@@ -5,7 +5,7 @@ import itertools
 import random
 try:
     import numpy as np
-except ImportError as ex:
+except ImportError:
     pass
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__)

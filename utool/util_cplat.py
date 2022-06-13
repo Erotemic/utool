@@ -1335,14 +1335,14 @@ def send_keyboard_input(text=None, key_list=None):
         #win32con.VK_RETURN
 
         #def callback(hwnd, hwnds):
-            #if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
-                #hwnds[win32gui.GetClassName(hwnd)] = hwnd
-            #return True
+        #   #if win32gui.IsWindowVisible(hwnd) and win32gui.IsWindowEnabled(hwnd):
+        #       #hwnds[win32gui.GetClassName(hwnd)] = hwnd
+        #   #return True
         #hwnds = {}
         #win32gui.EnumChildWindows(hwnd, callback, hwnds)
 
         #for ord_char in map(ord, text):
-            #win32api.SendMessage(hwnd, win32con.WM_CHAR, ord_char, 0)
+        #   #win32api.SendMessage(hwnd, win32con.WM_CHAR, ord_char, 0)
         from utool._internal import win32_send_keys
         pause = float(.05)
         text = 'paste'

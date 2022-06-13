@@ -1138,9 +1138,9 @@ def dag_longest_path(graph, source, target):
         return [source]
     allpaths = nx.all_simple_paths(graph, source, target)
     longest_path = []
-    for l in allpaths:
-        if len(l) > len(longest_path):
-            longest_path = l
+    for ell in allpaths:
+        if len(ell) > len(longest_path):
+            longest_path = ell
     return longest_path
 
 

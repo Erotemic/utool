@@ -809,10 +809,11 @@ def convert_hexstr_to_bigbase(hexstr, alphabet=ALPHABET, bigbase=BIGBASE):
 def hashstr_md5(data):
     """
     Ignore:
+        >>> # xdoctest: +SKIP
         >>> from utool.util_hash import *  # NOQA
         >>> fpath = ut.grab_test_imgpath('patsy.jpg')
-        >>> %timeit ut.get_file_hash(fpath, hasher=hashlib.sha1())
-        >>> %timeit ut.get_file_hash(fpath, hasher=hashlib.md5())
+        %timeit ut.get_file_hash(fpath, hasher=hashlib.sha1())
+        %timeit ut.get_file_hash(fpath, hasher=hashlib.md5())
 
     """
     text = hashlib.md5(data).hexdigest()

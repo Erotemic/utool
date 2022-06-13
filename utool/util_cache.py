@@ -32,7 +32,7 @@ from utool import util_inspect
 from utool import util_list
 from utool import util_class
 from utool import util_type
-from utool import util_decor
+from utool import util_decor  # NOQA
 from utool import util_dict
 from utool._internal import meta_util_constants
 print, rrr, profile = util_inject.inject2(__name__)
@@ -823,7 +823,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
     if verbose is None:
         verbose = VERBOSE_CACHE
     def cached_closure(func):
-        from utool import util_decor
+        # from utool import util_decor
         import utool as ut
         fname_ = util_inspect.get_funcname(func) if fname is None else fname
         kwdefaults = util_inspect.get_kwdefaults(func)

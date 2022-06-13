@@ -493,7 +493,7 @@ def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
             try:
                 os.remove(fpath)
                 n_removed += 1
-            except OSError as ex:
+            except OSError:
                 if VERYVERBOSE:
                     print('WARNING: Could not remove fpath = %r' % (fpath,))
     if _verbose:
@@ -1581,7 +1581,7 @@ def assertpath(path_, msg='', **kwargs):
     if NO_ASSERTS:
         return
     if path_ is None:
-        raise AssertionError('path is None! %s' % (path_, msg))
+        raise AssertionError('path=%r is None! %s' % (path_, msg))
     if path_ == '':
         raise AssertionError('path=%r is the empty string! %s' % (path_, msg))
     if not checkpath(path_, **kwargs):
@@ -2285,7 +2285,7 @@ def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
     Example:
         >>> # DISABLE_DOCTEST
         >>> import utool as ut
-        >>> fname = 'Inno Setup 5\ISCC.exe'
+        >>> fname = 'Inno Setup 5\\ISCC.exe'
         >>> search_dpaths = ut.get_install_dirs()
         >>> shortcircuit = True
         >>> fpath = ut.search_in_dirs(fname, search_dpaths, shortcircuit)

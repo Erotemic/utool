@@ -821,10 +821,10 @@ class GrepResult(util_dev.NiceRepr):
             flags = [not re.search('--exec-' + self.extended_regex_list[0], line) for line in lines]
             lines = ut.compress(lines, flags)
 
-            flags = [not re.search('--exec-[a-zA-z]*\.' + self.extended_regex_list[0], line) for line in lines]
+            flags = [not re.search('--exec-[a-zA-z]*\\.' + self.extended_regex_list[0], line) for line in lines]
             lines = ut.compress(lines, flags)
 
-            flags = [not re.search('--test-[a-zA-z]*\.' + self.extended_regex_list[0], line) for line in lines]
+            flags = [not re.search('--test-[a-zA-z]*\\.' + self.extended_regex_list[0], line) for line in lines]
             lines = ut.compress(lines, flags)
 
             # remove func defs

@@ -960,7 +960,7 @@ def geo_locate(default='Unknown', timeout=1):
         location_country = location['country_name']
         location_zip     = location['zipcode']
         success = True
-    except:
+    except Exception:
         success = False
         location_city    = default
         location_state   = default

@@ -665,7 +665,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         #return time.mktime(dt.timetuple())
     except TypeError:
         #if datetime_str is None:
-            #return -1
+        #    return -1
         return -1
     except ValueError as ex:
         if strict is None:
@@ -1085,7 +1085,7 @@ def get_timestats_dict(unixtime_list, full=True, isutc=True):
             datetime_stats[key] = ut.unixtime_to_datetimestr(unixtime_stats[key], isutc=isutc)
         except KeyError:
             pass
-        except (ValueError, OSError) as ex:
+        except (ValueError, OSError):
             datetime_stats[key]  = 'NA'
         except Exception as ex:
             ut.printex(ex, keys=['key', 'unixtime_stats'])
@@ -1095,13 +1095,13 @@ def get_timestats_dict(unixtime_list, full=True, isutc=True):
             datetime_stats[key] = str(ut.get_unix_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
-        except (ValueError, OSError) as ex:
+        except (ValueError, OSError):
             datetime_stats[key]  = 'NA'
     try:
         datetime_stats['range'] = str(ut.get_unix_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
     except KeyError:
         pass
-    except (ValueError, OSError) as ex:
+    except (ValueError, OSError):
         datetime_stats['range']  = 'NA'
 
     if full:

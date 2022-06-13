@@ -6,12 +6,12 @@ autopep8 >= 1.6.0
 astor >= 0.8.1
 pyperclip >= 1.5.7
 pyfiglet >= 0.7.2
-boto
+boto >= 2.49.0
 
 
 lru-dict >= 1.1.1  # import as lru
-sphinx
-setproctitle
-sphinxcontrib-napoleon
-objgraph
-h5py
+sphinx >= 5.0.1
+setproctitle >= 1.2.3
+sphinxcontrib-napoleon >= 0.7
+objgraph >= 3.5.0
+h5py >= 3.7.0

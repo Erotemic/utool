@@ -1059,7 +1059,7 @@ def is_defined_by_module(item, module, parent=None):
                 import utool as ut
                 name = ut.get_modname_from_modpath(module.__file__)
                 flag = name in str(item)
-            except:
+            except Exception:
                 flag = False
         else:
             item_modpath = os.path.realpath(dirname(item.__file__))
@@ -1533,7 +1533,7 @@ def _node_is_main_if(node):
                 node.test.comparators[0].s == '__main__',
             ]):
                 return True
-        except Exception as ex:
+        except Exception:
             pass
     return False
 
@@ -3186,7 +3186,7 @@ def infer_function_info(func):
                     m = re.match(argpattern, argline, flags=re.MULTILINE | re.DOTALL)
                     try:
                         groupdict_ = m.groupdict()
-                    except Exception as ex:
+                    except Exception:
                         print('---')
                         print('argline = \n%s' % (argline,))
                         print('---')
