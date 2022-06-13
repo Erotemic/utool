@@ -123,8 +123,8 @@ def truepath_relative(path, otherpath=None):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
-        >>> path = 'C:/foobar/foobiz'
-        >>> otherpath = 'C:/foobar'
+        >>> path = r'C:/foobar/foobiz'
+        >>> otherpath = r'C:/foobar'
         >>> path_ = truepath_relative(path, otherpath)
         >>> result = ('path_ = %s' % (ut.repr2(path_),))
         >>> print(result)
@@ -2269,7 +2269,7 @@ def existing_commonprefix(paths):
 
 def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
                    return_tried=False, strict=False):
-    """
+    r"""
     search_in_dirs
 
     Args:
@@ -2285,7 +2285,7 @@ def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
     Example:
         >>> # DISABLE_DOCTEST
         >>> import utool as ut
-        >>> fname = 'Inno Setup 5\\ISCC.exe'
+        >>> fname = r'Inno Setup 5\ISCC.exe'
         >>> search_dpaths = ut.get_install_dirs()
         >>> shortcircuit = True
         >>> fpath = ut.search_in_dirs(fname, search_dpaths, shortcircuit)
