@@ -21,7 +21,7 @@ print, rrr, profile = util_inject.inject2(__name__)
 print_ = util_inject.make_module_write_func(__name__)
 
 
-if util_cplat.WIN32:
+if util_cplat.WIN32 and six.PY2:
     # Use time.clock in win32
     default_timer = time.clock
 else:
