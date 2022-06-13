@@ -244,7 +244,7 @@ def regex_replace(regex, repl, text):
 
 
 def named_field_regex(keypat_tups):
-    """
+    r"""
     named_field_regex
 
     Args:

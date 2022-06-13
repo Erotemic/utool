@@ -1264,7 +1264,7 @@ def __debug_win_msvcr():
 
 
 def change_term_title(title):
-    """
+    r"""
     only works on unix systems only tested on Ubuntu GNOME changes text on
     terminal title for identifying debugging tasks.
 

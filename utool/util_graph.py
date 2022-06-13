@@ -73,7 +73,7 @@ def nx_make_adj_matrix(G):
 
 
 def nx_transitive_reduction(G, mode=1):
-    """
+    r"""
     References:
         https://en.wikipedia.org/wiki/Transitive_reduction#Computing_the_reduction_using_the_closure
         http://dept-info.labri.fr/~thibault/tmp/0201008.pdf
@@ -244,7 +244,7 @@ def nx_from_adj_dict(adj_dict, cls=None):
 
 
 def nx_dag_node_rank(graph, nodes=None):
-    """
+    r"""
     Returns rank of nodes that define the "level" each node is on in a
     topological sort. This is the same as the Graphviz dot rank.
 
@@ -562,7 +562,7 @@ def nx_edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
 
 
 def nx_delete_node_attr(graph, name, nodes=None):
-    """
+    r"""
     Removes node attributes
 
     Doctest:
@@ -606,7 +606,7 @@ def nx_delete_node_attr(graph, name, nodes=None):
 
 @profile
 def nx_delete_edge_attr(graph, name, edges=None):
-    """
+    r"""
     Removes an attributes from specific edges in the graph
 
     Doctest:
@@ -761,7 +761,7 @@ def nx_gen_node_values(G, key, nodes, default=util_const.NoParam):
 
 def nx_gen_node_attrs(G, key, nodes=None, default=util_const.NoParam,
                       on_missing='error', on_keyerr='default'):
-    """
+    r"""
     Improved generator version of nx.get_node_attributes
 
     Args:
@@ -2160,7 +2160,7 @@ def weighted_diamter(graph, weight=None):
 
 
 def mincost_diameter_augment(graph, max_cost, candidates=None, weight=None, cost=None):
-    """
+    r"""
     PROBLEM: Bounded Cost Minimum Diameter Edge Addition (BCMD)
 
     Args:
