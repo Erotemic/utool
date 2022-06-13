@@ -7,8 +7,8 @@ import sys
 import six
 import re
 import textwrap
-from six.moves import map, range, reduce
-import itertools
+from six.moves import map, range, reduce  # NOQA
+import itertools  # NOQA
 import math
 import collections
 from os.path import split

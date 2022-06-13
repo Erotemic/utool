@@ -4,6 +4,8 @@ import functools
 import six
 import codecs
 
+if not six.PY2:
+    unicode = str
 
 if six.PY2:
     import types
@@ -101,7 +103,7 @@ elif six.PY3:
             else:
                 try:
                     return str(getattr(func, '__class__')).strip("<class '").strip("'>").split('.')[-1]
-                except:
+                except Exception:
                     raise original
     def set_funcname(func, newname):
         return setattr(func, '__name__', newname)

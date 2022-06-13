@@ -123,8 +123,8 @@ def truepath_relative(path, otherpath=None):
         >>> # ENABLE_DOCTEST
         >>> from utool.util_path import *  # NOQA
         >>> import utool as ut
-        >>> path = 'C:/foobar/foobiz'
-        >>> otherpath = 'C:/foobar'
+        >>> path = r'C:/foobar/foobiz'
+        >>> otherpath = r'C:/foobar'
         >>> path_ = truepath_relative(path, otherpath)
         >>> result = ('path_ = %s' % (ut.repr2(path_),))
         >>> print(result)
@@ -493,7 +493,7 @@ def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
             try:
                 os.remove(fpath)
                 n_removed += 1
-            except OSError as ex:
+            except OSError:
                 if VERYVERBOSE:
                     print('WARNING: Could not remove fpath = %r' % (fpath,))
     if _verbose:
@@ -1581,7 +1581,7 @@ def assertpath(path_, msg='', **kwargs):
     if NO_ASSERTS:
         return
     if path_ is None:
-        raise AssertionError('path is None! %s' % (path_, msg))
+        raise AssertionError('path=%r is None! %s' % (path_, msg))
     if path_ == '':
         raise AssertionError('path=%r is the empty string! %s' % (path_, msg))
     if not checkpath(path_, **kwargs):
@@ -1779,7 +1779,12 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
                      if  newline != line]
     n_changed = len(changed_lines)
     if n_changed > 0:
-        rel_fpath = relpath(fpath, os.getcwd())
+        try:
+            rel_fpath = relpath(fpath, os.getcwd())
+        except ValueError:
+            # Can happen on windows
+            rel_fpath = fpath
+
         print(' * %s changed %d lines in %r ' %
               (['(dry-run)', '(real-run)'][force], n_changed, rel_fpath))
         print(' * --------------------')
@@ -2175,7 +2180,7 @@ def expand_win32_shortname(path1):
         import ctypes
         #import win32file
         if six.PY2:
-            path1 = unicode(path1)
+            path1 = six.text_type(path1)
         else:
             path1 = str(path1)
         buflen = 260  # max size
@@ -2269,7 +2274,7 @@ def existing_commonprefix(paths):
 
 def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
                    return_tried=False, strict=False):
-    """
+    r"""
     search_in_dirs
 
     Args:
@@ -2285,7 +2290,7 @@ def search_in_dirs(fname, search_dpaths=[], shortcircuit=True,
     Example:
         >>> # DISABLE_DOCTEST
         >>> import utool as ut
-        >>> fname = 'Inno Setup 5\ISCC.exe'
+        >>> fname = r'Inno Setup 5\ISCC.exe'
         >>> search_dpaths = ut.get_install_dirs()
         >>> shortcircuit = True
         >>> fpath = ut.search_in_dirs(fname, search_dpaths, shortcircuit)

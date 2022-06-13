@@ -159,7 +159,7 @@ def format_cells(block, locals_=None):
                 left = ncl1 + '{' + ncl2
                 right = ncr1 + '}' + ncr2
                 fmtpat = left + ut.named_field('key', '[^}]*') + right
-                spacepat = ut.named_field('indent', '^\s+')
+                spacepat = ut.named_field('indent', r'^\s+')
                 pattern = spacepat + fmtpat
                 import re
                 seen_ = set([])

@@ -349,7 +349,7 @@ class CustomStreamHandler(logging.Handler):
                 stream.write(fs % (msg, self.terminator))
             else:
                 try:
-                    if (isinstance(msg, unicode) and getattr(stream, 'encoding', None)):
+                    if (isinstance(msg, six.text_type) and getattr(stream, 'encoding', None)):
                         ufs = u'%s%s'
                         try:
                             stream.write(ufs % (msg, self.terminator))
@@ -368,7 +368,7 @@ class CustomStreamHandler(logging.Handler):
             #self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception:
             self.handleError(record)
 
 

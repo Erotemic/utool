@@ -137,7 +137,7 @@ def printableVal(val, type_bit=True, justlength=False):
         else:
             _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
     # String
-    elif isinstance(val, (str, unicode)):  # NOQA
+    elif isinstance(val, six.text_type):  # NOQA
         _valstr = '\'%s\'' % val
     # List
     elif isinstance(val, list):

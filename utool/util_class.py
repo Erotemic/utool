@@ -14,8 +14,11 @@ import sys
 import six
 import types
 import functools
-import collections
 import operator as op
+try:
+    from collections.abc import Mapping
+except Exception:
+    from collections import Mapping
 from collections import defaultdict
 from utool import util_inject
 from utool import util_set
@@ -949,7 +952,7 @@ def reloadable_class(cls):
     return six.add_metaclass(ReloadingMetaclass)(cls)
 
 
-class KwargsWrapper(collections.Mapping):
+class KwargsWrapper(Mapping):
     """
     Allows an arbitrary object attributes to be passed as a **kwargs
     argument

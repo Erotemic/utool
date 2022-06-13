@@ -21,7 +21,7 @@ print, rrr, profile = util_inject.inject2(__name__)
 print_ = util_inject.make_module_write_func(__name__)
 
 
-if util_cplat.WIN32:
+if util_cplat.WIN32 and six.PY2:
     # Use time.clock in win32
     default_timer = time.clock
 else:
@@ -665,7 +665,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         #return time.mktime(dt.timetuple())
     except TypeError:
         #if datetime_str is None:
-            #return -1
+        #    return -1
         return -1
     except ValueError as ex:
         if strict is None:
@@ -770,9 +770,9 @@ def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=True):
         if unixtime is None:
             return None
         if isutc:
-            return datetime.datetime.utcfromtimestamp(unixtime).strftime(timefmt)
+            return datetime.datetime.utcfromtimestamp(float(unixtime)).strftime(timefmt)
         else:
-            return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
+            return datetime.datetime.fromtimestamp(float(unixtime)).strftime(timefmt)
     except ValueError:
         raise
         #return 'NA'
@@ -785,9 +785,9 @@ def unixtime_to_datetimeobj(unixtime, isutc=True):
         if unixtime is None:
             return None
         if isutc:
-            return datetime.datetime.utcfromtimestamp(unixtime)
+            return datetime.datetime.utcfromtimestamp(float(unixtime))
         else:
-            return datetime.datetime.fromtimestamp(unixtime)
+            return datetime.datetime.fromtimestamp(float(unixtime))
     except ValueError:
         raise
 
@@ -1085,7 +1085,7 @@ def get_timestats_dict(unixtime_list, full=True, isutc=True):
             datetime_stats[key] = ut.unixtime_to_datetimestr(unixtime_stats[key], isutc=isutc)
         except KeyError:
             pass
-        except (ValueError, OSError) as ex:
+        except (ValueError, OSError):
             datetime_stats[key]  = 'NA'
         except Exception as ex:
             ut.printex(ex, keys=['key', 'unixtime_stats'])
@@ -1095,13 +1095,13 @@ def get_timestats_dict(unixtime_list, full=True, isutc=True):
             datetime_stats[key] = str(ut.get_unix_timedelta(int(round(unixtime_stats[key]))))
         except KeyError:
             pass
-        except (ValueError, OSError) as ex:
+        except (ValueError, OSError):
             datetime_stats[key]  = 'NA'
     try:
         datetime_stats['range'] = str(ut.get_unix_timedelta(int(round(unixtime_stats['max'] - unixtime_stats['min']))))
     except KeyError:
         pass
-    except (ValueError, OSError) as ex:
+    except (ValueError, OSError):
         datetime_stats['range']  = 'NA'
 
     if full:

@@ -16,7 +16,7 @@ def monkey_to_str_columns(self, latex=False):
     highlight_func = ut.partial(ut.argmax, multi=True)
     try:
         colvalues = frame[highlight_cols].values
-    except:
+    except Exception:
         colvalues = frame.values[:, highlight_cols]
 
     perrow_colxs = [highlight_func(row) for row in colvalues]

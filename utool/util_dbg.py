@@ -300,6 +300,7 @@ def fix_embed_globals():
         frame.f_globals['_did_embed_fix'] = True
     """
 
+
 def _wip_embed(parent_locals=None, parent_globals=None, exec_lines=None,
                remove_pyqt_hook=True, N=0):
     """

@@ -15,17 +15,19 @@ print, rrr, profile = util_inject.inject2(__name__)
 __STR__ = meta_util_six.__STR__
 
 
-if six.PY2:
+if not six.PY2:
+    def type_str(type_):
+        return str(type_).replace('<class \'', '').replace('\'>', '')
+    VALID_STRING_TYPES = (str,)
+    unicode = None
+    basestring = None
+else:
     def type_str(type_):
         str_ = str(type_)
         str_ = str_.replace('<type \'', '').replace('\'>', '')
         str_ = str_.replace('<class \'', '').replace('\'>', '')
         return str_
     VALID_STRING_TYPES = (str, unicode, basestring)
-else:
-    def type_str(type_):
-        return str(type_).replace('<class \'', '').replace('\'>', '')
-    VALID_STRING_TYPES = (str,)
 
 
 # Very odd that I have to put in dtypes in two different ways.
@@ -38,18 +40,23 @@ try:
          if str_.startswith('numpy.')
          ))))
 
+    try:
+        sctypeDict = np.sctypeDict
+    except Exception:
+        sctypeDict = np.typeDict
+
     VALID_INT_TYPES = (IntType, LongType,
-                       np.typeDict['int64'],
-                       np.typeDict['int32'],
-                       np.typeDict['uint8'],
+                       sctypeDict['int64'],
+                       sctypeDict['int32'],
+                       sctypeDict['uint8'],
                        np.dtype('int32'),
                        np.dtype('uint8'),
                        np.dtype('int64'),)
 
     VALID_FLOAT_TYPES = (FloatType,
-                         np.typeDict['float64'],
-                         np.typeDict['float32'],
-                         np.typeDict['float16'],
+                         sctypeDict['float64'],
+                         sctypeDict['float32'],
+                         sctypeDict['float16'],
                          np.dtype('float64'),
                          np.dtype('float32'),
                          np.dtype('float16'),)
@@ -57,7 +64,7 @@ try:
     VALID_BOOL_TYPES = (BooleanType, np.bool_)
     LISTLIKE_TYPES = (tuple, list, np.ndarray)
     NUMPY_TYPE_TUPLE = (
-        tuple([np.ndarray] + list(set(np.typeDict.values()))))
+        tuple([np.ndarray] + list(set(sctypeDict.values()))))
 
     try:
         import pandas as pd  # NOQA

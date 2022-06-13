@@ -68,7 +68,7 @@ def isiterable(obj):
     try:
         iter(obj)
         return not isinstance(obj, six.string_types)
-    except:
+    except Exception:
         return False
     #return np.iterable(obj) and not isinstance(obj, six.string_types)
 

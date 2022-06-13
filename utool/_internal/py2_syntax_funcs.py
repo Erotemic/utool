@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import six
+code = '''
 import sys
-
 
 IGNORE_TRACEBACK = not ('--nosmalltb' in sys.argv or '--noignoretb' in sys.argv)  # FIXME: dupliated in util_decor
 
@@ -59,3 +60,8 @@ def ignores_exc_tb(*args, **kwargs):
     else:
         # called with no args means kwargs as specified
         return ignores_exc_tb_closure
+'''
+
+
+if six.PY2:
+    exec(code, globals(), globals())

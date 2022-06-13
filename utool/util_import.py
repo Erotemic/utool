@@ -152,7 +152,7 @@ def import_star_execstr(modname, parent=None):
 
 
 def possible_import_patterns(modname):
-    """
+    r"""
     does not support from x import *
     does not support from x import z, y
 

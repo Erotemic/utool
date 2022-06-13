@@ -9,8 +9,12 @@ is useful!
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import ctypes
+import six
 
 __all__ = ['KeySequenceError', 'SendKeys']
+
+unicode = six.text_type
+
 
 #pylint: disable-msg=R0903
 
@@ -114,7 +118,7 @@ VK_MENU         = 18
 # 'codes' recognized as {CODE( repeat)?}
 CODES = {
     'BACK':     8,
-    'BACKSPACE':8,
+    'BACKSPACE': 8,
     'BKSP':     8,
     'BREAK':    3,
     'BS':       8,
@@ -163,7 +167,7 @@ CODES = {
     'RIGHT':    39,
     'RMENU':    165,
     'RWIN':     92,
-    'SCROLLLOCK':145,
+    'SCROLLLOCK': 145,
     'SPACE':     32,
     'TAB':       9,
     'UP':        38,
@@ -223,7 +227,7 @@ CODES = {
     'VK_KANA':     21,
     'VK_KANJI':    25,
     'VK_LBUTTON':   1,
-    'VK_LCONTROL':162,
+    'VK_LCONTROL': 162,
     'VK_LEFT':     37,
     'VK_LMENU':   164,
     'VK_LSHIFT':  160,
@@ -296,9 +300,9 @@ class KeyAction(object):
     action (press or release or both) of a particular key.
     """
 
-    def __init__(self, key, down = True, up = True):
+    def __init__(self, key, down=True, up=True):
         self.key = key
-        if isinstance(self.key, basestring):
+        if isinstance(self.key, six.string_types):
             self.key = unicode(key)
         self.down = down
         self.up = up
@@ -364,9 +368,9 @@ class KeyAction(object):
             if vk in CODE_NAMES:
                 desc = CODE_NAMES[vk]
             else:
-                desc = "VK %d"% vk
+                desc = "VK %d" % vk
         else:
-            desc = "%s"% self.key
+            desc = "%s" % self.key
 
         return desc
 
@@ -377,7 +381,7 @@ class KeyAction(object):
         if up_down:
             parts.append(up_down)
 
-        return "<%s>"% (" ".join(parts))
+        return "<%s>" % (" ".join(parts))
     __repr__ = __str__
 
 
@@ -391,10 +395,8 @@ class VirtualKeyAction(KeyAction):
 
         # copied more or less verbatim from
         # http://www.pinvoke.net/default.aspx/user32.sendinput
-        if (
-            (self.key >= 33 and self.key <= 46) or
-            (self.key >= 91 and self.key <= 93) ):
-            flags = KEYEVENTF_EXTENDEDKEY;
+        if ((self.key >= 33 and self.key <= 46) or (self.key >= 91 and self.key <= 93)):
+            flags = KEYEVENTF_EXTENDEDKEY
         else:
             flags = 0
         # This works for %{F4} - ALT + F4
@@ -419,7 +421,7 @@ class EscapedKeyAction(KeyAction):
     def key_description(self):
         "Return a description of the key"
 
-        return "KEsc %s"% self.key
+        return "KEsc %s" % self.key
 
 
 class PauseAction(KeyAction):
@@ -433,7 +435,7 @@ class PauseAction(KeyAction):
         time.sleep(self.how_long)
 
     def __str__(self):
-        return "<PAUSE %1.2f>"% (self.how_long)
+        return "<PAUSE %1.2f>" % (self.how_long)
     __repr__ = __str__
 
     #def GetInput(self):
@@ -475,6 +477,7 @@ class PauseAction(KeyAction):
     #    return new_keys
     #
 
+
 def handle_code(code):
     "Handle a key or sequence of keys in braces"
 
@@ -494,7 +497,7 @@ def handle_code(code):
             try:
                 pause_time = float(count)
             except ValueError:
-                raise KeySequenceError('invalid pause time %s'% count)
+                raise KeySequenceError('invalid pause time %s' % count)
             code_keys.append(PauseAction(pause_time))
 
         else:
@@ -502,7 +505,7 @@ def handle_code(code):
                 count = int(count)
             except ValueError:
                 raise KeySequenceError(
-                    'invalid repetition count %s'% count)
+                    'invalid repetition count %s' % count)
 
             # If the value in to_repeat is a VK e.g. DOWN
             # we need to add the code repeated
@@ -518,16 +521,16 @@ def handle_code(code):
                     keys = [to_repeat] * count
                 code_keys.extend(keys)
     else:
-        raise RuntimeError("Unknown code: %s"% code)
+        raise RuntimeError("Unknown code: %s" % code)
 
     return code_keys
 
 
 def parse_keys(string,
-                with_spaces = False,
-                with_tabs = False,
-                with_newlines = False,
-                modifiers = None):
+                with_spaces=False,
+                with_tabs=False,
+                with_newlines=False,
+                modifiers=None):
     "Return the parsed keys"
 
     keys = []
@@ -544,7 +547,7 @@ def parse_keys(string,
             # remember that we are currently modified
             modifiers.append(modifier)
             # hold down the modifier key
-            keys.append(VirtualKeyAction(modifier, up = False))
+            keys.append(VirtualKeyAction(modifier, up=False))
             if DEBUG:
                 print("MODS+", modifiers)
             continue
@@ -555,8 +558,7 @@ def parse_keys(string,
             end_pos = string.find(")", index)
             if end_pos == -1:
                 raise KeySequenceError('`)` not found')
-            keys.extend(
-                parse_keys(string[index:end_pos], modifiers = modifiers))
+            keys.extend(parse_keys(string[index:end_pos], modifiers=modifiers))
             index = end_pos + 1
 
         # Escape or named key
@@ -582,8 +584,8 @@ def parse_keys(string,
         else:
             # don't output white space unless flags to output have been set
             if (c == ' ' and not with_spaces or
-                c == '\t' and not with_tabs or
-                c == '\n' and not with_newlines):
+                 c == '\t' and not with_tabs or
+                 c == '\n' and not with_newlines):
                 continue
 
             # output nuewline
@@ -605,21 +607,24 @@ def parse_keys(string,
         while modifiers:
             if DEBUG:
                 print("MODS-", modifiers)
-            keys.append(VirtualKeyAction(modifiers.pop(), down = False))
+            keys.append(VirtualKeyAction(modifiers.pop(), down=False))
 
     # just in case there were any modifiers left pressed - release them
     while modifiers:
-        keys.append(VirtualKeyAction(modifiers.pop(), down = False))
+        keys.append(VirtualKeyAction(modifiers.pop(), down=False))
 
     return keys
+
 
 def LoByte(val):
     "Return the low byte of the value"
     return val & 0xff
 
+
 def HiByte(val):
     "Return the high byte of the value"
     return (val & 0xff00) >> 8
+
 
 def SendKeys(keys,
              pause=0.05,
@@ -651,7 +656,7 @@ def main():
         {PAUSE .25}
         n
         """
-    SendKeys(actions, pause = .1)
+    SendKeys(actions, pause=.1)
 
     keys = parse_keys(actions)
     for k in keys:
@@ -679,7 +684,7 @@ def main():
 
     for s in test_strings:
         print(repr(s))
-        keys = parse_keys(s, with_newlines = True)
+        keys = parse_keys(s, with_newlines=True)
         print(keys)
 
         for k in keys:

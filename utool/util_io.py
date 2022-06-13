@@ -13,7 +13,7 @@ except ImportError:
 try:
     import numpy as np
     HAS_NUMPY = True
-except ImportError as ex:
+except ImportError:
     HAS_NUMPY = False
 
 print, rrr, profile = util_inject.inject2(__name__)

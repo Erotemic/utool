@@ -433,7 +433,7 @@ def make_score_tabular(
         >>> from utool.util_latex import *  # NOQA
         >>> import utool as ut
         >>> row_lbls = ['config1', 'config2']
-        >>> col_lbls = ['score \leq 1', 'metric2']
+        >>> col_lbls = [r'score \leq 1', 'metric2']
         >>> values = np.array([[1.2, 2], [3.2, 4]])
         >>> title = 'title'
         >>> out_of = 10
@@ -450,7 +450,7 @@ def make_score_tabular(
         >>> from utool.util_latex import *  # NOQA
         >>> import utool as ut
         >>> row_lbls = ['config1']
-        >>> col_lbls = ['score \leq 1', 'metric2']
+        >>> col_lbls = [r'score \leq 1', 'metric2']
         >>> values = np.array([[1.2, 2]])
         >>> title = 'title'
         >>> out_of = 10
@@ -467,7 +467,7 @@ def make_score_tabular(
         >>> from utool.util_latex import *  # NOQA
         >>> import utool as ut
         >>> row_lbls = ['config1', 'config2']
-        >>> col_lbls = ['score \leq 1', 'metric2', 'foobar']
+        >>> col_lbls = [r'score \leq 1', 'metric2', 'foobar']
         >>> multicol_lbls = [('spam', 1), ('eggs', 2)]
         >>> values = np.array([[1.2, 2, -3], [3.2, 4, -2]])
         >>> title = 'title'
@@ -698,7 +698,7 @@ def make_score_tabular(
             caption = escape_latex(caption)
         caption = '\n% ---\n' + caption + '\n% ---\n'
         #tabular_head = r'\end{centering}' + '\n' + tabular_head
-        tabular_tail = tabular_tail + '\n\caption[%s]{%s}\n\label{tbl:%s}\n\end{table}' % (lblstr, caption, lblstr)
+        tabular_tail = tabular_tail + '\n\\caption[%s]{%s}\n\\label{tbl:%s}\n\\end{table}' % (lblstr, caption, lblstr)
 
     tabular_str = rowvalsep.join([tabular_head, tabular_body, tabular_tail])
     topsep = '\\hline\n' if True else '\\toprule\n'
@@ -852,11 +852,11 @@ def get_latex_figure_str(fpath_list, caption_str=None, label_str=None,
     if caption_str is not None:
         #tabular_body += '\n\caption{\\footnotesize{%s}}' % (caption_str,)
         if label_str is not None:
-            figure_body += '\n\caption[%s]{%s}' % (label_str, caption_str,)
+            figure_body += '\n\\caption[%s]{%s}' % (label_str, caption_str,)
         else:
-            figure_body += '\n\caption{%s}' % (caption_str,)
+            figure_body += '\n\\caption{%s}' % (caption_str,)
     if label_str is not None:
-        figure_body += '\n\label{fig:%s}' % (label_str,)
+        figure_body += '\n\\label{fig:%s}' % (label_str,)
     #figure_fmtstr = ut.codeblock(
     #    r'''
     #    \begin{figure*}

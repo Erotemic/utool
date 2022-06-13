@@ -140,8 +140,8 @@ def convert_tests_from_utool_to_nose(module_list):
         want = testtup.want
         import re
         src = re.sub('# ENABLE_DOCTEST\n', '', src)
-        src = re.sub('from [^*]* import \* *# NOQA\n', '', src)
-        src = re.sub('from [^*]* import \*\n', '', src)
+        src = re.sub('from [^*]* import \\* *# NOQA\n', '', src)
+        src = re.sub('from [^*]* import \\*\n', '', src)
         #flag = testtup.flag
         if want.endswith('\n'):
             want = want[:-1]

@@ -102,8 +102,8 @@ def get_block_totaltime(block):
 
 def get_block_id(block):
     import re
-    fpath_regex = ut.named_field('fpath', '\S+')
-    funcname_regex = ut.named_field('funcname', '\S+')
+    fpath_regex = ut.named_field('fpath', r'\S+')
+    funcname_regex = ut.named_field('funcname', r'\S+')
     lineno_regex = ut.named_field('lineno', '[0-9]+')
 
     fileline_regex = 'File: ' + fpath_regex + '$'

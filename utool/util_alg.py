@@ -56,7 +56,6 @@ def find_group_differences(groups1, groups2):
         vtool.apply_grouping
 
     Example0:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6], [7, 8], [9, 10, 11]]
         >>> groups2 = [[1, 2, 11], [3, 4], [5, 6], [7], [8, 9], [10]]
@@ -66,7 +65,6 @@ def find_group_differences(groups1, groups2):
         total_error = 20
 
     Example1:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6]]
         >>> groups2 = [[1, 2, 3], [4], [5, 6]]
@@ -76,7 +74,6 @@ def find_group_differences(groups1, groups2):
         total_error = 0
 
     Example2:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6]]
         >>> groups2 = [[1, 2], [4], [5, 6]]
@@ -125,14 +122,16 @@ def find_group_consistencies(groups1, groups2):
     Returns a measure of group consistency
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6]]
         >>> groups2 = [[1, 2], [4], [5, 6]]
-        >>> common_groups = find_group_consistencies(groups1, groups2)
-        >>> result = ('common_groups = %r' % (common_groups,))
-        >>> print(result)
-        common_groups = [(5, 6), (4,)]
+        >>> common_groups = sorted(find_group_consistencies(groups1, groups2))
+        >>> import ubelt as ub
+        >>> print('common_groups = {}'.format(ub.repr2(common_groups, nl=1)))
+        common_groups = [
+            (4,),
+            (5, 6),
+        ]
     """
     group1_list = {tuple(sorted(_group)) for _group in groups1}
     group2_list = {tuple(sorted(_group)) for _group in groups2}
@@ -151,7 +150,6 @@ def compare_groups(true_groups, pred_groups):
             for the pred_groups to match true_groups.
 
     Ignore:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> true_groups = [
@@ -261,7 +259,6 @@ def grouping_delta(old, new, pure=True):
         unchanged - which old groups are the same as new groups.
 
     Ignore:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> old = [
@@ -298,7 +295,6 @@ def grouping_delta(old, new, pure=True):
 
 
     Ignore:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> old = [
@@ -449,7 +445,6 @@ def grouping_delta_stats(old, new):
         pd.DataFrame: df: data frame of size statistics
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> old = [
@@ -499,7 +494,6 @@ def upper_diag_self_prodx(list_):
         python -m utool.util_alg --exec-upper_diag_self_prodx
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> list_ = [1, 2, 3]
         >>> result = upper_diag_self_prodx(list_)
@@ -521,7 +515,6 @@ def diagonalized_iter(size):
         python -m utool.util_alg --exec-diagonalized_iter --size=5
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> size = ut.get_argval('--size', default=4)
@@ -618,7 +611,6 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
         python -m utool.util_alg --test-greedy_max_inden_setcover
 
     Example0:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> candidate_sets_dict = {'a': [5, 3], 'b': [2, 3, 5],
@@ -632,7 +624,6 @@ def greedy_max_inden_setcover(candidate_sets_dict, items, max_covers=None):
         ([0, 9], ['a', 'c', 'd'])
 
     Example1:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> candidate_sets_dict = {'a': [5, 3], 'b': [2, 3, 5],
@@ -858,7 +849,6 @@ def bayes_rule(b_given_a, prob_a, prob_b):
         ndarray or float: a_given_b
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> b_given_a = .1
         >>> prob_a = .3
@@ -944,7 +934,6 @@ def is_prime(num):
         python -m utool.util_alg --test-is_prime
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> with ut.Timer('isprime'):
@@ -968,7 +957,6 @@ def fibonacci_recursive(n):
         python -m utool.util_alg --test-fibonacci_recursive
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> with ut.Timer('fib rec'):
@@ -997,7 +985,6 @@ def fibonacci_iterative(n):
         python -m utool.util_alg fibonacci_iterative
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> with ut.Timer('fib iter'):
@@ -1215,7 +1202,6 @@ def knapsack(items, maxweight, method='recursive'):
         indices = ut.take_column(items, 2)
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
@@ -1231,7 +1217,6 @@ def knapsack(items, maxweight, method='recursive'):
         items_subset = [(2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> # Solve https://xkcd.com/287/
@@ -1371,7 +1356,6 @@ def number_of_decimals(num):
         stackoverflow.com/questions/6189956/finding-decimal-places
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> num = 15.05
         >>> result = number_of_decimals(num)
@@ -1414,7 +1398,6 @@ def knapsack_iterative_int(items, maxweight):
         python -m utool.util_alg --exec-knapsack_iterative_int --show
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> weights = [1, 3, 3, 5, 2, 1] * 2
         >>> items = [(w, w, i) for i, w in enumerate(weights)]
@@ -1478,7 +1461,7 @@ def knapsack_iterative_int(items, maxweight):
 
 
 def knapsack_iterative_numpy(items, maxweight):
-    """
+    r"""
     Iterative knapsack method
 
     maximize \sum_{i \in T} v_i
@@ -1562,7 +1545,6 @@ def knapsack_greedy(items, maxweight):
         python -m utool.util_alg --exec-knapsack_greedy
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> items = [(4, 12, 0), (2, 1, 1), (6, 4, 2), (1, 1, 3), (2, 2, 4)]
         >>> maxweight = 15
@@ -1599,7 +1581,6 @@ def prod(item_list, initial=1.0):
         float: Multiplied value
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> initial = 1.0
         >>> item_list = [1, 2, 3, 4, 5]
@@ -1627,7 +1608,6 @@ def cumsum(item_list, initial=0):
         python -m utool.util_alg cumsum
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> item_list = [1, 2, 3, 4, 5]
@@ -2097,7 +2077,6 @@ def norm_zero_one(array, dim=None):
         python -m utool.util_alg --test-norm_zero_one
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
@@ -2182,7 +2161,6 @@ def group_indices(groupid_list):
         python3 -m utool.util_alg --test-group_indices
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> groupid_list = ['b', 1, 'b', 1, 'b', 1, 'b', 'c', 'c', 'c', 'c']
@@ -2222,7 +2200,6 @@ def apply_grouping(items, groupxs):
         python -m utool.util_alg --exec-apply_grouping --show
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> idx2_groupid = [2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3]
@@ -2252,7 +2229,6 @@ def iapply_grouping(items, groupxs):
         python -m utool.util_alg --exec-apply_grouping --show
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> idx2_groupid = [2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3]
@@ -2286,7 +2262,6 @@ def ungroup(grouped_items, groupxs, maxval=None, fill=None):
         python -m utool.util_alg ungroup_unique
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> grouped_items = [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]
@@ -2331,7 +2306,6 @@ def ungroup_gen(grouped_items, groupxs, fill=None):
         python -m utool.util_alg ungroup_unique
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> grouped_items = [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]
@@ -2429,7 +2403,6 @@ def ungroup_unique(unique_items, groupxs, maxval=None):
         python -m utool.util_alg ungroup_unique
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> unique_items = [1, 2, 3]
@@ -2810,7 +2783,6 @@ def factors(n):
     Computes all the integer factors of the number `n`
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut
         >>> result = sorted(ut.factors(10))

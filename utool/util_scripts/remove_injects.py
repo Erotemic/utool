@@ -4,7 +4,7 @@
 This file is broken
 """
 from __future__ import absolute_import, division, print_function
-from utool import regex
+# from utool import regex
 
 
 regex_on = r'\(^ \)\([^ ]*rrr.*\)'

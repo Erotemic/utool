@@ -716,7 +716,7 @@ def get_dev_hints():
         ('invVR_mats2x2', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations')),
         ('invV_mats', ('ndarray[float32_t, ndim=3]',  'keypoint shapes (possibly translation)')),
         ('invVR_mats', ('ndarray[float32_t, ndim=3]', 'keypoint shape and rotations (possibly translation)')),
-        # ('img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
+        # (r'img\d*', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('img_in', ('ndarray[uint8_t, ndim=2]', 'image data')),
         ('arr', ('ndarray', '')),
         ('arr_', ('ndarray', '')),
@@ -757,7 +757,7 @@ def get_dev_hints():
         ('.*_str' , ('str', None)),
         ('.*_?list_?' , ('list', None)),
         ('.*_?dict_?' , ('dict', None)),
-        # ('dict_?\d?' , ('dict', None)),
+        # (r'dict_?\d?' , ('dict', None)),
         ('.*_tup' , ('tuple', None)),
         ('.*_sublist' , ('list', None)),
         ('fpath[0-9]?' , ('str', 'file path string')),
@@ -1059,7 +1059,7 @@ def is_defined_by_module(item, module, parent=None):
                 import utool as ut
                 name = ut.get_modname_from_modpath(module.__file__)
                 flag = name in str(item)
-            except:
+            except Exception:
                 flag = False
         else:
             item_modpath = os.path.realpath(dirname(item.__file__))
@@ -1270,6 +1270,24 @@ def get_kwdefaults2(func, parse_source=False):
     return get_kwdefaults(func, parse_source=True)
 
 
+def six_get_argspect(func):
+    """
+    Old getargspec-like interface
+    """
+    if six.PY2:
+        argspec = inspect.getargspec(func)
+    else:
+        if hasattr(inspect, 'getfullargspec'):
+            from collections import namedtuple
+            ArgSpec = namedtuple('ArgSpec', 'args varargs keywords defaults')
+            fullargspec = inspect.getfullargspec(func)
+            argspec = ArgSpec(fullargspec.args, fullargspec.varargs,
+                              fullargspec.varkw, fullargspec.defaults)
+        else:
+            argspec = inspect.getargspec(func)
+    return argspec
+
+
 def get_kwdefaults(func, parse_source=False):
     r"""
     Args:
@@ -1292,7 +1310,7 @@ def get_kwdefaults(func, parse_source=False):
     """
     #import utool as ut
     #with ut.embed_on_exception_context:
-    argspec = inspect.getargspec(func)
+    argspec = six_get_argspect(func)
     kwdefaults = {}
     if argspec.args is None or argspec.defaults is None:
         pass
@@ -1312,7 +1330,7 @@ def get_kwdefaults(func, parse_source=False):
 
 
 def get_argnames(func):
-    argspec = inspect.getargspec(func)
+    argspec = six_get_argspect(func)
     argnames = argspec.args
     return argnames
 
@@ -1533,7 +1551,7 @@ def _node_is_main_if(node):
                 node.test.comparators[0].s == '__main__',
             ]):
                 return True
-        except Exception as ex:
+        except Exception:
             pass
     return False
 
@@ -2448,10 +2466,10 @@ def get_func_argspec(func):
         return argspec
     if isinstance(func, property):
         func = func.fget
-    try:
-        argspec = inspect.getargspec(func)
-    except Exception:
-        argspec = inspect.getfullargspec(func)
+    argspec = six_get_argspect(func)
+    # try:
+    # except Exception:
+    #     argspec = inspect.getfullargspec(func)
     return argspec
 
 
@@ -2484,7 +2502,7 @@ def get_kwargs(func):
         def func7(a, b=1, c=2, *args, **kwargs):
             pass
         for func in [locals()['func' + str(x)] for x in range(1, 8)]:
-            print(inspect.getargspec(func))
+            print(six_get_argspect(func))
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -2497,7 +2515,7 @@ def get_kwargs(func):
     """
     #if argspec.keywords is None:
     import utool as ut
-    argspec = inspect.getargspec(func)
+    argspec = six_get_argspect(func)
     if argspec.defaults is not None:
         num_args = len(argspec.args)
         num_keys = len(argspec.defaults)
@@ -2783,7 +2801,7 @@ def get_func_kwargs(func, recursive=True):
     return header_kw
 
 
-def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
+def parse_kwarg_keys(source, keywords='kwargs', with_vals=False, debug='auto'):
     r"""
     Parses the source code to find keys used by the `**kwargs` keywords
     dictionary variable. if `with_vals` is True, we also attempt to infer the
@@ -2823,15 +2841,11 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
         >>>           "\n x = 'bop' in kwargs"
         >>>           )
         >>> print('source = %s\n' % (source,))
+        ...
         >>> ut.exec_funckw(parse_kwarg_keys, globals())
         >>> with_vals = True
-        >>> kwarg_items = parse_kwarg_keys(source, with_vals=with_vals)
+        >>> kwarg_items = parse_kwarg_keys(source, with_vals=with_vals, debug=0)
         >>> result = ('kwarg_items = %s' % (ut.repr2(kwarg_items, nl=1),))
-        >>> kwarg_keys = ut.take_column(kwarg_items, 0)
-        >>> assert 'baz' not in kwarg_keys
-        >>> assert 'foo' in kwarg_keys
-        >>> assert 'bloop' in kwarg_keys
-        >>> assert 'bop' not in kwarg_keys
         >>> print(result)
         kwarg_items = [
             ('foo', None),
@@ -2841,13 +2855,19 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
             ('foo2', None),
             ('bloop', None),
         ]
+        >>> kwarg_keys = ut.take_column(kwarg_items, 0)
+        >>> assert 'baz' not in kwarg_keys
+        >>> assert 'foo' in kwarg_keys
+        >>> assert 'bloop' in kwarg_keys
+        >>> assert 'bop' not in kwarg_keys
     """
     import utool as ut
     import ast
     sourcecode = 'from __future__ import print_function, unicode_literals\n' + ut.unindent(source)
     pt = ast.parse(sourcecode)
     kwargs_items = []
-    debug = VERYVERB_INSPECT
+    if debug == 'auto':
+        debug = VERYVERB_INSPECT
     target_kwargs_name = keywords
 
     if debug:
@@ -2915,12 +2935,21 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                 # print(ut.repr4(node.__dict__,))
             if isinstance(node.value, ast.Name):
                 if node.value.id == target_kwargs_name:
-                    if isinstance(node.slice, ast.Index):
+                    if six.PY3 and isinstance(node.slice, ast.Constant):
+                        index = node.slice
+                        key = index.value
+                        item = (key, None)
+                        kwargs_items.append(item)
+                    elif isinstance(node.slice, ast.Index):
                         index = node.slice
                         key = index.value
                         if isinstance(key, ast.Str):
                             # item = (key.s, None)
                             item = (key.s, None)
+                            kwargs_items.append(item)
+                        elif six.PY3 and isinstance(key, ast.Constant):
+                            # item = (key.s, None)
+                            item = (key.value, None)
                             kwargs_items.append(item)
 
         @staticmethod
@@ -3175,7 +3204,7 @@ def infer_function_info(func):
                     m = re.match(argpattern, argline, flags=re.MULTILINE | re.DOTALL)
                     try:
                         groupdict_ = m.groupdict()
-                    except Exception as ex:
+                    except Exception:
                         print('---')
                         print('argline = \n%s' % (argline,))
                         print('---')

@@ -82,18 +82,18 @@ class BoringTestClass(object):
 
 
 def print_argspec(func):
-        print('------------')
-        print('func_name = %r' % func.func_name)
-        # Extract argspec from orig function
-        argspec = inspect.getargspec(func)
-        # Get the function definition signature
-        defsig = inspect.formatargspec(*argspec)
-        # Get function call signature (no defaults)
-        callsig = inspect.formatargspec(*argspec[0:3])
-        print('argspec = %r' % (argspec,))
-        print('callsig = %r' % (callsig,))
-        print('defsig = %r' % (defsig,))
-        print('------------')
+    print('------------')
+    print('func_name = %r' % func.func_name)
+    # Extract argspec from orig function
+    argspec = inspect.getargspec(func)
+    # Get the function definition signature
+    defsig = inspect.formatargspec(*argspec)
+    # Get function call signature (no defaults)
+    callsig = inspect.formatargspec(*argspec[0:3])
+    print('argspec = %r' % (argspec,))
+    print('callsig = %r' % (callsig,))
+    print('defsig = %r' % (defsig,))
+    print('------------')
 
 
 def test_decorator_module():
