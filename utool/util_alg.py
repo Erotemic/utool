@@ -1478,7 +1478,7 @@ def knapsack_iterative_int(items, maxweight):
 
 
 def knapsack_iterative_numpy(items, maxweight):
-    """
+    r"""
     Iterative knapsack method
 
     maximize \sum_{i \in T} v_i
