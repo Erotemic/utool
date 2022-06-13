@@ -1234,7 +1234,8 @@ def knapsack(items, maxweight, method='recursive'):
         >>> print(result)
         total_value = 15.05
 
-    Timeit:
+    Benchmark:
+        >>> # xdoctest: +REQUIRES(module:pulp)
         >>> import utool as ut
         >>> setup = ut.codeblock(
         >>>     '''

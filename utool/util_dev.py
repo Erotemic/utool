@@ -1359,7 +1359,12 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         if size:
             stats['size'] = nparr.size
         else:
-            stats['shape'] = nparr.shape
+            if isinstance(nparr.shape, tuple):
+                # python 2.7 issue
+                shape = tuple(map(int, nparr.shape))
+            else:
+                shape = nparr.shape
+            stats['shape'] = shape
         if use_median:
             stats['med'] = np.nanmedian(nparr)
         if use_nan:
@@ -1653,8 +1658,7 @@ def get_object_nbytes(obj, fallback_type=None, follow_pointers=False, exclude_mo
         nBytes = 8
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from utool.util_dev import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
@@ -2204,7 +2208,7 @@ def autopep8_diff(fpath):
         python -m utool.util_dev --test-autopep8_diff --fpath ingest_data.py
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from utool.util_dev import *  # NOQA
         >>> fpath = ut.get_argval('--fpath', type_=str, default='ingest_data.py')
         >>> result = autopep8_diff(fpath)
@@ -2327,7 +2331,7 @@ def get_submodules_from_dpath(dpath, only_packages=False, recursive=True):
         python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> # SCRIPT
         >>> from utool.util_dev import *  # NOQA
         >>> import utool as ut

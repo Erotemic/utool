@@ -102,11 +102,11 @@ if __name__ == '__main__':
     if modpath is not None:
         # If it does, then import it. This should cause the installed version
         # to be used on further imports even if the repo_dir is in the path.
-        print(f'Using installed version of {package_name}')
+        print('Using installed version of {}'.format(package_name))
         module = ub.import_module_from_path(modpath, index=0)
         print('Installed module = {!r}'.format(module))
     else:
-        print(f'No installed version of {package_name} found')
+        print('No installed version of {} found'.format(package_name))
 
     try:
         print('Changing dirs to test_dir={!r}'.format(test_dir))
@@ -122,11 +122,14 @@ if __name__ == '__main__':
         if is_cibuildwheel():
             pytest_args.append('--cov-append')
 
-        pytest_args = pytest_args + sys.argv[1:]
+        if len(sys.argv[1:]):
+            pytest_args = pytest_args + sys.argv[1:]
+        else:
+            pytest_args = pytest_args + [modpath]
         sys.exit(pytest.main(pytest_args))
     finally:
         os.chdir(cwd)
         if is_cibuildwheel():
             # for CIBW under linux
-            copy_coverage_cibuildwheel_docker(f'/home/runner/work/{package_name}/{package_name}')
+            copy_coverage_cibuildwheel_docker('/home/runner/work/{}/{}'.format(package_name, package_name))
         print('Restoring cwd = {!r}'.format(cwd))
