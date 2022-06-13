@@ -3,12 +3,12 @@
 #
 # TODO:  move library intensive functions to vtool
 from __future__ import absolute_import, division, print_function, unicode_literals
-import operator
+# import operator
 import six
-from six.moves import zip, range, reduce
-from utool import util_type
+# from six.moves import zip, range, reduce
+# from utool import util_type
 from utool import util_inject
-from utool import util_decor
+# from utool import util_decor
 try:
     import numpy as np
     HAVE_NUMPY = True
@@ -17,12 +17,14 @@ except ImportError:
     # TODO remove numpy
     pass
 try:
-    import scipy.spatial.distance as spdist
+    import scipy.spatial.distance as spdist  # NOQA
     HAVE_SCIPY = True
 except ImportError:
     HAVE_SCIPY = False
 print, rrr, profile = util_inject.inject2(__name__)
 
+
+unicode = six.text_type
 
 PHI = 1.61803398875
 PHI_A = (1 / PHI)
@@ -40,6 +42,7 @@ def bayesnet():
         http://pgmpy.readthedocs.org/en/latest/
         http://nipy.bic.berkeley.edu:5000/download/11
     """
+    import utool as ut
     # import operator as op
     # # Enumerate all possible events
     # varcard_list = list(map(op.attrgetter('variable_card'), cpd_list))
@@ -437,6 +440,3 @@ def bayesnet_examples():
     student_model.add_cpds(grade_cpd, difficulty_cpd,
                            intel_cpd, letter_cpd,
                            sat_cpd)
-
-
-

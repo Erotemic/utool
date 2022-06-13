@@ -9,8 +9,12 @@ is useful!
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import ctypes
+import six
 
 __all__ = ['KeySequenceError', 'SendKeys']
+
+unicode = six.text_type
+
 
 #pylint: disable-msg=R0903
 
