@@ -1359,7 +1359,12 @@ def get_stats(list_, axis=None, use_nan=False, use_sum=False, use_median=False,
         if size:
             stats['size'] = nparr.size
         else:
-            stats['shape'] = nparr.shape
+            if isinstance(nparr.shape, tuple):
+                # python 2.7 issue
+                shape = tuple(map(int, nparr.shape))
+            else:
+                shape = nparr.shape
+            stats['shape'] = shape
         if use_median:
             stats['med'] = np.nanmedian(nparr)
         if use_nan:
