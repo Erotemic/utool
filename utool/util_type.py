@@ -15,17 +15,19 @@ print, rrr, profile = util_inject.inject2(__name__)
 __STR__ = meta_util_six.__STR__
 
 
-if six.PY2:
+if not six.PY2:
+    def type_str(type_):
+        return str(type_).replace('<class \'', '').replace('\'>', '')
+    VALID_STRING_TYPES = (str,)
+    unicode = None
+    basestring = None
+else:
     def type_str(type_):
         str_ = str(type_)
         str_ = str_.replace('<type \'', '').replace('\'>', '')
         str_ = str_.replace('<class \'', '').replace('\'>', '')
         return str_
     VALID_STRING_TYPES = (str, unicode, basestring)
-else:
-    def type_str(type_):
-        return str(type_).replace('<class \'', '').replace('\'>', '')
-    VALID_STRING_TYPES = (str,)
 
 
 # Very odd that I have to put in dtypes in two different ways.

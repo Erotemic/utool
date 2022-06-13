@@ -359,7 +359,7 @@ class EulerTourList(object):
         self._len += other._len
 
     def split(self, pos, idx):
-        (pos, idx) = self._pos(index)
+        # (pos, idx) = self._pos(idx)
         left_part = self._lists[0:pos + 1]
         right_part = self._lists[pos + 1:0]
 
@@ -605,9 +605,7 @@ class EulerTourForest(object):
         rv = self.find_root(v)
         ru = self.reroot(ru, u)
         rv = self.reroot(rv, v)
-
-        ubin.set_child(vbin)
-
+        # ubin.set_child(vbin)
         pass
 
 

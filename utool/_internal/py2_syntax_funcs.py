@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import six
+code = '''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
@@ -59,3 +61,8 @@ def ignores_exc_tb(*args, **kwargs):
     else:
         # called with no args means kwargs as specified
         return ignores_exc_tb_closure
+'''
+
+
+if six.PY2:
+    eval(code, globals(), globals())

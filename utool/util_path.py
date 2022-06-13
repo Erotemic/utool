@@ -2175,7 +2175,7 @@ def expand_win32_shortname(path1):
         import ctypes
         #import win32file
         if six.PY2:
-            path1 = unicode(path1)
+            path1 = six.text_type(path1)
         else:
             path1 = str(path1)
         buflen = 260  # max size

@@ -4,6 +4,8 @@ import functools
 import six
 import codecs
 
+if not six.PY2:
+    unicode = str
 
 if six.PY2:
     import types

@@ -300,9 +300,9 @@ class KeyAction(object):
     action (press or release or both) of a particular key.
     """
 
-    def __init__(self, key, down = True, up = True):
+    def __init__(self, key, down=True, up=True):
         self.key = key
-        if isinstance(self.key, basestring):
+        if isinstance(self.key, six.string_types):
             self.key = unicode(key)
         self.down = down
         self.up = up
@@ -395,10 +395,8 @@ class VirtualKeyAction(KeyAction):
 
         # copied more or less verbatim from
         # http://www.pinvoke.net/default.aspx/user32.sendinput
-        if (
-            (self.key >= 33 and self.key <= 46) or
-            (self.key >= 91 and self.key <= 93) ):
-            flags = KEYEVENTF_EXTENDEDKEY;
+        if ((self.key >= 33 and self.key <= 46) or (self.key >= 91 and self.key <= 93)):
+            flags = KEYEVENTF_EXTENDEDKEY
         else:
             flags = 0
         # This works for %{F4} - ALT + F4
@@ -423,7 +421,7 @@ class EscapedKeyAction(KeyAction):
     def key_description(self):
         "Return a description of the key"
 
-        return "KEsc %s"% self.key
+        return "KEsc %s" % self.key
 
 
 class PauseAction(KeyAction):
@@ -437,7 +435,7 @@ class PauseAction(KeyAction):
         time.sleep(self.how_long)
 
     def __str__(self):
-        return "<PAUSE %1.2f>"% (self.how_long)
+        return "<PAUSE %1.2f>" % (self.how_long)
     __repr__ = __str__
 
     #def GetInput(self):
@@ -478,6 +476,7 @@ class PauseAction(KeyAction):
     #
     #    return new_keys
     #
+
 
 def handle_code(code):
     "Handle a key or sequence of keys in braces"
