@@ -4,7 +4,7 @@ xxhash >= 1.0.1
 Pygments >= 2.2.0
 
 autopep8
-astor
+astor >= 0.8.1
 pyperclip >= 1.5.7
 pyfiglet >= 0.7.2
 boto

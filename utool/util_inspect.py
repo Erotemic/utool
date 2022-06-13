@@ -2783,7 +2783,7 @@ def get_func_kwargs(func, recursive=True):
     return header_kw
 
 
-def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
+def parse_kwarg_keys(source, keywords='kwargs', with_vals=False, debug='auto'):
     r"""
     Parses the source code to find keys used by the `**kwargs` keywords
     dictionary variable. if `with_vals` is True, we also attempt to infer the
@@ -2823,15 +2823,11 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
         >>>           "\n x = 'bop' in kwargs"
         >>>           )
         >>> print('source = %s\n' % (source,))
+        ...
         >>> ut.exec_funckw(parse_kwarg_keys, globals())
         >>> with_vals = True
-        >>> kwarg_items = parse_kwarg_keys(source, with_vals=with_vals)
+        >>> kwarg_items = parse_kwarg_keys(source, with_vals=with_vals, debug=0)
         >>> result = ('kwarg_items = %s' % (ut.repr2(kwarg_items, nl=1),))
-        >>> kwarg_keys = ut.take_column(kwarg_items, 0)
-        >>> assert 'baz' not in kwarg_keys
-        >>> assert 'foo' in kwarg_keys
-        >>> assert 'bloop' in kwarg_keys
-        >>> assert 'bop' not in kwarg_keys
         >>> print(result)
         kwarg_items = [
             ('foo', None),
@@ -2841,13 +2837,19 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
             ('foo2', None),
             ('bloop', None),
         ]
+        >>> kwarg_keys = ut.take_column(kwarg_items, 0)
+        >>> assert 'baz' not in kwarg_keys
+        >>> assert 'foo' in kwarg_keys
+        >>> assert 'bloop' in kwarg_keys
+        >>> assert 'bop' not in kwarg_keys
     """
     import utool as ut
     import ast
     sourcecode = 'from __future__ import print_function, unicode_literals\n' + ut.unindent(source)
     pt = ast.parse(sourcecode)
     kwargs_items = []
-    debug = VERYVERB_INSPECT
+    if debug == 'auto':
+        debug = VERYVERB_INSPECT
     target_kwargs_name = keywords
 
     if debug:
@@ -2915,12 +2917,21 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False):
                 # print(ut.repr4(node.__dict__,))
             if isinstance(node.value, ast.Name):
                 if node.value.id == target_kwargs_name:
-                    if isinstance(node.slice, ast.Index):
+                    if isinstance(node.slice, ast.Constant):
+                        index = node.slice
+                        key = index.value
+                        item = (key, None)
+                        kwargs_items.append(item)
+                    elif isinstance(node.slice, ast.Index):
                         index = node.slice
                         key = index.value
                         if isinstance(key, ast.Str):
                             # item = (key.s, None)
                             item = (key.s, None)
+                            kwargs_items.append(item)
+                        elif isinstance(key, ast.Constant):
+                            # item = (key.s, None)
+                            item = (key.value, None)
                             kwargs_items.append(item)
 
         @staticmethod

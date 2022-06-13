@@ -481,8 +481,6 @@ def get_argval(argstr_, type_=None, default=None, help_=None, smartcast=True,
                             # Hacker way to be less hacky about parsing lists
                             from utool import util_gridsearch
                             blocks = util_gridsearch.parse_nestings(val_after_)
-                            print('val_after_ = {!r}'.format(val_after_))
-                            print('blocks = {!r}'.format(blocks))
                             sentinal = '##COM&&'
                             changed = [(block[0], block[1].replace(',', sentinal))
                                        if block[0] == 'nonNested' else block
