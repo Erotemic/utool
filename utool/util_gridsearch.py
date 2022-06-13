@@ -460,6 +460,8 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
         try:
             toklist = parent._toklist
             tokdict = parent._tokdict
+            if tokdict == '' and toklist == '':
+                raise Exception  # python 2 compat
         except Exception:
             tokdict = parent._ParseResults__tokdict
             toklist = parent._ParseResults__toklist
@@ -622,6 +624,8 @@ def parse_nestings(string, only_curl=False):
         try:
             toklist = parent._toklist
             tokdict = parent._tokdict
+            if tokdict == '' and toklist == '':
+                raise Exception  # python 2 compat
         except Exception:
             tokdict = parent._ParseResults__tokdict
             toklist = parent._ParseResults__toklist
@@ -768,6 +772,8 @@ def parse_cfgstr3(string, debug=None):
         try:
             toklist = parent._toklist
             tokdict = parent._tokdict
+            if tokdict == '' and toklist == '':
+                raise Exception  # python 2 compat
         except Exception:
             tokdict = parent._ParseResults__tokdict
             toklist = parent._ParseResults__toklist

@@ -1270,6 +1270,24 @@ def get_kwdefaults2(func, parse_source=False):
     return get_kwdefaults(func, parse_source=True)
 
 
+def six_get_argspect(func):
+    """
+    Old getargspec-like interface
+    """
+    if six.PY2:
+        argspec = inspect.getargspec(func)
+    else:
+        if hasattr(inspect, 'getfullargspec'):
+            from collections import namedtuple
+            ArgSpec = namedtuple('ArgSpec', 'args varargs keywords defaults')
+            fullargspec = inspect.getfullargspec(func)
+            argspec = ArgSpec(fullargspec.args, fullargspec.varargs,
+                              fullargspec.varkw, fullargspec.defaults)
+        else:
+            argspec = inspect.getargspec(func)
+    return argspec
+
+
 def get_kwdefaults(func, parse_source=False):
     r"""
     Args:
@@ -1292,7 +1310,7 @@ def get_kwdefaults(func, parse_source=False):
     """
     #import utool as ut
     #with ut.embed_on_exception_context:
-    argspec = inspect.getargspec(func)
+    argspec = six_get_argspect(func)
     kwdefaults = {}
     if argspec.args is None or argspec.defaults is None:
         pass
@@ -1312,7 +1330,7 @@ def get_kwdefaults(func, parse_source=False):
 
 
 def get_argnames(func):
-    argspec = inspect.getargspec(func)
+    argspec = six_get_argspect(func)
     argnames = argspec.args
     return argnames
 
@@ -2448,10 +2466,10 @@ def get_func_argspec(func):
         return argspec
     if isinstance(func, property):
         func = func.fget
-    try:
-        argspec = inspect.getargspec(func)
-    except Exception:
-        argspec = inspect.getfullargspec(func)
+    argspec = six_get_argspect(func)
+    # try:
+    # except Exception:
+    #     argspec = inspect.getfullargspec(func)
     return argspec
 
 
@@ -2484,7 +2502,7 @@ def get_kwargs(func):
         def func7(a, b=1, c=2, *args, **kwargs):
             pass
         for func in [locals()['func' + str(x)] for x in range(1, 8)]:
-            print(inspect.getargspec(func))
+            print(six_get_argspect(func))
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -2497,7 +2515,7 @@ def get_kwargs(func):
     """
     #if argspec.keywords is None:
     import utool as ut
-    argspec = inspect.getargspec(func)
+    argspec = six_get_argspect(func)
     if argspec.defaults is not None:
         num_args = len(argspec.args)
         num_keys = len(argspec.defaults)
@@ -2917,7 +2935,7 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False, debug='auto'):
                 # print(ut.repr4(node.__dict__,))
             if isinstance(node.value, ast.Name):
                 if node.value.id == target_kwargs_name:
-                    if isinstance(node.slice, ast.Constant):
+                    if six.PY3 and isinstance(node.slice, ast.Constant):
                         index = node.slice
                         key = index.value
                         item = (key, None)
@@ -2929,7 +2947,7 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False, debug='auto'):
                             # item = (key.s, None)
                             item = (key.s, None)
                             kwargs_items.append(item)
-                        elif isinstance(key, ast.Constant):
+                        elif six.PY3 and isinstance(key, ast.Constant):
                             # item = (key.s, None)
                             item = (key.value, None)
                             kwargs_items.append(item)
