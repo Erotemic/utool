@@ -125,12 +125,12 @@ def find_group_consistencies(groups1, groups2):
         >>> from utool.util_alg import *  # NOQA
         >>> groups1 = [[1, 2, 3], [4], [5, 6]]
         >>> groups2 = [[1, 2], [4], [5, 6]]
-        >>> common_groups = find_group_consistencies(groups1, groups2)
+        >>> common_groups = sorted(find_group_consistencies(groups1, groups2))
         >>> import ubelt as ub
         >>> print('common_groups = {}'.format(ub.repr2(common_groups, nl=1)))
         common_groups = [
-            (5, 6),
             (4,),
+            (5, 6),
         ]
     """
     group1_list = {tuple(sorted(_group)) for _group in groups1}
