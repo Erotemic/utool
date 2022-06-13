@@ -2620,10 +2620,10 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise',
         >>> ut.writeto(real_path, 'foo')
         >>> result = symlink(real_dpath, link_dpath)
         >>> assert ut.readfrom(link_path) == 'foo'
-        >>> ut.delete(link_dpath, verbose=0)
-        >>> assert ut.checkpath(real_path, verbose=1)
-        >>> ut.delete(real_dpath, verbose=0)
-        >>> assert not ut.checkpath(real_path, verbose=1)
+        >>> ut.delete(link_dpath, verbose=2)
+        >>> assert ut.checkpath(real_path, verbose=2)
+        >>> ut.delete(real_dpath, verbose=2)
+        >>> assert not ut.checkpath(real_path, verbose=2)
     """
     if 1:
         # Use ubelt implementation
