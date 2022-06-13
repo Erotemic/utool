@@ -1,5 +1,5 @@
 [tool.xcookie]
-tags = []
+tags = ["github", "erotemic", "purepy"]
 mod_name = "utool"
 repo_name = "utool"
 
