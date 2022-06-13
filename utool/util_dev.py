@@ -1653,8 +1653,7 @@ def get_object_nbytes(obj, fallback_type=None, follow_pointers=False, exclude_mo
         nBytes = 8
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from utool.util_dev import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
@@ -2204,7 +2203,7 @@ def autopep8_diff(fpath):
         python -m utool.util_dev --test-autopep8_diff --fpath ingest_data.py
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from utool.util_dev import *  # NOQA
         >>> fpath = ut.get_argval('--fpath', type_=str, default='ingest_data.py')
         >>> result = autopep8_diff(fpath)
@@ -2327,7 +2326,7 @@ def get_submodules_from_dpath(dpath, only_packages=False, recursive=True):
         python -m utool.util_dev --exec-get_submodules_from_dpath --only_packages
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> # SCRIPT
         >>> from utool.util_dev import *  # NOQA
         >>> import utool as ut
