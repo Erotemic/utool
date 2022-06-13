@@ -432,6 +432,14 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
         >>> # DISABLE_DOCTEST
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
+        >>> string = r'1, 2, 3'
+        >>> parsed_blocks = parse_nestings2(string)
+        >>> print('parsed_blocks = {!r}'.format(parsed_blocks))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from utool.util_gridsearch import *  # NOQA
+        >>> import utool as ut
         >>> string = r'lambda u: sign(u) * abs(u)**3.0 * greater(u, 0)'
         >>> parsed_blocks = parse_nestings2(string)
         >>> print('parsed_blocks = {!r}'.format(parsed_blocks))
@@ -448,7 +456,14 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
 
     def as_tagged(parent, doctag=None):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
-        namedItems = dict((v[1], k) for (k, vlist) in parent._ParseResults__tokdict.items()
+        # print('parent.__dict__ = {!r}'.format(parent.__dict__))
+        try:
+            toklist = parent._toklist
+            tokdict = parent._tokdict
+        except Exception:
+            tokdict = parent._ParseResults__tokdict
+            toklist = parent._ParseResults__toklist
+        namedItems = dict((v[1], k) for (k, vlist) in tokdict.items()
                           for v in vlist)
         # collapse out indents if formatting is not desired
         parentTag = None
@@ -460,7 +475,7 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
         if not parentTag:
             parentTag = "ITEM"
         out = []
-        for i, res in enumerate(parent._ParseResults__toklist):
+        for i, res in enumerate(toklist):
             if isinstance(res, pp.ParseResults):
                 if i in namedItems:
                     child = as_tagged(res, namedItems[i])
@@ -474,7 +489,10 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
                     resTag = namedItems[i]
                 if not resTag:
                     resTag = "ITEM"
-                child = (resTag, pp._ustr(res))
+                try:
+                    child = (resTag, pp._ustr(res))
+                except AttributeError:
+                    child = (resTag, str(res))
                 out += [child]
         return (parentTag, out)
 
@@ -543,7 +561,10 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
         if debug_:
             print('string = %r' % (string,))
             print('tokens List: ' + ut.repr3(tokens.asList()))
-            print('tokens XML: ' + tokens.asXML())
+            try:
+                print('tokens XML: ' + tokens.asXML())
+            except Exception:
+                print('tokens Dict: ' + repr(tokens.as_dict()))
         parsed_blocks = as_tagged(tokens)[1]
         if debug_:
             print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
@@ -598,7 +619,13 @@ def parse_nestings(string, only_curl=False):
 
     def as_tagged(parent, doctag=None):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
-        namedItems = dict((v[1], k) for (k, vlist) in parent._ParseResults__tokdict.items()
+        try:
+            toklist = parent._toklist
+            tokdict = parent._tokdict
+        except Exception:
+            tokdict = parent._ParseResults__tokdict
+            toklist = parent._ParseResults__toklist
+        namedItems = dict((v[1], k) for (k, vlist) in tokdict.items()
                           for v in vlist)
         # collapse out indents if formatting is not desired
         parentTag = None
@@ -610,7 +637,7 @@ def parse_nestings(string, only_curl=False):
         if not parentTag:
             parentTag = "ITEM"
         out = []
-        for i, res in enumerate(parent._ParseResults__toklist):
+        for i, res in enumerate(toklist):
             if isinstance(res, pp.ParseResults):
                 if i in namedItems:
                     child = as_tagged(res, namedItems[i])
@@ -624,7 +651,10 @@ def parse_nestings(string, only_curl=False):
                     resTag = namedItems[i]
                 if not resTag:
                     resTag = "ITEM"
-                child = (resTag, pp._ustr(res))
+                try:
+                    child = (resTag, pp._ustr(res))
+                except AttributeError:
+                    child = (resTag, str(res))
                 out += [child]
         return (parentTag, out)
 
@@ -679,7 +709,10 @@ def parse_nestings(string, only_curl=False):
         if debug_:
             print('string = %r' % (string,))
             print('tokens List: ' + ut.repr3(tokens.asList()))
-            print('tokens XML: ' + tokens.asXML())
+            try:
+                print('tokens XML: ' + tokens.asXML())
+            except Exception:
+                print('tokens Dict: ' + repr(tokens.as_dict()))
         parsed_blocks = as_tagged(tokens)[1]
         if debug_:
             print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
@@ -706,7 +739,7 @@ def parse_cfgstr3(string, debug=None):
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> cfgopt_strs = 'b=[1,2]'
-        >>> cfgdict = parse_cfgstr3(cfgopt_strs)
+        >>> cfgdict = parse_cfgstr3(cfgopt_strs, debug=0)
         >>> result = ('cfgdict = %s' % (ut.repr2(cfgdict),))
         >>> print(result)
         cfgdict = {'b': [1, 2]}
@@ -716,7 +749,7 @@ def parse_cfgstr3(string, debug=None):
         >>> from utool.util_gridsearch import *  # NOQA
         >>> import utool as ut
         >>> cfgopt_strs = 'myprefix=False,sentence_break=False'
-        >>> cfgdict = parse_cfgstr3(cfgopt_strs, debug=True)
+        >>> cfgdict = parse_cfgstr3(cfgopt_strs, debug=0)
         >>> print('cfgopt_strs = %r' % (cfgopt_strs,))
         >>> result = ('cfgdict = %s' % (ut.repr2(cfgdict),))
         >>> print(result)
@@ -732,9 +765,17 @@ def parse_cfgstr3(string, debug=None):
 
     def as_tagged(parent, doctag=None, namedItemsOnly=False):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
-        namedItems = dict((v[1], k) for (k, vlist) in parent._ParseResults__tokdict.items()
+        try:
+            toklist = parent._toklist
+            tokdict = parent._tokdict
+        except Exception:
+            tokdict = parent._ParseResults__tokdict
+            toklist = parent._ParseResults__toklist
+        namedItems = dict((v[1], k) for (k, vlist) in tokdict.items()
                           for v in vlist)
-        # collapse out indents if formatting is not desired
+        # namedItems = dict((v[1], k) for (k, vlist) in parent._tokdict.items()
+        #                   for v in vlist)
+        # collapse out indents if formatting is not desire
         parentTag = None
         if doctag is not None:
             parentTag = doctag
@@ -747,7 +788,7 @@ def parse_cfgstr3(string, debug=None):
             else:
                 parentTag = "ITEM"
         out = []
-        for i, res in enumerate(parent._ParseResults__toklist):
+        for i, res in enumerate(toklist):
             if isinstance(res, pp.ParseResults):
                 if i in namedItems:
                     child = as_tagged(
@@ -766,7 +807,10 @@ def parse_cfgstr3(string, debug=None):
                         continue
                     else:
                         resTag = "ITEM"
-                child = (resTag, pp._ustr(res))
+                try:
+                    child = (resTag, pp._ustr(res))
+                except AttributeError:
+                    child = (resTag, str(res))
                 out += [child]
         return (parentTag, out)
 
@@ -829,7 +873,10 @@ def parse_cfgstr3(string, debug=None):
         if debug_:
             print('string = %r' % (string,))
             print('tokens List: ' + ut.repr3(tokens.asList()))
-            print('tokens XML: ' + tokens.asXML())
+            try:
+                print('tokens XML: ' + tokens.asXML())
+            except Exception:
+                print('tokens Dict: ' + repr(tokens.as_dict()))
         parsed_blocks = as_tagged(tokens)[1]
         if debug_:
             print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
