@@ -209,7 +209,7 @@ if __name__ == '__main__':
             'License :: OSI Approved :: Apache Software License',
             # Supported Python versions
             'Programming Language :: Python :: 2.7',
-            # 'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
