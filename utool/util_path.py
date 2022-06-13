@@ -1779,7 +1779,12 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
                      if  newline != line]
     n_changed = len(changed_lines)
     if n_changed > 0:
-        rel_fpath = relpath(fpath, os.getcwd())
+        try:
+            rel_fpath = relpath(fpath, os.getcwd())
+        except ValueError:
+            # Can happen on windows
+            rel_fpath = fpath
+
         print(' * %s changed %d lines in %r ' %
               (['(dry-run)', '(real-run)'][force], n_changed, rel_fpath))
         print(' * --------------------')
