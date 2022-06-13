@@ -770,9 +770,9 @@ def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=True):
         if unixtime is None:
             return None
         if isutc:
-            return datetime.datetime.utcfromtimestamp(unixtime).strftime(timefmt)
+            return datetime.datetime.utcfromtimestamp(float(unixtime)).strftime(timefmt)
         else:
-            return datetime.datetime.fromtimestamp(unixtime).strftime(timefmt)
+            return datetime.datetime.fromtimestamp(float(unixtime)).strftime(timefmt)
     except ValueError:
         raise
         #return 'NA'
@@ -785,9 +785,9 @@ def unixtime_to_datetimeobj(unixtime, isutc=True):
         if unixtime is None:
             return None
         if isutc:
-            return datetime.datetime.utcfromtimestamp(unixtime)
+            return datetime.datetime.utcfromtimestamp(float(unixtime))
         else:
-            return datetime.datetime.fromtimestamp(unixtime)
+            return datetime.datetime.fromtimestamp(float(unixtime))
     except ValueError:
         raise
 
