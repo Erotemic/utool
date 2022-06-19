@@ -1,4 +1,4 @@
-|Pypi| |Downloads| |Codecov| |Travis| |Appveyor| 
+|Pypi| |Downloads| |Codecov| |GithubActions|
 
 utool
 -----
@@ -87,3 +87,5 @@ Utool is released under the Apache License Version 2.0
    :target: https://pypistats.org/packages/utool
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/utool/badge/?version=latest
     :target: http://utool.readthedocs.io/en/latest/
+.. |GithubActions| image:: https://github.com/Erotemic/utool/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/utool/actions?query=branch%3Amain
