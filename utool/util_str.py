@@ -2897,7 +2897,20 @@ def color_text(text, color):
         #     import linguist  # NOQA
         #     pygments.lexers.guess_lexer(text)
         #     return highlight_text(text, color)
-        ansi_text = pygments.console.colorize(color, text)
+        try:
+            ansi_text = pygments.console.colorize(color, text)
+        except Exception:
+            # Fix colors
+            if color == 'turquoise':
+                color = 'cyan'
+            if color == 'darkgreen':
+                color = 'green'
+            if color == 'teal':
+                color = 'brightcyan'
+            if color == 'lightgray':
+                color = 'white'
+            ansi_text = pygments.console.colorize(color, text)
+
         if ut.WIN32:
             import colorama
             ansi_reset = (colorama.Style.RESET_ALL)

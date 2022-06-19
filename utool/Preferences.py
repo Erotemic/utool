@@ -284,7 +284,8 @@ class Pref(PrefNode):
 
         # Hack, these names must be defined non-dynamically
         blocklist = {
-            'get_param_info_list'
+            'get_param_info_list',
+            'parse_namespace_config_items',
         }
         if name in blocklist:
             raise AttributeError(name)

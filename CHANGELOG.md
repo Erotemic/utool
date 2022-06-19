@@ -12,6 +12,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   defined. Ultimately the structure of this class is poorly designed, so I dont
   feel bad about hacking it like this.
 
+* Fixed issue in color text where some colors that were used are no longer
+  supported.  Hacked around by changing them to a supported color when an
+  exception is thrown.
+
 
 ### Earlier Versions
 
