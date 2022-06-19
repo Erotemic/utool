@@ -2089,7 +2089,10 @@ def approx_min_num_components(nodes, negative_edges):
     if nx.__version__.startswith('2'):
         deg0_nodes = [n for n, d in g_neg.degree() if d == 0]
     else:
-        deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
+        try:
+            deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
+        except Exception:
+            deg0_nodes = [n for n, d in g_neg.degree() if d == 0]
 
     for u, v in ut.itertwo(deg0_nodes):
         nx_contracted_nodes(g_neg, v, u, inplace=True)

@@ -281,6 +281,14 @@ class Pref(PrefNode):
             # internal names belong to the internal structure
             attrx = self._tree.child_names.index(name[:-9])
             return self._tree.child_list[attrx]
+
+        # Hack, these names must be defined non-dynamically
+        blocklist = {
+            'get_param_info_list',
+            'parse_namespace_config_items',
+        }
+        if name in blocklist:
+            raise AttributeError(name)
         #print(self._internal.name)
         #print(self._tree)
         try:
@@ -288,18 +296,20 @@ class Pref(PrefNode):
                 return super(PrefNode, self).__getitem__[name]
             else:
                 try:
-                    base_self1 = super(PrefNode, self)
+                    # base_self1 = super()
                     #base_self2 = super(DynStruct, self)
                     #base_self3 = super()
                     #import utool
                     #utool.embed()
-                    return base_self1[name]
+                    # return base_self1.__getitem__(name)
+                    return self.__getitem__(name)
                 except Exception as ex:
-                    print(ex)
-                    print('base_self1 = %r' % (base_self1,))
+                    print('ex={!r}'.format(ex))
+                    # print('base_self1 = %r' % (base_self1,))
                     #print('base_self2 = %r' % (base_self2,))
                     #print('base_self3 = %r' % (base_self3,))
                     print('name = %r' % (name,))
+                    # print('self={!r}'.format(self))
                     raise
         except Exception as ex:
             if name == 'trait_names':
@@ -454,6 +464,8 @@ class Pref(PrefNode):
 
     # Method for QTWidget
     def createQWidget(self):
+        """
+        """
         # moving gui code away from utool
         try:
             #from utool._internal.PreferenceWidget import EditPrefWidget
@@ -537,23 +549,17 @@ def _qt_set_leaf_data(self, qvar):
             new_val = cast_order(six.text_type(qvar))
         self._intern.get_type()
         if isinstance(self._intern.value, bool):
-            #new_val = bool(qvar.toBool())
             print('qvar = %r' % (qvar,))
             new_val = util_type.smart_cast(qvar, bool)
-            #new_val = bool(eval(qvar, {}, {}))
             print('new_val = %r' % (new_val,))
         elif isinstance(self._intern.value, int):
-            #new_val = int(qvar.toInt()[0])
             new_val = int(qvar)
         # elif isinstance(self._intern.value, float):
         elif self._intern.get_type() in util_type.VALID_FLOAT_TYPES:
-            #new_val = float(qvar.toDouble()[0])
             new_val = float(qvar)
         elif isinstance(self._intern.value, six.string_types):
-            #new_val = six.text_type(qvar.toString())
             new_val = six.text_type(qvar)
         elif isinstance(self._intern.value, PrefChoice):
-            #new_val = qvar.toString()
             new_val = six.text_type(qvar)
             if new_val.upper() == 'NONE':
                 new_val = None
@@ -594,12 +600,12 @@ def _qt_set_leaf_data(self, qvar):
 def test_Preferences():
     r"""
     CommandLine:
-        python -m utool.Preferences --test-test_Preferences --show --verbpref
+        python -m utool.Preferences test_Preferences --show --verbpref
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> # xdoctest: +REQUIRES(module:guitool_ibeis)
-        >>> # FIXME depends on guitool_ibei
+        >>> # FIXME depends on guitool_ibeis
         >>> from utool.Preferences import *  # NOQA
         >>> import utool as ut
         >>> import guitool_ibeis
@@ -632,7 +638,5 @@ if __name__ == '__main__':
         python -m utool.Preferences --allexamples
         python -m utool.Preferences --allexamples --noface --nosrc
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
