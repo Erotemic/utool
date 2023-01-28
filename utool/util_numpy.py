@@ -253,8 +253,8 @@ def intersect2d(A, B):
         (array([[1, 2, 3]]), array([0]), array([0]))
     """
     Cset  =  set(tuple(x) for x in A).intersection(set(tuple(x) for x in B))
-    Ax = np.array([x for x, item in enumerate(A) if tuple(item) in Cset], dtype=np.int)
-    Bx = np.array([x for x, item in enumerate(B) if tuple(item) in Cset], dtype=np.int)
+    Ax = np.array([x for x, item in enumerate(A) if tuple(item) in Cset], dtype=int)
+    Bx = np.array([x for x, item in enumerate(B) if tuple(item) in Cset], dtype=int)
     C = np.array(tuple(Cset))
     return C, Ax, Bx
 
