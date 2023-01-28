@@ -10,6 +10,7 @@ tags = ["github", "erotemic", "purepy", "notypes"]
 mod_name = "utool"
 repo_name = "utool"
 rel_mod_parent_dpath = "."
+ci_pypy_versions = []
 os = [ "linux", "osx", "win",]
 url = 'https://github.com/Erotemic/utool'
 min_python = 3.6
