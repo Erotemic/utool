@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 ignore_missing_imports = true
 
 [tool.xcookie]
-tags = ["github", "erotemic", "purepy"]
+tags = ["github", "erotemic", "purepy", "notypes"]
 mod_name = "utool"
 repo_name = "utool"
 rel_mod_parent_dpath = "."
