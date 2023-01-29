@@ -50,3 +50,5 @@ networkx>=1.11      ; python_version < '3.5' and python_version >= '2.7'    # Py
 
 lockfile >= 0.10.2 ; python_version<'3.0'
 futures >= 1.0.0 ; python_version<'3.0'
+
+timerit>=1.0.1
