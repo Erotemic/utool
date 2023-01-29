@@ -789,7 +789,7 @@ def func_defsig(func, with_name=True):
         str: defsig
 
     CommandLine:
-        python -m utool.util_str --exec-func_defsig
+        xdoctest -m utool.util_str func_defsig
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -800,10 +800,16 @@ def func_defsig(func, with_name=True):
         >>> print(result)
         func_str(func, args=[], kwargs={}, type_aliases=[], packed=False, packkw=None, truncate=False)
     """
+    # from utool.util_inspect import six_get_argspect
     import inspect
-    argspec = inspect.getargspec(func)
-    (args, varargs, varkw, defaults) = argspec
-    defsig = inspect.formatargspec(*argspec)
+    try:
+        argspec = inspect.signature(func)
+        defsig = str(argspec)
+    except Exception:
+        argspec = inspect.getargspec(func)
+        # argspec = six_get_argspect(func)
+        (args, varargs, varkw, defaults) = argspec
+        defsig = inspect.formatargspec(*argspec)
     if with_name:
         defsig = get_callable_name(func) + defsig
     return defsig
@@ -818,19 +824,8 @@ def func_callsig(func, with_name=True):
 
     Returns:
         str: callsig
-
-    CommandLine:
-        python -m utool.util_str --exec-func_callsig
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from utool.util_str import *  # NOQA
-        >>> func = func_str
-        >>> callsig = func_callsig(func)
-        >>> result = str(callsig)
-        >>> print(result)
-        func_str(func, args, kwargs, type_aliases, packed, packkw, truncate)
     """
+    raise NotImplementedError('dont think anything used this')
     import inspect
     argspec = inspect.getargspec(func)
     (args, varargs, varkw, defaults) = argspec
