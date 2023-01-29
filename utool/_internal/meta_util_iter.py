@@ -9,7 +9,7 @@ def ensure_iterable(obj):
         obj (scalar or iterable):
 
     Returns:
-        it3erable: obj if it was iterable otherwise [obj]
+        iterable: obj if it was iterable otherwise [obj]
 
     CommandLine:
         python -m utool._internal.meta_util_iter --test-ensure_iterable
@@ -44,6 +44,8 @@ def isiterable(obj):
     """
     Returns if the object can be iterated over and is NOT a string
     # TODO: implement isscalar similar to numpy
+
+    Use ubelt.iterable instead
 
     Args:
         obj (scalar or iterable):

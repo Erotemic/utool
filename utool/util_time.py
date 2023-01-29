@@ -271,68 +271,13 @@ class Timerit(RealTimerit):
         >>>     with timer:
         >>>         ut.get_nth_prime_bruteforce(n)
     """
-    ...
-    # def __init__(self, num, label=None, unit=None, verbose=1):
-    #     self.num = num
-    #     self.label = label
-    #     self.times = []
-    #     self.verbose = verbose
-    #     self.total_time = None
-    #     self.n_loops = None
-    #     self.unit = unit
+    @property
+    def ave_secs(self):
+        return self.mean()
+        # return self.total_time / self.n_loops
 
-    # def __iter__(self):
-    #     import utool as ut
-    #     if self.verbose > 1:
-    #         if self.label is None:
-    #             print('Timing for %d loops' % self.num)
-    #         else:
-    #             print('Timing %s for %d loops.' % (self.label, self.num,))
-    #     self.n_loops = 0
-    #     self.total_time = 0
-    #     # Create a foreground and background timer
-    #     bg_timer = ut.Timer(verbose=0)   # (ideally this is unused)
-    #     fg_timer = ut.Timer(verbose=0)   # (used directly by user)
-    #     # Core timing loop
-    #     for i in range(self.num):
-    #         # Start background timer (in case the user doesnt use fg_timer)
-    #         # Yield foreground timer to let the user run a block of code
-    #         # When we return from yield the user code will have just finishec
-    #         # Then record background time + loop overhead
-    #         bg_timer.tic()
-    #         yield fg_timer
-    #         bg_time = bg_timer.toc()
-    #         # Check if the fg_timer object was used, but fallback on bg_timer
-    #         if fg_timer.ellapsed >= 0:
-    #             block_time = fg_timer.ellapsed  # high precision
-    #         else:
-    #             block_time = bg_time  # low precision
-    #         # record timeings
-    #         self.times.append(block_time)
-    #         self.total_time += block_time
-    #         self.n_loops += 1
-    #     # Timeing complete, print results
-    #     assert len(self.times) == self.num, 'incorrectly recorded times'
-    #     if self.verbose > 0:
-    #         self._print_report(self.verbose)
-
-    # @property
-    # def ave_secs(self):
-    #     return self.total_time / self.n_loops
-
-    # def _print_report(self, verbose=1):
-    #     import utool as ut
-    #     ave_secs = self.ave_secs
-    #     if self.label is None:
-    #         print('Timing complete, %d loops' % (self.n_loops,))
-    #     else:
-    #         print('Timing complete for: %s, %d loops' % (self.label,
-    #                                                      self.n_loops))
-    #     if verbose > 2:
-    #         body = ut.second_str(self.total_time, unit=self.unit, precision=4)
-    #         print('    body took: %s' % body)
-    #     perloop = ut.second_str(ave_secs, unit=self.unit, precision=4)
-    #     print('    time per loop : %s' % (perloop,))
+    def _print_report(self, verbose=1):
+        self.print(verbose=verbose)
 
 
 def determine_timestamp_format(datetime_str, warn=True):
