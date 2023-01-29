@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 * Fix utool.Timerit API regression
+* Fixed deprecated pipes
 
 ### [Version 2.1.7]
 
