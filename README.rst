@@ -5,6 +5,9 @@ utool
 
 Notice: This is a "kitchen sink" library. While it is still somewhat maintained, I am trying to "end-of-life" it as soon as possible. I have refactored it into several other projects. Please see https://github.com/Erotemic/ubelt for a well-maintained curated collection of utilities. Also see https://github.com/Erotemic/xdev for ports of the more developer-y functions in this libray.
 
+This project is only maintained for the benefit of
+https://github.com/Erotemic/ibeis and is being phased whenever possible.
+
 ----
 
 Useful Utility Tools For You!
@@ -63,24 +66,16 @@ Installation can now be done via pypi
 
     pip install utool
 
-If the pypi release is currently broken. Installing utool can be done via pip
-and github. 
-
-.. code:: bash
-
-    pip install git+https://github.com/Erotemic/utool.git@master
-
-Utool is released under the Apache License Version 2.0
 
 
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/utool.svg?style=svg
     :target: https://circleci.com/gh/Erotemic/utool
-.. |Travis| image:: https://img.shields.io/travis/Erotemic/utool/master.svg?label=Travis%20CI
-   :target: https://travis-ci.org/Erotemic/utool?branch=master
-.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/utool?branch=master&svg=True
-   :target: https://ci.appveyor.com/project/Erotemic/utool/branch/master
-.. |Codecov| image:: https://codecov.io/github/Erotemic/utool/badge.svg?branch=master&service=github
-   :target: https://codecov.io/github/Erotemic/utool?branch=master
+.. |Travis| image:: https://img.shields.io/travis/Erotemic/utool/main.svg?label=Travis%20CI
+   :target: https://travis-ci.org/Erotemic/utool?branch=main
+.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/utool?branch=main&svg=True
+   :target: https://ci.appveyor.com/project/Erotemic/utool/branch/main
+.. |Codecov| image:: https://codecov.io/github/Erotemic/utool/badge.svg?branch=main&service=github
+   :target: https://codecov.io/github/Erotemic/utool?branch=main
 .. |Pypi| image:: https://img.shields.io/pypi/v/utool.svg
    :target: https://pypi.python.org/pypi/utool
 .. |Downloads| image:: https://img.shields.io/pypi/dm/utool.svg

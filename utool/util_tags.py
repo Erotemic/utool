@@ -234,7 +234,7 @@ def filterflags_general_tags(tags_list, has_any=None, has_all=None,
     }[logic]
 
     tags_list_ = [_fix_tags(tags_) for tags_ in tags_list]
-    flags = default_func(len(tags_list_), dtype=np.bool)
+    flags = default_func(len(tags_list_), dtype=bool)
 
     if min_num is not None:
         flags_ = [len(tags_) >= min_num for tags_ in tags_list_]

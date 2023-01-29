@@ -10,7 +10,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * broken `func_callsig` function
 
 ### Fixed:
-* numpy.int issue
+* numpy.int / np.bool issue
+
+### Changed 
+* Using loose / strict dependencies
+* Fixed issues to support 311
 
 
 ## [Version 2.1.6]

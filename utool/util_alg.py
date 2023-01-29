@@ -1486,7 +1486,7 @@ def knapsack_iterative_numpy(items, maxweight):
     W_SIZE = MAXWEIGHT + 1
 
     dpmat = np.full((len(items), W_SIZE), np.inf)
-    kmat = np.full((len(items), W_SIZE), 0, dtype=np.bool)
+    kmat = np.full((len(items), W_SIZE), 0, dtype=bool)
     idx_subset = []
 
     for w in range(W_SIZE):
