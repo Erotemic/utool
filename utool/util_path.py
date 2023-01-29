@@ -1001,6 +1001,7 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         >>> path_list = sorted(path_list)
         >>> result = ('path_list = %s' % (ut.repr3(path_list),))
         >>> result = result.replace(r'\\', '/')
+        >>> # xdoctest: +REQUIRES(POSIX)
         >>> print(result)
         path_list = [
             '__init__.py',

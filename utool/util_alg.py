@@ -556,7 +556,7 @@ def colwise_diag_idxs(size, num=2):
         >>> from utool.util_alg import *  # NOQA
         >>> size = ut.get_argval('--size', default=5)
         >>> num = ut.get_argval('--num', default=2)
-        >>> mat = np.zeros([size] * num, dtype=np.int)
+        >>> mat = np.zeros([size] * num, dtype=int)
         >>> upper_diag_idxs = colwise_diag_idxs(size, num)
         >>> poses = np.array(upper_diag_idxs)
         >>> idxs = np.ravel_multi_index(poses.T, mat.shape)
@@ -1480,7 +1480,7 @@ def knapsack_iterative_numpy(items, maxweight):
     max_exp = max([number_of_decimals(w_) for w_ in weights])
     coeff = 10 ** max_exp
     # Adjust weights to be integral
-    weights = (weights * coeff).astype(np.int)
+    weights = (weights * coeff).astype(int)
     values  = items.T[0]
     MAXWEIGHT = int(maxweight * coeff)
     W_SIZE = MAXWEIGHT + 1
@@ -2464,7 +2464,7 @@ def edit_distance(string1, string2):
     except ImportError as ex:
         ut.printex(ex, 'pip install python-Levenshtein')
         raise
-    #np.vectorize(Levenshtein.distance, [np.int])
+    #np.vectorize(Levenshtein.distance, [int])
     #vec_lev = np.frompyfunc(Levenshtein.distance, 2, 1)
     #return vec_lev(string1, string2)
     import utool as ut

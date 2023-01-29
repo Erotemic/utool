@@ -817,14 +817,10 @@ def preserve_sig(wrapper, orig_func, force=False):
         >>> #orig_func = ut.take
         >>> orig_func = myfunction
         >>> wrapper = ut.accepts_scalar_input2([0])(orig_func)
-        >>> _wrp_preserve1 = ut.preserve_sig(wrapper, orig_func, True)
+        >>> #_wrp_preserve1 = ut.preserve_sig(wrapper, orig_func, True)
         >>> _wrp_preserve2 = ut.preserve_sig(wrapper, orig_func, False)
-        >>> print('_wrp_preserve2 = %r' % (_wrp_preserve1,))
+        >>> #print('_wrp_preserve2 = %r' % (_wrp_preserve1,))
         >>> print('_wrp_preserve2 = %r' % (_wrp_preserve2,))
-        >>> #print('source _wrp_preserve1 = %s' % (ut.get_func_sourcecode(_wrp_preserve1),))
-        >>> #print('source _wrp_preserve2 = %s' % (ut.get_func_sourcecode(_wrp_preserve2)),)
-        >>> result = str(_wrp_preserve1)
-        >>> print(result)
     """
     #if True:
     #    import functools
@@ -873,6 +869,7 @@ def preserve_sig(wrapper, orig_func, force=False):
                 ut.printex(ex, msg)
                 raise
         '''
+        raise NotImplementedError('broke in 311, but probably unused')
         # Put wrapped function into a scope
         globals_ =  {'wrapper': wrapper}
         locals_ = {}
@@ -887,8 +884,6 @@ def preserve_sig(wrapper, orig_func, force=False):
         defsig = inspect.formatargspec(*argspec)
         callsig = inspect.formatargspec(*argspec[0:3])
         # TODO:
-        # ut.func_defsig
-        # ut.func_callsig
         src_fmtdict = dict(defsig=defsig, callsig=callsig, orig_docstr=orig_docstr)
         src = textwrap.dedent(src_fmt).format(**src_fmtdict)
         # Define the new function on the fly

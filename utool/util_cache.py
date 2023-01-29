@@ -489,6 +489,7 @@ def make_utool_json_encoder(allow_pickle=False):
 
     class UtoolJSONEncoder(json.JSONEncoder):
         def default(self, obj):
+            need_else = False
             if isinstance(obj, util_type.NUMPY_TYPE_TUPLE):
                 return obj.tolist()
             elif six.PY3 and isinstance(obj, bytes):
@@ -500,8 +501,14 @@ def make_utool_json_encoder(allow_pickle=False):
             elif isinstance(obj, util_type.PRIMATIVE_TYPES):
                 return json.JSONEncoder.default(self, obj)
             elif  hasattr(obj, '__getstate__') and not isinstance(obj, uuid.UUID):
-                return obj.__getstate__()
+                try:
+                    return obj.__getstate__()
+                except TypeError:
+                    need_else = True
             else:
+                need_else = True
+
+            if need_else:
                 for type_, tag in type_to_tag.items():
                     if isinstance(obj, type_):
                         #print('----')

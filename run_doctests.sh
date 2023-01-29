@@ -1,2 +1,2 @@
-#!/bin/bash
-xdoctest utool --style=google all
+#!/usr/bin/env bash
+xdoctest utool --style=google all "$@"

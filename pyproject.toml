@@ -1,11 +1,30 @@
+[build-system]
+requires = [ "setuptools>=41.0.1",]
+build-backend = "setuptools.build_meta"
+
+[tool.mypy]
+ignore_missing_imports = true
+
 [tool.xcookie]
-tags = ["github", "erotemic", "purepy"]
+tags = ["github", "erotemic", "purepy", "notypes"]
 mod_name = "utool"
 repo_name = "utool"
+rel_mod_parent_dpath = "."
+ci_pypy_versions = []
+os = [ "linux", "osx", "win",]
+url = 'https://github.com/Erotemic/utool'
+min_python = 3.6
+version = "{mod_dpath}/__init__.py::__version__"
+author = "Jon Crall"
+author_email = "erotemic@gmail.com"
+description = "Useful utilities and the kitchen sink"
+license = "Apache 2"
+dev_status = "alpha"
+
 
 [tool.pytest.ini_options]
-addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py"
-norecursedirs = ".git ignore build __pycache__ dev _skbuild utool/tests utool/experimental"
+addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=docs"
+norecursedirs = ".git ignore build __pycache__ dev _skbuild utool/tests utool/experimental docs"
 filterwarnings = [ "default", "ignore:.*No cfgstr given in Cacher constructor or call.*:Warning", "ignore:.*Define the __nice__ method for.*:Warning", "ignore:.*private pytest class or function.*:Warning",]
 
 [tool.coverage.run]

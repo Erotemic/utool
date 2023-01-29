@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 UTool - Useful Utility Tools
    Your friendly neighborhood utility tools
@@ -11,13 +10,9 @@ pip install git+https://github.com/Erotemic/utool.git@next
 """
 # Utool is released under the Apache License Version 2.0
 
-# flake8: noqa
-# We hope to support python3
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
-import textwrap
 
-__version__ = '2.1.6'
+__version__ = '2.1.7'
 
 __DYNAMIC__ = True
 if __DYNAMIC__:
@@ -48,14 +43,14 @@ if __PRINT_INJECT_ORDER__:
 
 IMPORT_TUPLES = [
     ('_internal',      None),
-    ('util_alg',       ['cartesian', 'almost_eq',]),
-    ('util_aliases',   ['ddict' ,'odict']),
+    ('util_alg',       ['cartesian', 'almost_eq']),
+    ('util_aliases',   ['ddict', 'odict']),
     ('util_arg',       ['get_argval', 'get_argflag', 'argv_flag_dec', 'QUIET',
                         'VERBOSE']),
     ('util_assert',    None),
     ('util_autogen',   None),
     ('util_cache',     ['global_cache_read', 'global_cache_write']),
-    ('util_cplat',     ['cmd', 'view_directory',]),
+    ('util_cplat',     ['cmd', 'view_directory']),
     ('util_class',     None),
     ('util_const',     None),
     ('util_csv',       None),
@@ -75,11 +70,11 @@ IMPORT_TUPLES = [
     ('util_git',       None),
     ('util_latex',     None),
     ('util_graph',   None),
-    ('util_hash',      ['hashstr_arr', 'hashstr',]),
+    ('util_hash',      ['hashstr_arr', 'hashstr']),
     ('util_import',    None),
     ('util_inject',    None),
     ('util_io',        None),
-    ('util_iter',      ['iflatten', 'ichunks',]),
+    ('util_iter',      ['iflatten', 'ichunks']),
     ('util_inspect',   None),
     ('util_ipynb',     None),
     ('util_logging',   None),
@@ -963,7 +958,6 @@ if DOELSE:
                     continue
                 seen_.add(attr)
                 setattr(utool, attr, getattr(submod, attr))
-
 
     def reload_subs(verbose=1):
         """ Reloads utool and submodules """
