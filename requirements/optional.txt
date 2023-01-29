@@ -32,3 +32,6 @@ h5py>=3.7.0     ; python_version < '3.9'  and python_version >= '3.8'     # Pyth
 h5py>=3.7.0     ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
 h5py>=3.7.0     ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
 h5py>=3.7.0     ; python_version < '3.6'  and python_version >= '3.5'     # Python 3.5
+
+
+pint >= 0.18
