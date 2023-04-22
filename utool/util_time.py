@@ -473,10 +473,6 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
 
     dt_ = datetime.datetime.strptime(timestamp_, timefmt)
     if use_delorean:
-        #if utc and utc_offset is not None:
-        #if utc:
-        #    dn_ = delorean.Delorean(dt_, 'UTC')
-        #else:
         if zone is None:
             zone = time.tzname[0]
         if zone == 'local':
