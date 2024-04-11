@@ -5,15 +5,10 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-### [Version 2.1.9] - Released 202x-xx-xx
+### [Version 2.1.8] - Released 202x-xx-xx
 
 ### Fixed:
 * Removed codecov from test requirements
-
-
-### [Version 2.1.8]
-
-### Fixed
 * Fix utool.Timerit API regression
 * Fixed deprecated pipes
 
