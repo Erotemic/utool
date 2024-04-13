@@ -2572,13 +2572,21 @@ def bubbletext(text, font='cybermedium'):
         >>> bubble_text = ut.bubbletext('TESTING BUBBLE TEXT', font='cybermedium')
         >>> print(bubble_text)
     """
-    import utool as ut
-    pyfiglet = ut.tryimport('pyfiglet', 'git+https://github.com/pwaller/pyfiglet')
-    if pyfiglet is None:
-        return text
-    else:
+    # # HOLY Vulnerability batman!
+    # import utool as ut
+    # pyfiglet = ut.tryimport('pyfiglet', 'git+https://github.com/pwaller/pyfiglet')
+    # if pyfiglet is None:
+    #     return text
+    # else:
+    #     bubble_text = pyfiglet.figlet_format(text, font=font)
+    #     return bubble_text
+    try:
+        import pyfiglet
         bubble_text = pyfiglet.figlet_format(text, font=font)
         return bubble_text
+    except Exception:
+        # On any issue, import or font based, just return regular text
+        return text
 
 
 def closet_words(query, options, num=1, subset=False):
