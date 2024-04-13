@@ -262,6 +262,9 @@ jobs:
         pip install tomli pkginfo
         export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('utool*.whl'))[-1]).replace(chr(92), chr(47)))")
         export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
+        echo "$WHEEL_FPATH=WHEEL_FPATH"
+        echo "$INSTALL_EXTRAS=INSTALL_EXTRAS"
+        echo "$MOD_VERSION=MOD_VERSION"
         pip install --prefer-binary "utool[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
