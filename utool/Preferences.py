@@ -87,7 +87,7 @@ class PrefChoice(DynamicStruct.DynStruct):
         elif isinstance(new_val, six.string_types):
             self.sel = self.choices.index(new_val)
         else:
-            raise('Exception: Unknown newval=%r' % new_val)
+            raise Exception('Exception: Unknown newval=%r' % new_val)
         if self.sel < 0 or self.sel > len(self.choices):
             raise Exception('self.sel=%r is not in the self.choices=%r '
                             % (self.sel, self.choices))
