@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed:
 * Replaced lena with astro
+* Bumped minimum Python to 3.8
 
 ### Fixed:
 * Removed codecov from test requirements

@@ -590,10 +590,15 @@ def grab_test_imgpath(key='astro.png', allow_external=True, verbose=True):
     else:
         try:
             testimg_fname = key
+            # raise Exception
             testimg_url = TESTIMG_URL_DICT[key]
             testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname, verbose=verbose)
         except Exception:
             from utool import _kwimage_im_demodata
+            if key == 'carl.jpg':
+                key = 'carl'
+            elif key == 'astro.png':
+                key = 'astro'
             testimg_fpath = _kwimage_im_demodata.grab_test_image_fpath(key)
     return testimg_fpath
 
