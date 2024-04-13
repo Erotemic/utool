@@ -5,12 +5,12 @@ xdoctest >= 1.1.2
 # pytest (that are also compatible with xdoctest) are for each legacy python
 # major.minor version.
 # See ~/local/tools/supported_python_versions_pip.py for helper script
-pytest>=8.0.2     ; python_version < '4.0'  and python_version >= '3.13'    # Python 3.13+
-pytest>=8.0.2     ; python_version < '3.13' and python_version >= '3.12'    # Python 3.12
-pytest>=8.0.2     ; python_version < '3.12' and python_version >= '3.11'    # Python 3.11
-pytest>=8.0.2     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
-pytest>=8.0.2     ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
-pytest>=8.0.2     ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
+pytest>=8.1.1     ; python_version < '4.0'  and python_version >= '3.13'    # Python 3.13+
+pytest>=8.1.1     ; python_version < '3.13' and python_version >= '3.12'    # Python 3.12
+pytest>=8.1.1     ; python_version < '3.12' and python_version >= '3.11'    # Python 3.11
+pytest>=8.1.1     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
+pytest>=8.1.1     ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
+pytest>=8.1.1     ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
 pytest>=4.6.0     ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
 pytest>=4.6.0, <= 6.1.2  ; python_version < '3.6.0'  and python_version >= '3.5.0'   # Python 3.5
 pytest>=4.6.0, <= 4.6.11 ; python_version < '3.5.0'  and python_version >= '3.4.0'   # Python 3.4
