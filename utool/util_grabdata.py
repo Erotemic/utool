@@ -579,27 +579,29 @@ def grab_test_imgpath(key='astro.png', allow_external=True, verbose=True):
         >>> # verify results
         >>> ut.assertpath(testimg_fpath)
     """
-    if allow_external and key not in TESTIMG_URL_DICT:
-        testimg_fpath = key
-        if not util_path.checkpath(testimg_fpath, verbose=True):
-            import utool as ut
-            raise AssertionError(
-                'testimg_fpath=%r not found did you mean %s' % (
-                    testimg_fpath,
-                    ut.conj_phrase(get_valid_test_imgkeys(), 'or')))
-    else:
-        try:
+    try:
+        # Original utool implementation
+        if allow_external and key not in TESTIMG_URL_DICT:
+            testimg_fpath = key
+            if not util_path.checkpath(testimg_fpath, verbose=True):
+                import utool as ut
+                raise AssertionError(
+                    'testimg_fpath=%r not found did you mean %s' % (
+                        testimg_fpath,
+                        ut.conj_phrase(get_valid_test_imgkeys(), 'or')))
+        else:
             testimg_fname = key
             # raise Exception
             testimg_url = TESTIMG_URL_DICT[key]
             testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname, verbose=verbose)
-        except Exception:
-            from utool import _kwimage_im_demodata
-            if key == 'carl.jpg':
-                key = 'carl'
-            elif key == 'astro.png':
-                key = 'astro'
-            testimg_fpath = _kwimage_im_demodata.grab_test_image_fpath(key)
+    except Exception:
+        # Use the kwimage implementation if utool fails
+        from utool import _kwimage_im_demodata
+        if key == 'carl.jpg':
+            key = 'carl'
+        elif key == 'astro.png':
+            key = 'astro'
+        testimg_fpath = _kwimage_im_demodata.grab_test_image_fpath(key)
     return testimg_fpath
 
 
