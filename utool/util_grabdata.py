@@ -597,11 +597,13 @@ def grab_test_imgpath(key='astro.png', allow_external=True, verbose=True):
     except Exception:
         # Use the kwimage implementation if utool fails
         from utool import _kwimage_im_demodata
+        import os
         if key == 'carl.jpg':
             key = 'carl'
         elif key == 'astro.png':
             key = 'astro'
         testimg_fpath = _kwimage_im_demodata.grab_test_image_fpath(key)
+        testimg_fpath = os.fspath(testimg_fpath)
     return testimg_fpath
 
 
