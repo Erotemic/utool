@@ -2566,20 +2566,15 @@ def bubbletext(text, font='cybermedium'):
     References:
         http://www.figlet.org/
 
+    CommandLine:
+        xdoctest -m utool.util_str bubbletext
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
         >>> bubble_text = ut.bubbletext('TESTING BUBBLE TEXT', font='cybermedium')
         >>> print(bubble_text)
     """
-    # # HOLY Vulnerability batman!
-    # import utool as ut
-    # pyfiglet = ut.tryimport('pyfiglet', 'git+https://github.com/pwaller/pyfiglet')
-    # if pyfiglet is None:
-    #     return text
-    # else:
-    #     bubble_text = pyfiglet.figlet_format(text, font=font)
-    #     return bubble_text
     try:
         import pyfiglet
         bubble_text = pyfiglet.figlet_format(text, font=font)

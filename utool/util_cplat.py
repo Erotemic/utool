@@ -470,14 +470,9 @@ def startfile(fpath, detatch=True, quote=False, verbose=False, quiet=True):
     """
     print('[cplat] startfile(%r)' % fpath)
     fpath = normpath(fpath)
-    # print('[cplat] fpath=%s' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
-    #if quote:
-    #    fpath = '"%s"' % (fpath,)
     if not WIN32:
-        # import pipes
-        # fpath = pipes.quote(fpath)
         import shlex
         fpath = shlex.quote(fpath)
     if LINUX:

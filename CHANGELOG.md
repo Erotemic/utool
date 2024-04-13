@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### [Version 2.1.8] - Released 202x-xx-xx
 
+### Changed:
+* Replaced lena with astro
+
 ### Fixed:
 * Removed codecov from test requirements
 * Fix utool.Timerit API regression

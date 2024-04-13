@@ -513,8 +513,7 @@ TESTIMG_URL_DICT = {
     'jeff.png'  : 'http://i.imgur.com/l00rECD.png',
     'ada2.jpg'  : 'http://i.imgur.com/zHOpTCb.jpg',
     'ada.jpg'   : 'http://i.imgur.com/iXNf4Me.jpg',
-    'lena.png'  : 'http://i.imgur.com/JGrqMnV.png',  # depricate lena
-    'astro.png' : 'https://i.imgur.com/KXhKM72.png',  # Use instead of lena
+    'astro.png' : 'https://i.imgur.com/KXhKM72.png',
     'carl.jpg'  : 'http://i.imgur.com/flTHWFD.jpg',
     'easy1.png' : 'http://i.imgur.com/Qqd0VNq.png',
     'easy2.png' : 'http://i.imgur.com/BDP8MIu.png',
@@ -551,13 +550,13 @@ def clear_test_img_cache():
         ut.delete(fpath)
 
 
-def grab_test_imgpath(key='lena.png', allow_external=True, verbose=True):
+def grab_test_imgpath(key='astro.png', allow_external=True, verbose=True):
     r"""
     Gets paths to standard / fun test images.
     Downloads them if they dont exits
 
     Args:
-        key (str): one of the standard test images, e.g. lena.png, carl.jpg, ...
+        key (str): one of the standard test images, e.g. astro.png, carl.jpg, ...
         allow_external (bool): if True you can specify existing fpaths
 
     Returns:
@@ -589,9 +588,13 @@ def grab_test_imgpath(key='lena.png', allow_external=True, verbose=True):
                     testimg_fpath,
                     ut.conj_phrase(get_valid_test_imgkeys(), 'or')))
     else:
-        testimg_fname = key
-        testimg_url = TESTIMG_URL_DICT[key]
-        testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname, verbose=verbose)
+        try:
+            testimg_fname = key
+            testimg_url = TESTIMG_URL_DICT[key]
+            testimg_fpath = grab_file_url(testimg_url, fname=testimg_fname, verbose=verbose)
+        except Exception:
+            from utool import _kwimage_im_demodata
+            testimg_fpath = _kwimage_im_demodata.grab_test_image_fpath(key)
     return testimg_fpath
 
 
@@ -791,12 +794,12 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         >>> ut.exec_funckw(ut.grab_file_url, locals())
         >>> file_url = 'http://i.imgur.com/JGrqMnV.png'
         >>> redownload = True
-        >>> fname = 'lena.png'
-        >>> lena_fpath = ut.grab_file_url(file_url, fname=fname,
+        >>> fname = 'astro.png'
+        >>> astro_fpath = ut.grab_file_url(file_url, fname=fname,
         >>>                               redownload=redownload)
-        >>> result = basename(lena_fpath)
+        >>> result = basename(astro_fpath)
         >>> print(result)
-        lena.png
+        astro.png
 
     Ignore:
         >>> # ENABLE_DOCTEST

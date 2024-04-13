@@ -14,6 +14,7 @@ ci_pypy_versions = []
 os = [ "linux", "osx", "win",]
 url = 'https://github.com/Erotemic/utool'
 min_python = 3.6
+max_python = 3.11
 version = "{mod_dpath}/__init__.py::__version__"
 author = "Jon Crall"
 author_email = "erotemic@gmail.com"
