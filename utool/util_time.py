@@ -404,7 +404,7 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
         python -m utool.util_time --test-parse_timestamp
         python -m utool.util_time parse_timestamp
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_time import *  # NOQA
         >>> import utool as ut
@@ -422,7 +422,10 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
         >>>     ('2016-08-18T10:51:02-05:00',),
         >>> ]
         >>> timestamp = timestamps[-1][0]
-        >>> dn_list = [parse_timestamp(*args) for args in timestamps]
+        >>> dn_list = []
+        >>> for args in timestamps:
+        ...     print(f'args = {ub.urepr(args, nl=1)}')
+        ...     dn_list += [parse_timestamp(*args)]
         >>> result = ut.NEWLINE.join([str(dn) for dn in dn_list])
         >>> print(result)
         2015-04-01 00:00:00+00:00
