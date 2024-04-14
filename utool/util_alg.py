@@ -444,6 +444,9 @@ def grouping_delta_stats(old, new):
     Returns:
         pd.DataFrame: df: data frame of size statistics
 
+    CommandLine:
+        xdoctest -m utool.util_alg grouping_delta_stats
+
     Example:
         >>> from utool.util_alg import *  # NOQA
         >>> import utool as ut

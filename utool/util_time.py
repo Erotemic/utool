@@ -130,6 +130,8 @@ def get_timestamp(format_='iso', use_second=False, delta_seconds=None,
             from pytz import reference
             localtime = reference.LocalTimezone()
             tzname = localtime.tzname(now)
+
+            datetime_mod.timezone.utc
             stamp += '_' + tzname
     return stamp
 
@@ -386,9 +388,11 @@ def local_timezone():
 
 
 def utcnow_tz():
-    import pytz
+    # import pytz
     dt = datetime_mod.datetime.utcnow()
-    dt = dt.replace(tzinfo=pytz.timezone('UTC'))
+    utc = datetime_mod.timezone.utc
+    dt = dt.replace(tzinfo=utc)
+    # dt = dt.replace(tzinfo=pytz.timezone('UTC'))
     return dt
 
 
