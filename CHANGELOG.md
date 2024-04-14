@@ -10,6 +10,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed:
 * Replaced lena with astro
 * Bumped minimum Python to 3.8
+* Using new backend for grab-test-image with multiple mirrors and an offline fallback
+* Fallback to text mode when pyfiglet cant find a font
 
 ### Fixed:
 * Removed codecov from test requirements
