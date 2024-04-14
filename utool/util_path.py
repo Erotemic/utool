@@ -1006,7 +1006,6 @@ def glob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
         path_list = [
             '__init__.py',
             '__main__.py',
-            'tests/__init__.py',
         ]
 
     Example:

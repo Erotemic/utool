@@ -4,6 +4,18 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+### [Version 2.2.0] - Released 202x-xx-xx
+
+### Changed:
+* Replaced lena with astro
+* Bumped minimum Python to 3.8
+
+### Fixed:
+* Removed codecov from test requirements
+* Fix utool.Timerit API regression
+* Fixed deprecated pipes
+
 ### [Version 2.1.7]
 
 ### Removed:

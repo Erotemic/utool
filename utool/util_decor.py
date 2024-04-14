@@ -74,70 +74,64 @@ def test_ignore_exec_traceback():
         ut.printex(ex, 'There is no error. This is a test', tb=True)
 
 
-if six.PY2:
-    # Use version that has special python2 only syntax.
-    # can not include it here for that reason
-    from utool._internal import py2_syntax_funcs
-    ignores_exc_tb = py2_syntax_funcs.ignores_exc_tb
-else:
-    def ignores_exc_tb(*args, **kwargs):
-        """
-        PYTHON 3 VERSION
+def ignores_exc_tb(*args, **kwargs):
+    """
+    PYTHON 3 VERSION
 
-        ignore_exc_tb decorates a function and remove both itself
-        and the function from any exception traceback that occurs.
+    ignore_exc_tb decorates a function and remove both itself
+    and the function from any exception traceback that occurs.
 
-        This is useful to decorate other trivial decorators
-        which are polluting your stacktrace.
+    This is useful to decorate other trivial decorators
+    which are polluting your stacktrace.
 
-        if IGNORE_TRACEBACK is False then this decorator does nothing
-        (and it should do nothing in production code!)
+    if IGNORE_TRACEBACK is False then this decorator does nothing
+    (and it should do nothing in production code!)
 
-        References:
-            https://github.com/jcrocholl/pep8/issues/34  # NOQA
-            http://legacy.python.org/dev/peps/pep-3109/
-        """
-        outer_wrapper = kwargs.get('outer_wrapper', True)
-        def ignores_exc_tb_closure(func):
-            # HACK JUST TURN THIS OFF
+    References:
+        https://github.com/jcrocholl/pep8/issues/34  # NOQA
+        http://legacy.python.org/dev/peps/pep-3109/
+    """
+    outer_wrapper = kwargs.get('outer_wrapper', True)
+    def ignores_exc_tb_closure(func):
+        # HACK JUST TURN THIS OFF
+        return func
+
+        if not IGNORE_TRACEBACK:
+            # if the global enforces that we should not ignore anytracebacks
+            # then just return the original function without any modifcation
             return func
-
-            if not IGNORE_TRACEBACK:
-                # if the global enforces that we should not ignore anytracebacks
-                # then just return the original function without any modifcation
-                return func
-            #@wraps(func)
-            def wrp_noexectb(*args, **kwargs):
+        #@wraps(func)
+        def wrp_noexectb(*args, **kwargs):
+            try:
+                #import utool
+                #if utool.DEBUG:
+                #    print('[IN IGNORETB] args=%r' % (args,))
+                #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
+                return func(*args, **kwargs)
+            except Exception:
+                # PYTHON 3.3 NEW METHODS
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                # Code to remove this decorator from traceback
+                # Remove two levels to remove this one as well
+                exc_type, exc_value, exc_traceback = sys.exc_info()
                 try:
-                    #import utool
-                    #if utool.DEBUG:
-                    #    print('[IN IGNORETB] args=%r' % (args,))
-                    #    print('[IN IGNORETB] kwargs=%r' % (kwargs,))
-                    return func(*args, **kwargs)
+                    exc_traceback = exc_traceback.tb_next
+                    exc_traceback = exc_traceback.tb_next
                 except Exception:
-                    # PYTHON 3.3 NEW METHODS
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    # Code to remove this decorator from traceback
-                    # Remove two levels to remove this one as well
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    try:
-                        exc_traceback = exc_traceback.tb_next
-                        exc_traceback = exc_traceback.tb_next
-                    except Exception:
-                        pass
-                    ex = exc_type(exc_value)
-                    ex.__traceback__ = exc_traceback
-                    raise ex
-            if outer_wrapper:
-                wrp_noexectb = preserve_sig(wrp_noexectb, func)
-            return wrp_noexectb
-        if len(args) == 1:
-            # called with one arg means its a function call
-            func = args[0]
-            return ignores_exc_tb_closure(func)
-        else:
-            # called with no args means kwargs as specified
-            return ignores_exc_tb_closure
+                    pass
+                ex = exc_type(exc_value)
+                ex.__traceback__ = exc_traceback
+                raise ex
+        if outer_wrapper:
+            wrp_noexectb = preserve_sig(wrp_noexectb, func)
+        return wrp_noexectb
+    if len(args) == 1:
+        # called with one arg means its a function call
+        func = args[0]
+        return ignores_exc_tb_closure(func)
+    else:
+        # called with no args means kwargs as specified
+        return ignores_exc_tb_closure
 
 
 # NEW PYTHON 2.7/3 VERSION
@@ -678,75 +672,19 @@ def tracefunc(func):
 
 def show_return_value(func):
     from utool.util_str import func_str
-    #@wraps(func)
     def wrp_show_return_value(*args, **kwargs):
         ret = func(*args, **kwargs)
-        #print('%s(*%r, **%r) returns %r' % (meta_util_six.get_funcname(func), args, kwargs, rv))
         print(func_str(func, args, kwargs)  + ' -> ret=%r' % (ret,))
         return ret
     return wrp_show_return_value
 
 
 def time_func(func):
-    #@wraps(func)
     def wrp_time(*args, **kwargs):
         with util_time.Timer(meta_util_six.get_funcname(func)):
             return func(*args, **kwargs)
     wrp_time = preserve_sig(wrp_time, func)
     return wrp_time
-
-
-#def rename_func(newname):
-#    import utool as ut
-#    return ut.partial(ut.set_funcname, newname=newname)
-
-
-#class copy_argspec(object):
-#    """
-#    copy_argspec is a signature modifying decorator.
-#    Specifically, it copies the signature from `source_func` to the wrapper, and
-#    the wrapper will call the original function (which should be using *args,
-#    **kwds).  The argspec, docstring, and default values are copied from
-#    src_func, and __module__ and __dict__ from tgt_func.
-#    .. References
-#    http://stackoverflow.com/questions/18625510/how-can-i-programmatically-change-the-argspec-of-a-function-not-in-a-python-de
-#    """
-#    def __init__(self, src_func):
-#        self.argspec = inspect.getargspec(src_func)
-#        self.src_doc = src_func.__doc__
-#        self.src_defaults = src_func.func_defaults
-#    def __call__(self, tgt_func):
-#        try:
-#            tgt_argspec = inspect.getargspec(tgt_func)
-#            need_self = False
-#            if len(tgt_argspec) > 0 and len(tgt_argspec[0]) > 0 and tgt_argspec[0][0] == 'self':
-#                need_self = True
-#            name = tgt_func.__name__
-#            argspec = self.argspec
-#            if len(argspec) > 0 and len(argspec[0]) > 0 and argspec[0][0] == 'self':
-#                need_self = False
-#            if need_self:
-#                newargspec = (['self'] + argspec[0],) + argspec[1:]
-#            else:
-#                newargspec = argspec
-#            signature = inspect.formatargspec(formatvalue=lambda val: "",
-#                                              *newargspec)[1:-1]
-#            new_func = (
-#                'def _wrapper_({signature}):\n'
-#                '    return {tgt_func}({signature})'
-#            ).format(signature=signature, tgt_func='tgt_func')
-#            evaldict = {'tgt_func' : tgt_func}
-#            exec new_func in evaldict
-#            wrapped = evaldict['_wrapper_']
-#            wrapped.__name__ = name
-#            wrapped.__doc__ = self.src_doc
-#            wrapped.func_defaults = self.src_defaults
-#            wrapped.__module__ = tgt_func.__module__
-#            wrapped.__dict__ = tgt_func.__dict__
-#            return wrapped
-#        except Exception as ex:
-#            util_dbg.printex(ex, 'error wrapping: %r' % (tgt_func,))
-#            raise
 
 
 def lazyfunc(func):
@@ -835,7 +773,7 @@ def preserve_sig(wrapper, orig_func, force=False):
     orig_docstr = meta_util_six.get_funcdoc(orig_func)
     orig_docstr = '' if orig_docstr is None else orig_docstr
     orig_argspec = util_inspect.get_func_argspec(orig_func)
-    wrap_name = meta_util_six.get_funccode(wrapper).co_name
+    wrap_name = wrapper.__code__.co_name
     orig_name = meta_util_six.get_funcname(orig_func)
 
     # At the very least preserve info in a dictionary
@@ -925,7 +863,7 @@ def preserve_sig(wrapper, orig_func, force=False):
     new_docstr = new_docstr_fmtstr.format(
         wrap_name=wrap_name, orig_name=orig_name, orig_docstr=orig_docstr,
         orig_argspec=orig_argspec)
-    meta_util_six.set_funcdoc(_wrp_preserve, new_docstr)
+    _wrp_preserve.__doc__ = new_docstr
     _wrp_preserve._utinfo = _utinfo
     return _wrp_preserve
 

@@ -12,7 +12,7 @@ pip install git+https://github.com/Erotemic/utool.git@next
 
 import sys
 
-__version__ = '2.1.7'
+__version__ = '2.2.0'
 
 __DYNAMIC__ = True
 if __DYNAMIC__:

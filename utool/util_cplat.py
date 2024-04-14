@@ -4,7 +4,6 @@ cross platform utilities
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
-import pipes
 import six
 import sys
 import platform
@@ -471,13 +470,11 @@ def startfile(fpath, detatch=True, quote=False, verbose=False, quiet=True):
     """
     print('[cplat] startfile(%r)' % fpath)
     fpath = normpath(fpath)
-    # print('[cplat] fpath=%s' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
-    #if quote:
-    #    fpath = '"%s"' % (fpath,)
     if not WIN32:
-        fpath = pipes.quote(fpath)
+        import shlex
+        fpath = shlex.quote(fpath)
     if LINUX:
         #out, err, ret = cmd(['xdg-open', fpath], detatch=True)
         outtup = cmd(('xdg-open', fpath), detatch=detatch, verbose=verbose, quiet=quiet)
