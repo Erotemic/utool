@@ -4,11 +4,7 @@ Ignore:
     ~/local/init/REPOS1.py
 """
 from __future__ import absolute_import, division, print_function  # , unicode_literals
-from six.moves import zip, filter, filterfalse, map, range  # NOQA
-import six  # NOQA
-#from os.path import split, dirname, join
 from os.path import dirname, join
-from utool import util_class  # NOQA
 from utool import util_dev
 from utool import util_inject
 print, rrr, profile = util_inject.inject2(__name__)
@@ -499,7 +495,6 @@ def setup_repo():
     ut.ensuredir(join(repo_dpath, modname), verbose=True)
 
 
-#@util_class.ReloadingMetaclass
 class UserProfile(util_dev.NiceRepr):
     def __nice__(self):
         num_repos = 0 if self.project_dpaths is None else len(self.project_dpaths)
@@ -771,9 +766,6 @@ class GrepResult(util_dev.NiceRepr):
         return ut.make_grep_resultstr(tup, self.extended_regex_list,
                                       self.reflags, colored=colored)
 
-    # def make_big_resultstr():
-    #     pass
-
     def pattern_filterflags(self, filter_pat):
         self.filter_pats.append(filter_pat)
         import re
@@ -839,14 +831,6 @@ class GrepResult(util_dev.NiceRepr):
         del self[idxs]
 
 
-## Grep my projects
-#def gp(r, regexp):
-#    rob_nav._grep(r, [regexp], recursive=True, dpath_list=project_dpaths(), regex=True)
-
-## Sed my projects
-#def sp(r, regexpr, repl, force=False):
-#    rob_nav._sed(r, regexpr, repl, force=force, recursive=True, dpath_list=project_dpaths())
-
 def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, **kwargs):
     r"""
 
@@ -904,84 +888,6 @@ def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, 
                                     sedkw['exclude_dirs'],
                                     recursive=recursive):
         ut.sedfile(fpath, regexpr, repl, force)
-
-
-#def extend_regex(regexpr):
-#    regex_map = {
-#        r'\<': r'\b(?=\w)',
-#        r'\>': r'\b(?!\w)',
-#        ('UNSAFE', r'\x08'): r'\b',
-#    }
-#    for key, repl in six.iteritems(regex_map):
-#        if isinstance(key, tuple):
-#            search = key[1]
-#        else:
-#            search = key
-#        if regexpr.find(search) != -1:
-#            if isinstance(key, tuple):
-#                print('WARNING! Unsafe regex with: %r' % (key,))
-#            regexpr = regexpr.replace(search, repl)
-#    return regexpr
-#regexpr = extend_regex(regexpr)
-#if '\x08' in regexpr:
-#    print('Remember \\x08 != \\b')
-#    print('subsituting for you for you')
-#    regexpr = regexpr.replace('\x08', '\\b')
-#    print(' * regular expression : %r' % (regexpr,))
-
-
-if False:
-    def ensure_vim_plugins():
-        """
-
-        python ~/local/init/ensure_vim_plugins.py
-        '~/local/init/ensure_vim_plugins.py'
-        '~/local/init/REPOS1.py'
-
-        """
-        # TODO
-        pass
-
-    def find_module_callers():
-        """
-        TODO:
-        attempt to build a call graph between module functions to make it easy to see
-        what can be removed and what cannot.
-        """
-        import utool as ut
-        from os.path import normpath
-        mod_fpath = ut.truepath('~/code/ibeis/ibeis/expt/results_analyzer.py')
-        mod_fpath = ut.truepath('~/code/ibeis/ibeis/expt/results_all.py')
-        mod_fpath = ut.truepath('~/code/ibeis/ibeis/expt/results_organizer.py')
-        module = ut.import_module_from_fpath(mod_fpath)
-        user_profile = ut.ensure_user_profile()
-        doctestables = list(ut.iter_module_doctestable(module, include_builtin=False))
-        grepkw = {}
-        grepkw['exclude_dirs'] = user_profile.project_exclude_dirs
-        grepkw['dpath_list'] = user_profile.project_dpaths
-        grepkw['verbose'] = True
-
-        usage_map = {}
-        for funcname, func in doctestables:
-            print('Searching for funcname = %r' % (funcname,))
-            found_fpath_list, found_lines_list, found_lxs_list = ut.grep([funcname], **grepkw)
-            used_in = (found_fpath_list, found_lines_list, found_lxs_list)
-            usage_map[funcname] = used_in
-
-        external_usage_map = {}
-        for funcname, used_in in usage_map.items():
-            (found_fpath_list, found_lines_list, found_lxs_list) = used_in
-            isexternal_flag = [normpath(fpath) != normpath(mod_fpath) for fpath in found_fpath_list]
-            ext_used_in = (ut.compress(found_fpath_list, isexternal_flag),
-                           ut.compress(found_lines_list, isexternal_flag),
-                           ut.compress(found_lxs_list, isexternal_flag))
-            external_usage_map[funcname] = ext_used_in
-
-        for funcname, used_in in external_usage_map.items():
-            (found_fpath_list, found_lines_list, found_lxs_list) = used_in
-
-        print('Calling modules: \n' +
-              ut.repr2(ut.unique_ordered(ut.flatten([used_in[0] for used_in in  external_usage_map.values()])), nl=True))
 
 
 if __name__ == '__main__':

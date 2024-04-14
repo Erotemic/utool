@@ -12,7 +12,6 @@ import weakref
 import itertools as it
 import functools
 from collections import OrderedDict
-from six.moves import input, zip, range, map, reduce
 from utool import util_progress
 from os.path import splitext, exists, join, split, relpath
 from utool import util_inject
@@ -265,7 +264,6 @@ def timeit_grid(stmt_list, setup='', iterations=10000, input_sizes=None,
         setup = ut.codeblock(
             '''
             import utool as ut
-            from six.moves import range, zip
             import time
             def time_append(size):
                 start_time    = time.time()

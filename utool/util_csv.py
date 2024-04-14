@@ -2,9 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 try:
     import numpy as np
-except ImportError as ex:
+except ImportError:
     pass
-from six.moves import zip, map
 import six
 from utool import util_type
 from utool import util_inject
@@ -160,7 +159,7 @@ def read_csv(fpath):
 
 
 def make_standard_csv(column_list, column_lbls=None):
-    from six.moves import cStringIO as StringIO
+    from io import StringIO
     import utool as ut
     import csv
     stream = StringIO()

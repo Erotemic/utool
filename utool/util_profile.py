@@ -6,7 +6,7 @@ Cleaning script for the output of utool profiling
 Removes profiled output of code that never ran
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import range, cStringIO
+from io import StringIO
 import six
 import operator
 import utool as ut
@@ -28,7 +28,7 @@ class Profiler(object):
         return wrapper
 
     def get_output(self):
-        file_ = cStringIO()
+        file_ = StringIO()
         self._lineprof.print_stats(stream=file_, stripzeros=True)
         file_.seek(0)
         text =  file_.read()
@@ -43,7 +43,7 @@ def make_profiler():
 
 
 def get_profile_text(profile):
-    file_ = cStringIO()
+    file_ = StringIO()
     profile.print_stats(stream=file_, stripzeros=True)
     file_.seek(0)
     text =  file_.read()

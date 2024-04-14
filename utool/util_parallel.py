@@ -11,7 +11,6 @@ import signal
 import ctypes
 import six
 import threading
-from six.moves import map, range, zip  # NOQA
 from utool._internal.meta_util_six import get_funcname
 from utool import util_progress
 from utool import util_arg
@@ -698,7 +697,7 @@ def buffered_generator(source_gen, buffer_size=2, use_multiprocessing=False):
 
     Note:
         use_multiprocessing = True seems to freeze if passed in a generator
-        built by six.moves.map.
+        built by map.
 
     References:
         Taken from Sander Dieleman's data augmentation pipeline

@@ -4,7 +4,8 @@ import six
 import itertools as it
 import functools
 import operator
-from six.moves import zip, range, zip_longest, reduce
+from functools import reduce
+from itertools import zip_longest
 from utool import util_inject
 from utool._internal import meta_util_iter
 print, rrr, profile = util_inject.inject2(__name__)

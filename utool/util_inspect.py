@@ -10,9 +10,8 @@ import six
 import sys
 import types
 from os.path import dirname
-from six.moves import builtins
+import builtins
 from collections import OrderedDict
-from six.moves import range, zip  # NOQA
 from utool import util_regex
 from utool import util_arg
 from utool import util_inject
@@ -1232,8 +1231,6 @@ def inherit_kwargs(inherit_func):
     if is_arbitrary:
         keys += ['**kwargs']
     kwargs_append = '\n'.join(keys)
-    #from six.moves import builtins
-    #builtins.print(kwargs_block)
     def _wrp(func):
         if func.__doc__ is None:
             func.__doc__ = ''
@@ -1485,41 +1482,10 @@ def parse_function_names(sourcecode, top_level=True, ignore_condition=1):
         def visit_If(self, node):
             if ignore_condition:
                 return
-            # if ignore_conditional:
-            #     return
-            # Ignore the main statement
-            # print('----')
-            # print('node.test = {!r}'.format(node.test))
-            # print('node.orelse = {!r}'.format(node.orelse))
             if _node_is_main_if(node):
                 return
 
-            # if isinstance(node.orelse, ast.If):
-            #     # THIS IS AN ELIF
-            #     self.condition_id += 1
-            #     self.in_condition_chain = True
-            #     ast.NodeVisitor.generic_visit(self, node)
-            #     self.in_condition_chain = False
-            #     pass
-            # # TODO: where does else get parsed exactly?
-
-            # Reset the set of conditionals
-            # self.condition_id = 0
-            # self.condition_names = ut.ddict(list)
-
-            # self.in_condition_chain = True
             ast.NodeVisitor.generic_visit(self, node)
-            # self.in_condition_chain = False
-
-            # if False:
-            #     # IF THIS WAS AN ELSE:
-            #     if self.condition_names is not None:
-            #         # anything defined in all conditions is kosher
-            #         from six.moves import reduce
-            #         common_names = reduce(set.intersection,
-            #                               map(set, self.condition_names.values()))
-            #         self.func_names.extend(common_names)
-            #         self.condition_names = None
 
         def visit_FunctionDef(self, node):
             # if self.in_condition_chain and self.condition_names is not None:
@@ -2394,7 +2360,7 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
             TODO: commit clean version to pyminifier
             """
             import tokenize
-            from six.moves import StringIO
+            from io import StringIO
             io_obj = StringIO(source)
             out = ''
             prev_toktype = tokenize.INDENT

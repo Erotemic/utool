@@ -11,7 +11,7 @@ from utool import util_decor
 from utool import util_type
 import functools
 import operator
-from six.moves import reduce, map, zip
+from functools import reduce
 import re
 import six
 print, rrr, profile = util_inject.inject2(__name__)

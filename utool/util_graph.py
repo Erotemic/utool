@@ -12,7 +12,7 @@ import collections
 import functools
 from utool import util_inject
 from utool import util_const
-from six.moves import reduce, zip, range
+from functools import reduce
 import itertools as it
 (print, rrr, profile) = util_inject.inject2(__name__)
 

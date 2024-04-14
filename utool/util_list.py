@@ -6,7 +6,8 @@ import itertools
 import warnings
 import functools
 from math import floor, ceil
-from six.moves import zip, map, zip_longest, range, filter, reduce
+from itertools import zip_longest
+from functools import reduce
 from utool import util_iter
 from utool import util_inject
 from utool import util_str

@@ -5,7 +5,7 @@ Injects code into live modules or into text source files.
 Basic use case is to extend the print function into a logging function
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import builtins, range, zip, map  # NOQA
+import builtins
 import six  # NOQA
 import sys
 import functools
