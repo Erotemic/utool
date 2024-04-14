@@ -388,8 +388,6 @@ def grab_test_image_fpath(key='astro', dsize=None, overviews=None, allow_fallbac
             # to the specs. Ideally use a different path, so if networking comes
             # back on we get the real image if we can.
             import numpy as np
-            # import kwarray
-            # import kwimage
             cache_dpath = ub.Path.appdir(grabkw['appname'])
             fname = ub.Path(item['fname']).augment(stemsuffix='_random_fallback')
             fallback_fpath = cache_dpath / fname
@@ -401,8 +399,7 @@ def grab_test_image_fpath(key='astro', dsize=None, overviews=None, allow_fallbac
                 rand_data = np.random.rand(*shape)
                 rand_data = (rand_data * (max_value - min_value)) + min_value
                 rand_data = rand_data.astype(item['properties']['dtype'])
-                # kwimage.imwrite(fallback_fpath, rand_data)
-
+                _imwrite_png(fallback_fpath, rand_data)
             return fallback_fpath
         else:
             raise
@@ -418,3 +415,110 @@ def grab_test_image_fpath(key='astro', dsize=None, overviews=None, allow_fallbac
     if augment_params:
         raise NotImplementedError
     return fpath
+
+
+def _imwrite_png(fpath, data):
+    """
+    For fallbacks, if all other image writers are not available, we ship with a
+    restricted small pure-python png writter.
+
+    Args:
+        fpath (str): path to write to
+        data (ndarray): image as a numpy array
+
+    References:
+        https://stackoverflow.com/questions/902761/saving-a-numpy-array-as-an-image
+        https://blender.stackexchange.com/questions/62072/does-blender-have-a-method-to-a-get-png-formatted-bytearray-for-an-image-via-pyt/62218#62218
+        http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
+
+    Ignore:
+        import sys, ubelt
+        sys.path.append(ubelt.expandpath('~/code/utool'))
+        from utool._kwimage_im_demodata import *  # NOQA
+        from utool._kwimage_im_demodata import _grabdata_with_mirrors, _imwrite_png
+        fpath = 'foo.png'
+        shape = (5, 7, 4)
+        data01 = np.linspace(0, 1, np.prod(shape)).reshape(*shape)
+        data01 = np.random.rand(*shape)
+        data = (data01 * 255).astype(np.uint8)
+        _imwrite_png(fpath, data)
+
+        import kwimage
+        recon = kwimage.imread(fpath)
+
+        import kwplot
+        kwplot.autompl()
+        kwplot.figure(fnum=1, doclf=1)
+        kwplot.imshow(data, pnum=(1, 2, 1), fnum=1)
+        kwplot.imshow(recon, pnum=(1, 2, 2), fnum=1)
+        assert np.all(recon == data)
+    """
+    import zlib
+    import struct
+    import numpy as np
+
+    assert data.dtype.kind == 'u'
+    assert data.dtype.itemsize == 1
+
+    height, width = data.shape[0:2]
+
+    if len(data.shape) == 2:
+        channels = 1
+    else:
+        assert len(data.shape) == 3
+        channels = data.shape[2]
+
+    assert channels in {1, 3, 4}
+    data = np.ascontiguousarray(data)
+    buf = bytearray(data.tobytes())
+
+    # keep vertical line order add null bytes at the start
+    pixel_byte_width = width * channels
+    span_gen = list(range(0, (height) * pixel_byte_width, pixel_byte_width))
+    raw_data = b''.join(
+        b'\x00' + buf[span:span + pixel_byte_width]
+        for span in span_gen
+    )
+
+    def png_pack(png_tag, data):
+        chunk_head = png_tag + data
+        return (struct.pack("!I", len(data)) +
+                chunk_head +
+                struct.pack("!I", 0xFFFFFFFF & zlib.crc32(chunk_head)))
+
+    png_header = b'\x89PNG\r\n\x1a\n'
+    bit_depth = 8
+
+    if channels == 1:
+        # grayscale sample
+        color_type = 0
+    elif channels == 2:
+        # grayscale followed by alpha
+        color_type = 4
+    elif channels == 3:
+        # rgb triple
+        color_type = 2
+    elif channels == 4:
+        # rgb triple followed by alpha
+        color_type = 6
+
+    compression_method = 0
+    filter_method = 0
+    interlace_method = 0
+    format_header = struct.pack(
+        "!2I5B", width, height,
+        bit_depth,
+        color_type,
+        compression_method,
+        filter_method,
+        interlace_method,
+    )
+
+    png_bytes = b''.join([
+        png_header,
+        png_pack(b'IHDR', format_header),
+        png_pack(b'IDAT', zlib.compress(raw_data, 9)),
+        png_pack(b'IEND', b'')])
+
+    with open(fpath, 'wb') as file:
+        file.write(png_bytes)
