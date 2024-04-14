@@ -5,7 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-### [Version 2.2.0] - Released 202x-xx-xx
+### [Version 2.2.0] - Released 2024-04-13
 
 ### Changed:
 * Replaced lena with astro
