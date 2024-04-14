@@ -47,8 +47,7 @@ http error code. See worldrandom.py for an alternative implementation
 that goes a little further with error checking.
 
 """
-
-from six.moves import urllib
+import urllib
 
 
 def rnumlistwithoutreplacement(min, max):

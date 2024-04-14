@@ -11,6 +11,7 @@ import warnings
 import weakref
 import itertools as it
 import functools
+from functools import reduce
 from collections import OrderedDict
 from utool import util_progress
 from os.path import splitext, exists, join, split, relpath
