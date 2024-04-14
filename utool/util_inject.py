@@ -305,10 +305,10 @@ def make_module_reload_func(module_name=None, module_prefix='[???]', module=None
         if not __RELOAD_OK__:
             raise Exception('Reloading has been forced off')
         try:
-            import imp
+            import importlib
             if verbose and not QUIET:
                 builtins.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
-            imp.reload(module)
+            importlib.reload(module)
         except Exception as ex:
             print(ex)
             print('%s Failed to reload' % module_prefix)

@@ -2338,12 +2338,12 @@ def get_func_sourcecode(func, stripdef=False, stripret=False,
                 if False:
                     # VERY HACK: try to reload the module and get a redefined
                     # version of the function
-                    import imp
+                    import importlib
                     modname = get_func_modname(func)
                     funcname = ut.get_funcname(func)
                     module = sys.modules[modname]
                     # TODO: ut.reload_module()
-                    module = imp.reload(module)
+                    module = importlib.reload(module)
                     func = module.__dict__[funcname]
                 else:
                     # Fix inspect bug in python2.7
