@@ -424,7 +424,7 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
         >>> timestamp = timestamps[-1][0]
         >>> dn_list = []
         >>> for args in timestamps:
-        ...     print(f'args = {ub.urepr(args, nl=1)}')
+        ...     print(f'args={args}')
         ...     dn_list += [parse_timestamp(*args)]
         >>> result = ut.NEWLINE.join([str(dn) for dn in dn_list])
         >>> print(result)
