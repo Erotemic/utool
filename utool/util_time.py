@@ -14,6 +14,7 @@ import six
 import time
 import calendar
 import datetime
+import datetime as datetime_mod
 from utool import util_inject
 from utool import util_cplat
 from utool import util_arg
@@ -90,14 +91,14 @@ def get_timestamp(format_='iso', use_second=False, delta_seconds=None,
             stamp = int(time.mktime(time.localtime()))
         return stamp
     if isutc:
-        now = datetime.datetime.utcnow()
+        now = datetime_mod.datetime.utcnow()
     else:
-        now = datetime.datetime.now()
+        now = datetime_mod.datetime.now()
     if delta_seconds is not None:
-        now += datetime.timedelta(seconds=delta_seconds)
+        now += datetime_mod.timedelta(seconds=delta_seconds)
     if format_ == 'iso':
         # ISO 8601
-        #utcnow = datetime.datetime.utcnow()
+        #utcnow = datetime_mod.datetime.utcnow()
         #utcnow.isoformat()
         localOffsetHour = time.timezone // 3600
         utc_offset = '-' + str(localOffsetHour) if localOffsetHour < 0 else '+' + str(localOffsetHour)
@@ -135,9 +136,9 @@ def get_timestamp(format_='iso', use_second=False, delta_seconds=None,
 
 def get_datestamp(explicit=True, isutc=False):
     if isutc:
-        now = datetime.datetime.utcnow()
+        now = datetime_mod.datetime.utcnow()
     else:
-        now = datetime.datetime.now()
+        now = datetime_mod.datetime.now()
     stamp = '%04d-%02d-%02d' % (now.year, now.month, now.day)
     if explicit:
         return 'ymd-' + stamp + time.timezone[0]
@@ -386,14 +387,14 @@ def local_timezone():
 
 def utcnow_tz():
     import pytz
-    dt = datetime.datetime.utcnow()
+    dt = datetime_mod.datetime.utcnow()
     dt = dt.replace(tzinfo=pytz.timezone('UTC'))
     return dt
 
 
 def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
     r"""
-    pip install delorean
+    Dont use.
 
     Args:
         timestamp (str): timestampe string
@@ -401,6 +402,7 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
             output in zone.
 
     CommandLine:
+        xdoctest -m utool.util_time parse_timestamp
         python -m utool.util_time --test-parse_timestamp
         python -m utool.util_time parse_timestamp
 
@@ -427,6 +429,7 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
         ...     print(f'args={args}')
         ...     dn_list += [parse_timestamp(*args)]
         >>> result = ut.NEWLINE.join([str(dn) for dn in dn_list])
+        ...
         >>> print(result)
         2015-04-01 00:00:00+00:00
         2005-10-27 12:35:20+00:00
@@ -441,20 +444,21 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
     if timestamp is None:
         return None
 
-    use_delorean = True or six.PY2
-    if use_delorean:
-        try:
-            import delorean
-        except ImportError:
-            delorean = None
-            use_delorean = False
-        ## customize delorean string method
-        #def __str__(self):
-        #    return str(self.datetime)
-        #    #return str(self.datetime) + ' ' + str(self.timezone)
-        #delorean.Delorean.__str__ = __str__
-        ## method types must be injected into the class
-        ##ut.inject_func_as_method(dn, __str__, '__repr__', override=True)
+    # use_delorean = True or six.PY2
+    # use_delorean = 0
+    # if use_delorean:
+    #     try:
+    #         import delorean
+    #     except ImportError:
+    #         delorean = None
+    #         use_delorean = False
+    #     ## customize delorean string method
+    #     #def __str__(self):
+    #     #    return str(self.datetime)
+    #     #    #return str(self.datetime) + ' ' + str(self.timezone)
+    #     #delorean.Delorean.__str__ = __str__
+    #     ## method types must be injected into the class
+    #     ##ut.inject_func_as_method(dn, __str__, '__repr__', override=True)
 
     if not isinstance(timestamp, six.string_types):
         raise NotImplementedError('Unknown format: timestamp=%r' % (timestamp,))
@@ -472,46 +476,91 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
     utc_offset = None
     if len(timestamp) == 20 and '\x00' in timestamp:
         timestamp_ = timestamp.replace('\x00', ' ').strip(';').strip()
-    elif use_delorean and len(timestamp) > 19:
+    # elif use_delorean and len(timestamp) > 19:
+    elif len(timestamp) > 19:
         timestamp_ = timestamp[:19].strip(';').strip()
         utc_offset = timestamp[19:]
     else:
         timestamp_ = timestamp
 
-    dt_ = datetime.datetime.strptime(timestamp_, timefmt)
-    if use_delorean:
-        if zone is None:
-            zone = time.tzname[0]
-        if zone == 'local':
-            zone = time.tzname[0]
-        dn_ = delorean.Delorean(dt_, zone)
-    else:
-        dn_ = dt_
+    dt_ = datetime_mod.datetime.strptime(timestamp_, timefmt)
+    # if use_delorean:
+    #     if zone is None:
+    #         zone = time.tzname[0]
+    #     if zone == 'local':
+    #         zone = time.tzname[0]
+    #     dn_ = delorean.Delorean(dt_, zone)
+    # else:
+    dt_ = _ensure_timezone(dt_, zone)
+    dn_ = dt_
 
     if utc_offset is not None and zone == 'UTC':
-        if use_delorean:
-            # Python 2.7 does not account for timezones
-            if ':' in utc_offset:
-                sign = {' ': +1, '+': +1, '-': -1}[utc_offset[0]]
-                hours, seconds = utc_offset[1:].split(':')
-                delta_ = datetime.timedelta(hours=int(hours), seconds=int(seconds))
-                delta = sign * delta_
-            else:
-                import pytz
-                tzname = utc_offset.strip()
-                delta = pytz.timezone(tzname).utcoffset(dt_)
-            # Move back to utc
-            dn = dn_ - delta
+        # Python 2.7 does not account for timezones
+        if ':' in utc_offset:
+            sign = {' ': +1, '+': +1, '-': -1}[utc_offset[0]]
+            hours, seconds = utc_offset[1:].split(':')
+            delta_ = datetime_mod.timedelta(hours=int(hours), seconds=int(seconds))
+            delta = sign * delta_
         else:
-            raise AssertionError('python3 should take care of timezone')
+            import pytz
+            tzname = utc_offset.strip()
+            delta = pytz.timezone(tzname).utcoffset(dt_)
+        # Move back to utc
+        dn = dn_ - delta
     else:
         dn = dn_
 
-    if use_delorean:
-        if not zone != 'UTC':
-            dn.shift(zone)
-        return dn.datetime
-    #return dn
+    # if use_delorean:
+    #     if not zone != 'UTC':
+    #         dn.shift(zone)
+    #     return dn.datetime
+    # else:
+    return dn
+
+
+def _ensure_timezone(dt, default='utc'):
+    """
+    Gives a datetime object a timezone (utc by default) if it doesnt have one
+
+    Arguments:
+        dt (datetime_mod.datetime): the datetime to fix
+        default (str): the timezone to use if it does not have one.
+
+    Returns:
+        datetime_mod.datetime
+    """
+    if dt.tzinfo is not None:
+        return dt
+    else:
+        tzinfo = coerce_timezone(default)
+        return dt.replace(tzinfo=tzinfo)
+
+
+def coerce_timezone(tz):
+    """
+    Converts input to a valid timezone object
+
+    Args:
+        tz (str | tzinfo): a special code or existing object
+
+    Returns:
+        tzinfo: timezone object
+    """
+    if isinstance(tz, datetime_mod.timezone):
+        tzinfo = tz
+    elif isinstance(tz, str):
+        tz = tz.lower()
+        if tz == 'utc':
+            tzinfo = datetime_mod.timezone.utc
+        elif tz == 'est':
+            tzinfo = datetime_mod.timezone(datetime_mod.timedelta(seconds=-18000))
+        elif tz == 'local':
+            tzinfo = datetime_mod.timezone(datetime_mod.timedelta(seconds=-time.timezone))
+        else:
+            raise NotImplementedError(f'Unknown Timezone: {tz!r}')
+    else:
+        raise TypeError(str(tz))
+    return tzinfo
 
 
 def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
@@ -606,7 +655,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         else:
             datetime_str_ = datetime_str
         #try:
-        dt = datetime.datetime.strptime(datetime_str_, timefmt)
+        dt = datetime_mod.datetime.strptime(datetime_str_, timefmt)
         #except ValueError as ex:
         #    import utool as ut
         #    ut.printex(ex, iswarning=True)
@@ -655,7 +704,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
                         try:
                             print('fmt = %r' % (fmt,))
                             print('part = %r' % (part,))
-                            datetime.datetime.strptime(part, fmt)
+                            datetime_mod.datetime.strptime(part, fmt)
                         except ValueError:
                             find_offending_part(part, fmt, '/')
                             print('Failed')
@@ -720,9 +769,9 @@ def unixtime_to_datetimestr(unixtime, timefmt='%Y/%m/%d %H:%M:%S', isutc=True):
         if unixtime is None:
             return None
         if isutc:
-            return datetime.datetime.utcfromtimestamp(float(unixtime)).strftime(timefmt)
+            return datetime_mod.datetime.utcfromtimestamp(float(unixtime)).strftime(timefmt)
         else:
-            return datetime.datetime.fromtimestamp(float(unixtime)).strftime(timefmt)
+            return datetime_mod.datetime.fromtimestamp(float(unixtime)).strftime(timefmt)
     except ValueError:
         raise
         #return 'NA'
@@ -735,9 +784,9 @@ def unixtime_to_datetimeobj(unixtime, isutc=True):
         if unixtime is None:
             return None
         if isutc:
-            return datetime.datetime.utcfromtimestamp(float(unixtime))
+            return datetime_mod.datetime.utcfromtimestamp(float(unixtime))
         else:
-            return datetime.datetime.fromtimestamp(float(unixtime))
+            return datetime_mod.datetime.fromtimestamp(float(unixtime))
     except ValueError:
         raise
 
@@ -748,7 +797,7 @@ def unixtime_to_timedelta(unixtime_diff):
 
 
 def get_unix_timedelta(unixtime_diff):
-    timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
+    timedelta = datetime_mod.timedelta(seconds=abs(unixtime_diff))
     return timedelta
 
 
@@ -806,7 +855,7 @@ def get_timedelta_str(timedelta, exclude_zeros=False):
         >>> print(result)
         10 seconds
     """
-    if timedelta == datetime.timedelta(0):
+    if timedelta == datetime_mod.timedelta(0):
         return '0 seconds'
     days = timedelta.days
     hours, rem = divmod(timedelta.seconds, 3600)
