@@ -440,7 +440,11 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
 
     use_delorean = True or six.PY2
     if use_delorean:
-        import delorean
+        try:
+            import delorean
+        except ImportError:
+            delorean = None
+            use_delorean = False
         ## customize delorean string method
         #def __str__(self):
         #    return str(self.datetime)

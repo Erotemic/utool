@@ -991,42 +991,6 @@ def nx_gen_edge_attrs(G, key, edges=None, default=util_const.NoParam,
         raise KeyError('on_keyerr={}'.format(on_keyerr))
     return edge_attrs
 
-    # if edges is None:
-    #     if G.is_multigraph():
-    #         edges_ = G.edges(keys=True, data=True)
-    #     else:
-    #         edges_ = G.edges(data=True)
-    #     if default is util_const.NoParam:
-    #         return ((x[:-1], x[-1][key]) for x in edges_ if key in x[-1])
-    #     else:
-    #         return ((x[:-1], x[-1].get(key, default)) for x in edges_)
-
-    # else:
-    #     if on_missing == 'error':
-    #         uv_iter = edges
-    #         uvd_iter = ((u, v, G.adj[u][v]) for u, v in uv_iter)
-    #     elif on_missing == 'filter':
-    #         # filter edges that don't exist
-    #         uv_iter = (e for e in edges if G.has_edge(*e))
-    #         uvd_iter = ((u, v, G.adj[u][v]) for u, v in uv_iter)
-    #     elif on_missing == 'default':
-    #         # Return default data as if it existed
-    #         uvd_iter = (
-    #             (u, v, G.adj[u][v])
-    #             if G.has_edge(u, v) else
-    #             (u, v, {})
-    #             for u, v in uv_iter
-    #         )
-    #     else:
-    #         raise KeyError('on_missing={}'.format(on_missing))
-
-    #     if default is util_const.NoParam:
-    #         # return (((u, v), d[key]) for u, v, d in uvd_iter if key in d)
-    #         return (((u, v), d[key]) for u, v, d in uvd_iter)
-    #     else:
-    #         uvd_iter = ((u, v, G.adj[u][v]) for u, v in uv_iter)
-    #         return (((u, v), d.get(key, default)) for u, v, d in uvd_iter)
-
 
 def nx_from_node_edge(nodes=None, edges=None):
     graph = nx.Graph()
