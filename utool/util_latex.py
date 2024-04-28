@@ -4,7 +4,6 @@ TODO: box and whisker
 http://tex.stackexchange.com/questions/115210/boxplot-in-latex
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import range, map, zip
 import os
 import re
 import textwrap
@@ -646,7 +645,7 @@ def make_score_tabular(
         rowstr_list.insert(pos, '')
         rowsep_list.insert(pos, rowvalsep)
     #tabular_body = rowvalsep.join(rowstr_list)
-    from six.moves import zip_longest
+    from itertools import zip_longest
     tabular_body = ''.join([row if sep is None else row + sep for row, sep in zip_longest(rowstr_list, rowsep_list)])
 
     # Build Column Layout
@@ -671,7 +670,7 @@ def make_score_tabular(
             if offset < len(col_align_sep_list):
                 col_align_sep_list[offset] = multicol_sep
 
-    from six.moves import zip_longest
+    from itertools import zip_longest
     _tmp = [ut.filter_Nones(tup) for tup in zip_longest(col_align_list, col_align_sep_list)]
     col_layout = ''.join(ut.flatten(_tmp))
 

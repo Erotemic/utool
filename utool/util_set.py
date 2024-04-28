@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, map, range  # NOQA
 try:
     from collections.abc import MutableSet
 except Exception:

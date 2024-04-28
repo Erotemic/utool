@@ -190,20 +190,6 @@ def ensure_future_compatible(mod_fpath):
         lines, lineno = ut.grepfile(mod_fpath, futureline)
 
 
-def check_six_moves_compatibility(mod_fpath):
-    six_moves = ['zip', 'map', 'range', 'filter', 'cPickle', 'cStringio', 'zip_longest']
-    for funcname in six_moves:
-        funcname_regex = r'\b%s\b' % (funcname)
-        lines, lineno = ut.grepfile(mod_fpath, funcname_regex)
-        if len(lines) > 0:
-            six_import = 'from six.moves import .*' + funcname
-            lines_, lineno = ut.grepfile(mod_fpath, six_import)
-            if len(lines_) == 0:
-                print(mod_fpath + ' failed ' + funcname)
-                print(lines)
-                print(lines_)
-
-
 def ensure_no_invalid_commands(mod_fpath):
     command_list = ['raw_input', '__builtins__', 'xrange', 'izip_longest']
     for funcname in command_list:
@@ -235,6 +221,5 @@ if __name__ == '__main__':
 
     for mod_fpath in module_fpath_list:
         #ensure_compatible_modfpath(mod_fpath)
-        #check_six_moves_compatibility(mod_fpath)
         #ensure_utool_compatible(mod_fpath)
         ensure_no_invalid_commands(mod_fpath)

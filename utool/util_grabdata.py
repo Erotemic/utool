@@ -10,7 +10,7 @@ import urllib  # NOQA
 import functools
 import time
 import hashlib
-from six.moves import urllib as _urllib
+import urllib as _urllib
 from utool import util_path
 from utool import util_cplat
 from utool import util_arg

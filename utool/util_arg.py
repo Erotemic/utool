@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import six
 import os
-from six.moves import builtins
+import builtins
 import itertools
 import argparse
 from utool import util_inject

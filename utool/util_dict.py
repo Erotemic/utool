@@ -5,7 +5,6 @@ import operator as op
 import itertools as it
 from collections import defaultdict, OrderedDict
 from functools import partial
-from six.moves import zip, range, map
 from utool import util_inject
 from utool import util_list
 from utool import util_const

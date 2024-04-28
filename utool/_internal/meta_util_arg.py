@@ -34,7 +34,7 @@ LOGGING_VERBOSE    = VERYVERBOSE or '--verb-logging' in sys.argv
 if PRINT_INJECT_ORDER:
     # HACK
     from utool._internal import meta_util_dbg
-    from six.moves import builtins
+    import builtins
     N = 0
     callername = meta_util_dbg.get_caller_name(N=2 + N, strict=False)
     lineno = meta_util_dbg.get_caller_lineno(N=2 + N, strict=False)

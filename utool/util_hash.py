@@ -16,7 +16,6 @@ import six
 import uuid
 import random
 import warnings
-from six.moves import zip, map
 from utool import util_inject
 from utool import util_path
 from utool import util_type
@@ -592,7 +591,7 @@ def hashstr(data, hashlen=HASH_LEN, alphabet=ALPHABET):
         data = ['a', 'b']
         data = np.array([1, 2, 3])
         import hashlib
-        from six.moves import cPickle as pickle
+        import pickle
         pickle.dumps(data, protocol=2)
 
         python2 -c "import hashlib, numpy; print(hashlib.sha1('ab').hexdigest())"
@@ -998,7 +997,6 @@ def image_uuid(pil_img):
 
 
 def augment_uuid(uuid_, *hashables):
-    #from six.moves import reprlib
     #uuidhex_data   = uuid_.get_bytes()
     uuidhex_data   = uuid_.bytes
     #hashable_str    = ''.join(map(repr, hashables))

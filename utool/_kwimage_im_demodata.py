@@ -61,6 +61,7 @@ _TEST_IMAGES = {
     'airport': {
         'fname': 'airport.jpg',
         'url': 'https://upload.wikimedia.org/wikipedia/commons/9/9e/Beijing_Capital_International_Airport_on_18_February_2018_-_SkySat_%281%29.jpg',
+        'note': 'An overhead image the an airport',
         'mirrors': [
             'https://data.kitware.com/api/v1/file/647cfb7ea71cc6eae69303aa/download',
         ],
@@ -70,11 +71,7 @@ _TEST_IMAGES = {
         'sha256': 'bff5f9212d5c77dd47f2b80e5dc1b4409fa7813b08fc39b504294497b3483ffc',
         'sha512': '957695b319d8b8266e4eece845b016fbf2eb4f1b6889d7374d29ab812f752da77e42a6cb664bf15cc38face439bd60070e85e5b7954be15fc354b07b353b9582',
         'properties': {
-            'shape': (
-                868,
-                1156,
-                3,
-            ),
+            'shape': (868, 1156, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -83,6 +80,7 @@ _TEST_IMAGES = {
     'amazon': {
         'fname': 'amazon.jpg',
         'url': 'https://data.kitware.com/api/v1/file/611e9f4b2fa25629b9dc0ca2/download',
+        'note': 'An overhead image of the amazon rainforest',
         'mirrors': [
             'https://data.kitware.com/api/v1/file/647cfb85a71cc6eae69303ad/download',
         ],
@@ -92,11 +90,7 @@ _TEST_IMAGES = {
         'sha256': 'ef352b60f2577692ab3e9da19d09a49fa9da9937f892afc48094988a17c32dc3',
         'sha512': '80f3f5a5bf5b225c36cbefe44e0c977bf9f3ea53658a97bc2d215405587f40dea6b6c0f04b5934129b4c0265616846562c3f15c9aba61ae1afaacd13c047c9cb',
         'properties': {
-            'shape': (
-                3000,
-                3836,
-                3,
-            ),
+            'shape': (3000, 3836, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -115,11 +109,7 @@ _TEST_IMAGES = {
         'sha256': '9f2b4671e868fd51451f03809a694006425eee64ad472f7065da04079be60c53',
         'sha512': 'de64fcb37e67d5b5946ee45eb659436b446a9a23ac5aefb6f3cce53e58a682a0828f5e8435cf7bd584358760d59915eb6e37a1b69ca34a78f3d511e6ebdad6fd',
         'properties': {
-            'shape': (
-                512,
-                512,
-                3,
-            ),
+            'shape': (512, 512, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -139,11 +129,7 @@ _TEST_IMAGES = {
         'sha256': '94c2a5acfe53cf7d0f6c75577bd947bf559a4a99d1a200e0fca537602a966da2',
         'sha512': 'dc948163225157b85a968b2614cf2a2416b98d8b7b115ce8e046744e64e0f01150e539c06e78fc58306725188ee84f443414abac2e95dc11a8f2435df97ab6d4',
         'properties': {
-            'shape': (
-                448,
-                328,
-                3,
-            ),
+            'shape': (448, 328, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -152,6 +138,7 @@ _TEST_IMAGES = {
     'lowcontrast': {
         'fname': 'lowcontrast.jpg',
         'url': 'https://i.imgur.com/dyC68Bi.jpg',
+        'note': 'A low contrast image of a lobster',
         'mirrors': [
             'https://data.kitware.com/api/v1/file/647cfb93a71cc6eae69303b3/download',
         ],
@@ -161,11 +148,7 @@ _TEST_IMAGES = {
         'sha256': '532572a245d2b401583488ccf9f033e5960dc9f3f56b8ca6b933a8986ec9e95e',
         'sha512': '68d37c11a005168791e6a6ca018d34c6ee305c76a38fa8c93ccfaf4520f2f01d690b218b4ad6fbac36790104a670a154daa2da14850b5de0cc7c5d6843e5b18a',
         'properties': {
-            'shape': (
-                267,
-                400,
-                3,
-            ),
+            'shape': (267, 400, 3),
             'dtype': 'uint8',
             'min_value': 85,
             'max_value': 193,
@@ -174,6 +157,7 @@ _TEST_IMAGES = {
     'paraview': {
         'fname': 'paraview.png',
         'url': 'https://upload.wikimedia.org/wikipedia/commons/4/46/ParaView_splash1.png',
+        'note': 'The paraview logo',
         'mirrors': [
             'https://data.kitware.com/api/v1/file/647cfb97a71cc6eae69303b6/download',
         ],
@@ -183,11 +167,7 @@ _TEST_IMAGES = {
         'sha256': '859423aefce1037b2b6959b74d7b137a4104acd6db95a9247abb26c2d0aa93b8',
         'sha512': '25e92fe7661c0d9caf8eb919f6a9e76ed1bc689b1c599ad0786a47b86578961b07746a8303deb9efdab2bb562c700751d8cf6555e628bb65cb7ea74e8da8ad23',
         'properties': {
-            'shape': (
-                106,
-                462,
-                4,
-            ),
+            'shape': (106, 462, 4),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -196,6 +176,7 @@ _TEST_IMAGES = {
     'parrot': {
         'fname': 'parrot.png',
         'url': 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Grayscale_8bits_palette_sample_image.png',
+        'note': 'An standard parrot test image',
         'mirrors': [
             'https://data.kitware.com/api/v1/file/647cfb9ca71cc6eae69303b9/download',
         ],
@@ -205,10 +186,7 @@ _TEST_IMAGES = {
         'sha256': 'fadd4cdddc46e43185999421dcb1ae9d3ba6d13b5b6d0acc05268fc7246f3e59',
         'sha512': '542f08ae6228483aa418ed1108d99a63805292bae43388256ea3edad780f7de2654ace72efcea4259b44a41784c364543fe763d4e4c65c90221be4b70e2d056c',
         'properties': {
-            'shape': (
-                200,
-                150,
-            ),
+            'shape': (200, 150),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -217,6 +195,7 @@ _TEST_IMAGES = {
     'stars': {
         'fname': 'stars.png',
         'url': 'https://i.imgur.com/kCi7C1r.png',
+        'note': 'An image of stars in the night sky',
         'mirrors': [
             'https://data.kitware.com/api/v1/file/647cfba7a71cc6eae69303bf/download',
         ],
@@ -226,15 +205,30 @@ _TEST_IMAGES = {
         'sha256': '36391b4d36b4b5e2597c53f9465951910542fbec82f5a0213715759d1de9714f',
         'sha512': 'e19e0c0c28c67441700cf272cb6ae20e5cc0baee24e5527e096e61e290ca823913224cdbabb884c5550e73587192428c0650921a00630c82f45c4eddf52c652f',
         'properties': {
-            'shape': (
-                256,
-                256,
-                3,
-            ),
+            'shape': (256, 256, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
         },
+    },
+    'superstar': {
+        'fname': 'superstar.jpg',
+        'url': 'https://data.kitware.com/api/v1/file/661b2df25165b19d36c87d1c/download',
+        'note': 'A pre-rendered superstar',
+        'mirrors': [
+            'https://i.imgur.com/d2FHuIU.png',
+        ],
+        'sha256': '90fbba3e0985988f43440b742162535eb6458be9fdbd9dc6db6629f1bd4ded29',
+        'sha512': '5471f17234c8e47370ff6782b8b013fce2799e05e8a54739da75cc43adb59bf3d34262024122d893bb0b243f3bbfcc67be00369bd8b0de3aa5328221c62ab419',
+        'properties': {
+            'shape': (64, 64),
+            'dtype': 'uint8',
+            'min_value': 26,
+            'max_value': 204,
+        },
+        'ipfs_cids': [
+            'bafkreieq7o5d4cmftchugraloqqweu26wzcyx2p5xwo4nw3gfhy32tpnfe',
+        ],
     },
     'pm5644': {
         'fname': 'Philips_Pattern_pm5644.png',
@@ -249,11 +243,7 @@ _TEST_IMAGES = {
         'sha256': 'eba500341492649d4fa4e83b5200abbffa6673de5de4c20ed669dedeb00d3941',
         'sha512': '8841ccd59b41dde98385e93531837668f09fafa42cfbdf27bf7c1088028596e3c82da8cad102543b330e1bba97476060ce002864360da76b2b3116647d2a79d8',
         'properties': {
-            'shape': (
-                576,
-                1024,
-                3,
-            ),
+            'shape': (576, 1024, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -272,11 +262,7 @@ _TEST_IMAGES = {
         'sha256': 'e29144841f4e2200e88eb6ad928cfa3ee0c55ccac0a28532c9293c4a5e0b284d',
         'sha512': '51b8df8fb08f12609676923bb473c76b8ef9d73ce2c5493bca00b7b4b0eec7b298ce33f0bf860cc94c8b7cda8e69e021674e5a7ddaf0a1f007318053e4985740',
         'properties': {
-            'shape': (
-                288,
-                384,
-                3,
-            ),
+            'shape': (288, 384, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,
@@ -295,11 +281,7 @@ _TEST_IMAGES = {
         'sha256': 'fb4e8b1561c177a9aba23693bd576d0e06f5778b8d44e1c1cc5c5dd35d5fd1d4',
         'sha512': '04da24efa0037aaad7a72a19d2210dd64f39f1a703d12fd1b379c3d6a9fb8695f33584d566b6159eb9aebce5b9b930b52df4b2ae7e90fcf66014711063635c27',
         'properties': {
-            'shape': (
-                288,
-                384,
-                3,
-            ),
+            'shape': (288, 384, 3),
             'dtype': 'uint8',
             'min_value': 0,
             'max_value': 255,

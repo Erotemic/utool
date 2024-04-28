@@ -6,7 +6,7 @@ This module becomes nav
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip, filter, filterfalse, map, range
+from itertools import filterfalse
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
                      exists, islink, ismount, dirname, splitext, realpath,

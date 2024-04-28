@@ -10,7 +10,6 @@ import sys
 import os
 import re
 import six
-from six.moves import zip
 from os.path import exists, join, dirname, isdir, basename
 from utool import util_dev
 from utool import util_inject

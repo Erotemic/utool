@@ -16,7 +16,6 @@ from utool import util_arg
 from utool import util_time
 from utool import util_iter
 from utool import util_cplat
-from six.moves import range, zip
 import collections
 import six  # NOQA
 print, rrr, profile = util_inject.inject2(__name__)
@@ -227,7 +226,6 @@ class ProgressIter(object):
         setup = ut.codeblock(
         '''
         import utool as ut
-        from six.moves import range, zip
         import time
         def time_append(size):
             start_time    = time.time()
@@ -278,7 +276,6 @@ class ProgressIter(object):
     Example:
         >>> # ENABLE_DOCTEST
         >>> import utool as ut
-        >>> from six.moves import range
         >>> num = 1000
         >>> num2 = 10001
         >>> results1 = [x for x in ut.ProgressIter(range(num), wfreq=10, adjust=True)]
@@ -293,7 +290,6 @@ class ProgressIter(object):
         >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
-        >>> from six.moves import range
         >>> num2 = 10001
         >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
@@ -304,7 +300,6 @@ class ProgressIter(object):
         >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
-        >>> from six.moves import range
         >>> num2 = 100001
         >>> progiter = ut.ProgressIter(range(num2), lbl='testing primes',
         >>>                            report_unit='seconds', freq=1,
@@ -315,7 +310,6 @@ class ProgressIter(object):
         >>> # DISABLE_DOCTEST
         >>> # SLOW_DOCTEST
         >>> import utool as ut
-        >>> from six.moves import range
         >>> import time
         >>> crazy_time_list = [.001, .01, .0001] * 1000
         >>> crazy_time_iter = (time.sleep(x) for x in crazy_time_list)

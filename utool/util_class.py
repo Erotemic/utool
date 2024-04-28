@@ -171,9 +171,8 @@ def reload_injected_modules(classname):
         if hasattr(module, 'rrr'):
             module.rrr()
         else:
-            import imp
             print('rrr not defined in module=%r' % (module,))
-            imp.reload(module)
+            _reload(module)
 
 
 def get_injected_modules(classname):
@@ -761,17 +760,17 @@ def reload_class(self, verbose=True, reload_module=True):
                     module_.rrr(verbose=verbose)
             else:
                 if reload_module:
-                    import imp
                     if verbose:
-                        print('[class] reloading ' + _class.__module__ + ' with imp')
+                        print('[class] reloading ' + _class.__module__ + ' with importlib')
                     try:
-                        imp.reload(module_)
+                        _reload(module_)
                     except (ImportError, AttributeError):
                         print('[class] fallback reloading ' + _class.__module__ +
-                              ' with imp')
+                              ' with importlib')
                         # one last thing to try. probably used ut.import_module_from_fpath
                         # when importing this module
-                        imp.load_source(module_.__name__, module_.__file__)
+                        _load_source(module_.__name__, module_.__file__)
+
             # Reset class attributes
             _newclass = getattr(module_, _class.__name__)
             reload_class_methods(self, _newclass, verbose=verbose)
@@ -788,6 +787,26 @@ def reload_class(self, verbose=True, reload_module=True):
         ut.printex(ex, 'Error Reloading Class', keys=[
             'modname', 'module', 'class_', 'class_list', 'self', ])
         raise
+
+
+def _reload(module):
+    try:
+        import imp
+    except ImportError:
+        import importlib
+        importlib.reload(module)
+    else:
+        imp.reload(module)
+
+
+def _load_source(modname, modpath):
+    try:
+        import imp
+    except ImportError:
+        from importlib.machinery import SourceFileLoader
+        SourceFileLoader(modname, modpath).load_module()
+    else:
+        imp.load_source(modname, modpath)
 
 
 def reload_class_methods(self, class_, verbose=True):

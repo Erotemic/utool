@@ -253,7 +253,7 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None, modpath=
     """
     import utool as ut
     from os.path import join
-    import imp
+    import importlib
     func = None
     module = None
     error_str = None
@@ -284,7 +284,7 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None, modpath=
         try:
             func = eval('module.{}'.format(funcname))
         except AttributeError:
-            imp.reload(module)
+            importlib.reload(module)
             func = eval('module.{}'.format(funcname))
         print('func = {!r}'.format(func))
         return func, module, error_str
@@ -335,8 +335,8 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None, modpath=
         #             else:
         #                 raise
         try:
-            imp.reload(module)
-        except Exception as ex:
+            importlib.reload(module)
+        except Exception:
             pass
         try:
             # FIXME: PYTHON 3
@@ -346,7 +346,7 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None, modpath=
                     import {modname}
                     module = {modname}
                     #print('Trying to reload module=%r' % (module,))
-                    imp.reload(module)
+                    importlib.reload(module)
                 except Exception:
                     # If it fails maybe the module is not in the path
                     if moddir is not None:
@@ -364,15 +364,15 @@ def load_func_from_module(modname, funcname, verbose=True, moddir=None, modpath=
                             pass
                         finally:
                             os.chdir(orig_dir)
-                import imp
+                import importlib
                 import utool as ut
-                imp.reload(ut.util_autogen)
-                imp.reload(ut.util_inspect)
+                importlib.reload(ut.util_autogen)
+                importlib.reload(ut.util_inspect)
                 try:
                     func = module.{funcname}
                 except AttributeError:
                     docstr = 'Could not find attribute funcname={funcname} in modname={modname} This might be a reloading issue'
-                    imp.reload(module)
+                    importlib.reload(module)
                 '''
             ).format(**locals())
             exec_locals = locals()
@@ -1030,11 +1030,6 @@ def find_modname_in_pythonpath(modname):
             module_type = 'package'
             break
     return in_pythonpath, module_type, path
-
-    #ut.get_modpath(modname)
-    #import imp
-    #tup = imp.find_module(modname)
-    #(file, filename, (suffix, mode, type))
 
 
 if __name__ == '__main__':
