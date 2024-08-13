@@ -117,7 +117,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
@@ -141,6 +141,7 @@ jobs:
         path: ./wheelhouse/utool*.whl
   test_purepy_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
+    if: "! startsWith(github.event.ref, 'refs/heads/release')"
     runs-on: ${{ matrix.os }}
     needs:
     - build_purepy_wheels
@@ -176,7 +177,7 @@ jobs:
           arch: auto
         - python-version: '3.12'
           install-extras: tests
-          os: windows-latest
+          os: macOS-latest
           arch: auto
         - python-version: '3.12'
           install-extras: tests
@@ -184,43 +185,43 @@ jobs:
           arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.9'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.10'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.11'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.12'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
-          os: windows-latest
+          os: macOS-latest
           arch: auto
         - python-version: '3.9'
           install-extras: tests,optional
-          os: windows-latest
+          os: macOS-latest
           arch: auto
         - python-version: '3.10'
           install-extras: tests,optional
-          os: windows-latest
+          os: macOS-latest
           arch: auto
         - python-version: '3.11'
           install-extras: tests,optional
-          os: windows-latest
+          os: macOS-latest
           arch: auto
         - python-version: '3.12'
           install-extras: tests,optional
-          os: windows-latest
+          os: macOS-latest
           arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
@@ -249,7 +250,7 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest'
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
@@ -335,9 +336,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && ! startsWith(github.event.ref, 'refs/heads/release')
     needs:
-    - build_and_test_sdist
     - build_purepy_wheels
-    - test_purepy_wheels
+    - build_and_test_sdist
     steps:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
@@ -410,9 +410,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
-    - build_and_test_sdist
     - build_purepy_wheels
-    - test_purepy_wheels
+    - build_and_test_sdist
     steps:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
@@ -500,6 +499,12 @@ jobs:
       shell: bash
       run: ls -la wheelhouse
     - run: 'echo "Automatic Release Notes. TODO: improve" > ${{ github.workspace }}-CHANGELOG.txt'
+    - name: Tag Release Commit
+      if: (startsWith(github.event.ref, 'refs/heads/release'))
+      run: |-
+        export VERSION=$(python -c "import setup; print(setup.VERSION)")
+        git tag "v$VERSION"
+        git push origin "v$VERSION"
     - uses: softprops/action-gh-release@v1
       name: Create Release
       id: create_release
@@ -508,8 +513,9 @@ jobs:
       with:
         body_path: ${{ github.workspace }}-CHANGELOG.txt
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        name: Release ${{ github.ref }}
         body: Automatic Release
+        generate_release_notes: true
         draft: true
         prerelease: false
         files: |-
