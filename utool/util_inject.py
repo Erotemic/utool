@@ -5,7 +5,7 @@ Injects code into live modules or into text source files.
 Basic use case is to extend the print function into a logging function
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import builtins, range, zip, map  # NOQA
+import builtins
 import six  # NOQA
 import sys
 import functools
@@ -305,10 +305,10 @@ def make_module_reload_func(module_name=None, module_prefix='[???]', module=None
         if not __RELOAD_OK__:
             raise Exception('Reloading has been forced off')
         try:
-            import imp
+            import importlib
             if verbose and not QUIET:
                 builtins.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
-            imp.reload(module)
+            importlib.reload(module)
         except Exception as ex:
             print(ex)
             print('%s Failed to reload' % module_prefix)

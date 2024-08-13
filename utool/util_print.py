@@ -7,7 +7,7 @@ except ImportError:
 import six
 import functools
 import sys
-from six.moves import builtins
+import builtins
 from utool._internal import meta_util_arg
 from utool import util_str
 from utool import util_inject

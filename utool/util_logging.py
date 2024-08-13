@@ -11,7 +11,7 @@ References:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-from six.moves import builtins, map, zip, range  # NOQA
+import builtins
 from os.path import exists, join, realpath
 import logging
 import logging.config

@@ -15,8 +15,7 @@ import os
 #import inspect
 import contextlib
 import collections
-from six.moves import cPickle as pickle
-from six.moves import range, zip
+import pickle
 from os.path import join, normpath, basename, exists
 from functools import partial
 from itertools import chain

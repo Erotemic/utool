@@ -3,12 +3,8 @@
 #
 # TODO:  move library intensive functions to vtool
 from __future__ import absolute_import, division, print_function, unicode_literals
-# import operator
 import six
-# from six.moves import zip, range, reduce
-# from utool import util_type
 from utool import util_inject
-# from utool import util_decor
 try:
     import numpy as np
     HAVE_NUMPY = True

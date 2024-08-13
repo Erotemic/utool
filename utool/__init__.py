@@ -12,7 +12,7 @@ pip install git+https://github.com/Erotemic/utool.git@next
 
 import sys
 
-__version__ = '2.2.0'
+__version__ = '2.2.1'
 
 __DYNAMIC__ = True
 if __DYNAMIC__:
@@ -33,7 +33,7 @@ __PRINT_INJECT_ORDER__ = __VERYVERBOSE__ or '--print-inject-order' in sys.argv
 # OTHER MODULE CAN USE NOINJECT
 if __PRINT_INJECT_ORDER__:
     # TODO METAUTIL
-    from six.moves import builtins
+    import builtins
     from utool._internal import meta_util_dbg
     callername = meta_util_dbg.get_caller_name(N=1, strict=False)
     fmtdict = dict(callername=callername, modname='utool.__init__')

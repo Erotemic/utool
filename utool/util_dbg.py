@@ -3,7 +3,6 @@
 TODO: rectify name difference between parent and caller
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import range, zip, map, filter  # NOQA
 import fnmatch
 import operator
 import inspect

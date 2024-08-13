@@ -8,7 +8,6 @@ except ImportError:
     # TODO remove numpy
     pass
 import operator
-from six.moves import zip
 from utool import util_iter
 from utool import util_alg
 from utool import util_inject

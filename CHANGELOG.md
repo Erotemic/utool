@@ -5,6 +5,13 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+### Version 2.2.1 - Unreleased
+
+### Changed
+* Replace imp usage with importlib.
+* Remove most cases of six.moves
+* Remove delorean dependency
+
 ### [Version 2.2.0] - Released 2024-04-13
 
 ### Changed:
