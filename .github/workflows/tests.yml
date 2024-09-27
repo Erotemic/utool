@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.0
     - name: Set up Python 3.12 for linting
       uses: actions/setup-python@v5.0.0
       with:
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.0
     - name: Set up Python 3.12
       uses: actions/setup-python@v5.0.0
       with:
@@ -115,7 +115,7 @@ jobs:
         - auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.0
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
@@ -245,7 +245,7 @@ jobs:
           arch: auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.0
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest'
@@ -340,7 +340,7 @@ jobs:
     - build_and_test_sdist
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.0
     - uses: actions/download-artifact@v2.1.1
       name: Download wheels
       with:
@@ -414,7 +414,7 @@ jobs:
     - build_and_test_sdist
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.0
     - uses: actions/download-artifact@v2.1.1
       name: Download wheels
       with:
@@ -489,7 +489,7 @@ jobs:
     - live_deploy
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.0
     - uses: actions/download-artifact@v2.1.1
       name: Download artifacts
       with:
