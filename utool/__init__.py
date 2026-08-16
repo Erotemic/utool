@@ -12,7 +12,7 @@ pip install git+https://github.com/Erotemic/utool.git@next
 
 import sys
 
-__version__ = '2.2.2'
+__version__ = '2.3.0'
 
 __VERYVERBOSE__ = '--veryverbose' in sys.argv or '--very-verbose' in sys.argv
 __PRINT_INJECT_ORDER__ = __VERYVERBOSE__ or '--print-inject-order' in sys.argv
