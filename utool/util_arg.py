@@ -72,7 +72,6 @@ def reset_argrecord():
 
 def _register_arg(argstr_list, type_, default, help_):
     # TODO REGISTER PARENTS
-    global __REGISTERED_ARGS__
     __REGISTERED_ARGS__.append((argstr_list, type_, default, help_))
 
 

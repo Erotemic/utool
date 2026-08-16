@@ -353,7 +353,6 @@ def make_class_method_decorator(classkey, modname=None):
         >>> assert shop2.has_cheese() is False, 'external method not injected'
         >>> print('Cheese shop does not have cheese. All is well.')
     """
-    global __APP_MODNAME_REGISTER__
     #if util_arg.VERBOSE or VERBOSE_CLASS:
     if VERBOSE_CLASS:
         logger.info('[util_class] register via make_class_method_decorator classkey=%r, modname=%r'
@@ -417,7 +416,6 @@ def decorate_class_method(func, classkey=None, skipmain=False):
     func can also be a tuple
     """
     #import utool as ut
-    global __CLASSTYPE_ATTRIBUTES__
     assert classkey is not None, 'must specify classkey'
     #if not (skipmain and ut.get_caller_modname() == '__main__'):
     __CLASSTYPE_ATTRIBUTES__[classkey].append(func)
@@ -431,7 +429,6 @@ def decorate_postinject(func, classkey=None, skipmain=False):
     classkey is some identifying string, tuple, or object
     """
     #import utool as ut
-    global __CLASSTYPE_POSTINJECT_FUNCS__
     assert classkey is not None, 'must specify classkey'
     #if not (skipmain and ut.get_caller_modname() == '__main__'):
     __CLASSTYPE_POSTINJECT_FUNCS__[classkey].append(func)

@@ -72,7 +72,6 @@ def _inject_funcs(module, *func_list):
 
 
 def _add_injected_module(module):
-    global __INJECTED_MODULES__
     __INJECTED_MODULES__.add(module)
 
 

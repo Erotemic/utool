@@ -883,7 +883,6 @@ def log_progress(lbl='Progress: ', length=0, flushfreq=4, startafter=-1,
     FIXME: depricate for ProgressIter.
     still used in util_dev
     """
-    global AGGROFLUSH
     # Alias kwargs with simpler names
     if num is not None:
         length = num

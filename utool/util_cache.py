@@ -107,7 +107,6 @@ class ShelfCacher(object):
 
 
 def get_default_appname():
-    global __APPNAME__
     return __APPNAME__
 
 

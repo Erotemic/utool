@@ -501,7 +501,7 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
         else:
             import pytz
             tzname = utc_offset.strip()
-            delta = pytz.timezone(tzname).utcoffset(dt_)
+            delta = pytz.timezone(tzname).utcoffset(dt_.replace(tzinfo=None))
         # Move back to utc
         dn = dn_ - delta
     else:
