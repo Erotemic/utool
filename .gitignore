@@ -48,3 +48,4 @@ nosetests.xml
 *.lprof
 *.prof
 coverage.xml
+*.tar.gz
