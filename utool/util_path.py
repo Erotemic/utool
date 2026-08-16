@@ -6,6 +6,7 @@ This module becomes nav
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from itertools import filterfalse
 import six
 from os.path import (join, basename, relpath, normpath, split, isdir, isfile,
@@ -22,12 +23,9 @@ from utool.util_regex import extend_regex
 from utool import util_dbg
 from utool import util_progress
 from utool._internal import meta_util_path
-from utool import util_inject
 from utool import util_arg
 from utool import util_str
 from utool._internal.meta_util_arg import NO_ASSERTS, VERBOSE, VERYVERBOSE, QUIET
-print, rrr, profile = util_inject.inject2(__name__)
-print_ = util_inject.make_module_write_func(__name__)
 
 try:
     import pathlib
@@ -241,15 +239,15 @@ def remove_file(fpath, verbose=None, ignore_errors=True, dryrun=False,
         verbose = not quiet
     if dryrun:
         if verbose:
-            print('[util_path] Dryrem %r' % fpath)
+            logger.info('[util_path] Dryrem %r' % fpath)
         return
     else:
         try:
             os.remove(fpath)
             if verbose:
-                print('[util_path] Removed %r' % fpath)
+                logger.info('[util_path] Removed %r' % fpath)
         except OSError:
-            print('[util_path.remove_file] Misrem %r' % fpath)
+            logger.info('[util_path.remove_file] Misrem %r' % fpath)
             #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
             if not ignore_errors:
                 raise
@@ -290,7 +288,7 @@ def remove_dirs(dpath, verbose=None, ignore_errors=True, dryrun=False,
     if verbose is None:
         verbose = not quiet
     if verbose:
-        print('[util_path] Removing directory: %r' % dpath)
+        logger.info('[util_path] Removing directory: %r' % dpath)
     if dryrun:
         return False
     try:
@@ -374,15 +372,15 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
     if isinstance(fname_pattern_list, six.string_types):
         fname_pattern_list = [fname_pattern_list]
     if verbose > 2:
-        print('[util_path] Removing files:')
-        print('  * from dpath = %r ' % dpath)
-        print('  * with patterns = %r' % fname_pattern_list)
-        print('  * recursive = %r' % recursive)
+        logger.info('[util_path] Removing files:')
+        logger.info('  * from dpath = %r ' % dpath)
+        logger.info('  * with patterns = %r' % fname_pattern_list)
+        logger.info('  * recursive = %r' % recursive)
     num_removed, num_matched = (0, 0)
     if not exists(dpath):
         msg = ('!!! dir = %r does not exist!' % dpath)
         if verbose:
-            print(msg)
+            logger.info(msg)
         warnings.warn(msg, category=UserWarning)
     for root, dname_list, fname_list in os.walk(dpath):
         for fname_pattern in fname_pattern_list:
@@ -395,7 +393,7 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False,
         if not recursive:
             break
     if verbose > 0:
-        print('[util_path] ... Removed %d/%d files' % (num_removed, num_matched))
+        logger.info('[util_path] ... Removed %d/%d files' % (num_removed, num_matched))
     return True
 
 
@@ -407,12 +405,12 @@ def delete(path, dryrun=False, recursive=True, verbose=None, print_exists=True,
         if not QUIET:
             verbose = 1
     if verbose > 0:
-        print('[util_path] Deleting path=%r' % path)
+        logger.info('[util_path] Deleting path=%r' % path)
     exists_flag = exists(path)
     link_flag = islink(path)
     if not exists_flag and not link_flag:
         if print_exists and verbose:
-            print('..does not exist!')
+            logger.info('..does not exist!')
         flag = False
     else:
         rmargs = dict(verbose=verbose > 1, ignore_errors=ignore_errors,
@@ -430,7 +428,7 @@ def delete(path, dryrun=False, recursive=True, verbose=None, print_exists=True,
         else:
             raise ValueError('Unknown type of path=%r' % (path,))
         if verbose > 0:
-            print('[util_path] Finished deleting path=%r' % path)
+            logger.info('[util_path] Finished deleting path=%r' % path)
     return flag
 
 
@@ -440,20 +438,20 @@ def remove_existing_fpaths(fpath_list, verbose=VERBOSE, quiet=QUIET,
     """ checks existance before removing. then tries to remove exisint paths """
     import utool as ut
     if print_caller:
-        print(util_dbg.get_caller_name(range(1, 4)) + ' called remove_existing_fpaths')
+        logger.info(util_dbg.get_caller_name(range(1, 4)) + ' called remove_existing_fpaths')
     fpath_list_ = ut.filter_Nones(fpath_list)
     exists_list = list(map(exists, fpath_list_))
     if verbose:
         n_total = len(fpath_list)
         n_valid = len(fpath_list_)
         n_exist = sum(exists_list)
-        print('[util_path.remove_existing_fpaths] request delete of %d %s' % (
+        logger.info('[util_path.remove_existing_fpaths] request delete of %d %s' % (
             n_total, lbl))
         if n_valid != n_total:
-            print(('[util_path.remove_existing_fpaths] '
+            logger.info(('[util_path.remove_existing_fpaths] '
                    'trying to delete %d/%d non None %s ') %
                   (n_valid, n_total, lbl))
-        print(('[util_path.remove_existing_fpaths] '
+        logger.info(('[util_path.remove_existing_fpaths] '
                ' %d/%d exist and need to be deleted')
               % (n_exist, n_valid))
     existing_fpath_list = ut.compress(fpath_list_, exists_list)
@@ -468,11 +466,11 @@ def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
     """
     import utool as ut
     if print_caller:
-        print(util_dbg.get_caller_name(range(1, 4)) + ' called remove_fpaths')
+        logger.info(util_dbg.get_caller_name(range(1, 4)) + ' called remove_fpaths')
     n_total = len(fpaths)
     _verbose = (not quiet and n_total > 0) or VERYVERBOSE
     if _verbose:
-        print('[util_path.remove_fpaths] try removing %d %s' % (n_total, lbl))
+        logger.info('[util_path.remove_fpaths] try removing %d %s' % (n_total, lbl))
     n_removed = 0
     prog = ut.ProgIter(fpaths, label='removing files', enabled=verbose)
     _iter = iter(prog)
@@ -484,7 +482,7 @@ def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
     except OSError as ex:
         # Buf if we fail put a try in the inner loop
         if VERYVERBOSE:
-            print('WARNING: Could not remove fpath = %r' % (fpath,))
+            logger.info('WARNING: Could not remove fpath = %r' % (fpath,))
         if strict:
             util_dbg.printex(ex, 'Could not remove fpath = %r' % (fpath,),
                              iswarning=False)
@@ -495,9 +493,9 @@ def remove_fpaths(fpaths, verbose=VERBOSE, quiet=QUIET, strict=False,
                 n_removed += 1
             except OSError:
                 if VERYVERBOSE:
-                    print('WARNING: Could not remove fpath = %r' % (fpath,))
+                    logger.info('WARNING: Could not remove fpath = %r' % (fpath,))
     if _verbose:
-        print('[util_path.remove_fpaths] ... removed %d / %d %s' % (
+        logger.info('[util_path.remove_fpaths] ... removed %d / %d %s' % (
             n_removed, n_total, lbl))
     return n_removed
 
@@ -536,7 +534,7 @@ def longest_existing_path(_path):
             existing_path = _path_new
             break
         if _path_new == existing_path:
-            print('!!! [utool] This is a very illformated path indeed.')
+            logger.info('!!! [utool] This is a very illformated path indeed.')
             existing_path = ''
             break
         existing_path = _path_new
@@ -612,19 +610,19 @@ def checkpath(path_, verbose=VERYVERBOSE, n=None, info=VERYVERBOSE):
         #print_('[utool] checkpath(%r)' % (path_))
         pretty_path = path_ndir_split(path_, n)
         caller_name = util_dbg.get_caller_name(allow_genexpr=False)
-        print('[%s] checkpath(%r)' % (caller_name, pretty_path))
+        logger.info('[%s] checkpath(%r)' % (caller_name, pretty_path))
         if does_exist:
             path_type = get_path_type(path_)
             #path_type = 'file' if isfile(path_) else 'directory'
-            print('[%s] ...(%s) exists' % (caller_name, path_type,))
+            logger.info('[%s] ...(%s) exists' % (caller_name, path_type,))
         else:
-            print('[%s] ... does not exist' % (caller_name))
+            logger.info('[%s] ... does not exist' % (caller_name))
     if not does_exist and info:
         #print('[util_path]  ! Does not exist')
         _longest_path = longest_existing_path(path_)
         _longest_path_type = get_path_type(_longest_path)
-        print('[util_path] ... The longest existing path is: %r' % _longest_path)
-        print('[util_path] ... and has type %r' % (_longest_path_type,))
+        logger.info('[util_path] ... The longest existing path is: %r' % _longest_path)
+        logger.info('[util_path] ... and has type %r' % (_longest_path_type,))
     return does_exist
 
 
@@ -657,7 +655,7 @@ def ensuredir(path_, verbose=None, info=False, mode=0o1777):
         path_ = str(path_)
     if not checkpath(path_, verbose=verbose, info=info):
         if verbose:
-            print('[util_path] mkdir(%r)' % path_)
+            logger.info('[util_path] mkdir(%r)' % path_)
         try:
             os.makedirs(normpath(path_), mode=mode)
         except OSError as ex:
@@ -692,7 +690,7 @@ def touch(fpath, times=None, verbose=True):
     """
     try:
         if verbose:
-            print('[util_path] touching %r' % fpath)
+            logger.info('[util_path] touching %r' % fpath)
         with open(fpath, 'a'):
             os.utime(fpath, times)
     except Exception as ex:
@@ -739,9 +737,9 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
     from utool import util_parallel
 
     if verbose:
-        print('[util_path] +--- COPYING FILES ---')
-        print('[util_path]  * len(src_fpath_list) = %r' % (len(src_fpath_list)))
-        print('[util_path]  * dst_dpath = %r' % (dst_dpath,))
+        logger.info('[util_path] +--- COPYING FILES ---')
+        logger.info('[util_path]  * len(src_fpath_list) = %r' % (len(src_fpath_list)))
+        logger.info('[util_path]  * dst_dpath = %r' % (dst_dpath,))
 
     if dst_fpath_list is None:
         ensuredir(dst_dpath, verbose=veryverbose)
@@ -753,7 +751,7 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
 
     exists_list = list(map(exists, dst_fpath_list))
     if verbose:
-        print('[util_path]  * %d files already exist dst_dpath' % (
+        logger.info('[util_path]  * %d files already exist dst_dpath' % (
             sum(exists_list),))
     if not overwrite:
         notexists_list = util_list.not_list(exists_list)
@@ -770,9 +768,9 @@ def copy_files_to(src_fpath_list, dst_dpath=None, dst_fpath_list=None,
 
     #success_list = copy_list(src_fpath_list_, dst_fpath_list_)
     if verbose:
-        print('[util_path]  * Copied %d / %d' % (sum(success_list),
+        logger.info('[util_path]  * Copied %d / %d' % (sum(success_list),
                                                  len(src_fpath_list)))
-        print('[util_path] L___ DONE COPYING FILES ___')
+        logger.info('[util_path] L___ DONE COPYING FILES ___')
 
 
 def copy(src, dst, overwrite=True, deeplink=True, verbose=True, dryrun=False):
@@ -810,37 +808,37 @@ def copy_single(src, dst, overwrite=True, verbose=True, deeplink=True,
                 if overwrite:
                     prefix = 'C+O'
                     if verbose:
-                        print('[util_path] [Copying + Overwrite]:')
+                        logger.info('[util_path] [Copying + Overwrite]:')
                 else:
                     prefix = 'Skip'
                     if verbose:
-                        print('[%s] ->%s' % (prefix, dst))
+                        logger.info('[%s] ->%s' % (prefix, dst))
                     return
             else:
                 prefix = 'C'
                 if verbose:
                     if dryrun:
-                        print('[util_path] [DryRun]: ')
+                        logger.info('[util_path] [DryRun]: ')
                     else:
-                        print('[util_path] [Copying]: ')
+                        logger.info('[util_path] [Copying]: ')
             if verbose:
-                print('[%s] | %s' % (prefix, src))
-                print('[%s] ->%s' % (prefix, dst))
+                logger.info('[%s] | %s' % (prefix, src))
+                logger.info('[%s] ->%s' % (prefix, dst))
             if not dryrun:
                 if not deeplink and islink(src):
                     linkto = os.readlink(src)
                     symlink(linkto, dst)
                 elif isdir(src):
-                    print('isdir')
+                    logger.info('isdir')
                     shutil.copytree(src, dst)
                 else:
                     shutil.copy2(src, dst)
         else:
             prefix = 'Miss'
             if verbose:
-                print('[util_path] [Cannot Copy]: ')
-                print('[%s] src=%s does not exist!' % (prefix, src))
-                print('[%s] dst=%s' % (prefix, dst))
+                logger.info('[util_path] [Cannot Copy]: ')
+                logger.info('[%s] src=%s does not exist!' % (prefix, src))
+                logger.info('[%s] dst=%s' % (prefix, dst))
     except Exception as ex:
         from utool import util_dbg
         util_dbg.printex(ex, 'Error copying single', keys=['src', 'dst'])
@@ -896,14 +894,14 @@ def copy_list(src_list, dst_list, lbl='Copying',
 
 def move(src, dst, verbose=True):
     if verbose:
-        print('[path] [Moving]: ')
-        print('[path] | {}'.format(src))
-        print('[path] ->{}'.format(dst))
+        logger.info('[path] [Moving]: ')
+        logger.info('[path] | {}'.format(src))
+        logger.info('[path] ->{}'.format(dst))
     try:
         shutil.move(src, dst)
     except OSError:
         if verbose:
-            print('[path] move failed')
+            logger.info('[path] move failed')
         return False
     else:
         return True
@@ -1049,13 +1047,13 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
     """
     from utool import util_iter
     if kwargs.get('verbose', False):  # log what i'm going to do
-        print('[util_path] glob(dpath=%r)' % truepath(dpath,))
+        logger.info('[util_path] glob(dpath=%r)' % truepath(dpath,))
 
     debug = False
     if pattern is None:
         # separate extract pattern from dpath
         if debug:
-            print('[iglob] parsing dpath = %r' % (dpath,))
+            logger.info('[iglob] parsing dpath = %r' % (dpath,))
         dpath_ = dpath
         dpath = longest_existing_path(dpath_)
         pattern = relpath(dpath_, dpath)
@@ -1080,8 +1078,8 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
             yield item
         raise StopIteration
     if kwargs.get('verbose', False):
-        print('[iglob] pattern = %r' % (pattern,))
-        print('[iglob] dpath = %r' % (dpath,))
+        logger.info('[iglob] pattern = %r' % (pattern,))
+        logger.info('[iglob] dpath = %r' % (dpath,))
     n_files = 0
     n_dirs  = 0
     current_depth = 0
@@ -1142,7 +1140,7 @@ def iglob(dpath, pattern=None, recursive=False, with_files=True, with_dirs=True,
             break
     if kwargs.get('verbose', False):  # log what i've done
         n_total = n_dirs + n_files
-        print('[util_path] iglob Found: %d' % (n_total))
+        logger.info('[util_path] iglob Found: %d' % (n_total))
 
 
 # --- Images ----
@@ -1692,14 +1690,14 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
     else:
         fpath_generator = fpath_list
     if verbose:
-        print('sed-ing %r' % (dpath_list,))
-        print(' * regular expression : %r' % (regexpr,))
-        print(' * replacement        : %r' % (repl,))
-        print(' * include_patterns   : %r' % (include_patterns,))
-        print(' * recursive: %r' % (recursive,))
-        print(' * force: %r' % (force,))
+        logger.info('sed-ing %r' % (dpath_list,))
+        logger.info(' * regular expression : %r' % (regexpr,))
+        logger.info(' * replacement        : %r' % (repl,))
+        logger.info(' * include_patterns   : %r' % (include_patterns,))
+        logger.info(' * recursive: %r' % (recursive,))
+        logger.info(' * force: %r' % (force,))
         from utool import util_str
-        print(' * fpath_list: %s' % (util_str.repr3(fpath_list),))
+        logger.info(' * fpath_list: %s' % (util_str.repr3(fpath_list),))
     regexpr = extend_regex(regexpr)
     #if '\x08' in regexpr:
     #    print('Remember \\x08 != \\b')
@@ -1718,9 +1716,9 @@ def sed(regexpr, repl, force=False, recursive=False, dpath_list=None,
             fpaths_changed.append(fpath)
             num_changed += len(changed_lines)
     import utool as ut
-    print('num_files_checked = %r' % (num_files_checked,))
-    print('fpaths_changed = %s' % (ut.repr3(sorted(fpaths_changed)),))
-    print('total lines changed = %r' % (num_changed,))
+    logger.info('num_files_checked = %r' % (num_files_checked,))
+    logger.info('fpaths_changed = %s' % (ut.repr3(sorted(fpaths_changed)),))
+    logger.info('total lines changed = %r' % (num_changed,))
 
 
 def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
@@ -1760,10 +1758,10 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
     new_file_lines = []
 
     if veryverbose:
-        print('[sedfile] fpath=%r' % fpath)
-        print('[sedfile] regexpr=%r' % regexpr)
-        print('[sedfile] repl=%r' % repl)
-        print('[sedfile] force=%r' % force)
+        logger.info('[sedfile] fpath=%r' % fpath)
+        logger.info('[sedfile] regexpr=%r' % regexpr)
+        logger.info('[sedfile] repl=%r' % repl)
+        logger.info('[sedfile] force=%r' % force)
 
     import utool as ut
     file_lines = ut.readfrom(fpath, aslines=True, verbose=False)
@@ -1785,9 +1783,9 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
             # Can happen on windows
             rel_fpath = fpath
 
-        print(' * %s changed %d lines in %r ' %
+        logger.info(' * %s changed %d lines in %r ' %
               (['(dry-run)', '(real-run)'][force], n_changed, rel_fpath))
-        print(' * --------------------')
+        logger.info(' * --------------------')
         import utool as ut
         new_file_lines = ut.lmap(ut.ensure_unicode, new_file_lines)
         new_file = ''.join(new_file_lines)
@@ -1802,26 +1800,25 @@ def sedfile(fpath, regexpr, repl, force=False, verbose=True, veryverbose=False):
                 changed_new, changed_old = zip(*changed_lines)
                 prefixold = ' * old (%d, %r):  \n | ' % (n_changed, name)
                 prefixnew = ' * new (%d, %r):  \n | ' % (n_changed, name)
-                print(prefixold + (' | '.join(changed_old)).strip('\n'))
-                print(' * ____________________')
-                print(prefixnew + (' | '.join(changed_new)).strip('\n'))
-                print(' * --------------------')
-                print(' * =====================================================')
+                logger.info(prefixold + (' | '.join(changed_old)).strip('\n'))
+                logger.info(' * ____________________')
+                logger.info(prefixnew + (' | '.join(changed_new)).strip('\n'))
+                logger.info(' * --------------------')
+                logger.info(' * =====================================================')
         # Write back to file
         if force:
-            print(' ! WRITING CHANGES')
+            logger.info(' ! WRITING CHANGES')
             ut.writeto(fpath, new_file)
             # with open(fpath, 'w') as file:
             #     file.write(new_file.encode('utf8'))
         else:
-            print(' dry run')
+            logger.info(' dry run')
         return changed_lines
     #elif verbose:
     #    print('Nothing changed')
     return None
 
 
-#@profile
 def grepfile(fpath, regexpr_list, reflags=0, cache=None):
     """
     grepfile - greps a specific file
@@ -1975,7 +1972,6 @@ def testgrep():
 
 
 # FIXME: util_test can't find the function if profile is enabled
-#@profile
 def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
          exclude_dirs=[], greater_exclude_dirs=None, inverse=False,
          exclude_patterns=[], verbose=VERBOSE, fpath_list=None, reflags=0,
@@ -2030,9 +2026,9 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
         dpath_list = [os.getcwd()]
     if verbose:
         recursive_stat_str = ['flat', 'recursive'][recursive]
-        print('[util_path] Greping (%s) %r for %r' % (recursive_stat_str,
+        logger.info('[util_path] Greping (%s) %r for %r' % (recursive_stat_str,
                                                       dpath_list, regex_list))
-        print('[util_path] regex_list = %s' % (regex_list))
+        logger.info('[util_path] regex_list = %s' % (regex_list))
     if isinstance(regex_list, six.string_types):
         regex_list = [regex_list]
     found_fpath_list = []
@@ -2077,11 +2073,11 @@ def grep(regex_list, recursive=True, dpath_list=None, include_patterns=None,
 
     grep_result = (found_fpath_list, found_lines_list, found_lxs_list)
     if verbose:
-        print('==========')
-        print('==========')
-        print('[util_path] found matches in %d files' %
+        logger.info('==========')
+        logger.info('==========')
+        logger.info('[util_path] found matches in %d files' %
               len(found_fpath_list))
-        print(make_grep_resultstr(grep_result, extended_regex_list, reflags))
+        logger.info(make_grep_resultstr(grep_result, extended_regex_list, reflags))
         # print('[util_path] found matches in %d files' % len(found_fpath_list))
 
         # pat = util_regex.regex_or(extended_regex_list)
@@ -2189,7 +2185,7 @@ def expand_win32_shortname(path1):
         # If the path doesnt exist windows doesnt return anything
         path2 = buf.value if len(buf.value) > 0 else path1
     except Exception as ex:
-        print(ex)
+        logger.info(ex)
         util_dbg.printex(ex, 'cannot fix win32 shortcut', keys=['path1', 'path2'])
         path2 = path1
         #raise
@@ -2363,9 +2359,9 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, debug=Fa
                 lib_fpath = normpath(join(lib_dpath, lib_fname))
                 if exists(lib_fpath):
                     if verbose:
-                        print('\n[c] Checked: '.join(tried_fpaths))
+                        logger.info('\n[c] Checked: '.join(tried_fpaths))
                     if debug:
-                        print('using: %r' % lib_fpath)
+                        logger.info('using: %r' % lib_fpath)
                     return lib_fpath
                 else:
                     # Remember which candiate library fpaths did not exist
@@ -2382,8 +2378,8 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False, debug=Fa
     msg = ('\n[C!] load_clib(libname=%r root_dir=%r, recurse_down=%r, verbose=%r)' %
            (libname, root_dir, recurse_down, verbose) +
            '\n[c!] Cannot FIND dynamic library')
-    print(msg)
-    print('\n[c!] Checked: '.join(tried_fpaths))
+    logger.info(msg)
+    logger.info('\n[c!] Checked: '.join(tried_fpaths))
     raise ImportError(msg)
 
 
@@ -2426,18 +2422,18 @@ class ChdirContext(object):
     def __enter__(self):
         if self.dpath is not None:
             if self.verbose:
-                print('[path.push] Change directory to %r' % (self.dpath,))
+                logger.info('[path.push] Change directory to %r' % (self.dpath,))
             os.chdir(self.dpath)
         return self
 
     def __exit__(self, type_, value, trace):
         if not self.stay:
             if self.verbose:
-                print('[path.pop] Change directory to %r' % (self.curdir,))
+                logger.info('[path.pop] Change directory to %r' % (self.curdir,))
             os.chdir(self.curdir)
         if trace is not None:
             if self.verbose or VERBOSE:
-                print('[util_path] Error in chdir context manager!: ' + str(value))
+                logger.info('[util_path] Error in chdir context manager!: ' + str(value))
             return False  # return a falsey value on error
 
 
@@ -2502,7 +2498,7 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None,
         verbose = 0 if QUIET else 1
 
     if verbose >= 1:
-        print('[search_candidate_paths] Searching for candidate paths')
+        logger.info('[search_candidate_paths] Searching for candidate paths')
 
     if candidate_name_list is not None:
         candidate_path_list_ = [join(dpath, fname) for dpath, fname in
@@ -2518,24 +2514,24 @@ def search_candidate_paths(candidate_path_list, candidate_name_list=None,
     for path in candidate_path_list_:
         if path is not None and exists(path):
             if verbose >= 2:
-                print('[search_candidate_paths] Found candidate directory %r' % (path,))
-                print('[search_candidate_paths] ... checking for approprate structure')
+                logger.info('[search_candidate_paths] Found candidate directory %r' % (path,))
+                logger.info('[search_candidate_paths] ... checking for approprate structure')
             # tomcat directory exists. Make sure it also contains a webapps dir
             subpath_list = [join(path, subpath) for subpath in required_subpaths]
             if all(ut.checkpath(path_, verbose=verbose) for path_ in subpath_list):
                 return_path = path
                 if verbose >= 2:
-                    print('[search_candidate_paths] Found acceptable path')
+                    logger.info('[search_candidate_paths] Found acceptable path')
                 return return_path
                 break
     if verbose >= 1:
-        print('[search_candidate_paths] Failed to find acceptable path')
+        logger.info('[search_candidate_paths] Failed to find acceptable path')
     return return_path
 
 
 def sanitize_filename(fname):
     from utool import util_str
-    print('fname = %r' % (fname,))
+    logger.info('fname = %r' % (fname,))
     invalid_sep_chars = ['/', '\\']
     ugly_space_chars = [' ', '\t', '\n', '\r']
     fname = util_str.multi_replace(fname, invalid_sep_chars, '-')
@@ -2645,20 +2641,20 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise',
     path = normpath(real_path)
     link = normpath(link_path)
     if verbose:
-        print('[util_path] Creating symlink: path={} link={}'.format(path, link))
+        logger.info('[util_path] Creating symlink: path={} link={}'.format(path, link))
     if os.path.islink(link):
         if verbose:
-            print('[util_path] symlink already exists')
+            logger.info('[util_path] symlink already exists')
         os_readlink = getattr(os, "readlink", None)
         if callable(os_readlink):
             if os_readlink(link) == path:
                 if verbose > 1:
-                    print('[path] ... and points to the right place')
+                    logger.info('[path] ... and points to the right place')
                 return link
         else:
-            print('[util_path] Warning, symlinks are not implemented on windows')
+            logger.info('[util_path] Warning, symlinks are not implemented on windows')
         if verbose > 1:
-            print('[util_path] ... but it points somewhere else')
+            logger.info('[util_path] ... but it points somewhere else')
         if overwrite:
             delete(link, verbose > 1)
         elif on_error == 'ignore':
@@ -2730,7 +2726,7 @@ def remove_broken_links(dpath, verbose=True):
     num_broken = len(broken_links)
     if verbose:
         if verbose > 1 or num_broken > 0:
-            print('[util_path] Removing %d broken links in %r' % (num_broken, dpath,))
+            logger.info('[util_path] Removing %d broken links in %r' % (num_broken, dpath,))
     for link in broken_links:
         os.unlink(link)
     return num_broken

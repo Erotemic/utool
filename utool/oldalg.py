@@ -3,6 +3,7 @@
 #
 # TODO:  move library intensive functions to vtool
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 from utool import util_inject
 try:
@@ -17,7 +18,6 @@ try:
     HAVE_SCIPY = True
 except ImportError:
     HAVE_SCIPY = False
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 unicode = six.text_type
@@ -230,7 +230,7 @@ def bayesnet():
 
     cpd = score_cpds[0]
     def print_cpd(cpd):
-        print('CPT: %r' % (cpd,))
+        logger.info('CPT: %r' % (cpd,))
         index = semtype2_nice[cpd.semtype]
         if cpd.evidence is None:
             columns = ['None']
@@ -238,11 +238,11 @@ def bayesnet():
             basis_lists = [semtype2_nice[var2_cpd[ename].semtype] for ename in cpd.evidence]
             columns = [','.join(x) for x in ut.iprod(*basis_lists)]
         data = cpd.get_cpd()
-        print(pd.DataFrame(data, index=index, columns=columns))
+        logger.info(pd.DataFrame(data, index=index, columns=columns))
 
     for cpd in name_model.get_cpds():
-        print('----')
-        print(cpd._str('phi'))
+        logger.info('----')
+        logger.info(cpd._str('phi'))
         print_cpd(cpd)
 
     # --- INFERENCE ---
@@ -276,7 +276,7 @@ def bayesnet():
             nice_basis = ['%s=%s' % (varname, val) for val in _nice_basis]
             nice_basis_lists.append(nice_basis)
         row_lbls = [', '.join(sorted(x)) for x in zip(*nice_basis_lists)]
-        print(ut.repr3(dict(zip(row_lbls, values)), precision=3, align=True, key_order_metric='-val'))
+        logger.info(ut.repr3(dict(zip(row_lbls, values)), precision=3, align=True, key_order_metric='-val'))
 
     # name_belief = BeliefPropagation(name_model)
     name_belief = VariableElimination(name_model)
@@ -284,18 +284,18 @@ def bayesnet():
     import six  # NOQA
 
     def try_query(evidence):
-        print('--------')
+        logger.info('--------')
         query_vars = ut.setdiff_ordered(varnames, list(evidence.keys()))
         evidence_str = ', '.join(pretty_evidence(evidence))
         probs = name_belief.query(query_vars, evidence)
         factor_list = probs.values()
         joint_factor = pgmpy.factors.factor_product(*factor_list)
-        print('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ')')
+        logger.info('P(' + ', '.join(query_vars) + ' | ' + evidence_str + ')')
         # print(six.text_type(joint_factor))
         factor = joint_factor  # NOQA
         # print_factor(factor)
         # import utool as ut
-        print(ut.hz_str([(f._str(phi_or_p='phi')) for f in factor_list]))
+        logger.info(ut.hz_str([(f._str(phi_or_p='phi')) for f in factor_list]))
 
     for evidence in evidence_dict:
         try_query(evidence)
@@ -311,9 +311,9 @@ def bayesnet():
     globals()['score_basis'] = score_basis
     globals()['nid_basis'] = nid_basis
 
-    print('Independencies')
-    print(name_model.get_independencies())
-    print(name_model.local_independencies([Ni.variable]))
+    logger.info('Independencies')
+    logger.info(name_model.get_independencies())
+    logger.info(name_model.local_independencies([Ni.variable]))
 
     # name_belief = BeliefPropagation(name_model)
     # # name_belief = VariableElimination(name_model)

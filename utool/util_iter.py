@@ -8,7 +8,6 @@ from functools import reduce
 from itertools import zip_longest
 from utool import util_inject
 from utool._internal import meta_util_iter
-print, rrr, profile = util_inject.inject2(__name__)
 
 ensure_iterable = meta_util_iter.ensure_iterable
 isiterable = meta_util_iter.isiterable

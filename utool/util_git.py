@@ -6,6 +6,7 @@ TODO: export from utool
 """
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import sys
 import os
 import re
@@ -17,21 +18,19 @@ from utool import util_class
 from utool import util_path
 from utool import util_decor
 from utool import util_list
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def _syscmd(cmdstr):
-    print('RUN> ' + cmdstr)
+    logger.info('RUN> ' + cmdstr)
     os.system(cmdstr)
 
 
 def _cd(dir_):
     dir_ = util_path.truepath(dir_)
-    print('> cd ' + dir_)
+    logger.info('> cd ' + dir_)
     os.chdir(dir_)
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
 class RepoManager(util_dev.NiceRepr):
     """
     Batch git operations on multiple repos
@@ -78,7 +77,7 @@ class RepoManager(util_dev.NiceRepr):
         raise KeyError(name)
 
     def ensure(rman):
-        print('Ensuring that respos are checked out')
+        logger.info('Ensuring that respos are checked out')
         for repo in rman.repos:
             if repo.url is not None:
                 repo.clone()
@@ -99,21 +98,21 @@ class RepoManager(util_dev.NiceRepr):
 
     def issue(rman, command, sudo=False):
         """ Runs a command on all of managed repos """
-        print('+------- GG_COMMAND -------')
-        print('| sudo=%s' % sudo)
-        print('| command=%s' % command)
+        logger.info('+------- GG_COMMAND -------')
+        logger.info('| sudo=%s' % sudo)
+        logger.info('| command=%s' % command)
         for repo in rman.repos:
             if exists(repo.dpath):
                 repo.issue(command, sudo=sudo)
             else:
-                print('Repo %r not found' % (repo,))
-        print('L___ FINISHED GG_COMMAND ___')
+                logger.info('Repo %r not found' % (repo,))
+        logger.info('L___ FINISHED GG_COMMAND ___')
 
     def check_importable(rman):
         import utool as ut
         label = ' %s' % rman.label if rman.label else rman.label
         missing = []
-        print('Checking if%s modules are importable' % (label,))
+        logger.info('Checking if%s modules are importable' % (label,))
         msg_list = []
         recommended_fixes = []
         for repo in rman.repos:
@@ -130,7 +129,7 @@ class RepoManager(util_dev.NiceRepr):
             else:
                 if ut.VERBOSE:
                     msg_list.append(ut.indent(msg, '    '))
-        print('\n'.join(msg_list))
+        logger.info('\n'.join(msg_list))
         problems = list(zip(missing, recommended_fixes))
         return problems
 
@@ -139,7 +138,7 @@ class RepoManager(util_dev.NiceRepr):
         label = ' %s' % rman.label if rman.label else rman.label
         missing = []
         msg_list = []
-        print('Checking if%s modules are installed' % (label,))
+        logger.info('Checking if%s modules are installed' % (label,))
         for repo in rman.repos:
             flag, msg = repo.check_installed()
             if not flag:
@@ -149,32 +148,32 @@ class RepoManager(util_dev.NiceRepr):
                 missing.append(repo)
             # else:
             #     print('  * found%s module = %s' % (label, repo,))
-        print('\n'.join(msg_list))
+        logger.info('\n'.join(msg_list))
         return missing
 
     def check_cpp_build(rman):
         import utool as ut
         label = ' %s' % rman.label if rman.label else rman.label
         missing = []
-        print('Checking if%s modules are built' % (label,))
+        logger.info('Checking if%s modules are built' % (label,))
         for repo in rman.repos:
             flag, msg = repo.check_cpp_build()
             if not flag:
-                print('  * !!!%s REPO %s NEEDS TO BE BUILT' % (label.upper(), repo,))
+                logger.info('  * !!!%s REPO %s NEEDS TO BE BUILT' % (label.upper(), repo,))
                 if ut.VERBOSE:
-                    print(ut.indent(msg, '    '))
+                    logger.info(ut.indent(msg, '    '))
                 missing.append(repo)
         return missing
 
     def custom_build(rman):
-        print('Custom Build')
+        logger.info('Custom Build')
         for repo in rman.repos:
             script = repo.get_script('build')
             if script is not None:
                 script.exec_()
 
     def custom_install(rman):
-        print('Custom Install')
+        logger.info('Custom Install')
         for repo in rman.repos:
             script = repo.get_script('install')
             if script is not None:
@@ -191,7 +190,6 @@ class RepoManager(util_dev.NiceRepr):
         return rman2
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
 class Repo(util_dev.NiceRepr):
     """
     Handles a Python module repository
@@ -259,11 +257,11 @@ class Repo(util_dev.NiceRepr):
 
         # urls = list(remote.urls)
         if len(urls) == 0:
-            print('[git] WARNING: repo %r has no remote urls' % (repo,))
+            logger.info('[git] WARNING: repo %r has no remote urls' % (repo,))
             remote_info = None
         else:
             if len(urls) > 1:
-                print('[git] WARNING: repo %r has multiple urls' % (repo,))
+                logger.info('[git] WARNING: repo %r has multiple urls' % (repo,))
             url = urls[0]
             url = url.replace('github.com:/', 'github.com:')
             remote_info = {}
@@ -297,12 +295,12 @@ class Repo(util_dev.NiceRepr):
             is_ssh = '@' in wildme_url_
             incorrect_version = (is_ssh and fmt == 'https') or (not is_ssh and fmt == 'ssh')
             if incorrect_version:
-                print('  * Deleting bad version remote %r: %r' % (remote_name, remote_url))
+                logger.info('  * Deleting bad version remote %r: %r' % (remote_name, remote_url))
                 gitrepo.delete_remote(remote_name)
 
         # Ensure there is a remote under the wildme name
         if remote_name not in repo.remotes or incorrect_version:
-            print('  * Create remote %r: %r' % (remote_name, remote_url))
+            logger.info('  * Create remote %r: %r' % (remote_name, remote_url))
             gitrepo.create_remote(remote_name, remote_url)
         return incorrect_version
 
@@ -449,14 +447,14 @@ class Repo(util_dev.NiceRepr):
         repo.scripts[key] = script
 
     def clone(repo, recursive=False):
-        print('[git] check repo exists at %s' % (repo.dpath))
+        logger.info('[git] check repo exists at %s' % (repo.dpath))
         if recursive:
             args = '--recursive'
         else:
             args = ''
         if not exists(repo.dpath):
             _cd(dirname(repo.dpath))
-            print('repo.default_branch = %r' % (repo.default_branch,))
+            logger.info('repo.default_branch = %r' % (repo.default_branch,))
             if repo.default_branch is not None:
                 args += ' -b {}'.format(repo.default_branch)
             _syscmd('git clone {args} {url}'.format(args=args, url=repo.url))
@@ -490,7 +488,7 @@ class Repo(util_dev.NiceRepr):
             new_repo_url = new_repo_url.replace(old, new)
         # Inplace change
         repo.url = new_repo_url
-        print('new format repo.url = {!r}'.format(repo.url))
+        logger.info('new format repo.url = {!r}'.format(repo.url))
 
     def check_importable(repo):
         import utool as ut
@@ -566,8 +564,8 @@ class Repo(util_dev.NiceRepr):
 
             def exec_(script):
                 import utool as ut
-                print('+**** exec %s script *******' % (script.type_))
-                print('repo = %r' % (repo,))
+                logger.info('+**** exec %s script *******' % (script.type_))
+                logger.info('repo = %r' % (repo,))
                 with ut.ChdirContext(repo.dpath):
                     if script.is_fpath_valid():
                         normbuild_flag = '--no-rmbuild'
@@ -577,7 +575,7 @@ class Repo(util_dev.NiceRepr):
                             ut.cmd(script.fpath)
                     else:
                         if script.text is not None:
-                            print('ABOUT TO EXECUTE')
+                            logger.info('ABOUT TO EXECUTE')
                             ut.print_code(script.text, 'bash')
                             if ut.are_you_sure('execute above script?'):
                                 from os.path import join
@@ -589,10 +587,10 @@ class Repo(util_dev.NiceRepr):
                                 ut.writeto(script_path, script.text)
                                 _ = ut.cmd('bash ', script_path)  # NOQA
                         else:
-                            print("CANT QUITE EXECUTE THIS YET")
+                            logger.info("CANT QUITE EXECUTE THIS YET")
                             ut.print_code(script.text, 'bash')
                 #os.system(scriptname)
-                print('L**** exec %s script *******' % (script.type_))
+                logger.info('L**** exec %s script *******' % (script.type_))
 
         script = Script()
         script.text = repo.scripts.get(type_, None)
@@ -654,14 +652,14 @@ class Repo(util_dev.NiceRepr):
         command_list = ut.ensure_iterable(command)
         cmdstr = '\n        '.join([cmd_ for cmd_ in command_list])
         if not dry:
-            print('+--- *** repocmd(%s) *** ' % (cmdstr,))
-            print('repo=%s' % ut.color_text(repo.dpath, 'yellow'))
+            logger.info('+--- *** repocmd(%s) *** ' % (cmdstr,))
+            logger.info('repo=%s' % ut.color_text(repo.dpath, 'yellow'))
         verbose = True
         with repo.chdir_context():
             ret = None
             for count, cmd in enumerate(command_list):
                 if dry:
-                    print(cmd)
+                    logger.info(cmd)
                     continue
                 if not sudo or ut.WIN32:
                     # ret = os.system(cmd)
@@ -671,7 +669,7 @@ class Repo(util_dev.NiceRepr):
                     # cmdinfo = ut.cmd2('sudo ' + cmd, verbose=1)
                     out, err, ret = ut.cmd(cmd, sudo=True)
                 if verbose > 1:
-                    print('ret(%d) = %r' % (count, ret,))
+                    logger.info('ret(%d) = %r' % (count, ret,))
                 if ret != 0:
                     if error == 'raise':
                         raise Exception('Failed command %r' % (cmd,))
@@ -682,7 +680,7 @@ class Repo(util_dev.NiceRepr):
                 if return_out:
                     return out
         if not dry:
-            print('L____')
+            logger.info('L____')
 
     def chdir_context(repo, verbose=False):
         import utool as ut
@@ -735,7 +733,7 @@ class Repo(util_dev.NiceRepr):
         import utool as ut
         # parse stdout to handle the error
         if out.startswith('error: The following untracked working tree files would be overwritten'):
-            print('[ut.git] handling overwrite error')
+            logger.info('[ut.git] handling overwrite error')
             lines = out.split('\n')[1:]
             fpaths = []
             for line in lines:
@@ -782,7 +780,7 @@ class Repo(util_dev.NiceRepr):
                 suffix += ut.color_text('has untracked files', 'yellow')
             if any(msg in out for msg in needs_commit_msgs):
                 suffix += ut.color_text('has changes', 'red')
-        print(prefix + ' ' + suffix)
+        logger.info(prefix + ' ' + suffix)
 
     def python_develop(repo):
         import utool as ut
@@ -795,7 +793,7 @@ class Repo(util_dev.NiceRepr):
         return exists(gitdir) and isdir(gitdir)
 
     def pull(repo, has_submods=False):
-        print('Pulling: ' + repo.dpath)
+        logger.info('Pulling: ' + repo.dpath)
         _cd(repo.dpath)
         assert repo.is_gitrepo(), 'cannot pull a nongit repo'
         _syscmd('git pull')
@@ -945,7 +943,7 @@ def git_sequence_editor_squash(fpath):
     import utool as ut
     text = ut.read_from(fpath)
     # print('fpath = %r' % (fpath,))
-    print(text)
+    logger.info(text)
     # Doesnt work because of fixed witdth requirement
     # search = (ut.util_regex.positive_lookbehind('[a-z]* [a-z0-9]* wip\n') + 'pick ' +
     #           ut.reponamed_field('hash', '[a-z0-9]*') + ' wip')
@@ -1007,11 +1005,11 @@ def git_sequence_editor_squash(fpath):
 
     def get_commit_date(hashid):
         out = ut.cmd('git show -s --format=%ci ' + hashid, verbose=False)
-        print('out = %r' % (out,))
+        logger.info('out = %r' % (out,))
 
     # print('Dry run')
     # ut.dump_autogen_code(fpath, new_text)
-    print(new_text)
+    logger.info(new_text)
     ut.write_to(fpath, new_text, n=None)
 
 
@@ -1023,8 +1021,8 @@ def std_build_command(repo='.'):
     Calls mingw_build.bat on windows and unix_build.sh  on unix
     """
     import utool as ut
-    print('+**** stdbuild *******')
-    print('repo = %r' % (repo,))
+    logger.info('+**** stdbuild *******')
+    logger.info('repo = %r' % (repo,))
     if sys.platform.startswith('win32'):
         # vtool --rebuild-sver didnt work with this line
         #scriptname = './mingw_build.bat'
@@ -1043,7 +1041,7 @@ def std_build_command(repo='.'):
     # Execute build
     ut.cmd(scriptname)
     #os.system(scriptname)
-    print('L**** stdbuild *******')
+    logger.info('L**** stdbuild *******')
 
 
 if __name__ == '__main__':

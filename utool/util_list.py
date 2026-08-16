@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import operator
 import six
 import itertools
@@ -13,7 +14,6 @@ from utool import util_inject
 from utool import util_str
 from utool import util_type
 from utool._internal.meta_util_six import get_funcname, set_funcname
-print, rrr, profile = util_inject.inject2(__name__)
 
 if util_type.HAVE_NUMPY:
     import numpy as np
@@ -2325,7 +2325,7 @@ def debug_consec_list(list_):
         tuple of (missing_items, missing_indices, duplicate_items)
     """
     if not issorted(list_):
-        print('warning list is not sorted. indices will not match')
+        logger.info('warning list is not sorted. indices will not match')
     sortedlist = sorted(list_)
     start = sortedlist[0]
     last = start - 1
@@ -2399,7 +2399,7 @@ def isunique(items):
 def print_duplicate_map(duplicate_map, *args, **kwargs):
     # args are corresponding lists
     import utool as ut
-    printfn = kwargs.get('printfn', print)
+    printfn = kwargs.get('printfn', logger.info)
     printfn('There are %d duplicates' % (len(duplicate_map)))
     for key, index_list in six.iteritems(duplicate_map):
         printfn('item=%s appears %d times at indices: %r' % (key, len(index_list), index_list))
@@ -2415,19 +2415,19 @@ def debug_duplicate_items(items, *args, **kwargs):
     import utool as ut
     pad_stdout = kwargs.get('pad_stdout', True)
     if pad_stdout:
-        print('')
+        logger.info('')
 
     varname = ut.get_varname_from_locals(items, ut.get_parent_frame().f_locals)
-    print('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % (varname,))
+    logger.info('[util_list] +--- DEBUG DUPLICATE ITEMS  %r ---' % (varname,))
     def printfn(msg):
-        print('[util_list] |' + msg)
+        logger.info('[util_list] |' + msg)
     #with ut.Indenter('[util_list] | '):
     duplicate_map = ut.find_duplicate_items(items)
     printkw = {'printfn': printfn}
     ut.print_duplicate_map(duplicate_map, *args, **printkw)
-    print('[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---')
+    logger.info('[util_list] L--- FINISH DEBUG DUPLICATE ITEMS ---')
     if pad_stdout:
-        print('')
+        logger.info('')
     return duplicate_map
 
 

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import os
 from utool import util_inject
 from utool import util_str
-print, rrr, profile = util_inject.inject2(__name__)
 
 try:
     # Resource does not exist in win32
@@ -51,9 +51,9 @@ try:
             hardstr = util_str.byte_str2(hard) if hard != -1 else 'None'
             return '%12s, %12s' % (softstr, hardstr)
         rlim_strs = ['%8s: %s' % (lbl, rlimval_str(rlim_val)) for (lbl, rlim_val) in rlim_valtups]
-        print('Resource Limits: ')
-        print('%8s  %12s  %12s' % ('id', 'soft', 'hard'))
-        print('\n'.join(rlim_strs))
+        logger.info('Resource Limits: ')
+        logger.info('%8s  %12s  %12s' % ('id', 'soft', 'hard'))
+        logger.info('\n'.join(rlim_strs))
         return rlim_strs
 
     #def rusage_flags():
@@ -95,7 +95,7 @@ def time_str2(seconds):
 
 
 def print_resource_usage():
-    print(get_resource_usage_str())
+    logger.info(get_resource_usage_str())
 
 
 def get_resource_usage_str():
@@ -158,14 +158,14 @@ def get_matching_process_ids(cmd_pattern, user_pattern):
     filtered_proc_list = [proc for proc in process_list if matches_pattern(proc, user_pattern, cmd_pattern)]
 
     for proc in filtered_proc_list:
-        print(' | '.join([str(proc.username()), str(proc.nice()), str(proc), ' '.join(proc.cmdline())]))
+        logger.info(' | '.join([str(proc.username()), str(proc.nice()), str(proc), ' '.join(proc.cmdline())]))
         #print(proc.cmdline())
         #print(proc.pid)
         #print('---')
 
     important_process_list = [proc for proc in process_list if proc.nice() < -4]
     for proc in important_process_list:
-        print(' -- '.join([str(proc.username()), str(proc.nice()), str(proc), ' '.join(proc.cmdline())]))
+        logger.info(' -- '.join([str(proc.username()), str(proc.nice()), str(proc), ' '.join(proc.cmdline())]))
 
     #for proc in filtered_proc_list:
     #    print('---')
@@ -215,7 +215,7 @@ def used_memory():
 
 
 def memstats():
-    print(get_memstats_str())
+    logger.info(get_memstats_str())
 
 
 def get_memstats_str():

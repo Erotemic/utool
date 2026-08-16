@@ -3,6 +3,7 @@
 This module needs serious refactoring and testing
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import shelve
 import six
 import uuid
@@ -34,7 +35,6 @@ from utool import util_type
 from utool import util_decor  # NOQA
 from utool import util_dict
 from utool._internal import meta_util_constants
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 # TODO: Remove globalness
@@ -52,13 +52,12 @@ class CacheMissException(Exception):
 
 #class YACacher(object):
 # @six.add_metaclass(util_class.ReloadingMetaclass)
-@util_class.reloadable_class
 class ShelfCacher(object):
     """ yet another cacher """
     def __init__(self, fpath, enabled=True):
         self.verbose = True
         if self.verbose:
-            print('[shelfcache] initializing()')
+            logger.info('[shelfcache] initializing()')
         self.fpath = fpath
         self.shelf = None if not enabled else shelve.open(fpath)
 
@@ -76,7 +75,7 @@ class ShelfCacher(object):
 
     def load(self, cachekey):
         if self.verbose:
-            print('[shelfcache] loading %s' % (cachekey,))
+            logger.info('[shelfcache] loading %s' % (cachekey,))
 
         cachekey = cachekey.encode('ascii')
         if self.shelf is None or cachekey not in self.shelf:
@@ -87,7 +86,7 @@ class ShelfCacher(object):
 
     def save(self, cachekey, data):
         if self.verbose:
-            print('[shelfcache] saving %s' % (cachekey,))
+            logger.info('[shelfcache] saving %s' % (cachekey,))
 
         cachekey = cachekey.encode('ascii')
         if self.shelf is not None:
@@ -96,19 +95,18 @@ class ShelfCacher(object):
 
     def clear(self):
         if self.verbose:
-            print('[shelfcache] clearing cache')
+            logger.info('[shelfcache] clearing cache')
         self.shelf.clear()
         self.shelf.sync()
 
     def close(self):
         if self.verbose:
-            print('[shelfcache] closing()')
+            logger.info('[shelfcache] closing()')
         if self.shelf is not None:
             self.shelf.close()
 
 
 def get_default_appname():
-    global __APPNAME__
     return __APPNAME__
 
 
@@ -122,7 +120,7 @@ def text_dict_read(fpath):
         dict_ = eval(dict_text, {}, {})
     except SyntaxError as ex:
         import utool as ut
-        print(dict_text)
+        logger.info(dict_text)
         ut.printex(ex, 'Bad Syntax', keys=['dict_text'])
         dict_ = {}
         if util_arg.SUPER_STRICT:
@@ -140,7 +138,7 @@ def text_dict_write(fpath, dict_):
     #dict_[key] = val
     dict_text2 = util_str.repr4(dict_, strvals=False)
     if VERBOSE:
-        print('[cache] ' + str(dict_text2))
+        logger.info('[cache] ' + str(dict_text2))
     util_io.write_to(fpath, dict_text2)
 
 
@@ -223,39 +221,39 @@ def load_cache(dpath, fname, cfgstr, ext='.cPkl', verbose=None, enabled=True):
         verbose = VERBOSE_CACHE
     if not USE_CACHE or not enabled:
         if verbose > 1:
-            print('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
+            logger.info('[util_cache] ... cache disabled: dpath=%s cfgstr=%r' %
                     (basename(dpath), cfgstr,))
         raise IOError(3, 'Cache Loading Is Disabled')
     fpath = _args2_fpath(dpath, fname, cfgstr, ext)
     if not exists(fpath):
         if verbose > 0:
-            print('[util_cache] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
+            logger.info('[util_cache] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
                 basename(dpath), fname, cfgstr,))
         raise IOError(2, 'No such file or directory: %r' % (fpath,))
     else:
         if verbose > 2:
-            print('[util_cache] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
+            logger.info('[util_cache] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
                 basename(dpath), fname, cfgstr,))
         import utool as ut
         nbytes = ut.get_file_nBytes(fpath)
         big_verbose = (nbytes > 1E6 and verbose > 2) or verbose > 2
         if big_verbose:
-            print('[util_cache] About to read file of size %s' % (ut.byte_str2(nbytes),))
+            logger.info('[util_cache] About to read file of size %s' % (ut.byte_str2(nbytes),))
     try:
         with ut.Timer(fpath, verbose=big_verbose and verbose > 3):
             data = util_io.load_data(fpath, verbose=verbose > 2)
     except (EOFError, IOError, ImportError) as ex:
-        print('CORRUPTED? fpath = %s' % (fpath,))
+        logger.info('CORRUPTED? fpath = %s' % (fpath,))
         if verbose > 1:
-            print('[util_cache] ... cache miss dpath=%s cfgstr=%r' % (
+            logger.info('[util_cache] ... cache miss dpath=%s cfgstr=%r' % (
                 basename(dpath), cfgstr,))
         raise IOError(str(ex))
     except Exception:
-        print('CORRUPTED? fpath = %s' % (fpath,))
+        logger.info('CORRUPTED? fpath = %s' % (fpath,))
         raise
     else:
         if verbose > 2:
-            print('[util_cache] ... cache hit')
+            logger.info('[util_cache] ... cache hit')
     return data
 
 
@@ -269,7 +267,6 @@ def tryload_cache(dpath, fname, cfgstr, verbose=None):
         return None
 
 
-@profile
 def tryload_cache_list(dpath, fname, cfgstr_list, verbose=False):
     """
     loads a list of similar cached datas. Returns flags that needs to be computed
@@ -279,7 +276,6 @@ def tryload_cache_list(dpath, fname, cfgstr_list, verbose=False):
     return data_list, ismiss_list
 
 
-@profile
 def tryload_cache_list_with_compute(use_cache, dpath, fname, cfgstr_list,
                                     compute_fn, *args):
     """
@@ -301,7 +297,7 @@ def tryload_cache_list_with_compute(use_cache, dpath, fname, cfgstr_list,
         newdata_list = compute_fn(ismiss_list, *args)
         newcfgstr_list = util_list.compress(cfgstr_list, ismiss_list)
         index_list = util_list.list_where(ismiss_list)
-        print('[cache] %d/%d cache hits for %s in %s' % (num_total -
+        logger.info('[cache] %d/%d cache hits for %s in %s' % (num_total -
                                                          len(index_list),
                                                          num_total, fname,
                                                          util_path.tail(dpath)))
@@ -312,7 +308,7 @@ def tryload_cache_list_with_compute(use_cache, dpath, fname, cfgstr_list,
         for index, newdata in zip(index_list, newdata_list):
             data_list[index] = newdata
     else:
-        print('[cache] %d/%d cache hits for %s in %s' % (num_total, num_total,
+        logger.info('[cache] %d/%d cache hits for %s in %s' % (num_total, num_total,
                                                          fname,
                                                          util_path.tail(dpath)))
     return data_list
@@ -368,7 +364,7 @@ class Cacher(object):
         data = load_cache(self.dpath, self.fname, cfgstr, self.ext,
                           verbose=self.verbose, enabled=self.enabled)
         if self.verbose > 1:
-            print('[cache] ... ' + self.fname + ' Cacher hit')
+            logger.info('[cache] ... ' + self.fname + ' Cacher hit')
         return data
 
     def tryload(self, cfgstr=None):
@@ -385,17 +381,17 @@ class Cacher(object):
         #     'must specify cfgstr in constructor or call')
         if not self.enabled:
             if self.verbose > 0:
-                print('[cache] ... %s Cacher disabled' % (self.fname))
+                logger.info('[cache] ... %s Cacher disabled' % (self.fname))
             return None
         try:
             if self.verbose > 1:
-                print('[cache] tryload fname=%s' % (self.fname,))
+                logger.info('[cache] tryload fname=%s' % (self.fname,))
                 # if self.verbose > 2:
                 #     print('[cache] cfgstr=%r' % (cfgstr,))
             return self.load(cfgstr)
         except IOError:
             if self.verbose > 0:
-                print('[cache] ... %s Cacher miss' % (self.fname))
+                logger.info('[cache] ... %s Cacher miss' % (self.fname))
 
     def ensure(self, func, *args, **kwargs):
         data = self.tryload()
@@ -416,7 +412,7 @@ class Cacher(object):
         assert self.fname is not None, 'no fname'
         assert self.dpath is not None, 'no dpath'
         if self.verbose > 0:
-            print('[cache] ... ' + self.fname + ' Cacher save')
+            logger.info('[cache] ... ' + self.fname + ' Cacher save')
         save_cache(self.dpath, self.fname, cfgstr, data, self.ext)
 
 
@@ -855,7 +851,7 @@ def cached_func(fname=None, cache_dir='default', appname='utool', key_argx=None,
             """
             try:
                 if verbose > 2:
-                    print('[util_cache] computing cached function fname_=%s' %
+                    logger.info('[util_cache] computing cached function fname_=%s' %
                           ( fname_,))
                 # Implicitly adds use_cache to kwargs
                 cfgstr = get_cfgstr_from_args(func, args, kwargs, key_argx,
@@ -968,7 +964,7 @@ class GlobalShelfContext(object):
         try:
             shelf_fpath = get_global_shelf_fpath(self.appname, ensure=True)
             if VERBOSE:
-                print('[cache] open: ' + shelf_fpath)
+                logger.info('[cache] open: ' + shelf_fpath)
             self.shelf = shelve.open(shelf_fpath)
         except DBMError as ex:
             from utool import util_dbg
@@ -987,7 +983,7 @@ class GlobalShelfContext(object):
     def __exit__(self, type_, value, trace):
         self.shelf.close()
         if trace is not None:
-            print('[cache] Error under GlobalShelfContext!: ' + str(value))
+            logger.info('[cache] Error under GlobalShelfContext!: ' + str(value))
             return False  # return a falsey value on error
         #close_global_shelf(self.appname)
 
@@ -1002,9 +998,9 @@ def global_cache_read(key, appname='default', **kwargs):
 
 def global_cache_dump(appname='default'):
     shelf_fpath = get_global_shelf_fpath(appname)
-    print('shelf_fpath = %r' % shelf_fpath)
+    logger.info('shelf_fpath = %r' % shelf_fpath)
     with GlobalShelfContext(appname) as shelf:
-        print(util_str.repr4(shelf))
+        logger.info(util_str.repr4(shelf))
 
 
 def global_cache_write(key, val, appname='default'):
@@ -1079,10 +1075,9 @@ class Cachable(object):
         """
         fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
-            print('[Cachable] cache delete: %r' % (basename(fpath),))
+            logger.info('[Cachable] cache delete: %r' % (basename(fpath),))
         os.remove(fpath)
 
-    @profile
     def save(self, cachedir=None, cfgstr=None, verbose=VERBOSE, quiet=QUIET,
              ignore_keys=None):
         """
@@ -1090,7 +1085,7 @@ class Cachable(object):
         """
         fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
-            print('[Cachable] cache save: %r' % (basename(fpath),))
+            logger.info('[Cachable] cache save: %r' % (basename(fpath),))
 
         if hasattr(self, '__getstate__'):
             statedict = self.__getstate__()
@@ -1144,7 +1139,6 @@ class Cachable(object):
         fpath = valid_targets[0]
         self.load(fpath=fpath, **kwargs)
 
-    @profile
     def load(self, cachedir=None, cfgstr=None, fpath=None, verbose=None,
              quiet=QUIET, ignore_keys=None):
         """
@@ -1155,22 +1149,22 @@ class Cachable(object):
         if fpath is None:
             fpath = self.get_fpath(cachedir, cfgstr=cfgstr)
         if verbose:
-            print('[Cachable] cache tryload: %r' % (basename(fpath),))
+            logger.info('[Cachable] cache tryload: %r' % (basename(fpath),))
         try:
             self._unsafe_load(fpath, ignore_keys)
             if verbose:
-                print('... self cache hit: %r' % (basename(fpath),))
+                logger.info('... self cache hit: %r' % (basename(fpath),))
         except ValueError as ex:
             import utool as ut
             msg = '[!Cachable] Cachable(%s) is likely corrupt' % (self.get_cfgstr())
-            print('CORRUPT fpath = %s' % (fpath,))
+            logger.info('CORRUPT fpath = %s' % (fpath,))
             ut.printex(ex, msg, iswarning=True)
             raise
         #except BadZipFile as ex:
         except zipfile.error as ex:
             import utool as ut
             msg = '[!Cachable] Cachable(%s) has bad zipfile' % (self.get_cfgstr())
-            print('CORRUPT fpath = %s' % (fpath,))
+            logger.info('CORRUPT fpath = %s' % (fpath,))
             ut.printex(ex, msg, iswarning=True)
             raise
             #if exists(fpath):
@@ -1184,9 +1178,9 @@ class Cachable(object):
             if not exists(fpath):
                 msg = '... self cache miss: %r' % (basename(fpath),)
                 if verbose:
-                    print(msg)
+                    logger.info(msg)
                 raise
-            print('CORRUPT fpath = %s' % (fpath,))
+            logger.info('CORRUPT fpath = %s' % (fpath,))
             msg = '[!Cachable] Cachable(%s) is corrupt' % (self.get_cfgstr())
             ut.printex(ex, msg, iswarning=True)
             raise
@@ -1424,7 +1418,6 @@ class KeyedDefaultDict(util_dict.DictLike):
 
 
 # @six.add_metaclass(util_class.ReloadingMetaclass)
-@util_class.reloadable_class
 class LazyDict(object):
     #class LazyDict(collections.Mapping):
     """
@@ -1517,7 +1510,7 @@ class LazyDict(object):
             value  = self._stored_results[key]
         else:
             if self._verbose:
-                print('[util_cache] Evaluating key=%r' % (key,))
+                logger.info('[util_cache] Evaluating key=%r' % (key,))
             value = self.nocache_eval(key)
             self._stored_results[key] = value
         return value
@@ -1567,10 +1560,10 @@ class LazyDict(object):
         return set(self.nonreconstructable_keys()).union(set(self.evaluated_keys()))
 
     def printinfo(self):
-        print('nonreconstructable_keys = %s' % (self.nonreconstructable_keys(),))
-        print('reconstructable_keys = %s' % (self.reconstructable_keys(),))
-        print('evaluated_keys = %s' % (self.evaluated_keys(),))
-        print('unevaluated_keys = %s' % (self.unevaluated_keys(),))
+        logger.info('nonreconstructable_keys = %s' % (self.nonreconstructable_keys(),))
+        logger.info('reconstructable_keys = %s' % (self.reconstructable_keys(),))
+        logger.info('evaluated_keys = %s' % (self.evaluated_keys(),))
+        logger.info('unevaluated_keys = %s' % (self.unevaluated_keys(),))
 
     def asdict(self, is_eager=None):
         dict_ = {key: self.getitem(key, is_eager) for key in self.keys()}
@@ -1659,7 +1652,6 @@ class LazyDict(object):
     #    self._stored_results.update(state_dict)
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
 class LazyList(object):
     """ very hacky list implemented as a dictionary """
     def __init__(self, **kwargs):

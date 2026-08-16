@@ -3,6 +3,7 @@
 cross platform utilities
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import os
 import six
 import sys
@@ -10,11 +11,8 @@ import platform
 import subprocess
 import shlex
 from os.path import exists, normpath, basename, dirname, join, expanduser
-from utool import util_inject
 from utool._internal import meta_util_cplat
 from utool._internal.meta_util_path import unixpath, truepath
-print, rrr, profile = util_inject.inject2(__name__)
-print_ = util_inject.make_module_write_func(__name__)
 
 try:
     import pathlib
@@ -271,7 +269,7 @@ def print_dir_diskspace(dir_):
     fmtstr = ('%' + str(n) + 's')
     space_list2 = [fmtstr % space for space in space_list]
     tupstr_list = ['%s %s' % (space2, path) for space2, path in zip(space_list2, path_list)]
-    print('\n'.join(tupstr_list))
+    logger.info('\n'.join(tupstr_list))
 
 
 def get_lib_ext():
@@ -467,7 +465,7 @@ def startfile(fpath, detatch=True, quote=False, verbose=False, quiet=True):
         http://stackoverflow.com/questions/2692873/quote-posix-shell-special-characters-in-python-output
 
     """
-    print('[cplat] startfile(%r)' % fpath)
+    logger.info('[cplat] startfile(%r)' % fpath)
     fpath = normpath(fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
@@ -499,7 +497,7 @@ def editfile(fpath):
     """ Runs gvim. Can also accept a module / class / function """
     if not isinstance(fpath, six.string_types):
         from six import types
-        print('Rectify to module fpath = %r' % (fpath,))
+        logger.info('Rectify to module fpath = %r' % (fpath,))
         if isinstance(fpath, types.ModuleType):
             fpath = fpath.__file__
         else:
@@ -508,7 +506,7 @@ def editfile(fpath):
         if exists(fpath_py):
             fpath = fpath_py
 
-    print('[cplat] startfile(%r)' % fpath)
+    logger.info('[cplat] startfile(%r)' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     if LINUX:
@@ -589,7 +587,7 @@ def view_directory(dname=None, fname=None, verbose=True):
         dname = str(dname)
 
     if verbose:
-        print('[cplat] view_directory(%r) ' % dname)
+        logger.info('[cplat] view_directory(%r) ' % dname)
     dname = os.getcwd() if dname is None else dname
     open_prog = {
         'win32': 'explorer.exe',
@@ -614,7 +612,7 @@ def view_directory(dname=None, fname=None, verbose=True):
     #     arg = dname
     # spawn and detatch process
     args = (open_prog, arg)
-    print(subprocess.list2cmdline(args))
+    logger.info(subprocess.list2cmdline(args))
     subprocess.Popen(args)
     # print('[cplat] exit view directory')
 
@@ -919,43 +917,38 @@ def cmd(*args, **kwargs):
         silence = kwargs.pop('silence', False)
         if pad_stdout:
             sys.stdout.flush()
-            print('\n+--------')
+            logger.info('\n+--------')
         args = __parse_cmd_args(args, sudo, shell)
         # Print what you are about to do
         if not quiet:
-            print('[ut.cmd] RUNNING: %r' % (args,))
+            logger.info('[ut.cmd] RUNNING: %r' % (args,))
         # Open a subprocess with a pipe
         if kwargs.get('dryrun', False):
-            print('[ut.cmd] Exiting because dryrun=True')
+            logger.info('[ut.cmd] Exiting because dryrun=True')
             return None, None, None
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, shell=shell,
                                 universal_newlines=True
                                 # universal_newlines=False
                                 )
-        hack_use_stdout = True
         if detatch:
             if not quiet:
-                print('[ut.cmd] PROCESS DETATCHING. No stdoutput can be reported...')
+                logger.info('[ut.cmd] PROCESS DETATCHING. No stdoutput can be reported...')
             # There is no immediate confirmation as to whether or not the script
             # finished. It might still be running for all you know
             return None, None, proc
         else:
             if verbose and not detatch:
                 if not quiet:
-                    print('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
+                    logger.info('[ut.cmd] RUNNING WITH VERBOSE OUTPUT')
                 logged_out = []
                 for line in _run_process(proc):
                     #line_ = line if six.PY2 else line.decode('utf-8')
                     line_ = line if six.PY2 else line
                     if len(line_) > 0:
                         if not silence:
-                            if hack_use_stdout:
-                                sys.stdout.write(line_)
-                                sys.stdout.flush()
-                            else:
-                                # TODO make this play nicely with loggers
-                                print_(line_)
+                            sys.stdout.write(line_)
+                            sys.stdout.flush()
                         logged_out.append(line)
                 try:
                     from utool import util_str  # NOQA
@@ -971,12 +964,12 @@ def cmd(*args, **kwargs):
                 #print('[ut.cmd] out: %s' % (out,))
                 if not quiet:
                     try:
-                        print('[ut.cmd] stdout: %s' % (out_,))
-                        print('[ut.cmd] stderr: %s' % (err,))
+                        logger.info('[ut.cmd] stdout: %s' % (out_,))
+                        logger.info('[ut.cmd] stderr: %s' % (err,))
                     except UnicodeDecodeError:
                         from utool import util_str  # NOQA
-                        print('[ut.cmd] stdout: %s' % (util_str.ensure_unicode(out_),))
-                        print('[ut.cmd] stderr: %s' % (util_str.ensure_unicode(err),))
+                        logger.info('[ut.cmd] stdout: %s' % (util_str.ensure_unicode(out_),))
+                        logger.info('[ut.cmd] stderr: %s' % (util_str.ensure_unicode(err),))
 
             else:
                 # Surpress output
@@ -985,9 +978,9 @@ def cmd(*args, **kwargs):
             # Make sure process if finished
             ret = proc.wait()
             if not quiet:
-                print('[ut.cmd] PROCESS FINISHED')
+                logger.info('[ut.cmd] PROCESS FINISHED')
             if pad_stdout:
-                print('L________\n')
+                logger.info('L________\n')
             return out, err, ret
     except Exception as ex:
         import utool as ut
@@ -1024,12 +1017,12 @@ def cmd2(command, shell=False, detatch=False, verbose=False, verbout=None):
     if verbout is None:
         verbout = verbose >= 1
     if verbose >= 2:
-        print('+=== START CMD2 ===')
-        print('Command:')
-        print(command)
+        logger.info('+=== START CMD2 ===')
+        logger.info('Command:')
+        logger.info(command)
         if verbout:
-            print('----')
-            print('Stdout:')
+            logger.info('----')
+            logger.info('Stdout:')
     proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, shell=shell,
                             universal_newlines=True)
@@ -1066,7 +1059,7 @@ def cmd2(command, shell=False, detatch=False, verbose=False, verbout=None):
             'ret': ret,
         }
     if verbose >= 2:
-        print('L___ END CMD2 ___')
+        logger.info('L___ END CMD2 ___')
     return info
 
 
@@ -1091,7 +1084,7 @@ def get_flops():
             count = count + 1
             x = float(pattern.sub(r'\1', line))
             if x < 1.0 :
-                print(count)
+                logger.info(count)
             speeds[0] = speeds[0] + x
             speeds[1] = min(speeds[1], x)
             speeds[2] = max(speeds[2], x)
@@ -1179,7 +1172,7 @@ def print_path(sort=True):
     pathdirs = get_path_dirs()
     if sort:
         pathdirs = sorted(pathdirs)
-    print('\n'.join(pathdirs))
+    logger.info('\n'.join(pathdirs))
 
 
 def search_env_paths(fname, key_list=None, verbose=None):
@@ -1213,7 +1206,7 @@ def search_env_paths(fname, key_list=None, verbose=None):
     # from os.path import join
     if key_list is None:
         key_list = [key for key in os.environ if key.find('PATH') > -1]
-        print('key_list = %r' % (key_list,))
+        logger.info('key_list = %r' % (key_list,))
 
     found = ut.ddict(list)
 
@@ -1246,7 +1239,7 @@ def __debug_win_msvcr():
     from os.path import basename
     dllnames = [basename(x) for x in fpaths]
     grouped = dict(ut.group_items(fpaths, dllnames))
-    print(ut.repr4(grouped, nl=4))
+    logger.info(ut.repr4(grouped, nl=4))
 
     keytoid = {
     }
@@ -1361,10 +1354,10 @@ def send_keyboard_input(text=None, key_list=None):
         xdotool_args = ['xdotool', 'key'] + key_list
         #, 'shift+5', 'p', 'a', 's', 't', 'e', 'enter']
         cmd = ' '.join(xdotool_args)
-        print('Running: cmd=%r' % (cmd,))
-        print('+---')
-        print(cmd)
-        print('L___')
+        logger.info('Running: cmd=%r' % (cmd,))
+        logger.info('+---')
+        logger.info(cmd)
+        logger.info('L___')
         os.system(cmd)
 
 
@@ -1390,7 +1383,7 @@ def spawn_delayed_ipython_paste():
         import time
         import utool as ut
         #import os
-        print('waiting')
+        logger.info('waiting')
         time.sleep(delay)
         ut.send_keyboard_input(text='%paste')
         ut.send_keyboard_input(key_list=['KP_Enter'])
@@ -1421,7 +1414,7 @@ def print_system_users():
     userinfo_list = [uitext.split(':') for uitext in userinfo_text_list]
     #print(ut.repr4(sorted(userinfo_list)))
     bash_users = [tup for tup in userinfo_list if tup[-1] == '/bin/bash']
-    print(ut.repr4(sorted(bash_users)))
+    logger.info(ut.repr4(sorted(bash_users)))
 
 
 def check_installed_debian(pkgname):
@@ -1480,7 +1473,7 @@ def unload_module(modname):
         #sys.modules[modname] = module
         #del module
         refcount = sys.getrefcount(sys.modules[modname])
-        print('%s refcount=%r' % (modname, refcount))
+        logger.info('%s refcount=%r' % (modname, refcount))
         del sys.modules[modname]
 
 

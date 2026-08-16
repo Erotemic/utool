@@ -8,7 +8,6 @@ try:
 except ImportError:
     pass
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def tiled_range(range_, cols):

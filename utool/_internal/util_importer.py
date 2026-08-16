@@ -65,7 +65,7 @@ def __execute_fromimport_star(module, modname, import_tuples, ignore_list=[],
         print('[UTIL_IMPORT] EXECUTE %d FROMIMPORT STAR TUPLES.' % (len(import_tuples),))
     from_imports = []
     # Explicitly ignore these special functions (usually stdlib functions)
-    ignoreset = set(['print', 'print_', 'printDBG', 'rrr', 'profile',
+    ignoreset = set(['logger', 'print', 'print_', 'printDBG', 'rrr', 'profile',
                      'print_function', 'absolute_import', 'division', 'zip',
                      'map', 'range', 'list', 'zip_longest', 'filter', 'filterfalse',
                      'dirname', 'realpath', 'join', 'exists', 'normpath',
@@ -194,98 +194,12 @@ def _make_fromimport_str(from_imports, rootmodname='.'):
     return from_str
 
 def _inject_execstr(modname, import_tuples):
-    """ Injection and Reload String Defs """
-    if modname == 'utool':
-        # Special case import of the util_inject module
-        injecter = 'util_inject'
-        injecter_import = ''
-    else:
-        # Normal case implicit import of util_inject
-        injecter_import = 'import utool'
-        injecter = 'utool'
-    injectstr_fmt = textwrap.dedent(
-        r'''
-        # STARTBLOCK
-        {injecter_import}
-        print, rrr, profile = {injecter}.inject2(__name__, '[{modname}]')
+    """Legacy hook retained for generated-init compatibility.
 
-
-        def reassign_submodule_attributes(verbose=1):
-            """
-            Updates attributes in the __init__ modules with updated attributes
-            in the submodules.
-            """
-            import sys
-            if verbose and '--quiet' not in sys.argv:
-                print('dev reimport')
-            # Self import
-            import {modname}
-            # Implicit reassignment.
-            seen_ = set([])
-            for tup in IMPORT_TUPLES:
-                if len(tup) > 2 and tup[2]:
-                    continue  # dont import package names
-                submodname, fromimports = tup[0:2]
-                submod = getattr({modname}, submodname)
-                for attr in dir(submod):
-                    if attr.startswith('_'):
-                        continue
-                    if attr in seen_:
-                        # This just holds off bad behavior
-                        # but it does mimic normal util_import behavior
-                        # which is good
-                        continue
-                    seen_.add(attr)
-                    setattr({modname}, attr, getattr(submod, attr))
-
-
-        def reload_subs(verbose=1):
-            """ Reloads {modname} and submodules """
-            if verbose:
-                print('Reloading {modname} submodules')
-            rrr(verbose > 1)
-            def wrap_fbrrr(mod):
-                def fbrrr(*args, **kwargs):
-                    """ fallback reload """
-                    if verbose > 0:
-                        print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
-                return fbrrr
-            def get_rrr(mod):
-                if hasattr(mod, 'rrr'):
-                    return mod.rrr
-                else:
-                    return wrap_fbrrr(mod)
-            def get_reload_subs(mod):
-                return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
-            {reload_body}
-            rrr(verbose > 1)
-            try:
-                # hackish way of propogating up the new reloaded submodule attributes
-                reassign_submodule_attributes(verbose=verbose)
-            except Exception as ex:
-                print(ex)
-        rrrr = reload_subs
-        # ENDBLOCK
-        ''')
-    injectstr_fmt = injectstr_fmt.replace('# STARTBLOCK', '')
-    injectstr_fmt = injectstr_fmt.replace('# ENDBLOCK', '')
-    rrrdir_fmt  = '    get_reload_subs({modname})(verbose=verbose)'
-    rrrfile_fmt = '    get_rrr({modname})(verbose > 1)'
-
-    def _reload_command(tup):
-        if len(tup) > 2 and tup[2] is True:
-            return rrrdir_fmt.format(modname=tup[0])
-        else:
-            return rrrfile_fmt.format(modname=tup[0])
-    reload_body = '\n'.join(map(_reload_command, import_tuples)).strip()
-    format_dict = {
-        'modname': modname,
-        'reload_body': reload_body,
-        'injecter': injecter,
-        'injecter_import': injecter_import,
-    }
-    inject_execstr = injectstr_fmt.format(**format_dict).strip()
-    return inject_execstr
+    Package initializers no longer receive injected print/profile/reload helpers.
+    Libraries log directly with Loguru and applications own logger configuration.
+    """
+    return ''
 
 #----------
 # PUBLIC FUNCTIONS
@@ -299,16 +213,13 @@ def dynamic_import(modname, import_tuples, developing=True, ignore_froms=[],
     MAIN ENTRY POINT
 
     Dynamically import listed util libraries and their attributes.
-    Create reload_subs function.
 
     Using __import__ like this is typically not considered good style However,
     it is better than import * and this will generate the good file text that
     can be used when the module is 'frozen"
 
     Returns:
-        str: init_inject_str - by default all imports are executed in this
-            function and only the remainig code needed to be executed is
-            returned to define the reload logic.
+        str: init_inject_str - retained for compatibility; currently empty.
 
         str, str: init_inject_str, init_str - if return_initstr is True then
             also returns init_str defining the from imports.

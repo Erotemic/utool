@@ -17,9 +17,9 @@ TODO:
     * restructure so there is a test collection step, a filtering step, and an
       execution step
 
-    * Fix finding tests when running with @profile
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 import inspect
 import types
@@ -32,7 +32,6 @@ from utool import util_inject
 from utool import util_dbg
 from utool import util_dev
 from utool._internal.meta_util_six import get_funcname
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 VERBOSE_TEST = util_arg.get_module_verbosity_flags('test')[0]
@@ -228,7 +227,7 @@ def doctest_module_list(module_list):
     nTotal_list = []
     failed_cmds_list = []
     error_reports_list = []
-    print('[util_test] Running doctests on module list')
+    logger.info('[util_test] Running doctests on module list')
 
     try:
         ut.write_to('timeings.txt', '\n\n --- begining doctest_module_list\n', mode='a')
@@ -262,25 +261,25 @@ def doctest_module_list(module_list):
     failed_cmd_list = ut.flatten(failed_cmds_list)
     error_report_list = ut.filter_Nones(ut.flatten(error_reports_list))
     if len(error_report_list) > 0:
-        print('\nPrinting %d error reports' % (len(error_report_list),))
+        logger.info('\nPrinting %d error reports' % (len(error_report_list),))
         for count, error_report in enumerate(error_report_list):
-            print('\n=== Error Report %d / %d' % (count, len(error_report_list)))
-            print(error_report)
-        print('--- Done printing error reports ----')
+            logger.info('\n=== Error Report %d / %d' % (count, len(error_report_list)))
+            logger.info(error_report)
+        logger.info('--- Done printing error reports ----')
 
     try:
         ut.write_to('timeings.txt', '\n\n --- finished doctest_module_list total_time=%.3fs\n' % (total_time), mode='a')
     except IOError as ex:
         ut.printex(ex, '[util_test] IOWarning', iswarning=True)
 
-    print('')
-    print('+========')
-    print('| FINISHED TESTING %d MODULES' % (len(module_list),))
-    print('| PASSED %d / %d' % (nPass, nTotal))
-    print('L========')
+    logger.info('')
+    logger.info('+========')
+    logger.info('| FINISHED TESTING %d MODULES' % (len(module_list),))
+    logger.info('| PASSED %d / %d' % (nPass, nTotal))
+    logger.info('L========')
     if len(failed_cmd_list) > 0:
-        print('FAILED TESTS:')
-        print('\n'.join(failed_cmd_list))
+        logger.info('FAILED TESTS:')
+        logger.info('\n'.join(failed_cmd_list))
     return nPass, nTotal, failed_cmd_list
 
 
@@ -327,13 +326,13 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
     #ut.start_logging()
     multiprocessing.freeze_support()  # just in case
     if ut.VERBOSE:
-        print('[util_test] doctest_funcs')
+        logger.info('[util_test] doctest_funcs')
     ut.inject_colored_exceptions()
 
     if (verbose or VERBOSE_TEST) and ut.NOT_QUIET:
         if VERBOSE_TEST:
-            print('[util_test.doctest_funcs][DEPTH 1] doctest_funcs()')
-        print('[util_test.doctest_funcs] Running doctest_funcs')
+            logger.info('[util_test.doctest_funcs][DEPTH 1] doctest_funcs()')
+        logger.info('[util_test.doctest_funcs] Running doctest_funcs')
     if ut.is_developer():
         ut.change_term_title('DocTest ' + ' '.join(sys.argv))
 
@@ -385,18 +384,18 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
         flag = testtup.flag
         #if ut.is_developer():
         #    ut.change_term_title('DocTest ' + modname + ' ' + name)
-        print('\n')
+        logger.info('\n')
         fmtdict = dict(modname=modname, name=name, num=num)
         #      1          v12     v20       v30       v40       v50         v62
-        print('+------------------------------------------------------------+')
-        print('*  DOCTEST {modname:<20} {name:>26}:{num:d} '.format(**fmtdict))
-        print('+------------------------------------------------------------+')
+        logger.info('+------------------------------------------------------------+')
+        logger.info('*  DOCTEST {modname:<20} {name:>26}:{num:d} '.format(**fmtdict))
+        logger.info('+------------------------------------------------------------+')
 
         if PRINT_SRC or VERBOSE_TEST:
             if ut.is_developer():
-                print(ut.msgblock('EXEC SRC', ut.highlight_code(src), side='>>>'))
+                logger.info(ut.msgblock('EXEC SRC', ut.highlight_code(src), side='>>>'))
             else:
-                print(ut.msgblock('EXEC SRC', src, side='>>>'))
+                logger.info(ut.msgblock('EXEC SRC', src, side='>>>'))
         # Commented because it caused differences between
         # individual test runs and large test runs with ut
         # being imported
@@ -412,15 +411,15 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
             pass_flag = (test_locals is not False)
             if pass_flag:
                 if VERBOSE_TEST:
-                    print('seems to pass')
+                    logger.info('seems to pass')
                 nPass += 1
             else:
                 if VERBOSE_TEST:
-                    print('raising failed exception')
+                    logger.info('raising failed exception')
                 raise Exception('failed')
         except Exception:
             if VERBOSE_TEST:
-                print('Seems to fail. ')
+                logger.info('Seems to fail. ')
             nFail += 1
             failed_flag_list.append(flag)
             error_report_list.append(error_report)
@@ -428,12 +427,12 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
                 raise
             else:
                 if VERBOSE_TEST:
-                    print('Silently Failing: '
+                    logger.info('Silently Failing: '
                           'maybe adding the --super-strict flag would help debug?')
             pass
         except KeyboardInterrupt:
-            print('[util_test] caught Ctrl+C')
-        print('L_____________________________________________________________')
+            logger.info('[util_test] caught Ctrl+C')
+        logger.info('L_____________________________________________________________')
     #L__________________
     #+-------------------
     # Print Results
@@ -452,10 +451,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
         ut.colorprint(warning_msg, 'yellow')
 
     if not exec_mode:
-        print('+-------')
-        print('| finished testing fpath=%r' % (frame_fpath,))
-        print('| passed %d / %d' % (nPass, nTotal))
-        print('L-------')
+        logger.info('+-------')
+        logger.info('| finished testing fpath=%r' % (frame_fpath,))
+        logger.info('| passed %d / %d' % (nPass, nTotal))
+        logger.info('L-------')
     failed_cmd_list = []
     if nFail > 0:
         #modname = module.__name__
@@ -466,13 +465,10 @@ def doctest_funcs(testable_list=None, check_flags=True, module=None,
                             for flag_ in failed_flag_list]
         #failed_cmd_list = ['python %s %s' % (frame_fpath, flag_)
         #                    for flag_ in failed_flag_list]
-        print('Failed sys.argv = %r' % (' '.join(sys.argv),))
-        print('Failed Tests:')
-        print('\n'.join(failed_cmd_list))
+        logger.info('Failed sys.argv = %r' % (' '.join(sys.argv),))
+        logger.info('Failed Tests:')
+        logger.info('\n'.join(failed_cmd_list))
     #L__________________
-
-    if ut.util_inject.PROFILING:
-        ut.dump_profile_text()
 
     if return_error_report:
         return (nPass, nTotal, failed_cmd_list, error_report_list)
@@ -510,9 +506,9 @@ def run_test(func_or_testtup, *args, **kwargs):
         frame_fpath = ut.get_funcfpath(func_)
     upper_funcname = funcname.upper()
     if ut.VERBOSE:
-        print('\n=============================')
-        print('**[TEST.BEGIN] %s ' % (sys.executable))
-        print('**[TEST.BEGIN] %s ' % (funcname,))
+        logger.info('\n=============================')
+        logger.info('**[TEST.BEGIN] %s ' % (sys.executable))
+        logger.info('**[TEST.BEGIN] %s ' % (funcname,))
 
     verbose_timer = not exec_mode and VERBOSE_TIMER
     nocheckwant = True if exec_mode else None
@@ -520,8 +516,8 @@ def run_test(func_or_testtup, *args, **kwargs):
     error_report = None
 
     if dump_mode:
-        print('testtup = %r' % (testtup,))
-        print(ut.highlight_code(src))
+        logger.info('testtup = %r' % (testtup,))
+        logger.info(ut.highlight_code(src))
         return None, None
 
     try:
@@ -541,7 +537,7 @@ def run_test(func_or_testtup, *args, **kwargs):
         error_report_lines.append(ut.formatex(ex, tb=True))
         def print_report(msg):
             error_report_lines.append(msg)
-            print(msg)
+            logger.info(msg)
         print_report('\n=============================')
         print_report('**[TEST.FINISH] %s -- FAILED:\n    type(ex)=%s' % (funcname, type(ex)))
         exc_type, exc_value, tb = sys.exc_info()
@@ -564,8 +560,8 @@ def run_test(func_or_testtup, *args, **kwargs):
             # reraise syntax issue to avoid an extra frame in the stack
             six.reraise(exc_type, exc_value, exc_traceback)
         if SYSEXIT_ON_FAIL:
-            print('[util_test] SYSEXIT_ON_FAIL = True')
-            print('[util_test] exiting with sys.exit(1)')
+            logger.info('[util_test] SYSEXIT_ON_FAIL = True')
+            logger.info('[util_test] exiting with sys.exit(1)')
             sys.exit(ut.EXIT_FAILURE)
         #raise
         error_report = '\n'.join(error_report_lines)
@@ -573,10 +569,10 @@ def run_test(func_or_testtup, *args, **kwargs):
     else:
         # LOG PASSING TEST
         if not exec_mode:
-            print('\n=============================')
-            print('**[TEST.FINISH] %s -- SUCCESS' % (funcname,))
+            logger.info('\n=============================')
+            logger.info('**[TEST.FINISH] %s -- SUCCESS' % (funcname,))
             if print_face:
-                print(HAPPY_FACE)
+                logger.info(HAPPY_FACE)
             if write_times:
                 timemsg = '%.4fs in %s %s\n' % (
                     timer.ellapsed, funcname, frame_fpath)
@@ -614,14 +610,14 @@ def _exec_doctest(src, kwargs, nocheckwant=None):
         test_locals = test_globals
         exec(code, test_globals)
     except ExitTestException:
-        print('Test exited before show')
+        logger.info('Test exited before show')
         pass
     if nocheckwant is None:
         nocheckwant = util_arg.get_argflag(
             '--no-checkwant', help_='Turns off checking for results')
     if nocheckwant or want is None or want == '':
         if not nocheckwant:
-            print('warning test does not want anything')
+            logger.info('warning test does not want anything')
     else:
         if want.endswith('\n'):
             want = want[:-1]
@@ -787,13 +783,13 @@ def _test_docblock_parser():
         'doc_indent': [0, 1, 4],
     }
     for config in ut.all_dict_combinations(basis):
-        print('---')
-        print(config)
-        print('=====')
+        logger.info('---')
+        logger.info(config)
+        logger.info('=====')
         docstr =  _make_test_docstr(config)
         docparts = ut.parse_docblocks_from_docstr(docstr)
-        print(docstr)
-        print('=====')
+        logger.info(docstr)
+        logger.info('=====')
         if config['n_args']:
             assert 'Args:' in ut.take_column(docparts, 0)
         if config['n_return']:
@@ -905,9 +901,9 @@ def parse_docblocks_from_docstr(docstr, offsets=False):
     indents = ut.compress(line_indent, is_nonzero)
     if len(indents) >= 1:
         if indents[0] != 0:
-            print('ERROR IN PARSING')
-            print('adjusted = %r' % (adjusted,))
-            print(docstr)
+            logger.info('ERROR IN PARSING')
+            logger.info('adjusted = %r' % (adjusted,))
+            logger.info(docstr)
             raise ValueError('Google Style Docstring Missformat')
 
     base_indent = 0
@@ -1184,11 +1180,11 @@ def get_doctest_examples(func_or_class, modpath=None):
         func_or_class = func_or_class.__func__
     import utool as ut
     if VERBOSE_TEST:
-        print('[util_test][DEPTH 3] get_doctest_examples()')
-        print('[util_test] + parsing %r for doctest' % (func_or_class))
-        print('[util_test] - name = %r' % (func_or_class.__name__,))
+        logger.info('[util_test][DEPTH 3] get_doctest_examples()')
+        logger.info('[util_test] + parsing %r for doctest' % (func_or_class))
+        logger.info('[util_test] - name = %r' % (func_or_class.__name__,))
         if hasattr(func_or_class, '__ut_parent_class__'):
-            print('[util_test] - __ut_parent_class__ = %r' % (
+            logger.info('[util_test] - __ut_parent_class__ = %r' % (
                 func_or_class.__ut_parent_class__,))
     try:
         raise NotImplementedError('FIXME')
@@ -1220,7 +1216,7 @@ def get_doctest_examples(func_or_class, modpath=None):
         for offset in testlineoffset_list
     ]
     if VERBOSE_TEST:
-        print('[util_test] L found %d doctests' % (len(testsrc_list),))
+        logger.info('[util_test] L found %d doctests' % (len(testsrc_list),))
     examptup = testsrc_list, testwant_list, testlinenum_list, func_lineno, docstr
     return examptup
 
@@ -1283,7 +1279,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     """
     #+------------------------
     if VERBOSE_TEST:
-        print('[util_test.get_module_doctest tup][DEPTH 2] get_module_doctest tup()')
+        logger.info('[util_test.get_module_doctest tup][DEPTH 2] get_module_doctest tup()')
     import utool as ut  # NOQA
     if needs_enable is None:
         needs_enable = not ut.get_argflag('--enableall')
@@ -1324,7 +1320,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                     modname = ut.get_modname_from_modpath(frame_fpath)
                     module = importlib.import_module(modname)
         except Exception as ex:
-            print(frame.f_globals)
+            logger.info(frame.f_globals)
             ut.printex(ex, keys=['frame', 'module'])
             raise
         allexamples = False
@@ -1340,8 +1336,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     if parse_testables:
         try:
             if verbose or VERBOSE_TEST and ut.NOT_QUIET:
-                print('[ut.test] Iterating over module funcs')
-                print('[ut.test] module =%r' % (module,))
+                logger.info('[ut.test] Iterating over module funcs')
+                logger.info('[ut.test] module =%r' % (module,))
 
             _testableiter = ut.iter_module_doctestable(module,
                                                        include_inherited=False)
@@ -1355,16 +1351,16 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                     testable_name_list.append(key)
                     testable_list.append(val)
                     if VERBOSE_TEST and ut.NOT_QUIET:
-                        print('[ut.test] Testable: %s' % (key,))
+                        logger.info('[ut.test] Testable: %s' % (key,))
                 else:
                     if VERBOSE_TEST and ut.NOT_QUIET:
                         if (docstr.find('Example') >= 0 or docstr.find('Doctest') >= 0):
-                            print('[ut.test] Ignoring (disabled) : %s' % key)
+                            logger.info('[ut.test] Ignoring (disabled) : %s' % key)
                         else:
-                            print('[ut.test] Ignoring (no Example) : %s' % key)
+                            logger.info('[ut.test] Ignoring (no Example) : %s' % key)
         except Exception as ex:
-            print('FAILED')
-            print(docstr)
+            logger.info('FAILED')
+            logger.info(docstr)
             ut.printex(ex, keys=['frame'])
             raise
 
@@ -1426,11 +1422,11 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     sorted_testable = sorted(list(set(testable_list)), key=_get_testable_name)
     # Append each testable example
     if VERBOSE_TEST:
-        print('Vars:')
-        print(' * needs_enable = %r' % (needs_enable,))
-        print(' * force_enable_testnames = %r' % (force_enable_testnames,))
-        print(' * len(sorted_testable) = %r' % (len(sorted_testable),))
-        print(' * cmdline_varargs = %r' % (cmdline_varargs,))
+        logger.info('Vars:')
+        logger.info(' * needs_enable = %r' % (needs_enable,))
+        logger.info(' * force_enable_testnames = %r' % (force_enable_testnames,))
+        logger.info(' * len(sorted_testable) = %r' % (len(sorted_testable),))
+        logger.info(' * cmdline_varargs = %r' % (cmdline_varargs,))
         indenter = ut.Indenter('[FIND_AVAIL]')
         indenter.start()
     # PARSE OUT THE AVAILABLE TESTS FOR EACH REQUEST
@@ -1463,7 +1459,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                         ut.isdisjoint(nametup, force_enable_testnames))
                 if not skip:
                     if VERBOSE_TEST:
-                        print(' * HACK adding testname=%r to local_testtup_list' % (
+                        logger.info(' * HACK adding testname=%r to local_testtup_list' % (
                             full_testname,))
                     local_testtup = (nametup, testno, src_, want,
                                      test_namespace, short_testname,
@@ -1475,33 +1471,33 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                         #print('nametup = %r' % (nametup,))
                         #print('needs_enable = %r' % (needs_enable,))
                         #print('test_disabled = %r' % (test_disabled,))
-                        print(' * skipping: %r / %r' % (short_testname,
+                        logger.info(' * skipping: %r / %r' % (short_testname,
                                                         full_testname))
         else:
-            print('WARNING: no examples in %r for testname=%r' % (frame_fpath,
+            logger.info('WARNING: no examples in %r for testname=%r' % (frame_fpath,
                                                                   full_testname))
             if verbose:
-                print(testable)
-                print(examples)
-                print(wants)
-                print(docstr)
+                logger.info(testable)
+                logger.info(examples)
+                logger.info(wants)
+                logger.info(docstr)
         if VERBOSE_TEST:
-            print(' --')
+            logger.info(' --')
     if VERBOSE_TEST:
         indenter.stop()
     #L________________________
     #+------------------------
     # Get enabled (requested) examples
     if VERBOSE_TEST:
-        print('\n-----\n')
+        logger.info('\n-----\n')
         indenter = ut.Indenter('[IS_ENABLED]')
         indenter.start()
-        print('Finished parsing available doctests.')
-        print('Now we need to find which examples are enabled')
-        print('len(local_testtup_list) = %r' % (len(local_testtup_list),))
-        print('local_testtup_list.T[0:2].T = %s' %
+        logger.info('Finished parsing available doctests.')
+        logger.info('Now we need to find which examples are enabled')
+        logger.info('len(local_testtup_list) = %r' % (len(local_testtup_list),))
+        logger.info('local_testtup_list.T[0:2].T = %s' %
               ut.repr4(ut.take_column(local_testtup_list, [0, 1])))
-        print('sys.argv = %r' % (sys.argv,))
+        logger.info('sys.argv = %r' % (sys.argv,))
     all_testflags = []
     enabled_testtup_list = []
     distabled_testflags  = []
@@ -1524,7 +1520,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
     def check_if_test_requested(nametup, num, total, valid_prefix_list):
         #cmdline_varargs
         if VERBOSE_TEST:
-            print('Checking cmdline for %r %r' % (nametup, num))
+            logger.info('Checking cmdline for %r %r' % (nametup, num))
         valid_argflags = []
 
         # FIXME: PartB
@@ -1537,8 +1533,8 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         for name in nametup:
             valid_testnames = make_valid_test_argflags('', name, num, total)
             if veryverb:
-                print('Checking if positional* %r' % (valid_testnames[0:1],))
-                print('name = %r' % (name,))
+                logger.info('Checking if positional* %r' % (valid_testnames[0:1],))
+                logger.info('name = %r' % (name,))
             if any([x in cmdline_varargs for x in valid_testnames]):
                 # hack
                 mode = 'exec'
@@ -1546,22 +1542,22 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                 flag1 = '--exec-' + name + ':' + str(num)
             if testflag is not None:
                 if veryverb:
-                    print('FOUND POSARG')
-                    print(' * testflag = %r' % (testflag,))
-                    print(' * num = %r' % (num,))
+                    logger.info('FOUND POSARG')
+                    logger.info(' * testflag = %r' % (testflag,))
+                    logger.info(' * num = %r' % (num,))
                 break
         # Then check keyword-ish args
         if mode is None:
             for prefix, name in reversed(list(ut.iprod(valid_prefix_list, nametup))):
                 valid_argflags = make_valid_test_argflags(prefix, name, num, total)
                 if veryverb:
-                    print('Checking for flags*: %r' % (valid_argflags[0],))
+                    logger.info('Checking for flags*: %r' % (valid_argflags[0],))
                 flag1 = valid_argflags[0]
                 testflag = ut.get_argflag(valid_argflags)
                 mode = prefix.replace('-', '')
                 if testflag:
                     if veryverb:
-                        print("FOUND VARARG")
+                        logger.info("FOUND VARARG")
                     break
             else:
                 # print('WARNING NO TEST IS ENABLED %r ' % (nametup,))
@@ -1580,26 +1576,26 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
         all_testflags.append(flag1)
         if testenabled:
             if VERBOSE_TEST:
-                print('... enabling test')
+                logger.info('... enabling test')
             testtup = TestTuple(name, num, src, want, flag1,
                                 frame_fpath=frame_fpath, mode=mode,
                                 total=total, nametup=nametup,
                                 shortname=shortname,
                                 test_namespace=test_namespace)
             if VERBOSE_TEST:
-                print('... ' + str(testtup))
+                logger.info('... ' + str(testtup))
             enabled_testtup_list.append(testtup)
         else:
             if VERBOSE_TEST:
-                print('... disabling test')
+                logger.info('... disabling test')
             distabled_testflags.append(flag1)
 
     # Attempt to run test without any context
     # This will only work if the function exist and is self contained
     if len(force_enable_testnames_) > 0 and len(enabled_testtup_list) == 0:
         if VERBOSE_TEST:
-            print('Forced test did not have a doctest example')
-            print('Maybe it can be run without any context')
+            logger.info('Forced test did not have a doctest example')
+            logger.info('Maybe it can be run without any context')
         import utool as ut
         # assert len(force_enable_testnames) == 1
         test_funcname_ = force_enable_testnames[0]
@@ -1612,15 +1608,15 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
             test_funcname = test_funcname_
             func_ = getattr(module, test_funcname, None)
         if VERBOSE_TEST:
-            print('test_funcname = %r' % (test_funcname,))
-            print('func_ = %r' % (func_,))
+            logger.info('test_funcname = %r' % (test_funcname,))
+            logger.info('func_ = %r' % (func_,))
         if func_ is not None:
             testno = 0
             modname = ut.get_modname_from_modpath(module.__file__)
             want = None
             try:
                 if VERBOSE_TEST:
-                    print('attempting xdoctest hack')
+                    logger.info('attempting xdoctest hack')
                 # hack to get classmethods to read their example using
                 # the xdoctest port
                 from xdoctest import docscrape_google
@@ -1637,7 +1633,7 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
 
                 if len(example_blocks) == 0:
                     if VERBOSE_TEST:
-                        print('xdoctest found no blocks')
+                        logger.info('xdoctest found no blocks')
                     raise KeyError
 
                 callname = test_funcname_
@@ -1659,12 +1655,12 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                                         nametup=[test_funcname_])
                     hack_testtups.append(testtup)
                 if VERBOSE_TEST:
-                    print('hack_testtups = %r' % (hack_testtups,))
+                    logger.info('hack_testtups = %r' % (hack_testtups,))
                 enabled_testtup_list.extend(hack_testtups)
                 # src = '\n'.join([line[4:] for line in src.split('\n')])
             except (ImportError, KeyError, TypeError):
                 if VERBOSE_TEST:
-                    print('xdoctest hack failed')
+                    logger.info('xdoctest hack failed')
                 # varargs = ut.get_cmdline_varargs()
                 varargs = force_enable_testnames[1:]
                 # Create dummy doctest
@@ -1685,14 +1681,14 @@ def get_module_doctest_tup(testable_list=None, check_flags=True, module=None,
                                     total=1, nametup=[test_funcname_])
                 enabled_testtup_list.append(testtup)
         else:
-            print('function %r was not found in %r' % (test_funcname_, module))
+            logger.info('function %r was not found in %r' % (test_funcname_, module))
 
     if VERBOSE_TEST:
         indenter.stop()
 
     if ut.get_argflag('--list'):
         # HACK: Should probably just return a richer structure
-        print('testable_name_list = %s' % (ut.repr4(testable_name_list),))
+        logger.info('testable_name_list = %s' % (ut.repr4(testable_name_list),))
 
     mod_doctest_tup = ModuleDoctestTup(enabled_testtup_list, frame_fpath,
                                        all_testflags, module)
@@ -1873,8 +1869,8 @@ def find_testfunc(module, test_funcname, ignore_prefix=[], ignore_suffix=[],
                 # test_class.__dict__[test_funcname]
 
     if test_func is None:
-        print('Did not find any function named %r ' % (test_funcname,))
-        print('Searched ' + ut.repr4([mod.__name__ for mod in module_list]))
+        logger.info('Did not find any function named %r ' % (test_funcname,))
+        logger.info('Searched ' + ut.repr4([mod.__name__ for mod in module_list]))
     if return_mod:
         return test_func, testno, test_module
     else:
@@ -1930,33 +1926,33 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
     ut.colorprint('[utool] main_function_tester', 'yellow')
 
     if ut.get_argflag('--list-testfuncs'):
-        print('Listing testfuncs')
+        logger.info('Listing testfuncs')
         test_tuples = ut.get_package_testables(module)
         result = ut.repr3(test_tuples)
-        print(result)
+        logger.info(result)
 
     #autocomplete_hook(module)
 
     if ut.get_argflag('--update-bashcomplete'):
         # http://stackoverflow.com/questions/427472/line-completion-with-custom-commands
-        print('Listing testfuncs')
+        logger.info('Listing testfuncs')
         testnames = get_module_completions(module)
         modname = module if isinstance(module, six.string_types) else module.__name__
         line = 'complete -W "%s" "%s"' % (' '.join(testnames), modname)
         bash_completer = ut.unixjoin(ut.ensure_app_resource_dir('ibeis'), 'ibeis_bash_complete.sh')
         ut.writeto(bash_completer, line)
-        print('ADD TO BASHRC\nsource %s' % (bash_completer,))
+        logger.info('ADD TO BASHRC\nsource %s' % (bash_completer,))
         #print(line)
         sys.exit(ut.EXIT_SUCCESS)
 
     if ut.get_argflag('--make-bashcomplete'):
         # http://stackoverflow.com/questions/427472/line-completion-with-custom-commands
-        print('Listing testfuncs')
+        logger.info('Listing testfuncs')
         testnames = get_module_completions(module)
         modname = module if isinstance(module, six.string_types) else module.__name__
         line = 'complete -W "%s" "%s"' % (' '.join(testnames), modname)
-        print('add the following line to your bashrc')
-        print(line)
+        logger.info('add the following line to your bashrc')
+        logger.info(line)
         sys.exit(ut.EXIT_SUCCESS)
 
     test_funcname = ut.get_argval(
@@ -1966,11 +1962,11 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
     if test_funcname is None:
         cmdline_varags = ut.get_cmdline_varargs()
         if VERBOSE_TEST:
-            print('Checking varargs')
-            print('cmdline_varags = %r' % (cmdline_varags,))
+            logger.info('Checking varargs')
+            logger.info('cmdline_varags = %r' % (cmdline_varags,))
         if len(cmdline_varags) > 0:
             test_funcname = cmdline_varags[0]
-    print('test_funcname = %r' % (test_funcname,))
+    logger.info('test_funcname = %r' % (test_funcname,))
 
     if test_funcname in func_to_module_dict:
         modname = func_to_module_dict[test_funcname]
@@ -1980,7 +1976,7 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
         #locals_ = {}
         ut.inject_colored_exceptions()
         # print('[utool] __main__ Begin Function Test')
-        print('[utool] __main__ Begin Function Test')
+        logger.info('[utool] __main__ Begin Function Test')
         test_func, testno, test_mod = find_testfunc(
             module, test_funcname, ignore_prefix, ignore_suffix,
             func_to_module_dict, return_mod=True)
@@ -2023,21 +2019,19 @@ def main_function_tester(module, ignore_prefix=[], ignore_suffix=[],
             # Add line numbers
             doctest_src = ut.number_text_lines(testsrc)
             colored_src = ut.highlight_code(doctest_src)
-            print('testsrc = \n%s' % (colored_src,))
+            logger.info('testsrc = \n%s' % (colored_src,))
             try:
                 code = compile(testsrc, '<string>', 'exec')
                 exec(code, globals_)  # , locals_)
             except ExitTestException:
-                print('Test exited before show')
+                logger.info('Test exited before show')
                 pass
             retcode = ut.EXIT_SUCCESS
-            print('Finished function test.')
+            logger.info('Finished function test.')
         else:
             retcode = ut.EXIT_FAILURE
-            print('Did not find any function named %r ' % (test_funcname,))
-        if ut.util_inject.PROFILING:
-            ut.dump_profile_text()
-        print('...exiting')
+            logger.info('Did not find any function named %r ' % (test_funcname,))
+        logger.info('...exiting')
         sys.exit(retcode)
 
 
@@ -2082,12 +2076,12 @@ def execute_doctest(func, testnum=0, module=None):
         '%3d %s' % (count, line)
         for count, line in enumerate(doctest_src.splitlines(), start=1)])
     colored_src = ut.highlight_code(doctest_src)
-    print('testsrc = \n%s' % (colored_src,))
+    logger.info('testsrc = \n%s' % (colored_src,))
     try:
         code = compile(testsrc, '<string>', 'exec')
         exec(code, globals_)
     except ExitTestException:
-        print('Test exited before show')
+        logger.info('Test exited before show')
 
 
 if __name__ == '__main__':

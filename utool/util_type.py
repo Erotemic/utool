@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import sys
 import six
 import functools
@@ -9,7 +10,6 @@ from utool import util_inject
 from utool._internal.meta_util_six import IntType, LongType, FloatType, BooleanType
 from utool._internal import meta_util_six
 #import warnings
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 __STR__ = meta_util_six.__STR__
@@ -373,8 +373,8 @@ def assert_int(var, lbl='var'):
     try:
         assert is_int(var), 'type(%s)=%r is not int' % (lbl, get_type(var))
     except AssertionError:
-        print('[tools] %s = %r' % (lbl, var))
-        print('[tools] VALID_INT_TYPES: %r' % VALID_INT_TYPES)
+        logger.info('[tools] %s = %r' % (lbl, var))
+        logger.info('[tools] VALID_INT_TYPES: %r' % VALID_INT_TYPES)
         raise
 
 # if HAVE_NUMPY:

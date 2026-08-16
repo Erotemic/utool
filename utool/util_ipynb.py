@@ -11,10 +11,10 @@ CommandLine:
     ssh -N -f -L localhost:8888:localhost:8889 <remote_user>@<remote_host>
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import sys
 from utool import util_inject
 from collections import namedtuple
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 IPYNBCell = namedtuple('IPYNBCell', ['header', 'code', 'footer'])
@@ -98,7 +98,7 @@ def run_ipython_notebook(notebook_str):
     #cell = nb4.cells[1]
     #self = runner
     #runner = NotebookRunner(nb3, mpl_inline=True)
-    print('Executing IPython notebook')
+    logger.info('Executing IPython notebook')
     nb4 = nbformat.reads(notebook_str, 4)
     runner = NotebookRunner(nb4)
     runner.run_notebook(skip_exceptions=False)

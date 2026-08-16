@@ -9,18 +9,16 @@ References:
 
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import sys
 import six
 import time
 import calendar
 import datetime
 import datetime as datetime_mod
-from utool import util_inject
 from utool import util_cplat
 from utool import util_arg
 from timerit import Timerit as RealTimerit
-print, rrr, profile = util_inject.inject2(__name__)
-print_ = util_inject.make_module_write_func(__name__)
 
 
 if util_cplat.WIN32 and six.PY2:
@@ -173,18 +171,13 @@ class Timer(object):
 
     def tic(self):
         if self.verbose:
-            sys.stdout.flush()
-            print_('\ntic(%r)' % self.msg)
-            if self.newline:
-                print_('\n')
-            sys.stdout.flush()
+            logger.info('tic({!r})', self.msg)
         self.tstart = default_timer()
 
     def toc(self):
         ellapsed = (default_timer() - self.tstart)
         if self.verbose:
-            print_('...toc(%r)=%.4fs\n' % (self.msg, ellapsed))
-            sys.stdout.flush()
+            logger.info('...toc({!r})={:.4f}s', self.msg, ellapsed)
         return ellapsed
 
     start = tic
@@ -322,7 +315,7 @@ def determine_timestamp_format(datetime_str, warn=True):
         # clean_datetime_str = clean_datetime_str[:-3] + clean_datetime_str[-2:]
         if True or six.PY2:
             if warn:
-                print('WARNING: Python 2.7 does not support %z directive '
+                logger.info('WARNING: Python 2.7 does not support %z directive '
                       'in strptime, ignoring timezone in parsing: ' +
                       clean_datetime_str)
             clean_datetime_str = clean_datetime_str[:-6]
@@ -376,7 +369,7 @@ def determine_timestamp_format(datetime_str, warn=True):
         #import utool as ut
         #ut.embed()
         msg = 'Unknown format: datetime_str=%r' % (datetime_str,)
-        print(msg)
+        logger.info(msg)
         return None
         #raise NotImplementedError(msg)
     return timefmt
@@ -508,7 +501,7 @@ def parse_timestamp(timestamp, zone='UTC', timestamp_format=None):
         else:
             import pytz
             tzname = utc_offset.strip()
-            delta = pytz.timezone(tzname).utcoffset(dt_)
+            delta = pytz.timezone(tzname).utcoffset(dt_.replace(tzinfo=None))
         # Move back to utc
         dn = dn_ - delta
     else:
@@ -684,15 +677,15 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
                 return invalid_value
             if datetime_str_ == '0000:00:00 00:00:00':
                 return invalid_value
-        print('<!!! ValueError !!!>')
-        print('[util_time] Caught Error: ' + repr(ex))
-        print('[util_time] type(datetime_str)  = %r' % type(datetime_str))
-        print('[util_time] repr(datetime_str)  = %r' % datetime_str)
-        print('[util_time]     (datetime_str)  = %s' % datetime_str)
-        print('[util_time]  len(datetime_str)  = %d' % len(datetime_str))
-        print('[util_time] repr(datetime_str_) = %r' % datetime_str_)
-        print('[util_time]  len(datetime_str_) = %d' % len(datetime_str_))
-        print('</!!! ValueError !!!>')
+        logger.info('<!!! ValueError !!!>')
+        logger.info('[util_time] Caught Error: ' + repr(ex))
+        logger.info('[util_time] type(datetime_str)  = %r' % type(datetime_str))
+        logger.info('[util_time] repr(datetime_str)  = %r' % datetime_str)
+        logger.info('[util_time]     (datetime_str)  = %s' % datetime_str)
+        logger.info('[util_time]  len(datetime_str)  = %d' % len(datetime_str))
+        logger.info('[util_time] repr(datetime_str_) = %r' % datetime_str_)
+        logger.info('[util_time]  len(datetime_str_) = %d' % len(datetime_str_))
+        logger.info('</!!! ValueError !!!>')
 
         debug = True
         if debug:
@@ -703,17 +696,17 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
                 if len(parts_list) == 1:
                     return
                 for part, fmt in zip(parts_list, fmt_list):
-                    print('Trying:')
+                    logger.info('Trying:')
                     with ut.Indenter('  '):
                         try:
-                            print('fmt = %r' % (fmt,))
-                            print('part = %r' % (part,))
+                            logger.info('fmt = %r' % (fmt,))
+                            logger.info('part = %r' % (part,))
                             datetime_mod.datetime.strptime(part, fmt)
                         except ValueError:
                             find_offending_part(part, fmt, '/')
-                            print('Failed')
+                            logger.info('Failed')
                         else:
-                            print('Passed')
+                            logger.info('Passed')
             find_offending_part(datetime_str_, timefmt)
 
         #import utool as ut
@@ -721,7 +714,7 @@ def exiftime_to_unixtime(datetime_str, timestamp_format=None, strict=None):
         if strict:
             raise
         else:
-            print('Supressed ValueError')
+            logger.info('Supressed ValueError')
             return invalid_value
 
 

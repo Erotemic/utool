@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import types
 import sys
 import heapq
@@ -15,7 +16,6 @@ from functools import reduce
 from collections import OrderedDict
 from utool import util_progress
 from os.path import splitext, exists, join, split, relpath
-from utool import util_inject
 from utool import util_dict
 from utool import util_const
 from utool import util_arg
@@ -25,10 +25,6 @@ try:
     HAVE_NUMPY = True
 except ImportError:
     HAVE_NUMPY = False
-# TODO: remove print_, or grab it dynamically from util_logger
-print, rrr, profile = util_inject.inject2(__name__)
-print_ = util_inject.make_module_write_func(__name__)
-
 
 if HAVE_NUMPY:
     INDEXABLE_TYPES = (list, tuple, np.ndarray)
@@ -64,7 +60,7 @@ def _ensure_clipboard_backend():
                 pyperclip._ut_clipboard = backend
                 break
             else:
-                print('warning %r not installed' % (backend,))
+                logger.info('warning %r not installed' % (backend,))
 
 
 def _check_clipboard_backend(backend):
@@ -220,8 +216,8 @@ def input_timeout(msg='Waiting for input...', timeout=30):
     import select
     import time
     ans = None
-    print('You have %d seconds to answer!' % timeout)
-    print(msg)
+    logger.info('You have %d seconds to answer!' % timeout)
+    logger.info(msg)
     if sys.platform.startswith('win32'):
         import msvcrt
         start_time = time.time()
@@ -239,7 +235,7 @@ def input_timeout(msg='Waiting for input...', timeout=30):
             ellapsed = time.time() - start_time
             if ellapsed > timeout:
                 ans = None
-        print('')  # needed to move to next line
+        logger.info('')  # needed to move to next line
     else:
         rlist, o, e = select.select([sys.stdin], [], [], timeout)
         if rlist:
@@ -314,10 +310,10 @@ def timeit_grid(stmt_list, setup='', iterations=10000, input_sizes=None,
         for stmt in stmt_list:
             stmt_ = stmt + '(' + str(size) + ')'
             if verbose:
-                print('running stmt_=%r' % (stmt_,))
+                logger.info('running stmt_=%r' % (stmt_,))
             time = timeit.timeit(stmt_, setup=setup, number=iterations)
             if verbose:
-                print('... took %r seconds' % (time,))
+                logger.info('... took %r seconds' % (time,))
             time_list.append(time)
         time_grid.append(time_list)
 
@@ -413,16 +409,16 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
             stmt_list[stmtx] = stmt
 
     if verbose:
-        print('+----------------')
-        print('| TIMEIT COMPARE')
-        print('+----------------')
-        print('| iterations = %d' % (iterations,))
-        print('| Input:')
+        logger.info('+----------------')
+        logger.info('| TIMEIT COMPARE')
+        logger.info('+----------------')
+        logger.info('| iterations = %d' % (iterations,))
+        logger.info('| Input:')
         #print('|     +------------')
-        print('|     | num | stmt')
+        logger.info('|     | num | stmt')
         for count, stmt in enumerate(stmt_list):
-            print('|     | %3d | %r' % (count, stmt))
-        print('...')
+            logger.info('|     | %3d | %r' % (count, stmt))
+        logger.info('...')
         sys.stdout.flush()
         #print('+     L________________')
 
@@ -434,17 +430,17 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
                    for stmt in stmt_list]
 
     def numpy_diff_tests(result_list):
-        print('Testing numpy arrays')
+        logger.info('Testing numpy arrays')
         shape_list = [a.shape for a in result_list]
-        print('shape_list = %r' % (shape_list,))
+        logger.info('shape_list = %r' % (shape_list,))
         sum_list = [a.sum() for a in result_list]
         diff_list = [np.abs(a - b) for a, b in ut.itertwo(result_list)]
-        print('diff stats')
+        logger.info('diff stats')
         for diffs in diff_list:
-            print(ut.repr4(ut.get_stats(diffs, precision=2, use_median=True)))
-        print('diff_list = %r' % (diff_list,))
-        print('sum_list = %r' % (sum_list,))
-        print('passed_list = %r' % (passed_list,))
+            logger.info(ut.repr4(ut.get_stats(diffs, precision=2, use_median=True)))
+        logger.info('diff_list = %r' % (diff_list,))
+        logger.info('sum_list = %r' % (sum_list,))
+        logger.info('passed_list = %r' % (passed_list,))
 
     if assertsame:
         if ut.list_type(result_list) is np.ndarray:
@@ -457,36 +453,36 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
     else:
         passed = True
     if verbose:
-        print('| Output:')
+        logger.info('| Output:')
         if not passed and assertsame:
-            print('|    * FAILED: results differ between some statements')
+            logger.info('|    * FAILED: results differ between some statements')
             if is_numpy:
                 numpy_diff_tests(result_list)
-            print('| Results:')
+            logger.info('| Results:')
             for result in result_list:
                 for count, result in enumerate(result_list):
-                    print('<Result %d>' % count)
-                    print(result)
+                    logger.info('<Result %d>' % count)
+                    logger.info(result)
                     #print(ut.truncate_str(repr(result)))
-                    print('</Result %d>' % count)
+                    logger.info('</Result %d>' % count)
             if strict:
                 raise AssertionError('Results are not valid')
         else:
             if assertsame:
-                print('|    * PASSED: each statement produced the same result')
+                logger.info('|    * PASSED: each statement produced the same result')
             else:
-                print('|    * PASSED: each statement did not error')
+                logger.info('|    * PASSED: each statement did not error')
             passed = True
         #print('|    +-----------------------------------')
-        print('|    | num | total time | per loop | stmt')
+        logger.info('|    | num | total time | per loop | stmt')
         for count, tup in enumerate(zip(stmt_list, time_list)):
             stmt, time = tup
-            print('|    | %3d | %10s | %8s | %s' %
+            logger.info('|    | %3d | %10s | %8s | %s' %
                   (count, ut.seconds_str(time),
                    ut.seconds_str(time / iterations), stmt))
         #print('|    L___________________________________')
         if verbose:
-            print('L_________________')
+            logger.info('L_________________')
         return (passed, time_list, result_list)
 
 
@@ -497,19 +493,19 @@ def _testit(stmt, setup):
         exec(setup, _globals)
     except Exception as ex:
         import utool
-        print('Setup Error')
-        print(setup)
-        print('---')
+        logger.info('Setup Error')
+        logger.info(setup)
+        logger.info('---')
         utool.printex(ex, 'error executing setup', keys=['setup'])
         raise
     try:
         result = eval(stmt, _globals)
     except Exception as ex:
         import utool
-        print('Statement Error')
-        print(setup)
-        print('---')
-        print(stmt)
+        logger.info('Statement Error')
+        logger.info(setup)
+        logger.info('---')
+        logger.info(stmt)
         utool.printex(ex, 'error executing statement', keys=['stmt'])
         raise
     return result
@@ -662,8 +658,8 @@ class MemoryTracker(object):
             col_headers = self.keys
             table = ut.CSV(row_data, row_headers, col_headers)
             if lbl:
-                print(lbl)
-            print(table.transpose().tabulate())
+                logger.info(lbl)
+            logger.info(table.transpose().tabulate())
             self.report_objs()
         except ImportError:
             diff_avail = self.records['diff_avail'][-1]
@@ -672,30 +668,30 @@ class MemoryTracker(object):
             total_diff_used = self.records['total_diff_used'][-1]
             available_nBytes = self.records['nBytes_avail'][-1]
             used_nBytes = self.records['nBytes_used'][-1]
-            print('[memtrack] +----')
+            logger.info('[memtrack] +----')
             lbl_ = '[%s] ' % (lbl,) if lbl else ''
 
             if diff_avail is not None:
                 if self.avail:
-                    print('[memtrack] | %sdiff(avail) = %s' % (lbl_, byte_str2(diff_avail)))
+                    logger.info('[memtrack] | %sdiff(avail) = %s' % (lbl_, byte_str2(diff_avail)))
             else:
-                print('[memtrack] | new MemoryTracker(%s)' % (lbl,))
+                logger.info('[memtrack] | new MemoryTracker(%s)' % (lbl,))
             if diff_used is not None:
                 if self.used:
-                    print('[memtrack] | %sdiff(used) = %s' % (lbl_, byte_str2(diff_used)))
+                    logger.info('[memtrack] | %sdiff(used) = %s' % (lbl_, byte_str2(diff_used)))
 
             if self.total_diff:
                 if self.avail:
-                    print('[memtrack] | Total diff(avail) = %s' % (byte_str2(total_diff_avail)))
+                    logger.info('[memtrack] | Total diff(avail) = %s' % (byte_str2(total_diff_avail)))
                 if self.used:
-                    print('[memtrack] | Total diff(used) = %s' % (byte_str2(total_diff_used)))
+                    logger.info('[memtrack] | Total diff(used) = %s' % (byte_str2(total_diff_used)))
             if self.abs_mag:
                 if self.avail:
-                    print('[memtrack] | Available Memory = %s' %  (byte_str2(available_nBytes),))
+                    logger.info('[memtrack] | Available Memory = %s' %  (byte_str2(available_nBytes),))
                 if self.used:
-                    print('[memtrack] | Used Memory      = %s' %  (byte_str2(used_nBytes),))
+                    logger.info('[memtrack] | Used Memory      = %s' %  (byte_str2(used_nBytes),))
             self.report_objs()
-            print('[memtrack] L----')
+            logger.info('[memtrack] L----')
 
     @_disableable
     def get_peak_memory(self):
@@ -731,7 +727,7 @@ class MemoryTracker(object):
     def report_type(self, class_, more=False):
         # Get existing objects of the requested type
         existing_objs = [obj for obj in gc.get_objects() if isinstance(obj, class_)]
-        print('There are %d objects of type %s using %s' % (
+        logger.info('There are %d objects of type %s using %s' % (
             len(existing_objs), class_, get_object_size_str(existing_objs)))
         if more:
             for obj in existing_objs:
@@ -759,7 +755,7 @@ class MemoryTracker(object):
         import numpy as np
         import gc
         import utool
-        print('reporting largest')
+        logger.info('reporting largest')
         obj_list = gc.get_objects()
         #simple_size_list = np.array([sys.getsizeof(obj) for obj in obj_list])
         #shortlist_size = 20
@@ -769,14 +765,14 @@ class MemoryTracker(object):
         #for obj, size in zip(obj_sorted, simple_size_sorted):
         #    print('size = %r, type(obj) = %r' % (utool.byte_str2(size), type(obj)))
 
-        print('reporting largets ndarrays')
+        logger.info('reporting largets ndarrays')
         ndarray_list = [obj for obj in obj_list if isinstance(obj, np.ndarray)]
         ndarray_list = [obj for obj in obj_list if str(type(obj)).find('array') > -1]
         size_list = np.array([utool.get_object_nbytes(obj) for obj in ndarray_list])
         sortx = size_list.argsort()[::-1]
         ndarray_sorted = [ndarray_list[x] for x in sortx]
         for obj, size in zip(ndarray_sorted, size_list):
-            print('size = %r, type(obj) = %r' % (utool.byte_str2(size), type(obj)))
+            logger.info('size = %r, type(obj) = %r' % (utool.byte_str2(size), type(obj)))
 
         #size_list = [utool.get_object_nbytes(obj) for obj in obj_list]
         pass
@@ -797,54 +793,54 @@ def report_memsize(obj, name=None, verbose=True):
 
     if obj() is None:
         with ut.Indenter('|   '):
-            print('+----')
-            print('Memsize: ')
-            print('type(%s) = %r' % (name, type(obj())))
-            print('%s has been deallocated' % name)
-            print('L____')
+            logger.info('+----')
+            logger.info('Memsize: ')
+            logger.info('type(%s) = %r' % (name, type(obj())))
+            logger.info('%s has been deallocated' % name)
+            logger.info('L____')
             return
 
     referents = gc.get_referents(obj())
     referers  = gc.get_referrers(obj())
     with ut.Indenter('|   '):
-        print('+----')
-        print('Memsize: ')
-        print('type(%s) = %r' % (name, type(obj())))
-        print('%s is using: %s' % (name, ut.get_object_size_str(obj())))
-        print('%s has %d referents' % (name, len(referents)))
-        print('%s has %d referers' % (name, len(referers)))
+        logger.info('+----')
+        logger.info('Memsize: ')
+        logger.info('type(%s) = %r' % (name, type(obj())))
+        logger.info('%s is using: %s' % (name, ut.get_object_size_str(obj())))
+        logger.info('%s has %d referents' % (name, len(referents)))
+        logger.info('%s has %d referers' % (name, len(referers)))
         if verbose:
             if len(referers) > 0:
                 for count, referer in enumerate(referers):
-                    print('  <Referer %d>' % count)
-                    print('    type(referer) = %r' % type(referer))
+                    logger.info('  <Referer %d>' % count)
+                    logger.info('    type(referer) = %r' % type(referer))
                     try:
                         #if isinstance(referer, frames.FrameType)
-                        print('    frame(referer).f_code.co_name = %s' % (referer.f_code.co_name))
+                        logger.info('    frame(referer).f_code.co_name = %s' % (referer.f_code.co_name))
                     except Exception:
                         pass
                     try:
                         #if isinstance(referer, frames.FrameType)
-                        print('    func(referer).func_name = %s' % (referer.func_name))
+                        logger.info('    func(referer).func_name = %s' % (referer.func_name))
                     except Exception:
                         pass
                     try:
                         #if isinstance(referer, frames.FrameType)
-                        print('    len(referer) = %s' % (len(referer)))
+                        logger.info('    len(referer) = %s' % (len(referer)))
                     except Exception:
                         pass
                     if isinstance(referer, dict):
-                        print('    len(referer) = %r' % len(referer))
+                        logger.info('    len(referer) = %r' % len(referer))
                         if len(referer) < 30:
                             keystr = ut.packstr(repr(referer.keys()), 60, newline_prefix='        ')
-                            print('    referer.keys = %s' % (keystr),)
-                    print('    id(referer) = %r' % id(referer))
+                            logger.info('    referer.keys = %s' % (keystr))
+                    logger.info('    id(referer) = %r' % id(referer))
                     #print('referer = ' + ut.truncate_str(repr(referer)))
-                    print('  </Referer %d>' % count)
+                    logger.info('  </Referer %d>' % count)
         del obj
         del referents
         del referers
-        print('L____')
+        logger.info('L____')
 
 
 LIVE_INTERACTIVE_ITER = None
@@ -885,7 +881,7 @@ class InteractivePrompt(object):
         msg = ut.indentjoin(msg_list, '\n | * ')
         msg = ''.join([' +-----------', msg, '\n L-----------\n'])
         # TODO: timeout, help message
-        print(msg)
+        logger.info(msg)
         ans = input().strip()
         return ans
 
@@ -981,7 +977,7 @@ class InteractiveIter(object):
         [dispname, keys, desc, func]
         """
         iiter = cls([None], custom_actions=custom_actions, verbose=False)
-        print('[IITER] Begining interactive main loop')
+        logger.info('[IITER] Begining interactive main loop')
         for _ in iiter:
             pass
         return iiter
@@ -997,7 +993,7 @@ class InteractiveIter(object):
         assert isinstance(iiter.iterable, INDEXABLE_TYPES), 'input is not iterable'
         iiter.num_items = len(iiter.iterable)
         if iiter.verbose:
-            print('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
+            logger.info('[IITER] Begin interactive iteration: %r items\n' % (iiter.num_items))
         if iiter.num_items == 0:
             raise StopIteration
         # TODO: replace with ub.ProgIter
@@ -1017,26 +1013,26 @@ class InteractiveIter(object):
 
         while True:
             if iiter.verbose:
-                print('')
+                logger.info('')
             if iiter.wraparound:
                 iiter.index = iiter.index % len(iiter.iterable)
             if iiter.index >= len(iiter.iterable):
                 if iiter.verbose:
-                    print('Got to end the end of the iterable')
+                    logger.info('Got to end the end of the iterable')
                 break
             mark_(iiter.index)
             item = iiter.iterable[iiter.index]
             if iiter.verbose:
-                print('')
+                logger.info('')
             yield item
             if iiter.verbose:
-                print('')
+                logger.info('')
             mark_(iiter.index)
             if iiter.verbose:
-                print('')
-                print('[IITER] current index=%r' % (iiter.index,))
+                logger.info('')
+                logger.info('[IITER] current index=%r' % (iiter.index,))
                 if iiter.display_item:
-                    print('[IITER] current item=%r' % (item,))
+                    logger.info('[IITER] current item=%r' % (item,))
             ans = iiter.prompt()
             action = iiter.handle_ans(ans)
             REFRESH_ON_BAD_INPUT = False
@@ -1047,7 +1043,7 @@ class InteractiveIter(object):
             if action == 'IPython':
                 ut.embed(N=1)
         end_()
-        print('Ended interactive iteration')
+        logger.info('Ended interactive iteration')
         LIVE_INTERACTIVE_ITER = None
 
     def handle_ans(iiter, ans_):
@@ -1072,12 +1068,12 @@ class InteractiveIter(object):
             try:
                 iiter.index = int(parse_str_value(ans))
             except ValueError:
-                print('Unknown ans=%r' % (ans,))
+                logger.info('Unknown ans=%r' % (ans,))
         elif chack_if_answer_was(iiter.action_keys['set']):
             try:
                 iiter.iterable[iiter.index] = eval(parse_str_value(ans))
             except ValueError:
-                print('Unknown ans=%r' % (ans,))
+                logger.info('Unknown ans=%r' % (ans,))
         elif ans in iiter.action_keys['ipy']:
             return 'IPython'
         else:
@@ -1087,7 +1083,7 @@ class InteractiveIter(object):
                 if chack_if_answer_was(iiter.action_keys[key]):
                     value  = parse_str_value(ans)
                     # cal custom function
-                    print('Calling custom action func')
+                    logger.info('Calling custom action func')
                     import utool as ut
                     argspec = ut.get_func_argspec(func)
                     if len(argspec.args) == 3:
@@ -1097,7 +1093,7 @@ class InteractiveIter(object):
                         func()
                     # Custom funcs dont cause iteration
                     return False
-            print('Unknown ans=%r' % (ans,))
+            logger.info('Unknown ans=%r' % (ans,))
             return False
         return True
 
@@ -1110,7 +1106,7 @@ class InteractiveIter(object):
         msg = ut.indentjoin(msg_list, '\n | * ')
         msg = ''.join([' +-----------', msg, '\n L-----------\n'])
         # TODO: timeout, help message
-        print(msg)
+        logger.info(msg)
         ans = iiter.wait_for_input()
         return ans
 
@@ -1159,12 +1155,12 @@ def are_you_sure(msg=''):
     Returns:
         bool: accept or not
     """
-    print(msg)
+    logger.info(msg)
     from utool import util_arg
     from utool import util_str
     override = util_arg.get_argflag(('--yes', '--y', '-y'))
     if override:
-        print('accepting based on command line flag')
+        logger.info('accepting based on command line flag')
         return True
     valid_ans = ['yes', 'y']
     valid_prompt = util_str.conj_phrase(valid_ans, 'or')
@@ -1177,17 +1173,17 @@ def grace_period(msg='', seconds=10):
     Gives user a window to stop a process before it happens
     """
     import time
-    print(msg)
+    logger.info(msg)
     override = util_arg.get_argflag(('--yes', '--y', '-y'))
-    print('starting grace period')
+    logger.info('starting grace period')
     if override:
-        print('ending based on command line flag')
+        logger.info('ending based on command line flag')
         return True
     for count in reversed(range(1, seconds + 1)):
         time.sleep(1)
-        print('%d' % (count,))
-    print('%d' % (0,))
-    print('grace period is over')
+        logger.info('%d' % (count,))
+    logger.info('%d' % (0,))
+    logger.info('grace period is over')
     return True
 
 
@@ -1587,10 +1583,10 @@ def _memory_profile(with_gc=False):
         garbage_collect()
     import guppy
     hp = guppy.hpy()
-    print('[hpy] Waiting for heap output...')
+    logger.info('[hpy] Waiting for heap output...')
     heap_output = hp.heap()
-    print(heap_output)
-    print('[hpy] total heap size: ' + ut.byte_str2(heap_output.size))
+    logger.info(heap_output)
+    logger.info('[hpy] total heap size: ' + ut.byte_str2(heap_output.size))
     ut.util_resources.memstats()
     # Graphical Browser
     #hp.pb()
@@ -1741,7 +1737,7 @@ def get_object_nbytes(obj, fallback_type=None, follow_pointers=False, exclude_mo
             elif isinstance(obj, np.int32):
                 return obj.nbytes
             else:
-                print('Unknown type %r for parsing size' % (type(obj),))
+                logger.info('Unknown type %r for parsing size' % (type(obj),))
                 return 0
         #except TypeError as ex:
         except Exception as ex:
@@ -1768,7 +1764,7 @@ def print_object_size_tree(obj, lbl='obj', maxdepth=None):
         indent = ' ' * (depth * 4)
         if maxdepth is not None and depth >= maxdepth:
             size_list = [get_object_nbytes(obj)]
-            print(indent + str(size_list[0]))
+            logger.info(indent + str(size_list[0]))
             return size_list
         if (obj is None or isinstance(obj, (int, bool, float))):
             return [sys.getsizeof(obj)]
@@ -1776,20 +1772,20 @@ def print_object_size_tree(obj, lbl='obj', maxdepth=None):
             return [sys.getsizeof(obj)]
         object_id = id(obj)
         if object_id in seen:
-            print(indent + '%s ' % ('(seen) ' + lbl,))
+            logger.info(indent + '%s ' % ('(seen) ' + lbl,))
             return []
         seen.add(object_id)
         size_list = [(lbl, sys.getsizeof(obj))]
         if isinstance(obj, np.ndarray):
             size_list.append(obj.nbytes)
-            print('%s%s = %s ' % (indent, '(ndarray) %s' % (lbl,), byte_str2(obj.nbytes)))
+            logger.info('%s%s = %s ' % (indent, '(ndarray) %s' % (lbl,), byte_str2(obj.nbytes)))
         elif (isinstance(obj, (tuple, list, set, frozenset))):
             typestr = util_type.type_str(type(obj))
-            print('%s(%s) %s = %s ' % (indent, typestr, lbl, byte_str2(sys.getsizeof(obj))))
+            logger.info('%s(%s) %s = %s ' % (indent, typestr, lbl, byte_str2(sys.getsizeof(obj))))
             for item in obj:
                 size_list += _get_object_size_tree(item, depth + 1, 'item', seen)
         elif isinstance(obj, dict):
-            print('%s(dict) %s = %s ' % (indent, lbl, byte_str2(sys.getsizeof(obj))))
+            logger.info('%s(dict) %s = %s ' % (indent, lbl, byte_str2(sys.getsizeof(obj))))
             try:
                 for key, val in six.iteritems(obj):
                     size_list += _get_object_size_tree(key, depth + 1, key, seen)
@@ -1801,10 +1797,10 @@ def print_object_size_tree(obj, lbl='obj', maxdepth=None):
         elif isinstance(obj, object) and hasattr(obj, '__dict__'):
             if hasattr(obj, 'used_memory'):
                 size_ = obj.used_memory()
-                print('(%sflann?) %s = %s ' % (indent, lbl, byte_str2(size_)))
+                logger.info('(%sflann?) %s = %s ' % (indent, lbl, byte_str2(size_)))
                 size_list += [size_]
             else:
-                print('%s(object) %s = %s ' % (indent, lbl, byte_str2(sys.getsizeof(obj))))
+                logger.info('%s(object) %s = %s ' % (indent, lbl, byte_str2(sys.getsizeof(obj))))
             size_list += _get_object_size_tree(obj.__dict__,
                                                depth=depth + 1,
                                                lbl='__dict__', seen=seen)
@@ -1846,7 +1842,7 @@ def get_object_size_str(obj, lbl='', unit=None):
 
 
 def print_object_size(obj, lbl=''):
-    print(get_object_size_str(obj, lbl=lbl))
+    logger.info(get_object_size_str(obj, lbl=lbl))
 
 
 def get_object_base():
@@ -1914,8 +1910,8 @@ def compile_cython(fpath, clean=True):
     fname_c  = join(dpath, fname + '.c')
     fname_lib = join(dpath, fname + util_cplat.get_pylib_ext())
 
-    print('[utool.compile_cython] fpath=%r' % (fpath,))
-    print(' --- PRECHECKS --- ')
+    logger.info('[utool.compile_cython] fpath=%r' % (fpath,))
+    logger.info(' --- PRECHECKS --- ')
     if clean:
         utool.delete(fname_c)
         utool.delete(fname_lib)
@@ -2002,19 +1998,19 @@ def compile_cython(fpath, clean=True):
     cython_build_cmd = cython_exe + ' ' + fpath
 
     # HACK
-    print('\n --- CYTHON_COMMANDS ---')
-    print(utool.pack_into(cython_build_cmd, textwidth=80, newline_prefix='  '))
-    print('')
-    print(utool.pack_into(gcc_build_cmd, textwidth=80, newline_prefix='  '))
-    print(gcc_build_cmd)
-    print('\n --- COMMAND_EXECUTION ---')
+    logger.info('\n --- CYTHON_COMMANDS ---')
+    logger.info(utool.pack_into(cython_build_cmd, textwidth=80, newline_prefix='  '))
+    logger.info('')
+    logger.info(utool.pack_into(gcc_build_cmd, textwidth=80, newline_prefix='  '))
+    logger.info(gcc_build_cmd)
+    logger.info('\n --- COMMAND_EXECUTION ---')
 
     def verbose_cmd(cmd):
-        print('\n<CMD>')
-        print(cmd)
+        logger.info('\n<CMD>')
+        logger.info(cmd)
         ret = os.system(cmd)
-        print('> ret = %r' % ret)
-        print('</CMD>\n')
+        logger.info('> ret = %r' % ret)
+        logger.info('</CMD>\n')
         #print('-------------------')
         return ret
 
@@ -2056,7 +2052,7 @@ def find_exe(name, path_hints=[], required=True):
 
 
 def _on_ctrl_c(signal, frame):
-    print('Caught ctrl+c')
+    logger.info('Caught ctrl+c')
     sys.exit(0)
 
 
@@ -2810,15 +2806,11 @@ class ColumnLists(NiceRepr):
                 lines[:max_lines_start] + ['...'] +
                 lines[-max_lines_end:]
             )
-            print(self_)
-            print(reduced_text)
+            logger.info(self_)
+            logger.info(reduced_text)
         else:
-            print(self_)
-            print(csv_text)
-
-    def rrr(self):
-        import utool as ut
-        ut.reload_class(self)
+            logger.info(self_)
+            logger.info(csv_text)
 
     def reorder_columns(self, keys):
         import utool as ut

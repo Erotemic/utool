@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 try:
     import numpy as np
     HAVE_NUMPY = True
@@ -11,7 +12,6 @@ import operator
 from utool import util_iter
 from utool import util_alg
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 from utool import util_arg  # NOQA
 
 
@@ -63,7 +63,7 @@ def assert_unique(item_list, ignore=[], name='list', verbose=None):
             'Found duplicate items in %s: %s' % (
                 name, ut.repr4(dups)))
     if verbose:
-        print('No duplicates found in %s' % (name,))
+        logger.info('No duplicates found in %s' % (name,))
 
 
 def assert_all_in(key_list, valid_list, msg=''):
@@ -79,7 +79,7 @@ def assert_all_not_None(list_, list_name='some_list', key_list=[], verbose=not
         index = get_first_None_position(list_)
         assert index is None, 'index=%r in %s is None' % (index, list_name)
         if veryverbose:
-            print('PASSED: %s has no Nones' % (list_name))
+            logger.info('PASSED: %s has no Nones' % (list_name))
     except AssertionError as ex:
         from utool import util_dbg
         item = list_[index]
@@ -176,7 +176,7 @@ def assert_lists_eq(list1, list2, failmsg='', verbose=False):
             msg += '\n missing_items2 = %r' % (missing_items2,)
         ex = AssertionError(msg)
         if verbose:
-            print(msg)
+            logger.info(msg)
         raise ex
 
 
@@ -206,7 +206,7 @@ def assert_inbounds(num, low, high, msg='', eq=False, verbose=not util_arg.QUIET
         if verbose:
             op = '<=' if eq else '<'
             fmtstr = 'Passed assert_inbounds: {low} {op} {num} {op} {high}'
-            print(fmtstr.format(low=low, op=op, num=util_str.truncate_str(str(num)), high=high))
+            logger.info(fmtstr.format(low=low, op=op, num=util_str.truncate_str(str(num)), high=high))
 
 
 def assert_almost_eq(arr_test, arr_target, thresh=1E-11):
@@ -281,10 +281,10 @@ def assert_all_eq(item_list, eq_=operator.eq):
     for count, item in enumerate(item_iter, start=1):
         flag = eq_(item0, item)
         if not flag:
-            print('Error:')
-            print('count = %r' % (count,))
-            print('item = %r' % (item,))
-            print('item0 = %r' % (item0,))
+            logger.info('Error:')
+            logger.info('count = %r' % (count,))
+            logger.info('item = %r' % (item,))
+            logger.info('item0 = %r' % (item0,))
             msg = 'The %d-th item was not equal to item 0' % (count,)
             raise AssertionError(msg)
 
@@ -320,7 +320,7 @@ def assert_eq(var1, var2, msg='', var1_name=None, var2_name=None,
         raise AssertionError(msg)
     else:
         if verbose:
-            print('ASSERT_EQ_PASSED: {var1_name} == {var2_name} == {var1_repr}'.format(**fmtdict))
+            logger.info('ASSERT_EQ_PASSED: {var1_name} == {var2_name} == {var1_repr}'.format(**fmtdict))
 
 
 if __name__ == '__main__':

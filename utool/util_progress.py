@@ -6,11 +6,11 @@ Old progress funcs needto be depricated ProgressIter and ProgChunks are pretty
 much the only useful things here.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import time
 import math
 import datetime
 from functools import partial
-from utool import util_logging
 from utool import util_inject
 from utool import util_arg
 from utool import util_time
@@ -18,7 +18,6 @@ from utool import util_iter
 from utool import util_cplat
 import collections
 import six  # NOQA
-print, rrr, profile = util_inject.inject2(__name__)
 
 default_timer = util_time.default_timer
 
@@ -35,6 +34,17 @@ FORCE_ALL_PROGRESS = util_arg.get_argflag(('--force-all-progress',))
 DEBUG_FREQ_ADJUST = util_arg.get_argflag('--debug-adjust-freq')
 
 
+
+def _loguru_write(msg):
+    """Write progress text unchanged through the currently configured sinks."""
+    logger.opt(raw=True).info(msg)
+
+
+def _loguru_flush():
+    """Loguru's synchronous sinks are written as records are emitted."""
+    return None
+
+
 def test_progress():
     """
     CommandLine:
@@ -48,7 +58,7 @@ def test_progress():
     import utool as ut
     #import time
     #ut.rrrr()
-    print('_________________')
+    logger.info('_________________')
     #numiter = 50
     #sleeptime = 1E-4
     #sleeptime2 = 1E-2
@@ -58,33 +68,33 @@ def test_progress():
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
             time.sleep(sleeptime)
-    print('_________________')
+    logger.info('_________________')
     numiter = 50
     sleeptime = 1E-4
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
             time.sleep(sleeptime)
-    print('_________________')
-    print('No frequncy run:')
+    logger.info('_________________')
+    logger.info('No frequncy run:')
     with ut.Timer():
         for x in range(0, numiter):
             time.sleep(sleeptime)
-    print('_________________')
+    logger.info('_________________')
     numiter = 500
     sleeptime = 8E-7
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=8, adjust=True):
             time.sleep(sleeptime)
-    print('_________________')
+    logger.info('_________________')
     with ut.Timer():
         for x in ut.ProgressIter(range(0, numiter), freq=200):
             time.sleep(sleeptime)
-    print('_________________')
-    print('No frequncy run:')
+    logger.info('_________________')
+    logger.info('No frequncy run:')
     with ut.Timer():
         for x in range(0, numiter):
             time.sleep(sleeptime)
-    print('_________________')
+    logger.info('_________________')
     # Test nested iter
     # progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False)
     # for count1 in progiter1:
@@ -97,14 +107,14 @@ def test_progress():
         #progiter3 = progiter_partials[1](range(0, 3), lbl='sub_prog2', freq=1, adjust=False)
         #for count3 in progiter3:
         #    pass
-    print('Double backspace progress 1')
+    logger.info('Double backspace progress 1')
     progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False, backspace=False)
     for count1 in progiter1:
         progiter2 = ut.ProgressIter(range(0, 10), lbl='prog2', freq=1, adjust=False, backspace=True)
         for count2 in progiter2:
             time.sleep(sleeptime2)
 
-    print('Double backspace progress 2')
+    logger.info('Double backspace progress 2')
     progiter1 = ut.ProgressIter(range(0, 10), lbl='prog1', freq=1, adjust=False, backspace=True)
     for count1 in progiter1:
         progiter2 = ut.ProgressIter(range(0, 10), lbl='prog2', freq=1, adjust=False, backspace=True)
@@ -346,7 +356,7 @@ class ProgressIter(object):
         self.prehack            = kwargs.pop('prehack', None)
         self.freq_est_strat     = kwargs.pop('freq_est', 'between')
         if 'separate' in kwargs:
-            print('WARNING separate no longer supported by ProgIter')
+            logger.info('WARNING separate no longer supported by ProgIter')
 
         # FIXME: get these subinder things working
         # ~/code/guitool/guitool/guitool_components.py
@@ -401,7 +411,7 @@ class ProgressIter(object):
             # IF PROGRESS IS TURNED OFF
             msg = 'Iterating ' + self.lbl + ' with no progress'
             if self.verbose:
-                print(msg)
+                logger.info(msg)
             #with ut.Timer(msg):
             return iter(self.iterable)
         else:
@@ -556,8 +566,8 @@ class ProgressIter(object):
         # SETUP VARIABLES
         # HACK: reaquire logging print funcs in case they have changed
         if self.stream is None:
-            self.write = util_logging._utool_write()
-            self.flush = util_logging._utool_flush()
+            self.write = _loguru_write
+            self.flush = _loguru_flush
         else:
             self.write = lambda msg: self.stream.write(msg)  # NOQA
             self.flush = lambda: self.stream.flush()  # NOQA
@@ -578,7 +588,7 @@ class ProgressIter(object):
             # time_thresh_growth is specified for very long processes
             # print out the starting timestamp in that case
             timestamp = time.strftime('%Y-%m-%d %H:%M:%S') + ' ' + time.tzname[0]
-            print('Start progress lbl= %s at %s' % (self.lbl, timestamp,))
+            logger.info('Start progress lbl= %s at %s' % (self.lbl, timestamp,))
         #time_thresh = 0.5
         max_between_time = -1.0
         max_between_count = -1.0  # why is this different? # because frequency varies
@@ -599,26 +609,26 @@ class ProgressIter(object):
                                                  self.backspace)
 
         try:
-            util_logging._utool_flush()()
+            _loguru_flush()
         except IOError as ex:
             # There is some weird error when doing progress in IPython notebook
             if util_arg.VERBOSE:
-                print('IOError flushing %s' % (ex,))
+                logger.info('IOError flushing %s' % (ex,))
         if not self.prehack:
             if self.backspace:
                 self.display_message()
             elif self.verbose:
                 start_msg = start_msg_fmt.format(count=self.parent_offset)
-                util_logging._utool_write()(start_msg + '\n')
+                _loguru_write(start_msg + '\n')
 
             self._cursor_at_newline = not self.backspace
 
             try:
-                util_logging._utool_flush()()
+                _loguru_flush()
             except IOError as ex:
                 # There is some weird error when doing progress in IPython notebook
                 if util_arg.VERBOSE:
-                    print('IOError flushing %s' % (ex,))
+                    logger.info('IOError flushing %s' % (ex,))
         else:
             self._cursor_at_newline = True
 
@@ -697,15 +707,15 @@ class ProgressIter(object):
                     new_freq = max(int(time_thresh * max_between_count /
                                        max_between_time), 1)
                     if DEBUG_FREQ_ADJUST:
-                        print('\n+---')
-                        print('[prog] between_count = %r' % between_count)
-                        print('[prog] between_time = %.8r' % between_time)
-                        print('[prog] time_thresh = %r' % time_thresh)
-                        print('[prog] max_between_count = %r' % max_between_count)
-                        print('[prog] max_between_time = %.8r' % max_between_time)
-                        print('[prog] Adusting frequency from: %r' % freq)
-                        print('[prog] Adusting frequency to: %r' % new_freq)
-                        print('L___')
+                        logger.info('\n+---')
+                        logger.info('[prog] between_count = %r' % between_count)
+                        logger.info('[prog] between_time = %.8r' % between_time)
+                        logger.info('[prog] time_thresh = %r' % time_thresh)
+                        logger.info('[prog] max_between_count = %r' % max_between_count)
+                        logger.info('[prog] max_between_time = %.8r' % max_between_time)
+                        logger.info('[prog] Adusting frequency from: %r' % freq)
+                        logger.info('[prog] Adusting frequency to: %r' % new_freq)
+                        logger.info('L___')
                     # But things are not perfect. So, don't make drastic changes
                     max_freq_change_up = max(256, freq * 2)
                     max_freq_change_down = freq // 2
@@ -772,7 +782,7 @@ class ProgressIter(object):
                 self.flush()
             except IOError as ex:
                 if util_arg.VERBOSE:
-                    print('IOError flushing %s' % (ex,))
+                    logger.info('IOError flushing %s' % (ex,))
                 #print('self.flush = %r' % (self.flush,))
                 #import utool as ut
                 #ut.debug_logging_iostreams()
@@ -873,7 +883,6 @@ def log_progress(lbl='Progress: ', length=0, flushfreq=4, startafter=-1,
     FIXME: depricate for ProgressIter.
     still used in util_dev
     """
-    global AGGROFLUSH
     # Alias kwargs with simpler names
     if num is not None:
         length = num
@@ -897,8 +906,8 @@ def log_progress(lbl='Progress: ', length=0, flushfreq=4, startafter=-1,
             pass
         return mark_progress, end_progress
     else:
-        write_fn = util_logging._utool_write()
-        flush_fn = util_logging._utool_flush()
+        write_fn = _loguru_write
+        flush_fn = _loguru_flush
         # build format string for displaying progress
         fmt_str = progress_str(length, lbl=lbl, repl=repl, approx=approx,
                                backspace=backspace)

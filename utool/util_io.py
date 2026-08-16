@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 import pickle
 from utool import util_path
@@ -16,7 +17,6 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 __PRINT_IO__ = True
@@ -117,13 +117,13 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
     if onlyifdiff:
         import utool as ut
         if ut.hashstr(read_from(fpath)) == ut.hashstr(to_write):
-            print('[util_io] * no difference')
+            logger.info('[util_io] * no difference')
             return
     verbose = _rectify_verb_write(verbose)
     if verbose:
         # n = None if verbose > 1 else 2
         # print('[util_io] * Writing to text file: %r ' % util_path.tail(fpath, n=n))
-        print('[util_io] * Writing to text file: {}'.format(fpath))
+        logger.info('[util_io] * Writing to text file: {}'.format(fpath))
 
     backup = False and exists(fpath)
     if backup:
@@ -148,8 +148,8 @@ def write_to(fpath, to_write, aslines=False, verbose=None,
                 start = max(ex.args[2] - 10, 0)
                 end = ex.args[3] + 10
                 context = to_write[start:end]
-                print(repr(context))
-                print(context)
+                logger.info(repr(context))
+                logger.info(context)
                 from utool import util_dbg
                 util_dbg.printex(ex, keys=[(type, 'to_write')])
                 file_.close()
@@ -182,7 +182,7 @@ def read_from(fpath, verbose=None, aslines=False, strict=True, n=None, errors='r
         n = __READ_TAIL_N__
     verbose = _rectify_verb_read(verbose)
     if verbose:
-        print('[util_io] * Reading text file: %r ' % util_path.tail(fpath, n=n))
+        logger.info('[util_io] * Reading text file: %r ' % util_path.tail(fpath, n=n))
     try:
         if not util_path.checkpath(fpath, verbose=verbose, n=n):
             raise IOError('[io] * FILE DOES NOT EXIST!')
@@ -250,7 +250,7 @@ def save_cPkl(fpath, data, verbose=None, n=None):
     """ Saves data to a pickled file with optional verbosity """
     verbose = _rectify_verb_write(verbose)
     if verbose:
-        print('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath, n=n),))
+        logger.info('[util_io] * save_cPkl(%r, data)' % (util_path.tail(fpath, n=n),))
     with open(fpath, 'wb') as file_:
         # Use protocol 2 to support python2 and 3
         pickle.dump(data, file_, protocol=2)
@@ -331,7 +331,7 @@ def load_cPkl(fpath, verbose=None, n=None):
     """
     verbose = _rectify_verb_read(verbose)
     if verbose:
-        print('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath, n=n),))
+        logger.info('[util_io] * load_cPkl(%r)' % (util_path.tail(fpath, n=n),))
     try:
         with open(fpath, 'rb') as file_:
             data = pickle.load(file_)
@@ -557,12 +557,12 @@ def save_hdf5(fpath, data, verbose=None, compression='lzf'):
 
     verbose = _rectify_verb_write(verbose)
     if verbose:
-        print('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
+        logger.info('[util_io] * save_hdf5(%r, data)' % (util_path.tail(fpath),))
     if verbose > 1:
         if isinstance(data, dict):
-            print('[util_io] ... shapes=%r' % ([val.shape for val in data.values()],))
+            logger.info('[util_io] ... shapes=%r' % ([val.shape for val in data.values()],))
         else:
-            print('[util_io] ... shape=%r' % (data.shape,))
+            logger.info('[util_io] ... shape=%r' % (data.shape,))
 
     chunks = True  # True enables auto-chunking
     fname = basename(fpath)
@@ -621,7 +621,7 @@ def load_hdf5(fpath, verbose=None):
     #file_.keys()
     verbose = _rectify_verb_read(verbose)
     if verbose:
-        print('[util_io] * load_hdf5(%r)' % (util_path.tail(fpath),))
+        logger.info('[util_io] * load_hdf5(%r)' % (util_path.tail(fpath),))
     with h5py.File(fpath, 'r') as file_:
         value = file_[fname]
         if isinstance(value, h5py.Group):
@@ -684,7 +684,7 @@ def save_pytables(fpath, data, verbose=False):
     #file_ = tables.open_file(fpath)
     verbose = _rectify_verb_write(verbose)
     if verbose:
-        print('[util_io] * save_pytables(%r, data)' % (util_path.tail(fpath),))
+        logger.info('[util_io] * save_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'w') as file_:
         atom = tables.Atom.from_dtype(data.dtype)
         filters = tables.Filters(complib='blosc', complevel=5)
@@ -701,7 +701,7 @@ def load_pytables(fpath, verbose=False):
     #file_ = tables.open_file(fpath)
     verbose = _rectify_verb_read(verbose)
     if verbose:
-        print('[util_io] * load_pytables(%r, data)' % (util_path.tail(fpath),))
+        logger.info('[util_io] * load_pytables(%r, data)' % (util_path.tail(fpath),))
     with tables.open_file(fpath, 'r') as file_:
         data = file_.root.data.read()
     return data
@@ -710,14 +710,14 @@ def load_pytables(fpath, verbose=False):
 def load_numpy(fpath, mmap_mode=None, verbose=None):
     verbose = _rectify_verb_read(verbose)
     if verbose:
-        print('[util_io] * load_numpy(%r)' % util_path.tail(fpath))
+        logger.info('[util_io] * load_numpy(%r)' % util_path.tail(fpath))
     return np.load(fpath, mmap_mode=mmap_mode)
 
 
 def save_numpy(fpath, data, verbose=None, **kwargs):
     verbose = _rectify_verb_write(verbose)
     if verbose:
-        print('[util_io] * save_numpy(%r, data)' % util_path.tail(fpath))
+        logger.info('[util_io] * save_numpy(%r, data)' % util_path.tail(fpath))
     return np.save(fpath, data)
 
 
@@ -752,15 +752,15 @@ def try_decode(x):
         'utf_8', 'utf_8_sig', ]
     for codec in codec_list:
         try:
-            print(('%20s: ' % (codec,)) + x.encode(codec))
+            logger.info(('%20s: ' % (codec,)) + x.encode(codec))
         except Exception:
-            print(('%20s: ' % (codec,)) + 'FAILED')
+            logger.info(('%20s: ' % (codec,)) + 'FAILED')
 
     for codec in codec_list:
         try:
-            print(('%20s: ' % (codec,)) + x.decode(codec))
+            logger.info(('%20s: ' % (codec,)) + x.decode(codec))
         except Exception:
-            print(('%20s: ' % (codec,)) + 'FAILED')
+            logger.info(('%20s: ' % (codec,)) + 'FAILED')
 
 
 if __name__ == '__main__':

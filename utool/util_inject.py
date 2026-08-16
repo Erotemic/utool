@@ -5,6 +5,7 @@ Injects code into live modules or into text source files.
 Basic use case is to extend the print function into a logging function
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import builtins
 import six  # NOQA
 import sys
@@ -16,7 +17,6 @@ import traceback
 
 
 __AGGROFLUSH__ = '--aggroflush' in sys.argv
-__LOGGING__    = '--logging'    in sys.argv
 __DEBUG_ALL__  = '--debug-all'  in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
 DEBUG_PRINT = '--debug-print' in sys.argv
@@ -35,9 +35,6 @@ PRINT_INJECT_ORDER = meta_util_arg.PRINT_INJECT_ORDER  # --verbinject
 # only word
 EXIT_ON_INJECT_MODNAME = meta_util_arg.get_argval('--exit-on-inject', type_=str, default=None)
 
-
-if __LOGGING__:
-    util_logging.start_logging()
 
 # Read all flags with --debug in them
 ARGV_DEBUG_FLAGS = []
@@ -75,7 +72,6 @@ def _inject_funcs(module, *func_list):
 
 
 def _add_injected_module(module):
-    global __INJECTED_MODULES__
     __INJECTED_MODULES__.add(module)
 
 
@@ -90,7 +86,7 @@ def _get_module(module_name=None, module=None, register=True):
         try:
             module = sys.modules[module_name]
         except KeyError as ex:
-            print(ex)
+            logger.info(ex)
             raise KeyError(('module_name=%r must be loaded before ' +
                             'receiving injections') % module_name)
     elif module is not None and module_name is None:
@@ -153,17 +149,17 @@ def inject_colored_exceptions():
     #COLORED_INJECTS = '--colorex' in sys.argv
     # Ignore colored exceptions on win32
     if VERBOSE:
-        print('[inject] injecting colored exceptions')
+        logger.info('[inject] injecting colored exceptions')
     if not sys.platform.startswith('win32'):
         if VERYVERBOSE:
-            print('[inject] injecting colored exceptions')
+            logger.info('[inject] injecting colored exceptions')
         if '--noinject-color' in sys.argv:
-            print('Not injecting color')
+            logger.info('Not injecting color')
         else:
             sys.excepthook = colored_pygments_excepthook
     else:
         if VERYVERBOSE:
-            print('[inject] cannot inject colored exceptions')
+            logger.info('[inject] cannot inject colored exceptions')
 
 
 def make_module_print_func(module):
@@ -290,8 +286,8 @@ def reload_module(module, verbose=None):
             builtins.print('RELOAD: module __name__=' + module_name)
         reload(module)
     except Exception as ex:
-        print(ex)
-        print('[util_inject] Failed to reload %r' % (module,))
+        logger.info(ex)
+        logger.info('[util_inject] Failed to reload %r' % (module,))
         raise
 
 
@@ -310,8 +306,8 @@ def make_module_reload_func(module_name=None, module_prefix='[???]', module=None
                 builtins.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
             importlib.reload(module)
         except Exception as ex:
-            print(ex)
-            print('%s Failed to reload' % module_prefix)
+            logger.info(ex)
+            logger.info('%s Failed to reload' % module_prefix)
             raise
     # this doesn't seem to set anything on import *
     #_inject_funcs(module, rrr)
@@ -333,32 +329,30 @@ def TIMERPROF_FUNC(func):
     return prof_wrapper
 
 
+# The injected line-profiler workflow has been retired. Keep the public
+# compatibility names as identity behavior while callers migrate away from
+# inject()/inject2(). Explicit profiling should use normal profiler tooling.
+PROFILING = False
+PROFILE_FUNC = DUMMYPROF_FUNC
 if '--profile' in sys.argv:
-    #util_profile.make_profiler()
-    import line_profiler
-    PROFILE_FUNC = line_profiler.LineProfiler()
-    PROFILING = True
-    if __DEBUG_PROF__:
-        print('[util_inject] PROFILE ON')
-else:
-    PROFILING = False
-    PROFILE_FUNC = DUMMYPROF_FUNC
-    #PROFILE_FUNC = TIMERPROF_FUNC
-    if __DEBUG_PROF__:
-        print('[util_inject] PROFILE OFF')
+    logger.warning(
+        'utool --profile support has been retired; profiling decorators are no-ops'
+    )
+elif __DEBUG_PROF__:
+    logger.debug('[util_inject] PROFILE OFF')
 
 
 # Look in command line for functions to profile
 PROF_FUNC_PAT_LIST = meta_util_arg.get_argval('--prof-func', type_=str, default=None)
 if PROF_FUNC_PAT_LIST is not None:
     PROF_FUNC_PAT_LIST = PROF_FUNC_PAT_LIST.split(',')
-    print('[util_inject] PROF_FUNC_PAT_LIST: %r' % (PROF_FUNC_PAT_LIST,))
+    logger.info('[util_inject] PROF_FUNC_PAT_LIST: %r' % (PROF_FUNC_PAT_LIST,))
 
 # Look in command line for modules to profile
 PROF_MOD_PAT_LIST = meta_util_arg.get_argval('--prof-mod', type_=str, default=None)
 if PROF_MOD_PAT_LIST is not None:
     PROF_MOD_PAT_LIST = PROF_MOD_PAT_LIST.split(',')
-    print('[util_inject] PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
+    logger.info('[util_inject] PROF_MOD_PAT_LIST: %r' % (PROF_MOD_PAT_LIST,))
 
 
 def memprof(func):
@@ -407,7 +401,7 @@ def make_module_profile_func(module_name=None, module_prefix='[???]', module=Non
         funcname = meta_util_six.get_funcname(func)
         if _profile_func_flag(funcname):
             if __DEBUG_PROF__:
-                print('profile func %r' % (func,))
+                logger.info('profile func %r' % (func,))
             # if isinstance(func, six.class_types):
             #     for k in func.__dict__.keys():
             #         if k.startswith('_'):
@@ -433,7 +427,7 @@ if DEBUG_SLOW_IMPORT:
     def check_debug_import_times():
         import utool as ut
         from utool import util_inject
-        print(ut.align(ut.repr4(ut.sort_dict(util_inject.import_times, 'vals'), precision=4), ':'))
+        logger.info(ut.align(ut.repr4(ut.sort_dict(util_inject.import_times, 'vals'), precision=4), ':'))
         # ututil_inject.import_times
         # pass
 
@@ -627,7 +621,6 @@ if '--inject-color' in sys.argv or '--cex' in sys.argv:
     inject_colored_exceptions()
 
 # Inject this module with itself!
-print, rrr, profile = inject2(__name__, '[inject]')
 
 
 if __name__ == '__main__':

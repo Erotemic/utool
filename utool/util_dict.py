@@ -17,10 +17,8 @@ try:
 except ImportError:
     HAVE_NUMPY = False
     pass
-print, rrr, profile = util_inject.inject2(__name__)
 
 
-@profile
 def dzip(list1, list2):
     r"""
     Zips elementwise pairs between list1 and list2 into a dictionary. Values
@@ -1231,7 +1229,6 @@ def dict_find_other_sameval_keys(dict_, key):
     return other_keys
 
 
-@profile
 def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     r"""
     Builds a histogram of items in item_list

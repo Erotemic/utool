@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # UNFINISHED - do not use
 from __future__ import print_function, division, absolute_import, unicode_literals
+from loguru import logger
 import collections  # NOQA
 import networkx as nx
 import utool as ut
-print, rrr, profile = ut.inject2(__name__)
 # import bintrees
 # import rbtree
 
@@ -41,11 +41,10 @@ def euler_tour_dfs(G, source=None):
     return yielder
 
 
-@profile
 def comparison():
     r"""
     CommandLine:
-        python -m utool.experimental.dynamic_connectivity comparison --profile
+        python -m utool.experimental.dynamic_connectivity comparison
         python -m utool.experimental.dynamic_connectivity comparison
     """
     n = 12
@@ -127,7 +126,6 @@ class TestETT(object):
         pass
 
     @classmethod
-    @profile
     def from_tree(TestETT, mst, version='bst', fast=True):
         """
         >>> # DISABLE_DOCTEST
@@ -148,7 +146,6 @@ class TestETT(object):
         return self
 
     @classmethod
-    @profile
     def from_tour(TestETT, tour, version='bst', fast=True):
         import bintrees
         self = TestETT()
@@ -194,7 +191,6 @@ class TestETT(object):
             tour_order.bisect_left((7, 0))
         return self
 
-    @profile
     def delete_edge_bst_version(self, a, b, bstjoin=False):
         """
         a, b = (2, 5)
@@ -240,7 +236,6 @@ class TestETT(object):
             self.tour_tree.remove_items(t1_splice)
         return other
 
-    @profile
     def delete_edge_list_version(self, a, b):
         if self.first_lookup[a] > self.last_lookup[b]:
             a, b = b, a
@@ -444,14 +439,12 @@ class EulerTourTree(object):
         pass
 
     @classmethod
-    @profile
     def from_tree(EulerTourTree, mst, fast=True, start=0):
         tour = euler_tour_dfs(mst)
         self = EulerTourTree.from_tour(tour, fast=fast, start=0)
         return self
 
     @classmethod
-    @profile
     def from_tour(EulerTourTree, tour, fast=False, start=0):
         import bintrees
         self = EulerTourTree()
@@ -484,7 +477,6 @@ class EulerTourTree(object):
     def join(self, other):
         pass
 
-    @profile
     def cut(self, a, b, bstjoin=False):
         """
         cuts edge (a, b) into two parts because this is a tree
@@ -663,7 +655,7 @@ class DummyEulerTourForest(object):
         # raise NotImplementedError('remove edge')
 
     def add_edge(self, u, v):
-        print('[euler_tour_forest] add_edge(%r, %r)' % (u, v))
+        logger.info('[euler_tour_forest] add_edge(%r, %r)' % (u, v))
         if self.has_edge(u, v):
             return
         ru = self.find_root(u)
@@ -684,7 +676,7 @@ class DummyEulerTourForest(object):
         new_tree = nx.compose(subtree1, subtree2)
         new_tree.add_edge(u, v)
         self.trees[ru] = new_tree
-        print(list(new_tree.nodes()))
+        logger.info(list(new_tree.nodes()))
         assert nx.is_connected(new_tree)
         assert nx.is_tree(new_tree)
 
@@ -857,7 +849,7 @@ class DynConnGraph(object):
         to fit in a smaller tree on a higher level.
         """
         # Remove (u, v) from represented graph
-        print('Dynamically removing uv=(%r, %r)' % (u, v))
+        logger.info('Dynamically removing uv=(%r, %r)' % (u, v))
         self.graph.remove_edge(u, v)
         e = (u, v)
         # Remove edge e = (u, v) from all graphs.
@@ -876,9 +868,9 @@ class DynConnGraph(object):
         for i in reversed(range(0, self.level[e] + 1)):
             # Tu != Tw b/c (u, v) was just deleted from all forests
             Tu = self.forests[i].subtree(u)
-            print('Tu = %r' % (list(Tu.nodes()),))
+            logger.info('Tu = %r' % (list(Tu.nodes()),))
             Tv = self.forests[i].subtree(v)
-            print('Tv = %r' % (list(Tv.nodes()),))
+            logger.info('Tv = %r' % (list(Tv.nodes()),))
             # Relabel so len(Tu) <= len(Tv)
             # This ensures len(Tu) < 2 ** (floor(log(n)) - i)
             if len(Tu) > len(Tv):
@@ -896,7 +888,7 @@ class DynConnGraph(object):
                         continue
                     # print('Check replacement edge xy=(%r, %r)' % (x, y))
                     if y in Tv:
-                        print('* Found replacement xy=(%r, %r)' % (x, y))
+                        logger.info('* Found replacement xy=(%r, %r)' % (x, y))
                         # edge (x, y) is a replacement edge.
                         # add (x, y) to prev forests F[0:i+1]
                         # This is the only place edges are added to forets of
@@ -904,12 +896,12 @@ class DynConnGraph(object):
                         if len(self.forests) == i + 1:
                             self.forests.append(DummyEulerTourForest(self.graph.nodes()))
                         for j in range(0, i + 2):
-                            print('* Add replacment to F[j=%r]' % (j,))
+                            logger.info('* Add replacment to F[j=%r]' % (j,))
                             # Need euler tree augmentation for outgoing level edges
                             self.forests[j].add_edge(x, y)
                         return
                     else:
-                        print('* Charging xy=(%r, %r)' % (x, y))
+                        logger.info('* Charging xy=(%r, %r)' % (x, y))
                         # charge --- add (x, y) to next level
                         # this pays for our search in an amortized sense
                         # (ie, the next search at this level wont consider this)

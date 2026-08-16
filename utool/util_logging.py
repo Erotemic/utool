@@ -161,7 +161,6 @@ def ensure_logging():
 
 
 def is_logging():
-    global __UTOOL_ROOT_LOGGER__
     flag = __UTOOL_ROOT_LOGGER__ is not None
     return flag
 
@@ -234,8 +233,13 @@ def get_shelves_dir(appname='default'):
 
 
 def get_current_log_fpath():
-    global __CURRENT_LOG_FPATH__
     return __CURRENT_LOG_FPATH__
+
+
+def set_current_log_fpath(fpath):
+    """Record the log path selected by an application-owned logger config."""
+    global __CURRENT_LOG_FPATH__
+    __CURRENT_LOG_FPATH__ = fpath
 
 
 def get_current_log_text():
@@ -281,7 +285,6 @@ def add_logging_handler(handler, format_='file'):
     """
     mostly for util_logging internals
     """
-    global __UTOOL_ROOT_LOGGER__
     if __UTOOL_ROOT_LOGGER__ is None:
         builtins.print('[WARNING] logger not started, cannot add handler')
         return
