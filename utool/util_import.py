@@ -253,11 +253,23 @@ def get_modpath_from_modname(modname, prefer_pkg=False, prefer_main=False):
     if modname in sys.modules:
         modpath = sys.modules[modname].__file__.replace('.pyc', '.py')
     else:
-        import pkgutil
-        loader = pkgutil.find_loader(modname)
-        modpath = loader.filename.replace('.pyc', '.py')
+        import importlib.util
+        spec = importlib.util.find_spec(modname)
+        if spec is None:
+            raise ImportError('Cannot find module {!r}'.format(modname))
+        modpath = spec.origin
+        if modpath in {None, 'built-in', 'frozen'}:
+            locations = spec.submodule_search_locations
+            if locations:
+                modpath = next(iter(locations), None)
+        if modpath in {None, 'built-in', 'frozen'}:
+            raise ImportError(
+                'Module {!r} has no filesystem path'.format(modname))
+        modpath = modpath.replace('.pyc', '.py')
         if '.' not in basename(modpath):
-            modpath = join(modpath, initname)
+            candidate = join(modpath, initname)
+            if exists(candidate):
+                modpath = candidate
     if prefer_pkg:
         if modpath.endswith(initname) or modpath.endswith(mainname):
             modpath = dirname(modpath)
@@ -299,20 +311,14 @@ def check_module_installed(modname):
         >>> print('module(%r).is_imported = %r' % (modname, is_imported))
         >>> assert 'this' not in sys.modules, 'module(this) should not have ever been imported'
     """
-    import pkgutil
-    if '.' in modname:
-        # Prevent explicit import if possible
-        parts = modname.split('.')
-        base = parts[0]
-        submods = parts[1:]
-        loader = pkgutil.find_loader(base)
-        if loader is not None:
-            # TODO: check to see if path to the submod exists
-            submods
-            return True
-    loader = pkgutil.find_loader(modname)
-    is_installed = loader is not None
-    return is_installed
+    import importlib.util
+    try:
+        spec = importlib.util.find_spec(modname)
+    except (ImportError, AttributeError, ValueError):
+        # Dotted lookups can fail while resolving a missing or malformed
+        # parent package.  In either case the requested module is unavailable.
+        return False
+    return spec is not None
 
 
 def import_modname(modname):

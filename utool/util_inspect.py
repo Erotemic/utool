@@ -1916,12 +1916,13 @@ def parse_return_type(sourcecode):
                 node_type = 'bool'
             elif node_name == 'None':
                 node_type = 'None'
-        elif six.PY3 and isinstance(node, ast.NameConstant):
-            node_name = str(node.value)
+        elif isinstance(node, ast.Constant):
+            value = node.value
+            node_name = str(value)
             node_type = '?'
-            if node_name in ['True', 'False', True, False]:
+            if isinstance(value, bool):
                 node_type = 'bool'
-            elif node_name in ['None', None]:
+            elif value is None:
                 node_type = 'None'
         else:
             node_name = None
@@ -2880,9 +2881,8 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False, debug='auto'):
                         val = eval(kwval.id, {}, {})
                         self.const_lookup[kwname.id] = val
                 else:
-                    if isinstance(kwval, ast.NameConstant):
-                        val = kwval.value
-                        self.const_lookup[kwname.arg] = val
+                    if isinstance(kwval, ast.Constant):
+                        self.const_lookup[kwname.arg] = kwval.value
                 # except Exception:
                 #     pass
 
@@ -2898,32 +2898,28 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False, debug='auto'):
                 # print(ut.repr4(node.__dict__,))
             if isinstance(node.value, ast.Name):
                 if node.value.id == target_kwargs_name:
-                    if six.PY3 and isinstance(node.slice, ast.Constant):
-                        index = node.slice
-                        key = index.value
-                        item = (key, None)
+                    # Python 3.9 flattened ast.Index into the expression
+                    # stored in ``slice``.  Feature-detect the wrapper so this
+                    # continues to work on both Python 3.8 and modern Python.
+                    index = node.slice
+                    index_type = getattr(ast, 'Index', None)
+                    if index_type is not None and isinstance(index, index_type):
+                        index = index.value
+                    if isinstance(index, ast.Constant):
+                        item = (index.value, None)
                         kwargs_items.append(item)
-                    elif isinstance(node.slice, ast.Index):
-                        index = node.slice
-                        key = index.value
-                        if isinstance(key, ast.Str):
-                            # item = (key.s, None)
-                            item = (key.s, None)
-                            kwargs_items.append(item)
-                        elif six.PY3 and isinstance(key, ast.Constant):
-                            # item = (key.s, None)
-                            item = (key.value, None)
-                            kwargs_items.append(item)
 
         @staticmethod
         def _eval_bool_op(val):
             # Can we handle this more intelligently?
             val_value = None
             if isinstance(val.op, ast.Or):
-                if any([isinstance(x, ast.NameConstant) and x.value is True for x in val.values]):
+                if any(isinstance(x, ast.Constant) and x.value is True
+                       for x in val.values):
                     val_value = True
             elif isinstance(val.op, ast.And):
-                if any([isinstance(x, ast.NameConstant) and x.value is False for x in val.values]):
+                if any(isinstance(x, ast.Constant) and x.value is False
+                       for x in val.values):
                     val_value = False
             return val_value
 
@@ -2945,37 +2941,29 @@ def parse_kwarg_keys(source, keywords='kwargs', with_vals=False, debug='auto'):
                         if isinstance(key, ast.Name):
                             # TODO lookup constant
                             pass
-                        elif isinstance(key, ast.Str):
-                            key_value = key.s
+                        elif (isinstance(key, ast.Constant) and
+                              isinstance(key.value, six.string_types)):
+                            key_value = key.value
                             val_value = None   # ut.NoParam
-                            if isinstance(val, ast.Str):
-                                val_value = val.s
-                            elif isinstance(val, ast.Num):
-                                val_value = val.n
+                            if isinstance(val, ast.Constant):
+                                val_value = val.value
                             elif isinstance(val, ast.Name):
                                 if val.id == 'None':
                                     val_value = None
                                 else:
                                     val_value = self.const_lookup.get(
                                             val.id, None)
-                                    # val_value = 'TODO lookup const'
-                                    # TODO: lookup constants?
-                                    pass
-                            elif six.PY3:
-                                if isinstance(val, ast.NameConstant):
-                                    val_value = val.value
-                                elif isinstance(val, ast.Call):
-                                    val_value = None
-                                elif isinstance(val, ast.BoolOp):
-                                    val_value = self._eval_bool_op(val)
-                                elif isinstance(val, ast.Dict):
-                                    if len(val.keys) == 0:
-                                        val_value = {}
-                                    else:
-                                        val_value = {}
-                                    # val_value = callable
-                                else:
-                                    logger.info('Warning: util_inspect doent know how to parse {}'.format(repr(val)))
+                                    # TODO lookup constants outside defaults
+                            elif isinstance(val, ast.Call):
+                                val_value = None
+                            elif isinstance(val, ast.BoolOp):
+                                val_value = self._eval_bool_op(val)
+                            elif isinstance(val, ast.Dict):
+                                val_value = {}
+                            else:
+                                logger.info(
+                                    'Warning: util_inspect does not know how '
+                                    'to parse {}'.format(repr(val)))
                             item = (key_value, val_value)
                             kwargs_items.append(item)
             ast.NodeVisitor.generic_visit(self, node)
