@@ -132,3 +132,5 @@ license = "Apache 2"
 dev_status = "alpha"
 use_setup_py = false
 use_pyproject_requirements = false
+ci_pypi_trusted_publishing = true
+enable_gpg = true
