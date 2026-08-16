@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from six.moves import builtins
 import utool
-print, rrr, profile = utool.inject2(__name__)
 
 
 @utool.indent_func
 def func1():
-    print('enter func1')
-    print('exit  func1')
+    logger.info('enter func1')
+    logger.info('exit  func1')
 
 
 @utool.indent_func
 def func2():
-    print('enter func2')
+    logger.info('enter func2')
     func1()
-    print('exit  func2')
+    logger.info('exit  func2')
 
 
 def remove_timestamp(string):
@@ -26,7 +26,7 @@ def remove_timestamp(string):
 
 @utool.indent_func
 def test():
-    print('enter test')
+    logger.info('enter test')
     log_fpath1 = utool.get_app_resource_dir('utool', 'test_logfile1.txt')
     log_fpath2 = utool.get_app_resource_dir('utool', 'test_logfile2.txt')
 
@@ -35,12 +35,12 @@ def test():
     func2()
     utool.stop_logging()
 
-    print('\n\n')
-    print('This line is NOT logged')
-    print('\n\n')
+    logger.info('\n\n')
+    logger.info('This line is NOT logged')
+    logger.info('\n\n')
 
     utool.start_logging(log_fpath2, 'w')
-    print('This line is logged')
+    logger.info('This line is logged')
     utool.stop_logging()
 
     log1 = utool.read_from(log_fpath1, verbose=False)

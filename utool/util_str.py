@@ -3,6 +3,7 @@ r"""
 Module that handles string formating and manipulation of various data
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import sys
 import six
 import re
@@ -17,7 +18,6 @@ from utool import util_cplat
 from utool._internal import meta_util_six
 from utool._internal import meta_util_arg
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 ENABLE_COLORS = (not util_cplat.WIN32 and
                  not meta_util_arg.get_argflag('--nopygments'))
@@ -56,9 +56,9 @@ def ensure_ascii(str_):
     try:
         return str_.encode('ascii')
     except UnicodeDecodeError:
-        print("it was not a ascii-encoded unicode string")
+        logger.info("it was not a ascii-encoded unicode string")
     else:
-        print("It may have been an ascii-encoded unicode string")
+        logger.info("It may have been an ascii-encoded unicode string")
     return str_
 
 
@@ -1894,9 +1894,9 @@ def long_fname_format(fmt_str, fmt_dict, hashable_keys=[], max_len=64,
             diff = len(fname) - max_len
             msg = ('[util_str] Warning: Too big by %d chars. Exausted all options'
                    'to make fname fit into size. ')  % (diff,)
-            print(msg)
-            print('* len(fname) = %r' % len(fname))
-            print('* fname = %r' % fname)
+            logger.info(msg)
+            logger.info('* len(fname) = %r' % len(fname))
+            logger.info('* fname = %r' % fname)
             if ABS_MAX_LEN is not None and len(fname) > ABS_MAX_LEN:
                 raise AssertionError(msg)
     return fname
@@ -2175,7 +2175,7 @@ def doctest_code_line(line_str, varname=None, verbose=True):
     prefix2 = '\n... ' + (' ' * len(varprefix))
     doctest_line_str = prefix1 + prefix2.join(line_str.split('\n'))
     if verbose:
-        print(doctest_line_str)
+        logger.info(doctest_line_str)
     return doctest_line_str
 
 
@@ -2963,19 +2963,19 @@ def split_sentences2(text, debug=0):
             sep_list_group1 = split_list[1::num_bins]
             sep_list = sep_list_group1
         if debug:
-            print('<SPLIT DBG>')
-            print('num_groups = %r' % (num_groups,))
-            print('len(split_list) = %r' % (len(split_list)))
-            print('len(split_list) / len(sentence_list) = %r' % (
+            logger.info('<SPLIT DBG>')
+            logger.info('num_groups = %r' % (num_groups,))
+            logger.info('len(split_list) = %r' % (len(split_list)))
+            logger.info('len(split_list) / len(sentence_list) = %r' % (
                 len(split_list) / len(sentence_list)))
-            print('len(sentence_list) = %r' % (len(sentence_list),))
-            print('len(sep_list_group1) = %r' % (len(sep_list_group1),))
+            logger.info('len(sentence_list) = %r' % (len(sentence_list),))
+            logger.info('len(sep_list_group1) = %r' % (len(sep_list_group1),))
             #print('len(sep_list_group2) = %r' % (len(sep_list_group2),))
-            print('full_pattern = %s' % (full_pattern,))
+            logger.info('full_pattern = %s' % (full_pattern,))
             #print('split_list = %r' % (split_list,))
-            print('sentence_list = %s' % (ut.repr2(sentence_list),))
-            print('sep_list = %s' % ((sep_list),))
-            print('</SPLIT DBG>')
+            logger.info('sentence_list = %s' % (ut.repr2(sentence_list),))
+            logger.info('sep_list = %s' % ((sep_list),))
+            logger.info('</SPLIT DBG>')
         # ******* #
         # FIXME: Place the separators either before or after a sentence
         from itertools import zip_longest
@@ -3040,12 +3040,12 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
     min_indent = ut.get_minimum_indentation(text)
     min_indent = (min_indent // 4) * 4
     if debug:
-        print(ut.colorprint(msgblock('preflat', repr(text)), 'darkyellow'))
+        logger.info(ut.colorprint(msgblock('preflat', repr(text)), 'darkyellow'))
     text_ = ut.remove_doublspaces(text)
     # TODO: more intelligent sentence parsing
     text_ = ut.flatten_textlines(text)
     if debug:
-        print(ut.colorprint(msgblock('postflat', repr(text_)), 'yellow'))
+        logger.info(ut.colorprint(msgblock('postflat', repr(text_)), 'yellow'))
 
     raw_sep_chars = ['.', '?', '!', ':']
     if not sepcolon:
@@ -3079,19 +3079,19 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
                 sep_list_group1 = split_list[1::num_bins]
                 sep_list = sep_list_group1
             if debug:
-                print('<SPLIT DBG>')
-                print('num_groups = %r' % (num_groups,))
-                print('len(split_list) = %r' % (len(split_list)))
-                print('len(split_list) / len(sentence_list) = %r' % (
+                logger.info('<SPLIT DBG>')
+                logger.info('num_groups = %r' % (num_groups,))
+                logger.info('len(split_list) = %r' % (len(split_list)))
+                logger.info('len(split_list) / len(sentence_list) = %r' % (
                     len(split_list) / len(sentence_list)))
-                print('len(sentence_list) = %r' % (len(sentence_list),))
-                print('len(sep_list_group1) = %r' % (len(sep_list_group1),))
+                logger.info('len(sentence_list) = %r' % (len(sentence_list),))
+                logger.info('len(sep_list_group1) = %r' % (len(sep_list_group1),))
                 #print('len(sep_list_group2) = %r' % (len(sep_list_group2),))
-                print('full_pattern = %s' % (full_pattern,))
+                logger.info('full_pattern = %s' % (full_pattern,))
                 #print('split_list = %r' % (split_list,))
-                print('sentence_list = %s' % (ut.repr2(sentence_list),))
-                print('sep_list = %s' % ((sep_list),))
-                print('</SPLIT DBG>')
+                logger.info('sentence_list = %s' % (ut.repr2(sentence_list),))
+                logger.info('sep_list = %s' % ((sep_list),))
+                logger.info('</SPLIT DBG>')
             # ******* #
             return sentence_list, sep_list
 
@@ -3167,8 +3167,8 @@ def format_single_paragraph_sentences(text, debug=False, myprefix=True,
 
         if False:
             # for a one-time purpose
-            print('HACKING')
-            print('width = {!r}'.format(width))
+            logger.info('HACKING')
+            logger.info('width = {!r}'.format(width))
             # HACK
             words = text_.split(', (')
             lines = []

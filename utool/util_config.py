@@ -5,8 +5,8 @@ util_config
 TODO: FINISH ME AND ALLOW FOR CUSTOM SETTINGS BASED OFF OF A USER PROFILE
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from utool import util_inject
-(print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[config]')
 
 
 def read_repo_config():
@@ -60,7 +60,7 @@ def write_default_repo_config():
     CONFIG_DICT = utool.get_default_repo_config()
     config_str = utool.repr2(CONFIG_DICT, strvals=True, newlines=True,
                              recursive=True)
-    print(config_str)
+    logger.info(config_str)
 
 
 if __name__ == '__main__':

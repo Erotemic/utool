@@ -4,6 +4,7 @@ TODO: box and whisker
 http://tex.stackexchange.com/questions/115210/boxplot-in-latex
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import os
 import re
 import textwrap
@@ -14,7 +15,6 @@ except ImportError:
 from os.path import join, splitext, dirname  # NOQA
 from utool import util_num
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 #def ensure_latex_environ():
 #    paths = os.environ['PATH'].split(os.pathsep)
@@ -38,9 +38,9 @@ def compress_pdf(pdf_fpath, output_fname=None):
     import utool as ut
     ut.assertpath(pdf_fpath)
     suffix = '_' + ut.get_datestamp(False) + '_compressed'
-    print('pdf_fpath = %r' % (pdf_fpath,))
+    logger.info('pdf_fpath = %r' % (pdf_fpath,))
     output_pdf_fpath = ut.augpath(pdf_fpath, suffix, newfname=output_fname)
-    print('output_pdf_fpath = %r' % (output_pdf_fpath,))
+    logger.info('output_pdf_fpath = %r' % (output_pdf_fpath,))
     gs_exe = find_ghostscript_exe()
     cmd_list = (
         gs_exe,
@@ -172,7 +172,7 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
     """
     import utool as ut
     if verbose:
-        print('[ut] compile_latex_text')
+        logger.info('[ut] compile_latex_text')
 
     if nest_in_doc is None:
         nest_in_doc = 'documentclass' not in input_text
@@ -203,9 +203,9 @@ def compile_latex_text(input_text, dpath=None, fname=None, verbose=True,
         ])
         info = ut.cmd2(args, verbose=verbose > 1)
         if not ut.checkpath(pdf_fpath_output, verbose=verbose > 1):
-            print('Error compiling LaTeX')
+            logger.info('Error compiling LaTeX')
             ut.print_code(text, 'latex')
-            print(info['out'])
+            logger.info(info['out'])
             raise RuntimeError('latex failed ')
 
     if move:
@@ -220,7 +220,7 @@ def convert_pdf_to_image(pdf_fpath, ext='.jpg', verbose=1, dpi=300,
                          quality=90):
     import utool as ut
     if verbose:
-        print('[ut] convert_pdf_to_image.')
+        logger.info('[ut] convert_pdf_to_image.')
     img_fpath = ut.ensure_ext(pdf_fpath, ext)
     if ut.UNIX:
         convert_fpath = ut.cmd2('which convert')['out'].strip()
@@ -230,8 +230,8 @@ def convert_pdf_to_image(pdf_fpath, ext='.jpg', verbose=1, dpi=300,
                      str(quality), img_fpath])
     info = ut.cmd2(args, verbose=verbose > 1)  # NOQA
     if not ut.checkpath(img_fpath, verbose=verbose > 1):
-        print('Failed to convert pdf to ' + ext)
-        print(info['out'])
+        logger.info('Failed to convert pdf to ' + ext)
+        logger.info(info['out'])
         raise Exception('ImageMagik failed to convert pdf to ' + ext)
     return img_fpath
 
@@ -561,10 +561,10 @@ def make_score_tabular(
                     body[r][c] = escape_latex(body[r][c])
     except Exception as ex:
         import utool as ut
-        print('len(row_lbls) = %r' % (len(row_lbls),))
-        print('len(col_lbls) = %r' % (len(col_lbls),))
-        print('len(values) = %r' % (values,))
-        print('ut.depth_profile(values) = %r' % (ut.depth_profile(values),))
+        logger.info('len(row_lbls) = %r' % (len(row_lbls),))
+        logger.info('len(col_lbls) = %r' % (len(col_lbls),))
+        logger.info('len(values) = %r' % (values,))
+        logger.info('ut.depth_profile(values) = %r' % (ut.depth_profile(values),))
         ut.printex(ex, keys=['r', 'c'])
         raise
 

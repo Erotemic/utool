@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, print_function
 import functools
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def compose_functions(*func_list):

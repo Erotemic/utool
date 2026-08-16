@@ -9,6 +9,7 @@ TODO: the same hashing algorithm should be used everywhere
 Currently there is a mix of sha1, sha256, and sha512 in different places.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import hashlib
 import copy
 import os
@@ -19,7 +20,6 @@ import warnings
 from utool import util_inject
 from utool import util_path
 from utool import util_type
-(print, rrr, profile) = util_inject.inject2(__name__, '[hash]')
 
 if util_type.HAVE_NUMPY:
     import numpy as np
@@ -433,7 +433,6 @@ def combine_hashes(bytes_list, hasher=None):
     return hasher.digest()
 
 
-@profile
 def hash_data(data, hashlen=None, alphabet=None):
     r"""
     Get a unique hash depending on the state of the data.
@@ -713,12 +712,12 @@ def _test_int_byte_conversion():
         (2 ** i + 1 for i in range(0, 256, 32)),
     ))
     for int_0 in inputs:
-        print('---')
-        print('int_0 = %s' % (ut.repr2(int_0),))
+        logger.info('---')
+        logger.info('int_0 = %s' % (ut.repr2(int_0),))
         bytes_ = _int_to_bytes(int_0)
         int_ = _bytes_to_int(bytes_)
-        print('bytes_ = %s' % (ut.repr2(bytes_),))
-        print('int_ = %s' % (ut.repr2(int_),))
+        logger.info('bytes_ = %s' % (ut.repr2(bytes_),))
+        logger.info('int_ = %s' % (ut.repr2(int_),))
         assert int_ == int_0
 
 
@@ -931,7 +930,7 @@ def write_hash_file(fpath, hash_tag='md5', recompute=False):
         # Compute hash
         hasher = hash_dict[hash_tag]
         hash_local = get_file_hash(fpath, hasher=hasher, hexdigest=True)
-        print('[utool] Adding:', fpath, hash_local)
+        logger.info('{}, {}, {}', '[utool] Adding:', fpath, hash_local)
         with open(hash_fpath, 'w') as hash_file:
             hash_file.write(hash_local)
         return hash_fpath
@@ -989,7 +988,7 @@ def image_uuid(pil_img):
     References:
         http://stackoverflow.com/questions/23565889/jpeg-images-have-different-pixel-values-across-multiple-devices
     """
-    print('WARNING DO NOT USE utool.util_hash.image_uuid UNSAFE AND DEPRICATED')
+    logger.info('WARNING DO NOT USE utool.util_hash.image_uuid UNSAFE AND DEPRICATED')
     # Get the bytes of the image
     img_bytes_ = pil_img.tobytes()
     uuid_ = hashable_to_uuid(img_bytes_)
@@ -1024,7 +1023,6 @@ def augment_uuid(uuid_, *hashables):
     return augmented_uuid_
 
 
-@profile
 def combine_uuids(uuids, ordered=True, salt=''):
     """
     Creates a uuid that specifies a group of UUIDS
@@ -1163,8 +1161,8 @@ def hashable_to_uuid(hashable_):
     try:
         bytes_sha1 = hashlib.sha1(bytes_)
     except TypeError:
-        print('hashable_ = %r' % (hashable_,))
-        print('bytes_ = %r' % (bytes_,))
+        logger.info('hashable_ = %r' % (hashable_,))
+        logger.info('bytes_ = %r' % (bytes_,))
         raise
     # Digest them into a hash
     hashbytes_20 = bytes_sha1.digest()

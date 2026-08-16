@@ -1,5 +1,6 @@
 # python ~/local/tools/supported_python_versions_pip.py networkx
 
+loguru>=0.7.3
 six>=1.16.0  ; python_version < '4.0'  and python_version >= '3.12'    # Python 3.12+
 six>=1.10.0  ; python_version < '3.12'   # Python 3.11-
 

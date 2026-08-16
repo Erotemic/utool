@@ -238,6 +238,12 @@ def get_current_log_fpath():
     return __CURRENT_LOG_FPATH__
 
 
+def set_current_log_fpath(fpath):
+    """Record the log path selected by an application-owned logger config."""
+    global __CURRENT_LOG_FPATH__
+    __CURRENT_LOG_FPATH__ = fpath
+
+
 def get_current_log_text():
     fpath = get_current_log_fpath()
     if fpath is None:

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ module for gridsearch helper """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from collections import namedtuple, OrderedDict
 from utool import util_class
 from utool import util_inject
@@ -14,7 +15,6 @@ import operator
 from functools import reduce
 import re
 import six
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 DimensionBasis = namedtuple('DimensionBasis', ('dimension_name', 'dimension_point_list'))
@@ -23,7 +23,6 @@ INTERNAL_CFGKEYS = ['_cfgstr', '_cfgname', '_cfgtype', '_cfgindex']
 NAMEVARSEP = ':'
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
 class CountstrParser(object):
     """
     Parses a statement like  '#primary>0&#primary1>1' and returns a filtered
@@ -561,15 +560,15 @@ def parse_nestings2(string, nesters=['()', '[]', '<>', "''", '""'], escape='\\')
     if len(string) > 0:
         tokens = parser.parseString(string)
         if debug_:
-            print('string = %r' % (string,))
-            print('tokens List: ' + ut.repr3(tokens.asList()))
+            logger.info('string = %r' % (string,))
+            logger.info('tokens List: ' + ut.repr3(tokens.asList()))
             try:
-                print('tokens XML: ' + tokens.asXML())
+                logger.info('tokens XML: ' + tokens.asXML())
             except Exception:
-                print('tokens Dict: ' + repr(tokens.as_dict()))
+                logger.info('tokens Dict: ' + repr(tokens.as_dict()))
         parsed_blocks = as_tagged(tokens)[1]
         if debug_:
-            print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+            logger.info('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
     else:
         parsed_blocks = []
     return parsed_blocks
@@ -711,15 +710,15 @@ def parse_nestings(string, only_curl=False):
     if len(string) > 0:
         tokens = parser.parseString(string)
         if debug_:
-            print('string = %r' % (string,))
-            print('tokens List: ' + ut.repr3(tokens.asList()))
+            logger.info('string = %r' % (string,))
+            logger.info('tokens List: ' + ut.repr3(tokens.asList()))
             try:
-                print('tokens XML: ' + tokens.asXML())
+                logger.info('tokens XML: ' + tokens.asXML())
             except Exception:
-                print('tokens Dict: ' + repr(tokens.as_dict()))
+                logger.info('tokens Dict: ' + repr(tokens.as_dict()))
         parsed_blocks = as_tagged(tokens)[1]
         if debug_:
-            print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+            logger.info('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
     else:
         parsed_blocks = []
     return parsed_blocks
@@ -877,15 +876,15 @@ def parse_cfgstr3(string, debug=None):
     if len(string) > 0:
         tokens = assign_body.parseString(string)
         if debug_:
-            print('string = %r' % (string,))
-            print('tokens List: ' + ut.repr3(tokens.asList()))
+            logger.info('string = %r' % (string,))
+            logger.info('tokens List: ' + ut.repr3(tokens.asList()))
             try:
-                print('tokens XML: ' + tokens.asXML())
+                logger.info('tokens XML: ' + tokens.asXML())
             except Exception:
-                print('tokens Dict: ' + repr(tokens.as_dict()))
+                logger.info('tokens Dict: ' + repr(tokens.as_dict()))
         parsed_blocks = as_tagged(tokens)[1]
         if debug_:
-            print('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
+            logger.info('PARSED_BLOCKS = ' + ut.repr3(parsed_blocks, nl=1))
     else:
         parsed_blocks = []
 
@@ -909,7 +908,7 @@ def parse_cfgstr3(string, debug=None):
         if key is not None:
             cfgdict[key] = val
     if debug_:
-        print('[TOKENS] CFGDICT ' + ut.repr3(cfgdict, nl=1))
+        logger.info('[TOKENS] CFGDICT ' + ut.repr3(cfgdict, nl=1))
         #x = list(map(type, cfgdict.keys()))
         #print(x)
         #print(list(cfgdict.keys()))
@@ -1320,14 +1319,14 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
                 raise
             # --
             for base_cfg in base_cfg_list:
-                print('cfgname = %r' % (cfgname,))
-                print('cfgopt_strs = %r' % (cfgopt_strs,))
-                print('base_cfg = %r' % (base_cfg,))
-                print('alias_keys = %r' % (alias_keys,))
-                print('cfgtype = %r' % (cfgtype,))
-                print('offset = %r' % (len(cfg_combos),))
-                print('valid_keys = %r' % (valid_keys,))
-                print('strict = %r' % (strict,))
+                logger.info('cfgname = %r' % (cfgname,))
+                logger.info('cfgopt_strs = %r' % (cfgopt_strs,))
+                logger.info('base_cfg = %r' % (base_cfg,))
+                logger.info('alias_keys = %r' % (alias_keys,))
+                logger.info('cfgtype = %r' % (cfgtype,))
+                logger.info('offset = %r' % (len(cfg_combos),))
+                logger.info('valid_keys = %r' % (valid_keys,))
+                logger.info('strict = %r' % (strict,))
                 cfg_combo = customize_base_cfg(
                     cfgname, cfgopt_strs, base_cfg, cfgtype, alias_keys,
                     valid_keys, strict=strict, offset=len(cfg_combos))
@@ -1347,7 +1346,6 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
     return cfg_combos_list
 
 
-@util_class.reloadable_class
 class ParamInfo(util_dev.NiceRepr):
     """
     small class for individual paramater information
@@ -1468,12 +1466,12 @@ class ParamInfo(util_dev.NiceRepr):
             elif (isinstance(hideif, six.string_types) and
                   hideif.startswith(':')):
                 # advanced hideif parsing
-                print('Checking hide for {}'.format(pi.varname))
+                logger.info('Checking hide for {}'.format(pi.varname))
                 code = hideif[1:]
                 filename = '<{}>.__hideif__'.format(pi.varname)
                 evalable = compile(code, filename, 'eval')
                 hide = eval(evalable, cfg)
-                print('hide = %r' % (hide,))
+                logger.info('hide = %r' % (hide,))
             else:
                 # just a value wrt to this param
                 hide = getattr(cfg,  pi.varname) == hideif
@@ -1531,7 +1529,6 @@ class ParamInfo(util_dev.NiceRepr):
             return pi._make_itemstr(cfg)
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
 class ParamInfoBool(ParamInfo):
     r"""
     param info for booleans
@@ -1576,7 +1573,6 @@ class ParamInfoBool(ParamInfo):
         return itemstr
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
 class ParamInfoList(object):
     """ small class for ut.Pref-less configurations """
     def __init__(self, name, param_info_list=[], constraint_func=None, hideif=None):
@@ -1655,7 +1651,6 @@ def testdata_grid_search():
     return gridsearch
 
 
-@six.add_metaclass(util_class.ReloadingMetaclass)
 class GridSearch(object):
     """
     helper for executing iterations and analyzing the results of a grid search
@@ -2097,7 +2092,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
     from plottool_ibeis import plot_helpers as ph
     from plottool_ibeis import interact_helpers as ih
     if verbose:
-        print('Plotting gridsearch results figtitle=%r' % (figtitle,))
+        logger.info('Plotting gridsearch results figtitle=%r' % (figtitle,))
     if score_list is None:
         score_list = [None] * len(cfgdict_list)
     else:
@@ -2129,8 +2124,8 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
         except Exception as ex:
             if isinstance(cfgresult, tuple):
                 #print(ut.repr4(cfgresult))
-                print(ut.depth_profile(cfgresult))
-                print(ut.list_type_profile(cfgresult))
+                logger.info(ut.depth_profile(cfgresult))
+                logger.info(ut.list_type_profile(cfgresult))
             ut.printex(ex, 'error showing', keys=['cfgresult', 'fnum', 'pnum'])
             raise
         #pt.imshow(255 * cfgresult, fnum=fnum, pnum=next_pnum(), title=cfglbl)
@@ -2141,14 +2136,14 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
         ph.set_plotdat(ax, 'cfgresult', cfgresult)
     # Define clicked callback
     def on_clicked(event):
-        print('\n[pt] clicked gridsearch axes')
+        logger.info('\n[pt] clicked gridsearch axes')
         if event is None or event.xdata is None or event.inaxes is None:
-            print('out of axes')
+            logger.info('out of axes')
             pass
         else:
             ax = event.inaxes
             plotdat_dict = ph.get_plotdat_dict(ax)
-            print(ut.repr4(plotdat_dict))
+            logger.info(ut.repr4(plotdat_dict))
             cfglbl = ph.get_plotdat(ax, 'cfglbl', None)
             cfgdict = ph.get_plotdat(ax, 'cfgdict', {})
             cfgresult = ph.get_plotdat(ax, 'cfgresult', {})
@@ -2164,7 +2159,7 @@ def interact_gridsearch_result_images(show_result_func, cfgdict_list,
                 else:
                     onclick_func(cfgresult)
             infostr = ut.msgblock('CLICKED', '\n'.join(infostr_list))
-            print(infostr)
+            logger.info(infostr)
     # Connect callbacks
     ih.connect_callback(fig, 'button_press_event', on_clicked)
     pt.set_figtitle(figtitle)

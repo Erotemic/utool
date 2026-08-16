@@ -3,6 +3,7 @@
 TODO: rectify name difference between parent and caller
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import fnmatch
 import operator
 import inspect
@@ -28,7 +29,6 @@ from utool import util_print
 from utool import util_str
 from utool import util_type
 from utool._internal import meta_util_six
-print, rrr, profile = util_inject.inject2(__name__)
 
 RAISE_ALL = util_arg.get_argflag('--raise-all', help='Causes ut.printex to always reraise errors')
 FORCE_TB = util_arg.get_argflag('--force-tb', help='Causes ut.printex to always print traceback')
@@ -53,11 +53,11 @@ def print_traceback(with_colors=True):
             lexer = get_lexer_by_name('pytb', stripall=True)
             formatter = TerminalFormatter(bg='dark')
             formatted_text = highlight(tbtext, lexer, formatter)
-            print(formatted_text)
+            logger.info(formatted_text)
         except Exception:
-            print(tbtext)
+            logger.info(tbtext)
     else:
-        print(tbtext)
+        logger.info(tbtext)
 
 
 def ipython_execstr():
@@ -203,7 +203,7 @@ def execstr_dict(dict_, local_name=None, exclude_list=None, explicit=False):
 
 
 def execstr_func(func):
-    print(' ! Getting executable source for: ' + meta_util_six.get_funcname(func))
+    logger.info(' ! Getting executable source for: ' + meta_util_six.get_funcname(func))
     _src = inspect.getsource(func)
     execstr = textwrap.dedent(_src[_src.find(':') + 1:])
     # Remove return statments
@@ -215,9 +215,9 @@ def execstr_func(func):
         # The characters which might make a return not have its own line
         stmt_endx = len(execstr) - 1
         for stmt_break in '\n;':
-            print(execstr)
-            print('')
-            print(stmtx)
+            logger.info(execstr)
+            logger.info('')
+            logger.info(stmtx)
             stmt_endx_new = execstr[stmtx:].find(stmt_break)
             if -1 < stmt_endx_new < stmt_endx:
                 stmt_endx = stmt_endx_new
@@ -236,7 +236,7 @@ def save_testdata(*args, **kwargs):
     shelf_fname = 'test_data_%s.shelf' % uid
     shelf = shelve.open(shelf_fname)
     locals_ = get_parent_frame().f_locals
-    print('save_testdata(%r)' % (args,))
+    logger.info('save_testdata(%r)' % (args,))
     for key in args:
         shelf[key] = locals_[key]
     shelf.close()
@@ -253,13 +253,13 @@ def load_testdata(*args, **kwargs):
     shelf.close()
     if len(ret) == 1:
         ret = ret[0]
-    print('load_testdata(%r)' % (args,))
+    logger.info('load_testdata(%r)' % (args,))
     return ret
 
 
 def import_testdata():
     shelf = shelve.open('test_data.shelf')
-    print('importing\n * ' + '\n * '.join(shelf.keys()))
+    logger.info('importing\n * ' + '\n * '.join(shelf.keys()))
     shelf_exec = execstr_dict(shelf, 'shelf')
     exec(shelf_exec)
     shelf.close()
@@ -404,11 +404,11 @@ def _wip_embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
     exec(execstr_dict(parent_globals, 'parent_globals'))
     exec(execstr_dict(parent_locals,  'parent_locals'))
-    print('')
-    print('================')
-    print(ut.bubbletext('EMBEDDING'))
-    print('================')
-    print('[util] embedding')
+    logger.info('')
+    logger.info('================')
+    logger.info(ut.bubbletext('EMBEDDING'))
+    logger.info('================')
+    logger.info('[util] embedding')
     try:
         if remove_pyqt_hook:
             try:
@@ -423,7 +423,7 @@ def _wip_embed(parent_locals=None, parent_globals=None, exec_lines=None,
                 pass
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
-        print(ex)
+        logger.info(ex)
     user_ns = globals()
     user_ns = globals().copy()
     user_ns.update(locals())
@@ -432,7 +432,7 @@ def _wip_embed(parent_locals=None, parent_globals=None, exec_lines=None,
     if parent_locals is not None:
         user_ns.update(parent_locals)
     orig_argv = sys.argv  # NOQA
-    print('About to start_ipython')
+    logger.info('About to start_ipython')
     config = IPython.Config()
     exec_lines_ = [
         '%pylab qt4',
@@ -447,12 +447,12 @@ def _wip_embed(parent_locals=None, parent_globals=None, exec_lines=None,
         #execstr_dict(parent_locals)
     ] + ut.ensure_str_list(exec_lines if exec_lines is not None else [])
     config.InteractiveShellApp.exec_lines = exec_lines_
-    print('Exec Lines: ')
-    print(ut.indentjoin(exec_lines_, '\n    >>> '))
+    logger.info('Exec Lines: ')
+    logger.info(ut.indentjoin(exec_lines_, '\n    >>> '))
     IPython.start_ipython(config=config, argv=[], user_ns=user_ns)
     # Exit python immediately if specifed
     if user_ns.get('qqq', False) or vars.get('qqq', False) or user_ns.get('EXIT_NOW', False):
-        print('[utool.embed] EXIT_NOW or qqq specified')
+        logger.info('[utool.embed] EXIT_NOW or qqq specified')
         sys.exit(1)
 
 
@@ -477,11 +477,11 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
 
     # exec(execstr_dict(parent_globals, 'parent_globals'))
     # exec(execstr_dict(parent_locals,  'parent_locals'))
-    print('')
-    print('================')
-    print(ut.bubbletext('EMBEDDING'))
-    print('================')
-    print('[util] embedding')
+    logger.info('')
+    logger.info('================')
+    logger.info(ut.bubbletext('EMBEDDING'))
+    logger.info('================')
+    logger.info('[util] embedding')
     try:
         if remove_pyqt_hook:
             try:
@@ -496,7 +496,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
                 pass
             # make qt not loop forever (I had qflag loop forever with this off)
     except ImportError as ex:
-        print(ex)
+        logger.info(ex)
 
     #from IPython.config.loader import Config
     # cfg = Config()
@@ -504,11 +504,11 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
     #if exec_lines is not None:
     #    config_dict['exec_lines'] = exec_lines
     #IPython.embed(**config_dict)
-    print('[util]  Get stack location with: ')
-    print('[util] ut.get_parent_frame(N=8).f_code.co_name')
-    print('[util] set EXIT_NOW or qqq to True(ish) to hard exit on unembed')
+    logger.info('[util]  Get stack location with: ')
+    logger.info('[util] ut.get_parent_frame(N=8).f_code.co_name')
+    logger.info('[util] set EXIT_NOW or qqq to True(ish) to hard exit on unembed')
     #print('set iup to True to draw plottool stuff')
-    print('[util] call %pylab qt4 to get plottool stuff working')
+    logger.info('[util] call %pylab qt4 to get plottool stuff working')
     once = True
     # Allow user to set iup and redo the loop
     while once or vars().get('iup', False):
@@ -516,13 +516,13 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
             # SUPER HACKY WAY OF GETTING FIGURES ON THE SCREEN BETWEEN UPDATES
             #vars()['iup'] = False
             # ALL YOU NEED TO DO IS %pylab qt4
-            print('re-emebeding')
+            logger.info('re-emebeding')
             for _ in range(100):
                 time.sleep(.01)
 
         once = False
         #vars().get('iup', False):
-        print('[util] calling IPython.embed()')
+        logger.info('[util] calling IPython.embed()')
         """
         Notes:
             /usr/local/lib/python2.7/dist-packages/IPython/terminal/embed.py
@@ -555,7 +555,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None,
         #IPython.embed(module=module)
         # Exit python immediately if specifed
         if vars().get('EXIT_NOW', False) or vars().get('qqq', False):
-            print('[utool.embed] EXIT_NOW specified')
+            logger.info('[utool.embed] EXIT_NOW specified')
             sys.exit(1)
 
 
@@ -610,10 +610,10 @@ def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
         exec(execstr_dict(parent_locals, 'parent_locals'))
         exec(execstr_dict(parent_globals, 'parent_globals'))
         if embed_:
-            print('Triggered --quit' + six.text_type(num))
+            logger.info('Triggered --quit' + six.text_type(num))
             embed(parent_locals=parent_locals,
                   parent_globals=parent_globals)
-        print('Triggered --quit' + six.text_type(num))
+        logger.info('Triggered --quit' + six.text_type(num))
         sys.exit(1)
 
 
@@ -680,8 +680,8 @@ def print_frame(frame):
     execstr = '\n'.join(execstr_print_list)
     exec(execstr)
     local_varnames = util_str.pack_into('; '.join(frame.f_locals.keys()))
-    print('Local varnames: ' + local_varnames)
-    print('--- End Frame ---')
+    logger.info('Local varnames: ' + local_varnames)
+    logger.info('--- End Frame ---')
 
 
 def search_stack_for_localvar(varname):
@@ -695,15 +695,15 @@ def search_stack_for_localvar(varname):
         None if varname is not found else its value
     """
     curr_frame = inspect.currentframe()
-    print(' * Searching parent frames for: ' + six.text_type(varname))
+    logger.info(' * Searching parent frames for: ' + six.text_type(varname))
     frame_no = 0
     while curr_frame.f_back is not None:
         if varname in curr_frame.f_locals.keys():
-            print(' * Found in frame: ' + six.text_type(frame_no))
+            logger.info(' * Found in frame: ' + six.text_type(frame_no))
             return curr_frame.f_locals[varname]
         frame_no += 1
         curr_frame = curr_frame.f_back
-    print('... Found nothing in all ' + six.text_type(frame_no) + ' frames.')
+    logger.info('... Found nothing in all ' + six.text_type(frame_no) + ' frames.')
     return None
 
 
@@ -719,21 +719,21 @@ def search_stack_for_var(varname, verbose=util_arg.NOT_QUIET):
     """
     curr_frame = inspect.currentframe()
     if verbose:
-        print(' * Searching parent frames for: ' + six.text_type(varname))
+        logger.info(' * Searching parent frames for: ' + six.text_type(varname))
     frame_no = 0
     while curr_frame.f_back is not None:
         if varname in curr_frame.f_locals.keys():
             if verbose:
-                print(' * Found local in frame: ' + six.text_type(frame_no))
+                logger.info(' * Found local in frame: ' + six.text_type(frame_no))
             return curr_frame.f_locals[varname]
         if varname in curr_frame.f_globals.keys():
             if verbose:
-                print(' * Found global in frame: ' + six.text_type(frame_no))
+                logger.info(' * Found global in frame: ' + six.text_type(frame_no))
             return curr_frame.f_globals[varname]
         frame_no += 1
         curr_frame = curr_frame.f_back
     if verbose:
-        print('... Found nothing in all ' + six.text_type(frame_no) + ' frames.')
+        logger.info('... Found nothing in all ' + six.text_type(frame_no) + ' frames.')
     return None
 
 # Alias
@@ -885,9 +885,9 @@ def explore_stack():
     tup = stack[0]
     for ix, tup in reversed(list(enumerate(stack))):
         frame = tup[0]
-        print('--- Frame %2d: ---' % (ix))
+        logger.info('--- Frame %2d: ---' % (ix))
         print_frame(frame)
-        print('\n')
+        logger.info('\n')
         #next_frame = curr_frame.f_back
 
 
@@ -899,7 +899,7 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
             try:
                 yield module.__dict__[aname], aname
             except KeyError as ex:
-                print(repr(ex))
+                logger.info(repr(ex))
                 pass
 
     def __explore_module(module, indent, seen, depth, maxdepth, nonmodules):
@@ -926,7 +926,7 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
                     continue
                 valid_children.append(child)
             except Exception as ex:
-                print(repr(ex))
+                logger.info(repr(ex))
                 pass
         # Print
         ret += indent + modname + '\n'
@@ -949,18 +949,18 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
 
 
 def debug_npstack(stacktup):
-    print('Debugging numpy [hv]stack:')
-    print('len(stacktup) = %r' % len(stacktup))
+    logger.info('Debugging numpy [hv]stack:')
+    logger.info('len(stacktup) = %r' % len(stacktup))
     for count, item in enumerate(stacktup):
         if isinstance(item, np.ndarray):
-            print(' * item[%d].shape = %r' % (count, item.shape))
+            logger.info(' * item[%d].shape = %r' % (count, item.shape))
         elif isinstance(item, list) or isinstance(item, tuple):
-            print(' * len(item[%d]) = %d' % (count, len(item)))
-            print(' * DEBUG LIST')
+            logger.info(' * len(item[%d]) = %d' % (count, len(item)))
+            logger.info(' * DEBUG LIST')
             with util_print.Indenter(' * '):
                 debug_list(item)
         else:
-            print(' *  type(item[%d]) = %r' % (count, type(item)))
+            logger.info(' *  type(item[%d]) = %r' % (count, type(item)))
 
 
 def debug_list(list_):
@@ -982,7 +982,7 @@ def debug_list(list_):
             append(' * uniform types=%r' % all_types[0])
         else:
             append(' * nonuniform types: %r' % np.unique(all_types).tolist())
-    print('\n'.join(dbgmessage))
+    logger.info('\n'.join(dbgmessage))
     return dim2
 
 
@@ -990,7 +990,7 @@ def debug_hstack(stacktup):
     try:
         return np.hstack(stacktup)
     except ValueError as ex:
-        print('ValueError in debug_hstack: %s' % (ex,))
+        logger.info('ValueError in debug_hstack: %s' % (ex,))
         debug_npstack(stacktup)
         raise
 
@@ -999,7 +999,7 @@ def debug_vstack(stacktup):
     try:
         return np.vstack(stacktup)
     except ValueError as ex:
-        print('ValueError in debug_vstack: %s' % (ex,))
+        logger.info('ValueError in debug_vstack: %s' % (ex,))
         debug_npstack(stacktup)
         raise
 
@@ -1084,9 +1084,9 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         sys.stderr.flush()
         raise ex
     if ut.get_argflag('--exit-on-error'):
-        print('WARNING: dont use this flag. Some errors are meant to be caught')
+        logger.info('WARNING: dont use this flag. Some errors are meant to be caught')
         ut.print_traceback()
-        print('REQUESTED EXIT ON ERROR')
+        logger.info('REQUESTED EXIT ON ERROR')
         sys.exit(1)
 
 
@@ -1255,14 +1255,14 @@ def get_varstr(val, pad_stdout=True, locals_=None):
 def super_print(val, locals_=None):
     if locals_ is None:
         locals_ = get_parent_frame().f_locals
-    print(get_varstr(val, locals_=locals_))
+    logger.info(get_varstr(val, locals_=locals_))
 
 
 def print_keys(key_list, locals_=None):
     if locals_ is None:
         locals_ = get_parent_frame().f_locals
     strlist_ = parse_locals_keylist(locals_, key_list)
-    print('\n'.join(strlist_))
+    logger.info('\n'.join(strlist_))
 
 
 def parse_locals_keylist(locals_, key_list, strlist_=None, prefix=''):
@@ -1374,16 +1374,16 @@ def printvar(locals_, varname, attr='.shape', typepad=0):
 
     if isinstance(var, np.ndarray):
         varstr = eval('str(var' + attr + ')')
-        print('[var] %s %s = %s' % (typestr, varname + attr, varstr))
+        logger.info('[var] %s %s = %s' % (typestr, varname + attr, varstr))
     elif isinstance(var, list):
         if attr == '.shape':
             func = 'len'
         else:
             func = ''
         varstr = eval('str(' + func + '(var))')
-        print('[var] %s len(%s) = %s' % (typestr, varname, varstr))
+        logger.info('[var] %s len(%s) = %s' % (typestr, varname, varstr))
     else:
-        print('[var] %s %s = %r' % (typestr, varname, var))
+        logger.info('[var] %s %s = %r' % (typestr, varname, var))
     #np.set_printoptions(**npprintopts)
 
 
@@ -1409,8 +1409,8 @@ class EmbedOnException(object):
 
     def __exit__(self, type_, value, trace):
         if trace is not None:
-            print('!!! EMBED ON EXCEPTION !!!')
-            print('[util_dbg] %r in context manager!: %s ' % (type_, str(value)))
+            logger.info('!!! EMBED ON EXCEPTION !!!')
+            logger.info('[util_dbg] %r in context manager!: %s ' % (type_, str(value)))
             import utool as ut
             import traceback
             traceback.print_exception(type_, value, trace)

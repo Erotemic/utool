@@ -2,6 +2,7 @@
 #
 # TODO:  move library intensive functions to vtool
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import operator as op
 import decimal
 import six
@@ -26,7 +27,6 @@ try:
     HAVE_SCIPY = True
 except ImportError:
     HAVE_SCIPY = False
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 # Constants
@@ -787,10 +787,10 @@ def setcover_ilp(candidate_sets_dict, items=None, set_weights=None, item_values=
         solution_cover = {i: candidate_sets_dict[i] for i in solution_keys}
         # Print summary
         if verbose:
-            print(prob)
-            print('OPT:')
-            print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in set_indices]))
-            print('solution_cover = %r' % (solution_cover,))
+            logger.info(prob)
+            logger.info('OPT:')
+            logger.info('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in set_indices]))
+            logger.info('solution_cover = %r' % (solution_cover,))
     else:
         prob = pulp.LpProblem("Maximum Cover", pulp.LpMaximize)
         # Solution variable indicates if set it chosen or not
@@ -829,11 +829,11 @@ def setcover_ilp(candidate_sets_dict, items=None, set_weights=None, item_values=
         solution_cover = {i: candidate_sets_dict[i] for i in solution_keys}
         # Print summary
         if verbose:
-            print(prob)
-            print('OPT:')
-            print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in set_indices]))
-            print('\n'.join(['    %s = %s' % (y[i].name, y[i].varValue) for i in item_indicies]))
-            print('solution_cover = %r' % (solution_cover,))
+            logger.info(prob)
+            logger.info('OPT:')
+            logger.info('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in set_indices]))
+            logger.info('\n'.join(['    %s = %s' % (y[i].name, y[i].varValue) for i in item_indicies]))
+            logger.info('solution_cover = %r' % (solution_cover,))
     return solution_cover
 
 
@@ -878,7 +878,7 @@ def xywh_to_tlbr(bbox, img_wh):
         img_w = 1
         img_h = 1
         msg = '[cc2.1] Your csv tables have an invalid ANNOTATION.'
-        print(msg)
+        logger.info(msg)
         #warnings.warn(msg)
         #ht = 1
         #wt = 1
@@ -1319,10 +1319,10 @@ def knapsack_ilp(items, maxweight, verbose=False):
     items_subset = [item for item, flag in zip(items, flags) if flag]
     # Print summary
     if verbose:
-        print(prob)
-        print('OPT:')
-        print('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in indices]))
-        print('total_value = %r' % (total_value,))
+        logger.info(prob)
+        logger.info('OPT:')
+        logger.info('\n'.join(['    %s = %s' % (x[i].name, x[i].varValue) for i in indices]))
+        logger.info('total_value = %r' % (total_value,))
     return total_value, items_subset
 
 
@@ -1805,12 +1805,12 @@ def maximin_distance_subset1d(items, K=None, min_thresh=None, verbose=False):
     chosen_items = ut.take(items, chosen_items_idxs)
     #current_idx = np.nonzero(chosen_mask)[0]
     if verbose:
-        print('Chose subset')
+        logger.info('Chose subset')
         chosen_points = points.compress(chosen_mask, axis=0)
         distances = (spdist.pdist(chosen_points, distfunc))
-        print('chosen_items_idxs = %r' % (chosen_items_idxs,))
-        print('chosen_items = %r' % (chosen_items,))
-        print('distances = %r' % (distances,))
+        logger.info('chosen_items_idxs = %r' % (chosen_items_idxs,))
+        logger.info('chosen_items = %r' % (chosen_items,))
+        logger.info('distances = %r' % (distances,))
     return chosen_items_idxs, chosen_items
 
 
@@ -1848,7 +1848,7 @@ def maximum_distance_subset(items, K, verbose=False):
     """
     from utool import util_decor
     if verbose:
-        print('maximum_distance_subset len(items)=%r, K=%r' % (len(items), K,))
+        logger.info('maximum_distance_subset len(items)=%r, K=%r' % (len(items), K,))
 
     points = np.array(items)[:, None]
 
@@ -2139,13 +2139,13 @@ def max_size_max_distance_subset(items, min_thresh=0, Kstart=2, verbose=False):
     best_idxs = []
     for K in range(Kstart, len(items)):
         if verbose:
-            print('Running subset chooser')
+            logger.info('Running subset chooser')
         value, subset_idx, subset = ut.maximum_distance_subset(items, K=K,
                                                                verbose=verbose)
         if verbose:
-            print('subset = %r' % (subset,))
-            print('subset_idx = %r' % (subset_idx,))
-            print('value = %r' % (value,))
+            logger.info('subset = %r' % (subset,))
+            logger.info('subset_idx = %r' % (subset_idx,))
+            logger.info('value = %r' % (value,))
         distances = ut.safe_pdist(subset[:, None])
         if np.any(distances < min_thresh):
             break
@@ -2674,7 +2674,7 @@ def solve_boolexpr():
     from quine_mccluskey.qm import QuineMcCluskey
     qm = QuineMcCluskey(use_xor=False)
     result = qm.simplify_los(true_cases, num_bits=len(varnames))
-    print(result)
+    logger.info(result)
     #ut.chr_range(3)
 
     #symbol_map = {
@@ -2713,7 +2713,7 @@ def solve_boolexpr():
 
     products = [parenjoin(' and ', [f for f in form if f]) for form in final_terms]
     final_expr = ' or '.join(products)
-    print(final_expr)
+    logger.info(final_expr)
 
 
 def longest_common_substring(s1, s2):
@@ -2735,7 +2735,6 @@ def longest_common_substring(s1, s2):
     return s1[x_longest - longest: x_longest]
 
 
-@profile
 def expensive_task_gen(num=8700):
     r"""
     Runs a task that takes some time

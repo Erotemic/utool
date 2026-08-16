@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
-# print, rrr, profile = ut.inject2(__name__)
 
 
 def monkey_to_str_columns(self, latex=False):

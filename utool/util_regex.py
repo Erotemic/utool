@@ -4,10 +4,10 @@ in vim nongreedy .* is .\{-}
 in python nongreedy .* is .*?
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import re
 import six
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def convert_text_to_varname(text):
@@ -71,7 +71,7 @@ def extend_regex(regexpr):
             search = key
         if regexpr.find(search) != -1:
             if isinstance(key, tuple):
-                print('WARNING! Unsafe regex with: %r' % (key,))
+                logger.info('WARNING! Unsafe regex with: %r' % (key,))
             regexpr = regexpr.replace(search, repl)
     return regexpr
 
@@ -375,10 +375,10 @@ def parse_python_syntax(text):
         return list(find_all(line, token))
     open_tokenxs  = [[find_token_pos(line, token) for line in line_list] for token in open_tokens]
     close_tokenxs = [[find_token_pos(line, token) for line in line_list] for token in close_tokens]
-    print(open_tokenxs)
-    print(close_tokenxs)
-    print(sum(ut.flatten(ut.flatten(open_tokenxs))))
-    print(sum(ut.flatten(ut.flatten(close_tokenxs))))
+    logger.info(open_tokenxs)
+    logger.info(close_tokenxs)
+    logger.info(sum(ut.flatten(ut.flatten(open_tokenxs))))
+    logger.info(sum(ut.flatten(ut.flatten(close_tokenxs))))
 
 
 def modify_quoted_strs(text, modify_func=None):

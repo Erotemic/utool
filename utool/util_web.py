@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def is_local_port_open(port):
@@ -92,18 +92,18 @@ def start_simple_webserver(domain=None, port=5832):
     @app.route('/', methods=['GET', 'POST', 'DELETE', 'PUT'])
     def echo_args(*args, **kwargs):
         from flask import request
-        print('Simple server was pinged')
-        print('args = %r' % (args,))
-        print('kwargs = %r' % (kwargs,))
-        print('request.args = %r' % (request.args,))
-        print('request.form = %r' % (request.form,))
+        logger.info('Simple server was pinged')
+        logger.info('args = %r' % (args,))
+        logger.info('kwargs = %r' % (kwargs,))
+        logger.info('request.args = %r' % (request.args,))
+        logger.info('request.form = %r' % (request.form,))
         return ''
     if domain is None:
         domain = get_localhost()
     app.server_domain = domain
     app.server_port = port
     app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
-    print('app.server_url = %s' % (app.server_url,))
+    logger.info('app.server_url = %s' % (app.server_url,))
     http_server = tornado.httpserver.HTTPServer(
         tornado.wsgi.WSGIContainer(app))
     http_server.listen(app.server_port)

@@ -205,7 +205,6 @@ def ensure_utool_compatible(mod_fpath):
     ut_inject_line2 = r'\(print, rrr, profile\) ='
     ut_inject_line3 = r'inject2\(__name__,'
     ut_inject_lines = (ut_inject_line1, ut_inject_line2, ut_inject_line3)
-    #ut.inject(__name'
     lines, lineno = ut.grepfile(mod_fpath, ut_inject_lines)
     if len(lines) == 0:
         print(mod_fpath + ' does not have utool')

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import builtins
 import inspect
 import textwrap
@@ -15,7 +16,6 @@ from utool import util_arg
 from utool import util_type
 from utool import util_inject
 from utool._internal import meta_util_six
-(print, rrr, profile) = util_inject.inject2(__name__, '[decor]')
 
 if util_type.HAVE_NUMPY:
     import numpy as np
@@ -60,11 +60,11 @@ def test_ignore_exec_traceback():
     import utool as ut
     @ut.indent_func
     def foobar():
-        print('foobar')
+        logger.info('foobar')
         raise AssertionError('This error is exepcted')
 
     try:
-        print('printing foobar')
+        logger.info('printing foobar')
         foobar()
     except AssertionError as ex:
         #import sys
@@ -222,7 +222,7 @@ def on_exception_report_input(func_=None, force=False, keys=None):
                 return func(*args, **kwargs)
             except Exception as ex:
                 from utool import util_str
-                print('ERROR occured! Reporting input to function')
+                logger.info('ERROR occured! Reporting input to function')
                 if keys is not None:
                     from utool import util_inspect
                     from utool import util_list
@@ -241,7 +241,7 @@ def on_exception_report_input(func_=None, force=False, keys=None):
                     arg_vals = util_list.take(args_, arg_idxs)
                     requested_dict = dict(util_list.flatten(
                         [zip(kwarg_keys, kwarg_vals), zip(arg_keys, arg_vals)]))
-                    print('input dict = ' + util_str.repr4(
+                    logger.info('input dict = ' + util_str.repr4(
                         util_dict.dict_subset(requested_dict, keys)))
                     # (print out specific keys only)
                     pass
@@ -274,15 +274,15 @@ def debug_function_exceptions(func):
             import inspect  # NOQA
             trace = inspect.trace()
             locals_ = trace[-1][0].f_locals
-            print('-- <TRACE LOCALS> --')
+            logger.info('-- <TRACE LOCALS> --')
             for level, t in enumerate(trace[1:]):
                 frame = t[0]
                 locals_ = frame.f_locals
                 local_repr_dict = {key: ut.trunc_repr(val)
                                    for key, val in locals_.items()}
-                print('LOCALS LEVEL %d' % (level,))
-                print(ut.repr3(local_repr_dict, strvals=True, nl=1))
-            print('-- </TRACE LOCALS> --')
+                logger.info('LOCALS LEVEL %d' % (level,))
+                logger.info(ut.repr3(local_repr_dict, strvals=True, nl=1))
+            logger.info('-- </TRACE LOCALS> --')
             #import utool
             #utool.embed()
             raise
@@ -306,9 +306,9 @@ def _indent_decor(lbl):
             #@wraps(func)
             def wrp_indent(*args, **kwargs):
                 with util_print.Indenter(lbl):
-                    print('    ...trace[in]')
+                    logger.info('    ...trace[in]')
                     ret = func(*args, **kwargs)
-                    print('    ...trace[out]')
+                    logger.info('    ...trace[out]')
                     return ret
         else:
             @ignores_exc_tb(outer_wrapper=False)
@@ -350,11 +350,11 @@ def tracefunc_xml(func):
     def wrp_tracefunc2(*args, **kwargs):
         verbose = kwargs.get('verbose', True)
         if verbose:
-            print('<%s>' % (funcname,))
+            logger.info('<%s>' % (funcname,))
         with util_print.Indenter('    '):
             ret = func(*args, **kwargs)
         if verbose:
-            print('</%s>' % (funcname,))
+            logger.info('</%s>' % (funcname,))
         return ret
     wrp_tracefunc2_ = ignores_exc_tb(wrp_tracefunc2)
     wrp_tracefunc2_ = preserve_sig(wrp_tracefunc2_, func)
@@ -468,9 +468,9 @@ def __assert_param_consistency(args, argx_list_):
         assert all([argx_flags[0] == flag for flag in argx_flags]), (
             'invalid mixing of iterable and scalar inputs')
     except AssertionError as ex:
-        print('!!! ASSERTION ERROR IN UTIL_DECOR !!!')
+        logger.info('!!! ASSERTION ERROR IN UTIL_DECOR !!!')
         for argx in argx_list_:
-            print('[util_decor] args[%d] = %r' % (argx, args[argx]))
+            logger.info('[util_decor] args[%d] = %r' % (argx, args[argx]))
         raise ex
 
 
@@ -654,7 +654,7 @@ def interested(func):
         sys.stdout.write('#\n')
         sys.stdout.write(
             '<!INTERESTED>: ' + meta_util_six.get_funcname(func) + '\n')
-        print('INTERESTING... ' + (' ' * 30) + ' <----')
+        logger.info('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested
 
@@ -662,10 +662,10 @@ def interested(func):
 def tracefunc(func):
     lbl = '[trace.' + meta_util_six.get_funcname(func) + ']'
     def wrp_tracefunc(*args, **kwargs):
-        print(lbl + ' +--- ENTER ---')
+        logger.info(lbl + ' +--- ENTER ---')
         with util_print.Indenter(lbl + ' |'):
             ret = func(*args, **kwargs)
-        print(lbl + ' L___ EXIT ____')
+        logger.info(lbl + ' L___ EXIT ____')
         return ret
     return wrp_tracefunc
 
@@ -674,7 +674,7 @@ def show_return_value(func):
     from utool.util_str import func_str
     def wrp_show_return_value(*args, **kwargs):
         ret = func(*args, **kwargs)
-        print(func_str(func, args, kwargs)  + ' -> ret=%r' % (ret,))
+        logger.info(func_str(func, args, kwargs)  + ' -> ret=%r' % (ret,))
         return ret
     return wrp_show_return_value
 

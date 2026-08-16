@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from utool import util_inject
 import six
 import collections
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def get_tablenames(cur):
@@ -199,10 +199,10 @@ def print_database_structure(cur):
     colinfos_list = [ut.get_table_columninfo_list(cur, tablename) for tablename in tablename_list]
     numrows_list = [ut.get_table_num_rows(cur, tablename) for tablename in tablename_list]
     for tablename, colinfo_list, num_rows in ut.sortedby(list(zip(tablename_list, colinfos_list, numrows_list)), numrows_list):
-        print('+-------------')
-        print('tablename = %r' % (tablename,))
-        print('num_rows = %r' % (num_rows,))
+        logger.info('+-------------')
+        logger.info('tablename = %r' % (tablename,))
+        logger.info('num_rows = %r' % (num_rows,))
         #print(ut.repr4(colinfo_list))
-        print(ut.repr4(ut.get_primary_columninfo(cur, tablename)))
-        print(ut.repr4(ut.get_nonprimary_columninfo(cur, tablename)))
-        print('+-------------')
+        logger.info(ut.repr4(ut.get_primary_columninfo(cur, tablename)))
+        logger.info(ut.repr4(ut.get_nonprimary_columninfo(cur, tablename)))
+        logger.info('+-------------')

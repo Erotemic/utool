@@ -7,10 +7,10 @@ SeeAlso:
     https://pypi.python.org/pypi/zope.deferredimport/3.5.2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from utool import util_inject
 # from utool import util_arg
 import sys
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 # def dynamic_import(modname, submod):
@@ -97,7 +97,7 @@ def import_star(modname, parent=None):
             module = __import__(modname, {}, {}, fromlist=[], level=0)
         except ImportError:
             if parent_module is None:
-                print('Maybe try specifying parent?')
+                logger.info('Maybe try specifying parent?')
                 raise
             # Inject into the parent if given
             # Temporilly put this module dir in the pythonpath to simulate
@@ -223,7 +223,7 @@ def package_contents(package, with_pkg=False, with_mod=True, ignore_prefix=[],
     if not hasattr(package, '__path__'):
         return [package.__name__]
     #    pass
-    print('package = %r' % (package,))
+    logger.info('package = %r' % (package,))
     walker = pkgutil.walk_packages(package.__path__,
                                    prefix=package.__name__ + '.',
                                    onerror=lambda x: None)
@@ -394,7 +394,7 @@ def tryimport(modname, pipiname=None, ensure=False):
         else:
             pipcmd = base_pipcmd
         msg = 'unable to find module %s. Please install: %s' % ((modname), (pipcmd))
-        print(msg)
+        logger.info(msg)
         ut.printex(ex, msg, iswarning=True)
         if ensure:
             raise AssertionError('Ensure is dangerous behavior and is is no longer supported.')
@@ -582,7 +582,7 @@ def import_module_from_fpath(module_fpath):
     import platform
     if isdir(module_fpath):
         module_fpath = join(module_fpath, '__init__.py')
-    print('module_fpath = {!r}'.format(module_fpath))
+    logger.info('module_fpath = {!r}'.format(module_fpath))
     if not exists(module_fpath):
         raise ImportError('module_fpath={!r} does not exist'.format(
             module_fpath))

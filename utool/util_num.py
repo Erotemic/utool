@@ -8,7 +8,6 @@ except ImportError as ex:
 import decimal
 from utool import util_type
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def order_of_magnitude_ceil(num):

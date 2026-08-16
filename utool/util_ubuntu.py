@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import builtins
+from loguru import logger
 from os.path import join, splitext, basename
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
@@ -61,10 +62,10 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
     mime_dpath = join(prefix, 'mime/packages')
     mime_fpath = join(mime_dpath, 'application-x-{mime_name}.xml'.format(**locals()))
 
-    print(mime_codeblock)
-    print('---')
-    print(mime_fpath)
-    print('L___')
+    logger.info(mime_codeblock)
+    logger.info('---')
+    logger.info(mime_fpath)
+    logger.info('L___')
 
     if exe_fpath is not None:
         exe_fname_noext = splitext(basename(exe_fpath))[0]
@@ -88,10 +89,10 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
         app_dpath = join(prefix, 'applications')
         app_fpath = join(app_dpath, '{app_name}.desktop'.format(**locals()))
 
-        print(app_codeblock)
-        print('---')
-        print(app_fpath)
-        print('L___')
+        logger.info(app_codeblock)
+        logger.info('---')
+        logger.info(app_fpath)
+        logger.info('L___')
 
     # WRITE FILES
     if not dry:
@@ -106,7 +107,7 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
 
         #ut.cmd('update-mime-database /usr/share/mime')
         #~/.local/share/applications/mimeapps.list
-        print(ut.codeblock(
+        logger.info(ut.codeblock(
             '''
             Run these commands:
             update-desktop-database ~/.local/share/applications
@@ -117,7 +118,7 @@ def add_new_mimetype_association(ext, mime_name, exe_fpath=None, dry=True):
             ut.cmd('update-desktop-database ~/.local/share/applications')
         ut.cmd('update-mime-database ~/.local/share/mime')
     else:
-        print('dry_run')
+        logger.info('dry_run')
 
 
 def make_application_icon(exe_fpath, dry=True, props={}):
@@ -187,10 +188,10 @@ def make_application_icon(exe_fpath, dry=True, props={}):
     app_dpath = join(prefix, 'applications')
     app_fpath = join(app_dpath, '{app_name}.desktop'.format(**locals()))
 
-    print(app_codeblock)
-    print('---')
-    print(app_fpath)
-    print('L___')
+    logger.info(app_codeblock)
+    logger.info('---')
+    logger.info(app_fpath)
+    logger.info('L___')
 
     if not dry:
         ut.writeto(app_fpath, app_codeblock, verbose=ut.NOT_QUIET, n=None)
@@ -341,19 +342,19 @@ class XCtrl(object):
         else:
             abs_bbox = ','.join(map(str, eval(bbox)))
 
-        print('MOVING: win_key = %r' % (win_key,))
-        print('TO: abs_bbox = %r' % (abs_bbox,))
+        logger.info('MOVING: win_key = %r' % (win_key,))
+        logger.info('TO: abs_bbox = %r' % (abs_bbox,))
         # abs_bbox.replace('[', '').replace(']', '')
         # get = lambda cmd: ut.cmd2(' '.join(["/bin/bash", "-c", cmd]))['out']  # NOQA
         win_id = XCtrl.find_window_id(win_key, error='raise')
-        print('MOVING: win_id = %r' % (win_id,))
+        logger.info('MOVING: win_id = %r' % (win_id,))
         fmtdict = locals()
         cmd_list = [
             ("wmctrl -ir {win_id} -b remove,maximized_horz".format(**fmtdict)),
             ("wmctrl -ir {win_id} -b remove,maximized_vert".format(**fmtdict)),
             ("wmctrl -ir {win_id} -e 0,{abs_bbox}".format(**fmtdict)),
         ]
-        print('\n'.join(cmd_list))
+        logger.info('\n'.join(cmd_list))
         for cmd in cmd_list:
             ut.cmd2(cmd)
 
@@ -459,7 +460,7 @@ class XCtrl(object):
                 available_windows = ut.cmd2('wmctrl -l')['out']
                 msg = 'No window matches pattern=%r' % (pattern,)
                 msg += '\navailable windows are:\n%s' % (available_windows,)
-                print(msg)
+                logger.info(msg)
                 raise Exception(msg)
             win_id = None
         elif len(winid_candidates) == 1:
@@ -510,8 +511,8 @@ class XCtrl(object):
         ut.copy_text_to_clipboard(text)
 
         if verbose:
-            print('text = %r' % (text,))
-            print(ut.get_clipboard())
+            logger.info('text = %r' % (text,))
+            logger.info(ut.get_clipboard())
 
         import re
         terminal_pattern = r'\|'.join([
@@ -549,7 +550,7 @@ class XCtrl(object):
         import six
         import sys
         verbose = kwargs.get('verbose', False)
-        orig_print = globals()['print']
+        orig_print = builtins.print
         print = ut.partial(orig_print, file=kwargs.get('file', sys.stdout))
         # print('Running xctrl.do script')
         if verbose:
@@ -677,7 +678,7 @@ class XCtrl(object):
         """
         import utool as ut
         import time
-        print('focus: ' + winhandle)
+        logger.info('focus: ' + winhandle)
         args = ['wmctrl', '-xa', winhandle]
         ut.cmd(*args, verbose=False, quiet=True)
         time.sleep(sleeptime)
@@ -705,15 +706,15 @@ def monitor_mouse():
     x = mouse_ids.decode('utf-8')
     pattern = 'mouse'
     pattern = 'trackball'
-    print(x)
+    logger.info(x)
     grepres = ut.greplines(x.split('\n'), pattern, reflags=re.IGNORECASE)
     mouse_id = parse.parse('{left}id={id}{right}', grepres[0][0])['id']
-    print('mouse_id = %r' % (mouse_id,))
+    logger.info('mouse_id = %r' % (mouse_id,))
     import time
     while True:
         time.sleep(.2)
         out = ut.cmd('xinput --query-state ' + mouse_id, verbose=False, quiet=True)[0]
-        print(out)
+        logger.info(out)
 
 
 if __name__ == '__main__':

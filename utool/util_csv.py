@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 try:
     import numpy as np
 except ImportError:
@@ -8,7 +9,6 @@ import six
 from utool import util_type
 from utool import util_inject
 from utool import util_dev
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 class CSV(util_dev.NiceRepr):
@@ -234,7 +234,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         if column_type is not None:
             column_type =  [six.text_type] + column_type
     if len(column_list) == 0:
-        print('[csv] No columns')
+        logger.info('[csv] No columns')
         return header
     column_len = [len(col) for col in column_list]
     num_data = column_len[0]
@@ -242,9 +242,9 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
         #print('[csv.make_csv_table()] No data. (header=%r)' % (header,))
         return header
     if any([num_data != clen for clen in column_len]):
-        print('[csv] column_lbls = %r ' % (column_lbls,))
-        print('[csv] column_len = %r ' % (column_len,))
-        print('[csv] inconsistent column lengths')
+        logger.info('[csv] column_lbls = %r ' % (column_lbls,))
+        logger.info('[csv] column_len = %r ' % (column_len,))
+        logger.info('[csv] inconsistent column lengths')
         return header
 
     if column_type is None:
@@ -272,12 +272,12 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
             if np.isnan(c):
                 return 'nan'
         except TypeError as ex:
-            print('------')
-            print('[csv] TypeError %r ' % ex)
-            print('[csv] _toint(c) failed')
-            print('[csv] c = %r ' % c)
-            print('[csv] type(c) = %r ' % type(c))
-            print('------')
+            logger.info('------')
+            logger.info('[csv] TypeError %r ' % ex)
+            logger.info('[csv] _toint(c) failed')
+            logger.info('[csv] c = %r ' % c)
+            logger.info('[csv] type(c) = %r ' % type(c))
+            logger.info('------')
             raise
         return ('%d') % int(c)
 
@@ -322,7 +322,7 @@ def make_csv_table(column_list=[], column_lbls=None, header='',
                 elif coltype in textable_types or util_type.is_str(coltype):
                     col_str = [six.text_type(c).replace(',', comma_repl) for c in col]
                 else:
-                    print('[csv] is_unknown coltype=%r' % (coltype,))
+                    logger.info('[csv] is_unknown coltype=%r' % (coltype,))
                     try:
                         col_str = [six.text_type(c) for c in (col)]
                     except UnicodeDecodeError:

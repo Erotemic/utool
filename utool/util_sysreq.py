@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import sys
 import os
 from os.path import split, exists, join, dirname
 from utool import util_inject
 from utool._internal import meta_util_arg
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 def in_virtual_env():
@@ -133,7 +133,7 @@ def locate_path(dname, recurse_down=True):
             break
     msg = 'Cannot locate dname=%r' % (dname,)
     msg = ('\n[sysreq!] Checked: '.join(tried_fpaths))
-    print(msg)
+    logger.info(msg)
     raise ImportError(msg)
 
 
@@ -142,10 +142,10 @@ def ensure_in_pythonpath(dname):
     if dname not in dname_list:
         dpath = locate_path(dname)
         if meta_util_arg.VERBOSE:
-            print('[sysreq] appending %r to PYTHONPATH' % dpath)
+            logger.info('[sysreq] appending %r to PYTHONPATH' % dpath)
         sys.path.append(dpath)
     elif meta_util_arg.DEBUG:
-        print('[sysreq] PYTHONPATH has %r' % dname)
+        logger.info('[sysreq] PYTHONPATH has %r' % dname)
 
 
 def total_purge_developed_repo(repodir):
@@ -194,8 +194,8 @@ def total_purge_developed_repo(repodir):
         # If they still exist try chowning to current user
         'sudo chown -R {user}:{user} {dpath}',
     ]]
-    print('Normal uninstall commands')
-    print('\n'.join(commands))
+    logger.info('Normal uninstall commands')
+    logger.info('\n'.join(commands))
 
     possible_link_paths = [_.format(**fmtdict) for _ in [
         '{dpath}/{modname}.egg-info',
@@ -206,16 +206,16 @@ def total_purge_developed_repo(repodir):
     ]]
     from os.path import exists, basename
     existing_link_paths = [path for path in possible_link_paths]
-    print('# Delete paths and eggs')
+    logger.info('# Delete paths and eggs')
     for path in existing_link_paths:
         if exists(path):
             if ut.get_file_info(path)['owner'] != user:
-                print('sudo /bin/rm -rf {path}'.format(path=path))
+                logger.info('sudo /bin/rm -rf {path}'.format(path=path))
             else:
-                print('/bin/rm -rf {path}'.format(path=path))
+                logger.info('/bin/rm -rf {path}'.format(path=path))
         #ut.delete(path)
 
-    print('# Make sure nothing is in the easy install paths')
+    logger.info('# Make sure nothing is in the easy install paths')
     easyinstall_paths = [_.format(**fmtdict) for _ in [
         '{venv_site_pkgs}/easy-install.pth',
         '{local_site_pkgs}/easy-install.pth',
@@ -228,20 +228,20 @@ def total_purge_developed_repo(repodir):
             index1 = ut.listfind(easy_install_list_, repo.reponame)
             index2 = ut.listfind(easy_install_list_, repo.modname)
             if index1 is not None or index2 is not None:
-                print('Found at index1=%r, index=%r' % (index1, index2))
+                logger.info('Found at index1=%r, index=%r' % (index1, index2))
                 if ut.get_file_info(path)['owner'] != user:
-                    print('sudo gvim {path}'.format(path=path))
+                    logger.info('sudo gvim {path}'.format(path=path))
                 else:
-                    print('gvim {path}'.format(path=path))
+                    logger.info('gvim {path}'.format(path=path))
 
     checkcmds = [_.format(**fmtdict) for _ in [
         'python -c "import {modname}; print({modname}.__file__)"'
     ]]
     import sys
     assert repo.modname not in sys.modules
-    print("# CHECK STATUS")
+    logger.info("# CHECK STATUS")
     for cmd in checkcmds:
-        print(cmd)
+        logger.info(cmd)
         #ut.cmd(cmd, verbose=False)
 
 

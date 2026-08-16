@@ -73,7 +73,6 @@ if __name__ == '__main__':
 
     try:
         import resource
-        utool.rrr()
         used_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         print('[parallel] Max memory usage: %s' % utool.byte_str2(used_memory))
     except ImportError:

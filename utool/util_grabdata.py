@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from os.path import dirname, split, join, splitext, exists, realpath, basename, commonprefix
 import six
 import sys
@@ -16,7 +17,6 @@ from utool import util_cplat
 from utool import util_arg
 from utool import util_inject
 from utool import util_hash
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 QUIET = util_arg.QUIET
@@ -78,7 +78,7 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
     from os.path import relpath, dirname
     if not overwrite and ut.checkpath(archive_fpath, verbose=True):
         raise AssertionError('cannot overrwite archive_fpath=%r' % (archive_fpath,))
-    print('Archiving %d files' % len(fpath_list))
+    logger.info('Archiving %d files' % len(fpath_list))
     compression = zipfile.ZIP_DEFLATED if small else zipfile.ZIP_STORED
     if common_prefix:
         # Note: common prefix does not care about file structures
@@ -98,7 +98,7 @@ def archive_files(archive_fpath, fpath_list, small=True, allowZip64=False,
 
 
 def unarchive_file(archive_fpath, force_commonprefix=True):
-    print('Unarchive: %r' % archive_fpath)
+    logger.info('Unarchive: %r' % archive_fpath)
     if tarfile.is_tarfile(archive_fpath):
         return untar_file(archive_fpath, force_commonprefix=force_commonprefix)
     elif zipfile.is_zipfile(archive_fpath):
@@ -187,7 +187,7 @@ def _extract_archive(archive_fpath, archive_file, archive_namelist, output_dir,
         dpath = join(output_dir, dname)
         util_path.ensurepath(dpath)
         if verbose:
-            print('[utool] Unarchive ' + fname + ' in ' + dpath)
+            logger.info('[utool] Unarchive ' + fname + ' in ' + dpath)
 
         if not dryrun:
             if overwrite is False:
@@ -215,7 +215,7 @@ def open_url_in_browser(url, browsername=None, fallback=False):
         >>> open_url_in_browser(url, 'chrome')
     """
     import webbrowser
-    print('[utool] Opening url=%r in browser' % (url,))
+    logger.info('[utool] Opening url=%r in browser' % (url,))
     if browsername is None:
         browser = webbrowser.open(url)
     else:
@@ -273,7 +273,7 @@ def get_prefered_browser(pref_list=[], fallback=True):
             return browser
         except webbrowser.Error as ex:
             error_list.append(ex)
-            print(str(browsername) + ' failed. Reason: ' + str(ex))
+            logger.info(str(browsername) + ' failed. Reason: ' + str(ex))
 
     if fallback:
         browser = webbrowser
@@ -326,7 +326,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
     if filename is None:
         filename = basename(url)
     if verbose:
-        print('[utool] Downloading url=%r to filename=%r' % (url, filename))
+        logger.info('[utool] Downloading url=%r to filename=%r' % (url, filename))
     if new:
         import requests
         #from contextlib import closing
@@ -383,14 +383,14 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
     except UnicodeError as ex:
         import requests
         # iri error
-        print('Detected iri error: %r' % (ex,))
-        print('Falling back to requests.get (no progress is shown)')
+        logger.info('Detected iri error: %r' % (ex,))
+        logger.info('Falling back to requests.get (no progress is shown)')
         resp = requests.get(url, timeout=TIMEOUT)
         with open(filename, 'wb') as file_:
             file_.write(resp.content)
     if verbose:
-        print('')
-        print('[utool] Finished downloading filename=%r' % (filename,))
+        logger.info('')
+        logger.info('[utool] Finished downloading filename=%r' % (filename,))
     return filename
 
 
@@ -407,7 +407,7 @@ def url_read(url, verbose=True):
     if url.find('://') == -1:
         url = 'http://' + url
     if verbose:
-        print('Reading data from url=%r' % (url,))
+        logger.info('Reading data from url=%r' % (url,))
     try:
         file_ = _urllib.request.urlopen(url)
         #file_ = _urllib.urlopen(url)
@@ -450,7 +450,7 @@ def experiment_download_multiple_urls(url_list):
 
     def session_download_url(url):
         filename = basename(url)
-        print('[utool] Downloading url=%r to filename=%r' % (url, filename))
+        logger.info('[utool] Downloading url=%r to filename=%r' % (url, filename))
         spoof_header = {'user-agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}
         response = session.get(url, headers=spoof_header, stream=True)
         if response.ok:
@@ -462,7 +462,7 @@ def experiment_download_multiple_urls(url_list):
                         file_.flush()
                         os.fsync(file_.fileno())
         else:
-            print('Error downloading file. response=%r' % (response,))
+            logger.info('Error downloading file. response=%r' % (response,))
             return False
         return response.ok
 
@@ -737,7 +737,7 @@ def grab_file_remote_hash(file_url, hash_list, verbose=False):
         hash_url = '%s.%s' % (file_url, hash_tag, )
 
         if verbose:
-            print('[utool] Checking remote hash URL %r' % (hash_url, ))
+            logger.info('[utool] Checking remote hash URL %r' % (hash_url, ))
 
         # Get the actual hash from the remote server, save in memory
         try:
@@ -841,21 +841,21 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         # We have a valid candidate hash from remote, check for same hash locally
         hash_local, hash_tag_local = get_file_local_hash(fpath, hash_list, verbose=verbose)
         if verbose:
-            print('[utool] Pre Local Hash:  %r' % (hash_local, ))
-            print('[utool] Pre Remote Hash: %r' % (hash_remote, ))
+            logger.info('[utool] Pre Local Hash:  %r' % (hash_local, ))
+            logger.info('[utool] Pre Remote Hash: %r' % (hash_remote, ))
         # Check all 4 hash conditions
         if hash_remote is None:
             # No remote hash provided, turn off post-download hash check
             check_hash = False
         elif hash_local is None:
             if verbose:
-                print('[utool] Remote hash provided but local hash missing, redownloading.')
+                logger.info('[utool] Remote hash provided but local hash missing, redownloading.')
             redownload = True
         elif hash_local == hash_remote:
             assert hash_tag_local == hash_tag_remote, ('hash tag disagreement')
         else:
             if verbose:
-                print('[utool] Both hashes provided, but they disagree, redownloading.')
+                logger.info('[utool] Both hashes provided, but they disagree, redownloading.')
             redownload = True
 
     # Download
@@ -863,14 +863,14 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
     if redownload or not exists(fpath):
         # Download testdata
         if verbose:
-            print('[utool] Downloading file %s' % fpath)
+            logger.info('[utool] Downloading file %s' % fpath)
         if delay is not None:
-            print('[utool] delay download by %r seconds' % (delay,))
+            logger.info('[utool] delay download by %r seconds' % (delay,))
             time.sleep(delay)
         download_url(file_url, fpath, spoof=spoof)
     else:
         if verbose:
-            print('[utool] Already have file %s' % fpath)
+            logger.info('[utool] Already have file %s' % fpath)
 
     util_path.assert_exists(fpath)
     # Post-download local hash verification
@@ -882,7 +882,7 @@ def grab_file_url(file_url, appname='utool', download_dir=None, delay=None,
         # For sanity check (custom) and file verification (hashing), get local hash again
         hash_local, hash_tag_local = get_file_local_hash(fpath, hash_list, verbose=verbose)
         if verbose:
-            print('[utool] Post Local Hash: %r' % (hash_local, ))
+            logger.info('[utool] Post Local Hash: %r' % (hash_local, ))
         assert hash_local == hash_remote, 'Post-download hash disagreement'
         assert hash_tag_local == hash_tag_remote, 'Post-download hash tag disagreement'
     return fpath
@@ -1188,10 +1188,10 @@ def rsync(src_uri, dst_uri, exclude_dirs=[], port=22, dryrun=False):
 
     cmdtuple = (rsync_exe, rsync_options, src_uri, dst_uri)
     cmdstr = ' '.join(cmdtuple)
-    print('[rsync] src_uri = %r ' % (src_uri,))
-    print('[rsync] dst_uri = %r ' % (dst_uri,))
-    print('[rsync] cmdstr = %r' % cmdstr)
-    print(cmdstr)
+    logger.info('[rsync] src_uri = %r ' % (src_uri,))
+    logger.info('[rsync] dst_uri = %r ' % (dst_uri,))
+    logger.info('[rsync] cmdstr = %r' % cmdstr)
+    logger.info(cmdstr)
 
     #if not dryrun:
     util_cplat.cmd(cmdstr, dryrun=dryrun)

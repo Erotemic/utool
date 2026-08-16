@@ -4,10 +4,10 @@ Ignore:
     ~/local/init/REPOS1.py
 """
 from __future__ import absolute_import, division, print_function  # , unicode_literals
+from loguru import logger
 from os.path import dirname, join
 from utool import util_dev
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 __GLOBAL_PROFILE__ = None
@@ -166,7 +166,7 @@ def setup_repo():
         >>> result = setup_repo()
         >>> print(result)
     """
-    print('\n [setup_repo]!')
+    logger.info('\n [setup_repo]!')
     # import os
     from functools import partial
     import utool as ut
@@ -624,7 +624,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     """
     import utool as ut
     user_profile = ensure_user_profile(user_profile)
-    print('user_profile = {!r}'.format(user_profile))
+    logger.info('user_profile = {!r}'.format(user_profile))
 
     kwargs = kwargs.copy()
     colored = kwargs.pop('colored', True)
@@ -645,7 +645,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     print_('tofind_list = %s' % (ut.repr4(tofind_list, nl=True),))
     #print_('grepkw = %s' % ut.repr4(grepkw, nl=True))
     if verbose:
-        print('\n'.join(msg_list1))
+        logger.info('\n'.join(msg_list1))
     #with ut.Timer('greping', verbose=True):
     grep_result = ut.grep(tofind_list, **grepkw)
     found_fpath_list, found_lines_list, found_lxs_list = grep_result
@@ -693,7 +693,7 @@ def grep_projects(tofind_list, user_profile=None, verbose=True, new=False,
     print_('')
     #print_('gvim -o ' + ' '.join(found_fpath_list))
     if verbose:
-        print('\n'.join(msg_list2))
+        logger.info('\n'.join(msg_list2))
     msg_list = msg_list1 + msg_list2
 
     if new:
@@ -875,12 +875,12 @@ def sed_projects(regexpr, repl, force=False, recursive=True, user_profile=None, 
 
     print_ = msg_list1.append
     print_('Seding Projects')
-    print(' * regular expression : %r' % (regexpr,))
-    print(' * replacement        : %r' % (repl,))
+    logger.info(' * regular expression : %r' % (regexpr,))
+    logger.info(' * replacement        : %r' % (repl,))
     print_('sedkw = %s' % ut.repr4(sedkw, nl=True))
 
-    print(' * recursive: %r' % (recursive,))
-    print(' * force: %r' % (force,))
+    logger.info(' * recursive: %r' % (recursive,))
+    logger.info(' * force: %r' % (force,))
 
     # Walk through each directory recursively
     for fpath in ut.matching_fpaths(sedkw['dpath_list'],

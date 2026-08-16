@@ -6,7 +6,6 @@ except Exception:
     from collections import MutableSet
 import weakref
 from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 
 class _Link(object):

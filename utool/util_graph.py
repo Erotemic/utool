@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 try:
     import numpy as np
 except ImportError:
@@ -14,7 +15,6 @@ from utool import util_inject
 from utool import util_const
 from functools import reduce
 import itertools as it
-(print, rrr, profile) = util_inject.inject2(__name__)
 
 
 def nx_topsort_nodes(graph, nodes):
@@ -604,7 +604,6 @@ def nx_delete_node_attr(graph, name, nodes=None):
     return removed
 
 
-@profile
 def nx_delete_edge_attr(graph, name, edges=None):
     r"""
     Removes an attributes from specific edges in the graph
@@ -1888,7 +1887,7 @@ def graph_info(graph, ignore=None, stats=False, verbose=False):
     #ut.dict_isect_combine(*node_attrs))
     #[list(attrs.keys())]
     if verbose:
-        print(ut.repr3(info_dict))
+        logger.info(ut.repr3(info_dict))
     return info_dict
 
 
@@ -2097,7 +2096,7 @@ def approx_min_num_components(nodes, negative_edges):
             # Iterate until n1 has no more possible connections
             neigbs = list(g_pos.neighbors(n1))
             neigbs = ut.isect(neigbs, unused)
-    print('num = %r' % (num,))
+    logger.info('num = %r' % (num,))
     return num
 
 

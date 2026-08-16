@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 try:
     import numpy as np
 except ImportError:
     pass
 import six
-import functools
 import sys
-import builtins
+from contextvars import ContextVar
 from utool._internal import meta_util_arg
 from utool import util_str
-from utool import util_inject
-print, rrr, profile = util_inject.inject2(__name__)
 
 QUIET        = meta_util_arg.QUIET
 VERBOSE      = meta_util_arg.VERBOSE
@@ -24,7 +22,7 @@ def print_dict(dict_, dict_name=None, **kwargs):
     if dict_name is None:
         dict_name = ut.get_varname_from_stack(dict_, N=1)
     dict_repr = util_str.repr4(dict_, **kwargs)
-    print(dict_name + ' = ' + dict_repr)
+    logger.info(dict_name + ' = ' + dict_repr)
 
 printdict = print_dict
 dictprint = print_dict
@@ -33,12 +31,12 @@ dictprint = print_dict
 def print_list(list_, **kwargs):
     import utool as ut
     list_name = ut.get_varname_from_stack(list_, N=1)
-    print(list_name + ' = ' + util_str.repr4(list_, **kwargs))
+    logger.info(list_name + ' = ' + util_str.repr4(list_, **kwargs))
 
 
 def horiz_print(*args):
     toprint = util_str.horiz_string(args)
-    print(toprint)
+    logger.info(toprint)
 
 
 #def set_indenting_enabled(flag):
@@ -48,114 +46,61 @@ def horiz_print(*args):
 #    return prev_flag
 
 
-def _test_indent_print():
-    # Indent test code doesnt work in doctest blocks.
-    import utool as ut
-    flag = ut.ensure_logging()
-    print('Checking indent. Should have none')
-    with ut.Indenter('[INDENT] '):
-        print('Checking indent. Should be indented')
-    print('Should no longer be indented')
-    text = ut.get_current_log_text()
-    # The last line might sometimes be empty or not.
-    # Not sure.
-    # New hack: had to put in stride. Seems like logs get written
-    # with two line breaks now
-    last_lines = text.split('\n')[-8::2]
-    if last_lines[-1] != '':
-        assert False, 'DEV ERROR. REMOVE FIRST LINE INSTEAD OF LAST'
-        last_lines = last_lines[:-1]
+_LOG_INDENT = ContextVar('utool_log_indent', default='')
 
-    #print('last_lines = %r' % (ut.repr3(last_lines)))
+
+def _test_indent_print():
+    """Exercise nested indentation without configuring application logging."""
+    messages = []
+
+    def capture(message):
+        prefix = message.record['extra'].get('utool_indent', '')
+        messages.append(prefix + message.record['message'])
+
+    sink_id = logger.add(capture, format='{message}')
     try:
-        assert last_lines[0].find('[INDENT] ') == -1, last_lines[0]
-        assert last_lines[1].find('[INDENT] ') >= 0, 'did not indent %r' % (last_lines[1],)
-        assert last_lines[2].find('[INDENT] ') == -1, last_lines[2]
-    except AssertionError:
-        print('Error. Last 3 lines')
-        print(ut.repr3(last_lines))
-        raise
-    if not flag:
-        ut.stop_logging()
+        logger.info('Checking indent. Should have none')
+        with Indenter('[INDENT] '):
+            logger.info('Checking indent. Should be indented')
+        logger.info('Should no longer be indented')
+    finally:
+        logger.remove(sink_id)
+
+    assert '[INDENT] ' not in messages[0]
+    assert messages[1].startswith('[INDENT] ')
+    assert '[INDENT] ' not in messages[2]
 
 
 class Indenter(object):
-    r"""
-    Monkey patches modules injected with print to change the way print behaves.
+    """Attach a contextual prefix to Loguru records emitted in this scope.
 
-    Works with utool.inject to allow for prefixing of all within-context
-    print statements in a semi-dynamic manner. There seem to be some bugs
-    but it works pretty well.
-
-    CommandLine:
-        python -m utool.util_print --exec-Indenter
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from utool.util_print import *  # NOQA
-        >>> import utool as ut
-        >>> ut.util_print._test_indent_print()
+    IBEIS includes ``utool_indent`` in its sink formatter, so existing
+    ``ut.Indenter`` and ``ut.indent_func`` call sites retain their diagnostic
+    grouping without monkey-patching module globals.
     """
-    # THIS IS MUCH BETTER
+
     def __init__(self, lbl='    ', enabled=True):
         self.enabled = enabled
-        if not NO_INDENT or not self.enabled:
-            #self.modules = modules
-            self.modules = util_inject.get_injected_modules()
-            self.old_print_dict = {}
-            #self.old_prints_ = {}
-            #self.old_printDBG_dict = {}
-            self.lbl = lbl
-            #self.INDENT_PRINT_ = False
+        self.lbl = lbl
+        self._token = None
+        self._context = None
 
     def start(self):
-        # Chain functions together rather than overwriting stdout
         if NO_INDENT or not self.enabled:
-            return builtins.print
-        def indent_msg(*args):
-            mgs = ', '.join(map(six.text_type, args))
-            return self.lbl + mgs.replace('\n', '\n' + self.lbl)
-
-        def push_module_functions(dict_, funcname):
-            for mod in self.modules:
-                try:
-                    dict_[mod] = getattr(mod, funcname)
-                except KeyError as ex:
-                    print('[utool] KeyError: ' + six.text_type(ex))
-                    print('[utool] WARNING: module=%r was loaded between indent sessions' % mod)
-                except AttributeError as ex:
-                    print('[utool] AttributeError: ' + six.text_type(ex))
-                    print('[utool] WARNING: module=%r does not have injected utool prints' % mod)
-
-        push_module_functions(self.old_print_dict, 'print')
-        for mod in self.old_print_dict.keys():
-            # Define the new print function
-            @functools.wraps(self.old_print_dict[mod])
-            def indent_print(*args):
-                self.old_print_dict[mod](indent_msg(', '.join(map(six.text_type, args))))
-            setattr(mod, 'print', indent_print)
-        return indent_print
-
-        #push_module_functions(self.old_printDBG_dict, 'printDBG')
-        #for mod in self.old_printDBG_dict.keys():
-        #    @functools.wraps(self.old_printDBG_dict[mod])
-        #    def indent_printDBG(msg):
-        #        self.old_printDBG_dict[mod](indent_msg(msg))
-        #    setattr(mod, 'printDBG', indent_printDBG)
+            return logger
+        prefix = _LOG_INDENT.get() + self.lbl
+        self._token = _LOG_INDENT.set(prefix)
+        self._context = logger.contextualize(utool_indent=prefix)
+        self._context.__enter__()
+        return logger
 
     def stop(self):
-        if NO_INDENT or not self.enabled:
-            return
-        def pop_module_functions(dict_, funcname):
-            for mod in six.iterkeys(dict_):
-                setattr(mod, funcname, dict_[mod])
-        pop_module_functions(self.old_print_dict, 'print')
-        #pop_module_functions(self.old_printDBG_dict, 'printDBG')
-        #for mod in six.iterkeys(self.old_print_dict):
-        #    setattr(mod, 'print', self.old_print_dict[mod])
-        #for mod in six.iterkeys(self.old_printDBG_dict):
-        #    setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
-        return builtins.print
+        if self._context is not None:
+            self._context.__exit__(None, None, None)
+            self._context = None
+        if self._token is not None:
+            _LOG_INDENT.reset(self._token)
+            self._token = None
 
     def __enter__(self):
         self.start()
@@ -165,16 +110,16 @@ class Indenter(object):
         self.stop()
         if trace is not None:
             if VERBOSE:
-                print('[util_print] Error in print context manager!: ' + str(value))
-            return False  # return a falsey value on error
+                logger.error('[util_print] Error in print context manager!: {}', value)
+            return False
 
 
 def printshape(arr_name, locals_):
     arr = locals_[arr_name]
     if isinstance(arr, np.ndarray):
-        print(arr_name + '.shape = ' + str(arr.shape))
+        logger.info(arr_name + '.shape = ' + str(arr.shape))
     else:
-        print('len(%s) = %r' % (arr_name, len(arr)))
+        logger.info('len(%s) = %r' % (arr_name, len(arr)))
 
 
 #class NpPrintOpts(object):
@@ -198,12 +143,12 @@ def printshape(arr_name, locals_):
 
 def printVERBOSE(msg, verbarg):
     if VERBOSE or verbarg in sys.argv:
-        print(msg)
+        logger.info(msg)
 
 
 def printNOTQUIET(msg):
     if not QUIET:
-        print(msg)
+        logger.info(msg)
 
 
 def printWARN(msg):
@@ -211,20 +156,20 @@ def printWARN(msg):
         import colorama
         from colorama import Fore, Style
         colorama.init()
-        print(Fore.RED + msg + Style.RESET_ALL)
+        logger.info(Fore.RED + msg + Style.RESET_ALL)
         colorama.deinit()
     except ImportError:
-        print(msg)
+        logger.info(msg)
 
 
 def print_filesize(fpath):
-    print(util_str.filesize_str(fpath))
+    logger.info(util_str.filesize_str(fpath))
 
 
 def printif(func, condition=VERBOSE and not QUIET):
     """ execute printfunc only if condition=QUIET"""
     if condition:
-        print(func())
+        logger.info(func())
 
 
 def print_python_code(text):
@@ -252,7 +197,7 @@ def print_code(text, lexer_name='python'):
         >>> # execute function
         >>> print_python_code(text)
     """
-    print(util_str.highlight_code(text, lexer_name))
+    logger.info(util_str.highlight_code(text, lexer_name))
 
 
 def print_difftext(text, other=None):
@@ -270,11 +215,11 @@ def print_difftext(text, other=None):
         text = util_str.difftext(text, other)
     colortext = util_str.color_diff_text(text)
     try:
-        print(colortext)
+        logger.info(colortext)
     except UnicodeEncodeError as ex:  # NOQA
         import unicodedata
         colortext = unicodedata.normalize('NFKD', colortext).encode('ascii', 'ignore')
-        print(colortext)
+        logger.info(colortext)
 
 
 def colorprint(text, color=None):
@@ -320,7 +265,7 @@ def colorprint(text, color=None):
         >>> colorprint('line5', 'fuchsia')
         >>> print('line6')
     """
-    print(util_str.color_text(text, color))
+    logger.info(util_str.color_text(text, color))
 
 
 cprint = colorprint
@@ -350,7 +295,7 @@ def print_locals(*args, **kwargs):
     if not to_print:
         to_print = locals_
     locals_str = util_str.repr4(to_print)
-    print(locals_str)
+    logger.info(locals_str)
 
 
 if __name__ == '__main__':
