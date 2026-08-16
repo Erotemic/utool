@@ -167,7 +167,7 @@ jobs:
         # Xcookie generates an explicit list of environments that will be used
         # for testing instead of using the more concise matrix notation.
         include:
-        - python-version: '3.8'
+        - python-version: '3.9'
           install-extras: tests
           os: ubuntu-latest
           arch: auto
@@ -175,7 +175,7 @@ jobs:
           check-latest: 'false'
           use-lockfile: 'true'
           lock-requirements: requirements/locks/tests.txt
-        - python-version: '3.8'
+        - python-version: '3.9'
           install-extras: tests
           os: macOS-latest
           arch: auto
@@ -183,7 +183,7 @@ jobs:
           check-latest: 'false'
           use-lockfile: 'true'
           lock-requirements: requirements/locks/tests.txt
-        - python-version: '3.8'
+        - python-version: '3.9'
           install-extras: tests
           os: windows-latest
           arch: auto
@@ -225,13 +225,6 @@ jobs:
         - python-version: '3.14'
           install-extras: tests
           os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.8'
-          install-extras: tests,optional
-          os: ubuntu-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
@@ -278,13 +271,6 @@ jobs:
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
-        - python-version: '3.8'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
         - python-version: '3.9'
           install-extras: tests,optional
           os: macOS-latest
@@ -323,13 +309,6 @@ jobs:
         - python-version: '3.14'
           install-extras: tests,optional
           os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.8'
-          install-extras: tests,optional
-          os: windows-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
