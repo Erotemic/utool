@@ -12,11 +12,10 @@ license-files = [
   "LICENSE",
 ]
 authors = [ { name = "Jon Crall", email = "erotemic@gmail.com" } ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -122,7 +121,7 @@ os = [
   "win",
 ]
 url = "https://github.com/Erotemic/utool"
-min_python = 3.9
+min_python = 3.10
 max_python = 3.14
 version = "{mod_dpath}/__init__.py::__version__"
 author = "Jon Crall"
