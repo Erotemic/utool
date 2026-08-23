@@ -916,7 +916,6 @@ def cmd(*args, **kwargs):
         quiet = kwargs.pop('quiet', False)
         silence = kwargs.pop('silence', False)
         if pad_stdout:
-            sys.stdout.flush()
             logger.info('\n+--------')
         args = __parse_cmd_args(args, sudo, shell)
         # Print what you are about to do
@@ -947,8 +946,7 @@ def cmd(*args, **kwargs):
                     line_ = line if six.PY2 else line
                     if len(line_) > 0:
                         if not silence:
-                            sys.stdout.write(line_)
-                            sys.stdout.flush()
+                            logger.opt(raw=True).info(line_)
                         logged_out.append(line)
                 try:
                     from utool import util_str  # NOQA
@@ -1029,16 +1027,13 @@ def cmd2(command, shell=False, detatch=False, verbose=False, verbout=None):
     if detatch:
         info = {'proc': proc}
     else:
-        write_fn = sys.stdout.write
-        flush_fn = sys.stdout.flush
         logged_out = []
         for line in _run_process(proc):
             #line_ = line if six.PY2 else line.decode('utf-8')
             line_ = line if six.PY2 else line
             if len(line_) > 0:
                 if verbout:
-                    write_fn(line_)
-                    flush_fn()
+                    logger.opt(raw=True).info(line_)
                 logged_out.append(line)
         try:
             from utool import util_str  # NOQA

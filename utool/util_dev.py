@@ -419,7 +419,6 @@ def timeit_compare(stmt_list, setup='', iterations=100000, verbose=True,
         for count, stmt in enumerate(stmt_list):
             logger.info('|     | %3d | %r' % (count, stmt))
         logger.info('...')
-        sys.stdout.flush()
         #print('+     L________________')
 
     if assertsame:

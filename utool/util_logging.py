@@ -52,32 +52,50 @@ __UTOOL_FLUSH__     = None
 __UTOOL_WRITE_BUFFER__ = []
 
 
+class _NullTextIO(object):
+    encoding = 'utf-8'
+
+    def write(self, text):
+        return len(text)
+
+    def flush(self):
+        pass
+
+    def isatty(self):
+        return False
+
+
+_NULL_TEXT_IO = _NullTextIO()
+
+
 def _utool_stdout():
     if __UTOOL_STDOUT__ is not None:
         return __UTOOL_STDOUT__
-    else:
-        return sys.stdout
+    stream = sys.stdout or getattr(sys, '__stdout__', None)
+    return stream if stream is not None else _NULL_TEXT_IO
 
 
 def _utool_write():
     if __UTOOL_WRITE__ is not None:
         return __UTOOL_WRITE__
-    else:
-        return sys.stdout.write
+    return _utool_stdout().write
 
 
 def _utool_flush():
     if __UTOOL_FLUSH__ is not None:
         return __UTOOL_FLUSH__
-    else:
-        return sys.stdout.flush
+    return _utool_stdout().flush
+
+
+def _safe_print(*args, **kwargs):
+    kwargs.setdefault('file', _utool_stdout())
+    return builtins.print(*args, **kwargs)
 
 
 def _utool_print():
     if __UTOOL_PRINT__ is not None:
         return __UTOOL_PRINT__
-    else:
-        return builtins.print
+    return _safe_print
 
 
 __STR__ = six.text_type
@@ -319,8 +337,8 @@ class CustomStreamHandler(logging.Handler):
         self.terminator = "\n"
         logging.Handler.__init__(self)
         if stream is None:
-            stream = sys.stderr
-        self.stream = stream
+            stream = sys.stderr or getattr(sys, '__stderr__', None)
+        self.stream = stream if stream is not None else _NULL_TEXT_IO
 
     def flush(self):
         """
