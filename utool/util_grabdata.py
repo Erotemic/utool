@@ -317,8 +317,7 @@ def download_url(url, filename=None, spoof=False, iri_fallback=True,
         kb_per_second = int(num_kb_down / (total_seconds))
         fmt_msg = '\r...%d%%, %d MB, %d KB/s, %d seconds passed'
         msg = fmt_msg % (percent_down, num_mb_down, kb_per_second, total_seconds)
-        sys.stdout.write(msg)
-        sys.stdout.flush()
+        logger.opt(raw=True).info(msg)
     if verbose:
         reporthook = functools.partial(reporthook_, start_time=time.time())
     else:

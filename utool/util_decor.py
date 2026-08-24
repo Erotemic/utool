@@ -650,10 +650,7 @@ def interested(func):
     #@ignores_exc_tb
     #@wraps(func)
     def wrp_interested(*args, **kwargs):
-        sys.stdout.write('#\n')
-        sys.stdout.write('#\n')
-        sys.stdout.write(
-            '<!INTERESTED>: ' + meta_util_six.get_funcname(func) + '\n')
+        logger.info('#\n#\n<!INTERESTED>: {}', meta_util_six.get_funcname(func))
         logger.info('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return wrp_interested

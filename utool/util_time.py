@@ -10,7 +10,6 @@ References:
 """
 from __future__ import absolute_import, division, print_function
 from loguru import logger
-import sys
 import six
 import time
 import calendar
@@ -51,7 +50,7 @@ def toc(tt, return_msg=False, write_msg=True, verbose=None):
     (msg, start_time) = tt
     ellapsed = (default_timer() - start_time)
     if (not return_msg) and write_msg and msg is not None:
-        sys.stdout.write('...toc(%.4fs, ' % ellapsed + '"' + str(msg) + '"' + ')\n')
+        logger.info('...toc({:.4f}s, \"{}\")', ellapsed, msg)
     if return_msg:
         return msg
     else:

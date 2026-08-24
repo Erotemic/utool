@@ -944,7 +944,6 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
     #print('#module = ' + str(module_))
     ret = __explore_module(module_, '     ', seen, 0, maxdepth, nonmodules)
     #print(ret)
-    sys.stdout.flush()
     return ret
 
 
@@ -1067,8 +1066,8 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
     if use_stdout:
         def print_func(*args):
             msg = ', '.join(list(map(six.text_type, args)))
-            sys.stdout.write(msg + '\n')
-            sys.stdout.flush()
+            ut.util_logging._utool_write()(msg + '\n')
+            ut.util_logging._utool_flush()()
     else:
         print_func = ut.partial(ut.colorprint, color='yellow' if iswarning else 'red')
         # print_func = print
@@ -1080,8 +1079,9 @@ def printex(ex, msg='[!?] Caught exception', prefix=None, key_list=[],
         print_func('\nL______\n')
     # If you dont know where an error is coming from raise-all
     if (reraise and not iswarning) or RAISE_ALL:
-        sys.stdout.flush()
-        sys.stderr.flush()
+        ut.util_logging._utool_flush()()
+        if sys.stderr is not None:
+            sys.stderr.flush()
         raise ex
     if ut.get_argflag('--exit-on-error'):
         logger.info('WARNING: dont use this flag. Some errors are meant to be caught')
