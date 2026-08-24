@@ -31,7 +31,7 @@ def test_utool_stream_helpers_without_stdio(monkeypatch):
 def test_cmd2_verbose_without_stdout(monkeypatch):
     monkeypatch.setattr(sys, 'stdout', None)
     info = ut.cmd2(
-        sys.executable + ' -c \"print(123)\"',
+        sys.executable + ' -c print(123)',
         verbose=1,
     )
     assert info['ret'] == 0
