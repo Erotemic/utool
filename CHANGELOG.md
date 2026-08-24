@@ -5,6 +5,9 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Version 2.4.1 - Unreleased
+
+
 ## Version 2.3.0 - 2026-08-16
 
 Version 2.2.2 was not published; its unreleased changes are included in this
