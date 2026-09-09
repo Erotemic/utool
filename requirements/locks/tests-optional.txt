@@ -35,7 +35,7 @@ flexparser==0.4 ; python_full_version >= '3.9'
     # via pint
 gitdb==4.0.12
     # via gitpython
-gitpython==3.1.58
+gitpython==3.1.59
     # via utool
 h5py==3.16.0 ; python_full_version >= '3.10' and python_full_version < '4'
     # via utool
