@@ -176,7 +176,7 @@ tzdata==2026.3 ; (python_full_version >= '3.9' and python_full_version < '4' and
     # via pandas
 ubelt==1.4.3
     # via utool
-urllib3==2.7.0 ; python_full_version >= '3.10'
+urllib3==2.8.0 ; python_full_version >= '3.10'
     # via requests
 win32-setctime==1.2.0 ; sys_platform == 'win32'
     # via loguru
